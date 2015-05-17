@@ -7,12 +7,15 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86
+		Test|x86 = Test|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.ActiveCfg = Debug|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.Build.0 = Debug|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.ActiveCfg = Release|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.Build.0 = Release|x86
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|x86.ActiveCfg = Test|x86
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|x86.Build.0 = Test|x86
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
