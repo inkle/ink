@@ -7,6 +7,44 @@ namespace inklecate2Sharp
 	{
 		public InkParser(string str) : base(str) { }
 
+		protected class InkStateElement : StateElement {
+			public int index;
+			public int lineIndex;
+		}
+
+		protected override StateElement parseState
+		{
+			get {
+				InkStateElement state = new InkStateElement ();
+				state.lineIndex = lineIndex;
+				state.index = index;
+				return state;
+			}
+
+			set {
+				InkStateElement state = value as InkStateElement;
+				lineIndex = state.lineIndex;
+				index = state.index;
+			}
+		}
+
+		protected override void SetParseState(StateElement s, bool dueToFailure)
+		{
+			InkStateElement state = s as InkStateElement;
+
+			// Rewind on failure
+			if( dueToFailure && state != null ) {
+				index = state.index;
+				lineIndex = state.lineIndex;
+			}
+
+//			if( state != null ) {
+//				_currentContentDepth = state.contentDepth;
+//			} else {
+//				_currentContentDepth = InkContentDepthGlobal;
+//			}
+		}
+
 		// Main entry point
 		public void Parse()
 		{
