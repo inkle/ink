@@ -21,7 +21,7 @@ namespace inklecate2Sharp
 
 			string inputString = File.ReadAllText(opts.inputFile);
 
-			Parser parser = new Parser(inputString);
+			InkParser parser = new InkParser(inputString);
 			parser.Parse();
 		}
 
