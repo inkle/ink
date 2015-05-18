@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace inklecate2Sharp
 {
@@ -36,6 +37,29 @@ namespace inklecate2Sharp
 				result = ParseSuccess;
 			}
 			return result;
+		}
+			
+		protected object Expect(ParseRule rule, string message = null, ParseRule recoveryRule = null)
+		{
+			object result = rule ();
+			if (result == null) {
+				if (message == null) {
+					message = rule.GetMethodInfo ().Name;
+				}
+
+				Error ("Expected "+message);
+
+				if (recoveryRule != null) {
+					result = recoveryRule ();
+				}
+			}
+			return result;
+		}
+
+		protected void Error(string message)
+		{
+			// TODO: Do something more sensible than this. Probably don't assert though?
+			Console.WriteLine ("ERROR: " + message);
 		}
 
 		protected void IncrementLine()
@@ -114,7 +138,7 @@ namespace inklecate2Sharp
 			};
 		}
 
-		public object Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null)
+		public List<object> Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null)
 		{
 			var results = new List<object> ();
 

@@ -12,7 +12,7 @@ namespace inklecate2Sharp
 			BeginRule();
 
 			object newlineOrEndOfFile = OneOf(Newline, EndOfFile);
-			if( newlineOrEndOfFile != null ) {
+			if( newlineOrEndOfFile == null ) {
 				return FailRule();
 			} else {
 				return SucceedRule(newlineOrEndOfFile);
@@ -50,7 +50,7 @@ namespace inklecate2Sharp
 			Whitespace();
 			SingleLineComment();
 
-			if( !endOfInput ) {
+			if( endOfInput ) {
 				return SucceedRule();
 			} else {
 				return FailRule();
@@ -75,7 +75,7 @@ namespace inklecate2Sharp
 			BeginRule();
 
 			List<object> newlines = OneOrMore(Newline);
-			if( newlines != null ) {
+			if( newlines == null ) {
 				return FailRule();
 			}
 
