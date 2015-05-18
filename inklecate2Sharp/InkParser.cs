@@ -8,7 +8,7 @@ namespace inklecate2Sharp
 		public InkParser(string str) : base(str) { }
 
 		// Main entry point
-		public override void Parse()
+		public void Parse()
 		{
 			var r = Interleave(() => ParseString("A"),
 				Optional(() => ParseString("B"))

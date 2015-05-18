@@ -3,19 +3,17 @@ using System.Collections.Generic;
 
 namespace inklecate2Sharp
 {
-	public abstract class StringParser
+	public class StringParser
 	{
 		public delegate object ParseRule();
 
-		protected StringParser (string str)
+		public StringParser (string str)
 		{
 			_chars = str.ToCharArray ();
 			
 			inputString = str;
 		}
-
-		abstract public void Parse ();
-
+			
 		public class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
@@ -70,7 +68,7 @@ namespace inklecate2Sharp
 		// Structuring
 		//--------------------------------
 
-		protected object OneOf(params ParseRule[] array)
+		public object OneOf(params ParseRule[] array)
 		{
 			foreach (ParseRule rule in array) {
 				BeginRule ();
@@ -86,7 +84,7 @@ namespace inklecate2Sharp
 			return null;
 		}
 
-		protected List<object> OneOrMore(ParseRule rule)
+		public List<object> OneOrMore(ParseRule rule)
 		{
 			var results = new List<object> ();
 
@@ -105,7 +103,7 @@ namespace inklecate2Sharp
 			}
 		}
 
-		protected ParseRule Optional(ParseRule rule)
+		public ParseRule Optional(ParseRule rule)
 		{
 			return () => {
 				object result = rule ();
@@ -116,7 +114,7 @@ namespace inklecate2Sharp
 			};
 		}
 
-		protected object Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null)
+		public object Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null)
 		{
 			var results = new List<object> ();
 
@@ -128,7 +126,7 @@ namespace inklecate2Sharp
 				results.Add (firstA);
 			}
 
-			object lastMainResult = null;
+			object lastMainResult = null, outerResult = null;
 			do {
 
 				// "until" condition hit?
@@ -146,16 +144,17 @@ namespace inklecate2Sharp
 				}
 
 				// Outer result (i.e. last A in ABA)
+				outerResult = null;
 				if( lastMainResult != null ) {
-					var trailingA = ruleA();
-					if (trailingA == null) {
+					outerResult = ruleA();
+					if (outerResult == null) {
 						break;
-					} else if (firstA != ParseSuccess) {
-						results.Add (trailingA);
+					} else if (outerResult != ParseSuccess) {
+						results.Add (outerResult);
 					}
 				}
 
-			} while(lastMainResult != null && remainingLength > 0);
+			} while((lastMainResult != null || outerResult != null) && remainingLength > 0);
 
 			return results;
 		}
