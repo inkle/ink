@@ -38,7 +38,7 @@ namespace inklecate2Sharp
 				return FailRule();
 			} else {
 				IncrementLine();
-				return SucceedRule(true);
+				return SucceedRule(ParseSuccess);
 			}
 		}
 
@@ -51,7 +51,7 @@ namespace inklecate2Sharp
 			SingleLineComment();
 
 			if( !endOfInput ) {
-				return SucceedRule(true);
+				return SucceedRule();
 			} else {
 				return FailRule();
 			}
@@ -66,7 +66,7 @@ namespace inklecate2Sharp
 
 			ParseUntilCharactersFromCharSet(_newlineChars);
 
-			return true;
+			return ParseSuccess;
 		}
 
 		// General purpose space, returns N-count newlines (fails if no newlines)
@@ -83,7 +83,7 @@ namespace inklecate2Sharp
 			// (in most circumstances it's unimportant)
 			int numNewlines = newlines.Count;
 			if (numNewlines >= 1) {
-				return SucceedRule (true);
+				return SucceedRule ();
 			} else {
 				return FailRule ();
 			}
@@ -93,7 +93,7 @@ namespace inklecate2Sharp
 		protected object Whitespace()
 		{
 			if( ParseCharactersFromCharSet(_inlineWhitespaceChars) != null ) {
-				return true;
+				return ParseSuccess;
 			}
 
 			return null;

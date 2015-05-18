@@ -16,6 +16,9 @@ namespace inklecate2Sharp
 
 		abstract public void Parse ();
 
+		public class ParseSuccessStruct {};
+		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
+
 		//--------------------------------
 		// Parse state
 		//--------------------------------
@@ -29,8 +32,11 @@ namespace inklecate2Sharp
 			return null;
 		}
 
-		protected object SucceedRule(object result)
+		protected object SucceedRule(object result = null)
 		{
+			if (result == null) {
+				result = ParseSuccess;
+			}
 			return result;
 		}
 
@@ -97,6 +103,61 @@ namespace inklecate2Sharp
 			} else {
 				return null;
 			}
+		}
+
+		protected ParseRule Optional(ParseRule rule)
+		{
+			return () => {
+				object result = rule ();
+				if( result == null ) {
+					result = ParseSuccess;
+				}
+				return result;
+			};
+		}
+
+		protected object Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null)
+		{
+			var results = new List<object> ();
+
+			// First outer padding
+			var firstA = ruleA();
+			if (firstA == null) {
+				return null;
+			} else if (firstA != ParseSuccess) {
+				results.Add (firstA);
+			}
+
+			object lastMainResult = null;
+			do {
+
+				// "until" condition hit?
+				// TODO: Do this
+//				if( untilTerminator != null && LookaheadParseRule(untilTerminator) ) {
+//					break;
+//				}
+
+				// Main inner
+				lastMainResult = ruleB();
+				if( lastMainResult == null ) {
+					break;
+				} else if( lastMainResult != ParseSuccess ) {
+					results.Add(lastMainResult);
+				}
+
+				// Outer result (i.e. last A in ABA)
+				if( lastMainResult != null ) {
+					var trailingA = ruleA();
+					if (trailingA == null) {
+						break;
+					} else if (firstA != ParseSuccess) {
+						results.Add (trailingA);
+					}
+				}
+
+			} while(lastMainResult != null && remainingLength > 0);
+
+			return results;
 		}
 
 		//--------------------------------

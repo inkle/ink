@@ -10,15 +10,21 @@ namespace inklecate2Sharp
 		// Main entry point
 		public override void Parse()
 		{
-			MultilineWhitespace();
+			var r = Interleave(() => ParseString("A"),
+				Optional(() => ParseString("B"))
+			);
 
-			ParseString ("§");
-
-			Whitespace ();
-
-			string identifier = Identifier ();
-
-			System.Console.WriteLine ("Knot id: " + identifier);
+			Console.WriteLine (r);
+			
+//			MultilineWhitespace();
+//
+//			ParseString ("§");
+//
+//			Whitespace ();
+//
+//			string identifier = Identifier ();
+//
+//			System.Console.WriteLine ("Knot id: " + identifier);
 		}
 
 		protected string Identifier()
