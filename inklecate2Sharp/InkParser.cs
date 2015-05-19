@@ -86,26 +86,6 @@ namespace inklecate2Sharp
 			return (string) SucceedRule (text);
 		}
 
-		protected object KnotDefinition()
-		{
-			BeginRule ();
-
-			Whitespace ();
-
-			if (ParseString ("§") == null) {
-				return FailRule ();
-			}
-
-			Whitespace ();
-
-			string knotName = Identifier ();
-			if (knotName == null) {
-				return FailRule ();
-			}
-
-			return SucceedRule (knotName);
-		}
-
 		protected string Identifier()
 		{
 			if (_identifierCharSet == null) {

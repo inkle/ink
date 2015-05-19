@@ -48,6 +48,7 @@
     <Compile Include="InkParser.cs" />
     <Compile Include="CharacterSet.cs" />
     <Compile Include="InkParser_Whitespace.cs" />
+    <Compile Include="InkParser_Knot.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

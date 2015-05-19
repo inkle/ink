@@ -93,7 +93,7 @@ namespace inklecate2Sharp
 					message = rule.GetMethodInfo ().Name;
 				}
 
-				Error ("Expected "+message);
+				Error ("Expected "+message+" on line "+(lineIndex+1));
 
 				if (recoveryRule != null) {
 					result = recoveryRule ();
