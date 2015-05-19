@@ -26,9 +26,14 @@ namespace inklecate2Sharp.Parsed
 			foreach (var parsedObj in content) {
 				Runtime.Object runtimeObj = parsedObj.runtimeObject;
 
-				// TODO: Treat knots and stitches specially
+				bool hasInitialContent = container.content.Count > 0;
 
-				container.AddContent (runtimeObj);
+				if (parsedObj is Knot && hasInitialContent) {
+					container.AddToNamedContentOnly ((INamedContent) runtimeObj);
+				} else {
+					container.AddContent (runtimeObj);
+				}
+					
 			}
 
 			return container;

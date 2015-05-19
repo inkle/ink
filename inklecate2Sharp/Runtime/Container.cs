@@ -51,11 +51,11 @@ namespace inklecate2Sharp.Runtime
 		{
 			var namedContentObj = contentObj as INamedContent;
 			if (namedContentObj != null && namedContentObj.hasValidName) {
-				AddToNamedContent (namedContentObj);
+				AddToNamedContentOnly (namedContentObj);
 			}
 		}
 
-		public void AddToNamedContent(INamedContent namedContentObj)
+		public void AddToNamedContentOnly(INamedContent namedContentObj)
 		{
 			namedContent [namedContentObj.name] = namedContentObj;
 		}
