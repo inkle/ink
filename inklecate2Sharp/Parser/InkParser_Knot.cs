@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using inklecate2Sharp.Parsed;
 
 namespace inklecate2Sharp
@@ -19,9 +20,22 @@ namespace inklecate2Sharp
 
 			string knotName = Expect(Identifier, "knot name") as string;
 
-			Knot knot = new Knot (knotName);
+			Expect(EndOfLine, "end of line after knot name", recoveryRule: SkipToNextLine);
+
+			var content = Expect(InnerKnotStatements, "at least one line within the knot", recoveryRule: () => {
+				var recoveredKnotContent = new List<Parsed.Object>();
+				recoveredKnotContent.Add( new Parsed.Text("<ERROR IN KNOT>" ) );
+				return recoveredKnotContent;
+			}) as List<object>;
+			 
+			Knot knot = new Knot (knotName, content);
 
 			return SucceedRule (knot);
+		}
+
+		protected List<object> InnerKnotStatements()
+		{
+			return StatementsAtLevel (StatementLevel.Knot);
 		}
 	}
 }

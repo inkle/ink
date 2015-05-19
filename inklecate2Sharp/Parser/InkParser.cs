@@ -77,18 +77,42 @@ namespace inklecate2Sharp
 		// Main entry point
 		public Parsed.Story Parse()
 		{
-			List<object> topLevelContent = Interleave (Optional(MultilineWhitespace), 
-					    							   TopLevelStatement);
+			List<object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
 
 			Parsed.Story story = new Parsed.Story (topLevelContent);
 			return story;
 		}
 
-		protected object TopLevelStatement()
+		protected enum StatementLevel
 		{
-			var statement = OneOf (KnotDefinition, TextContent);
+			Stitch,
+			Knot,
+			Top
+		}
 
-			Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
+		protected List<object> StatementsAtLevel(StatementLevel level)
+		{
+			return Interleave (Optional(MultilineWhitespace), 
+				               () => StatementAtLevel(level));
+		}
+
+		protected object StatementAtLevel(StatementLevel level)
+		{
+			List<ParseRule> rulesAtLevel = new List<ParseRule> ();
+
+			if (level >= StatementLevel.Top) {
+
+				// Knots can only be defined at Top/Global scope
+				rulesAtLevel.Add (KnotDefinition);
+			}
+
+			// Text can be defined anywhere
+			rulesAtLevel.Add(Line(TextContent));
+
+			var statement = OneOf (rulesAtLevel.ToArray());
+			if (statement == null) {
+				return null;
+			}
 
 			return statement;
 		}
@@ -98,6 +122,23 @@ namespace inklecate2Sharp
 			ParseUntilCharactersFromString ("\n\r");
 			Newline ();
 			return ParseSuccess;
+		}
+
+		// Modifier to turn a rule into one that expects a newline on the end.
+		// e.g. anywhere you can use "TextContent" as a rule, you can use 
+		// "Line(TextContent)" to specify that it expects a newline afterwards.
+		protected ParseRule Line(ParseRule inlineRule)
+		{
+			return () => {
+				var result = inlineRule();
+				if( result == null ) {
+					return null;
+				}
+
+				Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
+
+				return result;
+			};
 		}
 
 		protected Parsed.Text TextContent()

@@ -49,12 +49,13 @@
     <Compile Include="Parser\InkParser_Knot.cs" />
     <Compile Include="Parser\InkParser_Whitespace.cs" />
     <Compile Include="Parser\StringParser.cs" />
-    <Compile Include="ParsedObjects\Knot.cs" />
-    <Compile Include="ParsedObjects\Story.cs" />
-    <Compile Include="ParsedObjects\Object.cs" />
-    <Compile Include="ParsedObjects\DebugMetadata.cs" />
-    <Compile Include="ParsedObjects\Text.cs" />
     <Compile Include="Parser\InkParserState.cs" />
+    <Compile Include="Parser\ParsedObjects\ContainerBase.cs" />
+    <Compile Include="Parser\ParsedObjects\DebugMetadata.cs" />
+    <Compile Include="Parser\ParsedObjects\Knot.cs" />
+    <Compile Include="Parser\ParsedObjects\Object.cs" />
+    <Compile Include="Parser\ParsedObjects\Story.cs" />
+    <Compile Include="Parser\ParsedObjects\Text.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -64,6 +65,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Parser\" />
-    <Folder Include="ParsedObjects\" />
   </ItemGroup>
 </Project>

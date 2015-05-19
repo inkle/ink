@@ -3,13 +3,10 @@ using System.Collections.Generic;
 
 namespace inklecate2Sharp.Parsed
 {
-	public class Story : Parsed.Object
+	public class Story : ContainerBase
 	{
-		private List<object> content { get; set; }
-
-		public Story (List<object> toplevelObjects)
+		public Story (List<object> toplevelObjects) : base(null, toplevelObjects)
 		{
-			content = toplevelObjects;
 		}
 
 		public object ExportRuntime()
