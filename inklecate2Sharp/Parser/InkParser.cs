@@ -7,62 +7,52 @@ namespace inklecate2Sharp
 {
 	public partial class InkParser : StringParser
 	{
+		public InkParserState state { get; }
+
 		public InkParser(string str) : base(str) { 
-			_stack = new List<InkStateElement> ();
+			state = new InkParserState();
 		}
-
-		protected class InkStateElement {
-			public int index;
-			public int lineIndex;
-		}
-
-		protected InkStateElement parseState
+			
+		public override int lineIndex
 		{
-			get {
-				InkStateElement state = new InkStateElement ();
-				state.lineIndex = lineIndex;
-				state.index = index;
-				return state;
-			}
-
 			set {
-				InkStateElement state = value as InkStateElement;
-				lineIndex = state.lineIndex;
-				index = state.index;
+				state.lineIndex = value;
+			}
+			get {
+				return state.lineIndex;
+			}
+		}
+
+		public override int index
+		{
+			set {
+				state.characterIndex = value;
+			}
+			get {
+				return state.characterIndex;
 			}
 		}
 
 		protected override void BeginRule()
 		{
-			_stack.Add (parseState);
+			state.Push ();
 		}
 
 		protected override object FailRule()
 		{
-			if (_stack.Count == 0) {
-				throw new System.Exception ("State stack already empty! Mismatched Begin/Succceed/Fail?");
-			}
-
-			// Restore state
-			SetParseState(_stack.Last(), dueToFailure:true);
-			_stack.RemoveAt (_stack.Count - 1);
-
+			state.Pop ();
 			return null;
 		}
 
 		protected override void CancelRule()
 		{
-			FailRule ();
+			state.Pop ();
 		}
 
 		protected override object SucceedRule(object result = null)
 		{
-			if (_stack.Count == 0) {
-				throw new System.Exception ("State stack already empty! Mismatched Begin/Succceed/Fail?");
-			}
-
 			// Get state at point where this rule stared evaluating
-			InkStateElement stateAtBeginRule = _stack.Last ();
+			var stateAtBeginRule = state.Peek ();
 
 			// Apply DebugMetadata based on the state at the start of the rule
 			// (i.e. use line number as it was at the start of the rule)
@@ -73,30 +63,15 @@ namespace inklecate2Sharp
 				parsedObj.debugMetadata = md;
 			}
 
-			// Restore state
-			SetParseState(stateAtBeginRule, dueToFailure:false);
-			_stack.RemoveAt (_stack.Count - 1);
+			// Flatten state stack so that we maintain the same values,
+			// but remove one level in the stack.
+			state.Squash();
 
 			if (result == null) {
 				result = ParseSuccess;
 			}
 
 			return result;
-		}
-
-		protected void SetParseState(InkStateElement state, bool dueToFailure)
-		{
-			// Rewind on failure
-			if( dueToFailure && state != null ) {
-				index = state.index;
-				lineIndex = state.lineIndex;
-			}
-
-//			if( state != null ) {
-//				_currentContentDepth = state.contentDepth;
-//			} else {
-//				_currentContentDepth = InkContentDepthGlobal;
-//			}
 		}
 
 		// Main entry point
@@ -182,9 +157,6 @@ namespace inklecate2Sharp
 		}
 
 		private CharacterSet _simpleTextCharSet;
-
-
-		private List<InkStateElement> _stack;
 	}
 }
 

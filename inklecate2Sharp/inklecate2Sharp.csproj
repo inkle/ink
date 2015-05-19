@@ -54,6 +54,7 @@
     <Compile Include="ParsedObjects\Object.cs" />
     <Compile Include="ParsedObjects\DebugMetadata.cs" />
     <Compile Include="ParsedObjects\Text.cs" />
+    <Compile Include="Parser\InkParserState.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -70,32 +70,33 @@ namespace inklecate2Sharp
 
 		protected void IncrementLine()
 		{
-			_lineIndex++;
+			lineIndex++;
 		}
 
 		public bool endOfInput
 		{
-			get { return _index >= _chars.Length; }
+			get { return index >= _chars.Length; }
 		}
 
 		public string remainingString
 		{
 			get {
-				return new string(_chars, _index, remainingLength);
+				return new string(_chars, index, remainingLength);
 			}
 		}
 
 		public int remainingLength
 		{
 			get {
-				return _chars.Length - _index;
+				return _chars.Length - index;
 			}
 		}
 
 		public string inputString { get; }
 
-		protected int lineIndex { get { return _lineIndex; } set { _lineIndex = value; } }
-		protected int index { get { return _index; } set { _index = value; } }
+		// These are overriden to use the InkParserState values in InkParser
+		public virtual int lineIndex { get { return _lineIndex; } set { _lineIndex = value; } }
+		public virtual int index { get { return _index; } set { _index = value; } }
 
 		//--------------------------------
 		// Structuring
@@ -202,22 +203,22 @@ namespace inklecate2Sharp
 				return null;
 			}
 
-			int oldIndex = _index;
+			int oldIndex = index;
 
 			bool success = true;
 			foreach (char c in str) {
-				if ( _chars[_index] != c) {
+				if ( _chars[index] != c) {
 					success = false;
 					break;
 				}
-				_index++;
+				index++;
 			}
 
 			if (success) {
 				return str;
 			}
 			else {
-				_index = oldIndex;
+				index = oldIndex;
 				return null;
 			}
 		}
@@ -244,15 +245,15 @@ namespace inklecate2Sharp
 
 		protected string ParseCharactersFromCharSet(CharacterSet charSet, bool shouldIncludeChars = true)
 		{
-			int startIndex = _index;
+			int startIndex = index;
 
-			while ( _index < _chars.Length && charSet.Contains (_chars [_index]) == shouldIncludeChars) {
-				_index++;
+			while ( index < _chars.Length && charSet.Contains (_chars [index]) == shouldIncludeChars) {
+				index++;
 			}
 
-			int lastCharIndex = _index;
+			int lastCharIndex = index;
 			if (lastCharIndex > startIndex) {
-				return new string (_chars, startIndex, _index - startIndex);
+				return new string (_chars, startIndex, index - startIndex);
 			} else {
 				return null;
 			}
@@ -260,6 +261,8 @@ namespace inklecate2Sharp
 			
 
 		private char[] _chars;
+
+		// WARNING: These are invalid in InkParser since the index and lineIndex properties are overridden
 		private int _index;
 		private int _lineIndex;
 	}
