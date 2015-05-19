@@ -1,9 +1,9 @@
 ﻿
+-> SecondKnot
 
-§ the_knot_name
-	This is the text.
-	-> AnotherKnot
+§ FirstKnot
+	This is the first knot.
 
-
-§ AnotherKnot
-This is more text
+§ SecondKnot
+	This is the second knot.
+	-> FirstKnot

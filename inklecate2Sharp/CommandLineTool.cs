@@ -31,6 +31,10 @@ namespace inklecate2Sharp
 
 			if (opts.testMode) {
 				story.Begin ();
+
+				foreach(var obj in story.outputStream) {
+					Console.Write(obj);
+				}
 			}
 		}
 

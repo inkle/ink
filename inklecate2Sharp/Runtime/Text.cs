@@ -10,6 +10,11 @@ namespace inklecate2Sharp.Runtime
 		{
 			text = str;
 		}
+
+		public override string ToString ()
+		{
+			return text;
+		}
 	}
 }
 
