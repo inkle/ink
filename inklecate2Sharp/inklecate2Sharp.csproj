@@ -44,16 +44,25 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandLineTool.cs" />
-    <Compile Include="StringParser.cs" />
-    <Compile Include="InkParser.cs" />
     <Compile Include="CharacterSet.cs" />
-    <Compile Include="InkParser_Whitespace.cs" />
-    <Compile Include="InkParser_Knot.cs" />
+    <Compile Include="Parser\InkParser.cs" />
+    <Compile Include="Parser\InkParser_Knot.cs" />
+    <Compile Include="Parser\InkParser_Whitespace.cs" />
+    <Compile Include="Parser\StringParser.cs" />
+    <Compile Include="ParsedObjects\Knot.cs" />
+    <Compile Include="ParsedObjects\Story.cs" />
+    <Compile Include="ParsedObjects\Object.cs" />
+    <Compile Include="ParsedObjects\DebugMetadata.cs" />
+    <Compile Include="ParsedObjects\Text.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="test.ink">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Parser\" />
+    <Folder Include="ParsedObjects\" />
   </ItemGroup>
 </Project>

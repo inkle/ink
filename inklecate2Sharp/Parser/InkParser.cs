@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using inklecate2Sharp.Parsed;
 
 namespace inklecate2Sharp
 {
@@ -45,13 +46,21 @@ namespace inklecate2Sharp
 //			}
 		}
 
+		public Parsed.DebugMetadata CreateDebugMetadata()
+		{
+			var md = new Parsed.DebugMetadata ();
+			md.lineNumber = lineIndex + 1;
+			return md;
+		}
+
 		// Main entry point
-		public void Parse()
+		public Parsed.Story Parse()
 		{
 			List<object> topLevelContent = Interleave (Optional(MultilineWhitespace), 
 					    							   TopLevelStatement);
 
-			Console.WriteLine (topLevelContent);
+			Parsed.Story story = new Parsed.Story (topLevelContent);
+			return story;
 		}
 
 		protected object TopLevelStatement()
@@ -70,20 +79,20 @@ namespace inklecate2Sharp
 			return ParseSuccess;
 		}
 
-		protected string TextContent()
+		protected Parsed.Text TextContent()
 		{
 			BeginRule ();
 
 			Whitespace ();
 
-			string text = SimpleText ();
+			Parsed.Text text = SimpleText ();
 			if (text == null) {
-				return FailRule () as string;
+				return FailRule () as Parsed.Text;
 			}
 
 			Whitespace ();
 
-			return (string) SucceedRule (text);
+			return (Parsed.Text) SucceedRule (text);
 		}
 
 		protected string Identifier()
@@ -103,7 +112,7 @@ namespace inklecate2Sharp
 		private CharacterSet _identifierCharSet;
 
 
-		protected string SimpleText()
+		protected Parsed.Text SimpleText()
 		{
 			if (_simpleTextCharSet == null) {
 
@@ -119,7 +128,7 @@ namespace inklecate2Sharp
 
 				parsedText = parsedText.TrimEnd(' ');
 				if (parsedText.Length > 0) {
-					return parsedText;
+					return new Parsed.Text (parsedText);
 				}
 			}
 				

@@ -1,4 +1,5 @@
 ﻿using System;
+using inklecate2Sharp.Parsed;
 
 namespace inklecate2Sharp
 {
@@ -10,6 +11,8 @@ namespace inklecate2Sharp
 
 			Whitespace ();
 
+			var md = CreateDebugMetadata ();
+
 			if (ParseString ("§") == null) {
 				return FailRule ();
 			}
@@ -18,7 +21,10 @@ namespace inklecate2Sharp
 
 			string knotName = Expect(Identifier, "knot name") as string;
 
-			return SucceedRule (knotName);
+			Knot knot = new Knot (knotName);
+			knot.debugMetadata = md;
+
+			return SucceedRule (knot);
 		}
 	}
 }
