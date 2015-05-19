@@ -92,8 +92,10 @@ namespace inklecate2Sharp
 
 		protected List<Parsed.Object> StatementsAtLevel(StatementLevel level)
 		{
-			return Interleave (Optional(MultilineWhitespace), 
-				() => StatementAtLevel(level)).Cast<Parsed.Object>().ToList();
+			var statements = Interleave (Optional (MultilineWhitespace), 
+				                         () => StatementAtLevel (level));
+
+			return statements.Cast<Parsed.Object> ().ToList ();
 		}
 
 		protected object StatementAtLevel(StatementLevel level)
@@ -106,7 +108,8 @@ namespace inklecate2Sharp
 				rulesAtLevel.Add (KnotDefinition);
 			}
 
-			// Text can be defined anywhere
+			// The following statements can go anywhere
+			rulesAtLevel.Add(Line(Divert));
 			rulesAtLevel.Add(Line(TextContent));
 
 			var statement = OneOf (rulesAtLevel.ToArray());
@@ -156,6 +159,34 @@ namespace inklecate2Sharp
 
 			return (Parsed.Text) SucceedRule (text);
 		}
+			
+		protected Parsed.Divert Divert()
+		{
+			BeginRule ();
+
+			Whitespace ();
+
+			string divertArrowStr = DivertArrow ();
+			if (divertArrowStr == null) {
+				return FailRule () as Parsed.Divert;
+			}
+			bool isGlobal = divertArrowStr == "->";
+
+			Whitespace ();
+
+			string targetName = Identifier ();
+
+			Path targetPath = isGlobal ? Path.ToKnot (targetName) : Path.ToStitch (targetName);
+
+			return SucceedRule( new Divert( targetPath ) ) as Divert;
+		}
+
+		protected string DivertArrow()
+		{
+			return OneOf(() => ParseString("->"), 
+						 () => ParseString("-->")) as string;
+		}
+		
 
 		protected string Identifier()
 		{

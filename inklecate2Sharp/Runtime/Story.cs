@@ -36,7 +36,7 @@ namespace inklecate2Sharp.Runtime
 					
 					// Convert path to get first leaf content
 					Container currentContainer = currentContentObj as Container;
-					if( currentContentObj != null ) {
+					if( currentContainer != null ) {
 						currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
 						currentContentObj = ContentAtPath(currentPath);
 					}
