@@ -102,6 +102,20 @@ namespace inklecate2Sharp.Runtime
 			return p;
 		}
 
+		public Path PathByAppendingElementWithName(string name)
+		{
+			Path p = new Path (this.components);
+			p.components.Add (new Component (name));
+			return p;
+		}
+
+		public Path PathByAppendingElementWithIndex(int index)
+		{
+			Path p = new Path (this.components);
+			p.components.Add (new Component (index));
+			return p;
+		}
+
 		static public Path ToFirstElement()
 		{
 			return ToElementWithIndex (0);

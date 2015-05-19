@@ -16,6 +16,10 @@ namespace inklecate2Sharp.Parsed
 				topLevelObjects = new List<Parsed.Object> ();
 			}
 			this.content = topLevelObjects;
+
+			foreach (var child in this.content) {
+				child.parent = this;
+			}
 		}
 
 		public override Runtime.Object GenerateRuntimeObject()
@@ -37,6 +41,13 @@ namespace inklecate2Sharp.Parsed
 			}
 
 			return container;
+		}
+
+		public override void ResolvePaths ()
+		{
+			foreach (Parsed.Object obj in content) {
+				obj.ResolvePaths (); 
+			}
 		}
 	}
 }

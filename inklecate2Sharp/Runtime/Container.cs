@@ -44,6 +44,8 @@ namespace inklecate2Sharp.Runtime
 		{
 			content.Add (contentObj);
 
+			contentObj.parent = this;
+
 			TryAddNamedContent (contentObj);
 		}
 
@@ -57,6 +59,10 @@ namespace inklecate2Sharp.Runtime
 
 		public void AddToNamedContentOnly(INamedContent namedContentObj)
 		{
+			Debug.Assert (namedContentObj is Runtime.Object, "Can only add Runtime.Objects to a Runtime.Container");
+			var runtimeObj = (Runtime.Object)namedContentObj;
+			runtimeObj.parent = this;
+
 			namedContent [namedContentObj.name] = namedContentObj;
 		}
 
@@ -132,6 +138,22 @@ namespace inklecate2Sharp.Runtime
 			}
 
 			// Failed to increment
+			return null;
+		}
+
+		public override Path PathToChild(Runtime.Object child)
+		{
+			var namedChild = child as INamedContent;
+			if (namedChild != null && namedChild.hasValidName) {
+				return this.path.PathByAppendingElementWithName (namedChild.name);
+			}
+
+			int childIndex = content.IndexOf (child);
+			if (childIndex >= 0) {
+				return this.path.PathByAppendingElementWithIndex (childIndex);
+			}
+
+			// Not a child
 			return null;
 		}
 	}

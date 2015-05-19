@@ -9,6 +9,23 @@ namespace inklecate2Sharp.Parsed
 		{
 			this.name = name;
 		}
+
+		public override Parsed.Object ResolvePath(Path path)
+		{
+			string stitchName = path.stitchName;
+			if (stitchName == null) {
+				stitchName = path.ambiguousName;
+			}
+
+			bool searchInSelf = path.knotName == null || path.knotName == this.name;
+			if (stitchName != null && searchInSelf) {
+				foreach (Parsed.Object contentObj in content) {
+					// TODO: Cast to stitch and check whether the name matches
+				}
+			}
+
+			return base.ResolvePath (path);
+		}
 	}
 }
 

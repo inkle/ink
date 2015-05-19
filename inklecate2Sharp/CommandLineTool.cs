@@ -25,6 +25,10 @@ namespace inklecate2Sharp
 			Parsed.Story parsedStory = parser.Parse();
 			Runtime.Story story = parsedStory.ExportRuntime ();
 
+			foreach (string exportError in parsedStory.errors) {
+				Console.WriteLine ("ERROR: "+exportError);
+			}
+
 			if (opts.testMode) {
 				story.Begin ();
 			}

@@ -15,6 +15,20 @@ namespace inklecate2Sharp.Parsed
 		{
 			return new Runtime.Divert ();
 		}
+
+		public override void ResolvePaths()
+		{
+			Parsed.Object divertTargetObj = ResolvePath (target);
+			if (divertTargetObj == null) {
+
+				Error ("Divert: target not found: " + target);
+			} else {
+				var runtimeDivert = (Runtime.Divert)runtimeObject;
+				runtimeDivert.targetPath = divertTargetObj.runtimeObject.path;
+			}
+		}
+
+
 	}
 }
 
