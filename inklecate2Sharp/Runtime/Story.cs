@@ -41,8 +41,16 @@ namespace inklecate2Sharp.Runtime
 						currentContentObj = ContentAtPath(currentPath);
 					}
 
+					// Redirection?
+					Divert currentDivert = currentContentObj as Divert;
+					if( currentDivert != null ) {
+						_divertedPath = currentDivert.targetPath;
+					}
+
 					// Content
-					outputStream.Add(currentContentObj);
+					else {
+						outputStream.Add(currentContentObj);
+					}
 
 					Step();
 				}
@@ -52,16 +60,23 @@ namespace inklecate2Sharp.Runtime
 
 		public void Step()
 		{
-			// TODO: Redirection
+			// Divert step?
+			if (_divertedPath != null) {
+				currentPath = _divertedPath;
+				_divertedPath = null;
+				return;
+			}
+
 			// Can we increment successfully?
 			currentPath = _rootContainer.IncrementPath (currentPath);
 			if (currentPath == null) {
-
+				
 				// TODO: Try to recover by popping call stack
 			}
 		}
 
 		private Container _rootContainer;
+		private Path _divertedPath;
 	}
 }
 
