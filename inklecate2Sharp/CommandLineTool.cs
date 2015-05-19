@@ -22,8 +22,12 @@ namespace inklecate2Sharp
 			string inputString = File.ReadAllText(opts.inputFile);
 
 			InkParser parser = new InkParser(inputString);
-			Parsed.Story story = parser.Parse();
-			story.ExportRuntime ();
+			Parsed.Story parsedStory = parser.Parse();
+			Runtime.Story story = parsedStory.ExportRuntime ();
+
+			if (opts.testMode) {
+				story.Begin ();
+			}
 		}
 
 		Options ProcessArguments(string[] args)
