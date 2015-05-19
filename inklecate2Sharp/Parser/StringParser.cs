@@ -1,25 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Linq;
 
 namespace inklecate2Sharp
 {
 	public class StringParser
 	{
 		public delegate object ParseRule();
-
-		protected class StateElement
-		{
-
-		}
-
+		
 		public StringParser (string str)
 		{
 			_chars = str.ToCharArray ();
-
-			_stack = new List<StateElement> ();
-			
 			inputString = str;
 		}
 			
@@ -30,39 +21,23 @@ namespace inklecate2Sharp
 		// Parse state
 		//--------------------------------
 
-		protected void BeginRule()
+		protected virtual void BeginRule()
 		{
-			_stack.Add (parseState);
+			
 		}
 
-		protected object FailRule()
+		protected virtual object FailRule()
 		{
-			if (_stack.Count == 0) {
-				throw new System.Exception ("State stack already empty! Mismatched Begin/Succceed/Fail?");
-			}
-
-			// Restore state
-			SetParseState(_stack.Last(), dueToFailure:true);
-			_stack.RemoveAt (_stack.Count - 1);
-
 			return null;
 		}
 
-		protected void CancelRule()
+		protected virtual void CancelRule()
 		{
 			FailRule ();
 		}
 
-		protected object SucceedRule(object result = null)
+		protected virtual object SucceedRule(object result = null)
 		{
-			if (_stack.Count == 0) {
-				throw new System.Exception ("State stack already empty! Mismatched Begin/Succceed/Fail?");
-			}
-
-			// Restore state
-			SetParseState(_stack.Last(), dueToFailure:false);
-			_stack.RemoveAt (_stack.Count - 1);
-
 			if (result == null) {
 				result = ParseSuccess;
 			}
@@ -70,21 +45,6 @@ namespace inklecate2Sharp
 			return result;
 		}
 
-		protected virtual StateElement parseState
-		{
-			get {
-				return new StateElement ();
-			}
-			set {
-			
-			}
-		}
-
-		protected virtual void SetParseState(StateElement state, bool dueToFailure)
-		{
-
-		}
-			
 		protected object Expect(ParseRule rule, string message = null, ParseRule recoveryRule = null)
 		{
 			object result = rule ();
@@ -302,7 +262,6 @@ namespace inklecate2Sharp
 		private char[] _chars;
 		private int _index;
 		private int _lineIndex;
-		private List<StateElement> _stack;
 	}
 }
 
