@@ -77,7 +77,7 @@ namespace inklecate2Sharp
 		// Main entry point
 		public Parsed.Story Parse()
 		{
-			List<object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
+			List<Parsed.Object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
 
 			Parsed.Story story = new Parsed.Story (topLevelContent);
 			return story;
@@ -90,10 +90,10 @@ namespace inklecate2Sharp
 			Top
 		}
 
-		protected List<object> StatementsAtLevel(StatementLevel level)
+		protected List<Parsed.Object> StatementsAtLevel(StatementLevel level)
 		{
 			return Interleave (Optional(MultilineWhitespace), 
-				               () => StatementAtLevel(level));
+				() => StatementAtLevel(level)).Cast<Parsed.Object>().ToList();
 		}
 
 		protected object StatementAtLevel(StatementLevel level)

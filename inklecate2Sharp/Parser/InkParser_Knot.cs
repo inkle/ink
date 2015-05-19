@@ -26,14 +26,14 @@ namespace inklecate2Sharp
 				var recoveredKnotContent = new List<Parsed.Object>();
 				recoveredKnotContent.Add( new Parsed.Text("<ERROR IN KNOT>" ) );
 				return recoveredKnotContent;
-			}) as List<object>;
+			}) as List<Parsed.Object>;
 			 
 			Knot knot = new Knot (knotName, content);
 
 			return SucceedRule (knot);
 		}
 
-		protected List<object> InnerKnotStatements()
+		protected List<Parsed.Object> InnerKnotStatements()
 		{
 			return StatementsAtLevel (StatementLevel.Knot);
 		}

@@ -56,6 +56,11 @@
     <Compile Include="Parser\ParsedObjects\Object.cs" />
     <Compile Include="Parser\ParsedObjects\Story.cs" />
     <Compile Include="Parser\ParsedObjects\Text.cs" />
+    <Compile Include="Runtime\Container.cs" />
+    <Compile Include="Runtime\Object.cs" />
+    <Compile Include="Runtime\Text.cs" />
+    <Compile Include="Runtime\Story.cs" />
+    <Compile Include="Runtime\Path.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -65,5 +70,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Parser\" />
+    <Folder Include="Runtime\" />
   </ItemGroup>
 </Project>

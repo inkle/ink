@@ -10,6 +10,11 @@ namespace inklecate2Sharp.Parsed
 		{
 			content = str;
 		}
+
+		public override Runtime.Object GenerateRuntimeObject ()
+		{
+			return new Runtime.Text(this.content);
+		}
 	}
 }
 
