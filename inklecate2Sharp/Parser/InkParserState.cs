@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace inklecate2Sharp
+namespace Inklewriter
 {
 	public class InkParserState
 	{

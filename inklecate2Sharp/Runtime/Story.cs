@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
-namespace inklecate2Sharp.Runtime
+namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{

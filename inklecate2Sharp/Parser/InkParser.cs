@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using inklecate2Sharp.Parsed;
+using Inklewriter.Parsed;
 
-namespace inklecate2Sharp
+namespace Inklewriter
 {
 	public partial class InkParser : StringParser
 	{

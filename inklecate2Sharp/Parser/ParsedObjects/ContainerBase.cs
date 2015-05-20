@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace inklecate2Sharp.Parsed
+namespace Inklewriter.Parsed
 {
 	public class ContainerBase : Parsed.Object
 	{
@@ -33,7 +33,7 @@ namespace inklecate2Sharp.Parsed
 				bool hasInitialContent = container.content.Count > 0;
 
 				if (parsedObj is Knot && hasInitialContent) {
-					container.AddToNamedContentOnly ((INamedContent) runtimeObj);
+					container.AddToNamedContentOnly ((Runtime.INamedContent) runtimeObj);
 				} else {
 					container.AddContent (runtimeObj);
 				}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace inklecate2Sharp
+namespace Inklewriter
 {
 	public class CharacterSet : HashSet<char>
 	{

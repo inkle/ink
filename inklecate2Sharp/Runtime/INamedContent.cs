@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace inklecate2Sharp
+namespace Inklewriter.Runtime
 {
 	public interface INamedContent
 	{

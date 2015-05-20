@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace inklecate2Sharp.Parsed
+namespace Inklewriter.Parsed
 {
 	public class Path
 	{

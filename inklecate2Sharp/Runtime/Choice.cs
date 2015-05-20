@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace inklecate2Sharp.Runtime
+namespace Inklewriter.Runtime
 {
 	public class Choice : Runtime.Object
 	{

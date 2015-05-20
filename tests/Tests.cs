@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
-using inklecate2Sharp;
-using inklecate2Sharp.Runtime;
+using Inklewriter;
+using Inklewriter.Runtime;
 
 namespace Tests
 {

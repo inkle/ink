@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace inklecate2Sharp.Parsed
+namespace Inklewriter.Parsed
 {
 	public abstract class Object
 	{

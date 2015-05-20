@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace inklecate2Sharp
+namespace Inklewriter
 {
 	class CommandLineTool
 	{
