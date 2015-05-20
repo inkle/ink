@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
 namespace inklecate2Sharp
 {
@@ -16,6 +17,18 @@ namespace inklecate2Sharp
 			
 		public class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
+
+		public char currentCharacter
+		{
+			get 
+			{
+				if (index >= 0 && remainingLength <= 0) {
+					return _chars [index];
+				} else {
+					return (char)0;
+				}
+			}
+		}
 
 		//--------------------------------
 		// Parse state
@@ -197,7 +210,7 @@ namespace inklecate2Sharp
 		// Basic string parsing
 		//--------------------------------
 
-		public object ParseString(string str)
+		public string ParseString(string str)
 		{
 			if (str.Length > remainingLength) {
 				return null;
@@ -243,7 +256,7 @@ namespace inklecate2Sharp
 			return ParseCharactersFromCharSet (new CharacterSet(str), shouldIncludeStrChars);
 		}
 
-		protected string ParseCharactersFromCharSet(CharacterSet charSet, bool shouldIncludeChars = true)
+		public string ParseCharactersFromCharSet(CharacterSet charSet, bool shouldIncludeChars = true)
 		{
 			int startIndex = index;
 
@@ -258,6 +271,70 @@ namespace inklecate2Sharp
 				return null;
 			}
 		}
+
+		public object Peek(ParseRule rule)
+		{
+			BeginRule ();
+			object result = rule ();
+			CancelRule ();
+			return result;
+		}
+
+		public string ParseUntil(ParseRule stopRule, CharacterSet pauseCharacters = null, CharacterSet endCharacters = null)
+		{
+			BeginRule ();
+
+			
+			CharacterSet pauseAndEnd = new CharacterSet ();
+			if (pauseCharacters != null) {
+				pauseAndEnd.UnionWith (pauseCharacters);
+			}
+			if (endCharacters != null) {
+				pauseAndEnd.UnionWith (endCharacters);
+			}
+
+			StringBuilder parsedString = new StringBuilder ();
+			object ruleResultAtPause = null;
+
+			// Keep attempting to parse strings up to the pause (and end) points.
+			//  - At each of the pause points, attempt to parse according to the rule
+			//  - When the end point is reached (or EOF), we're done
+			do {
+
+				// TODO: Perhaps if no pause or end characters are passed, we should check *every* character for stopRule?
+				string partialParsedString = ParseUntilCharactersFromCharSet(pauseAndEnd);
+				if( partialParsedString != null ) {
+					parsedString.Append(partialParsedString);
+				}
+
+				// Attempt to run the parse rule at this pause point
+				ruleResultAtPause = Peek(stopRule);
+
+				// Rule completed - we're done
+				if( ruleResultAtPause != null ) {
+					break;
+				} else {
+
+					if( endOfInput ) {
+						break;
+					}
+
+					// Reached a pause point, but rule failed. Step past and continue parsing string
+					char pauseCharacter = currentCharacter;
+					if( pauseCharacters != null && pauseCharacters.Contains(pauseCharacter) ) {
+						parsedString.Append(pauseCharacter);
+						index++;
+						continue;
+					} else {
+						break;
+					}
+				}
+
+			} while(true);
+
+			return SucceedRule(parsedString.ToString()) as string;
+		}
+
 			
 
 		private char[] _chars;

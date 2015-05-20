@@ -110,6 +110,12 @@ namespace inklecate2Sharp
 
 			// The following statements can go anywhere
 			rulesAtLevel.Add(Line(Divert));
+
+			// Knots and stitches only
+			if (level <= StatementLevel.Knot) {
+				rulesAtLevel.Add(Line(Choice));
+			}
+
 			rulesAtLevel.Add(Line(TextContent));
 
 			var statement = OneOf (rulesAtLevel.ToArray());
@@ -202,8 +208,6 @@ namespace inklecate2Sharp
 			return ParseCharactersFromCharSet (_identifierCharSet);
 		}
 
-		private CharacterSet _identifierCharSet;
-
 
 		protected Parsed.Text SimpleText()
 		{
@@ -229,6 +233,7 @@ namespace inklecate2Sharp
 		}
 
 		private CharacterSet _simpleTextCharSet;
+		private CharacterSet _identifierCharSet;
 	}
 }
 

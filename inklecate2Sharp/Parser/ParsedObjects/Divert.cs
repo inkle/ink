@@ -6,6 +6,18 @@ namespace inklecate2Sharp.Parsed
 	{
 		public Parsed.Path target { get; protected set; }
 
+		public Runtime.Path runtimeTargetPath
+		{
+			get
+			{
+				if (runtimeObject == null) {
+					return null;
+				}
+
+				return (runtimeObject as Runtime.Divert).targetPath;
+			}
+		}
+
 		public Divert (Parsed.Path target)
 		{
 			this.target = target;

@@ -65,6 +65,9 @@
     <Compile Include="Parser\ParsedObjects\Divert.cs" />
     <Compile Include="Runtime\Divert.cs" />
     <Compile Include="Parser\ParsedObjects\Path.cs" />
+    <Compile Include="Parser\InkParser_Choices.cs" />
+    <Compile Include="Parser\ParsedObjects\Choice.cs" />
+    <Compile Include="Runtime\Choice.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

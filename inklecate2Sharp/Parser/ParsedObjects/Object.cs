@@ -24,10 +24,7 @@ namespace inklecate2Sharp.Parsed
 			}
 		}
 
-		public virtual Runtime.Object GenerateRuntimeObject()
-		{
-			return null;
-		}
+		public abstract Runtime.Object GenerateRuntimeObject ();
 
 		public virtual void ResolvePaths()
 		{
