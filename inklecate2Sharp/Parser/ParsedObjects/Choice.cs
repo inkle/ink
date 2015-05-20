@@ -11,6 +11,8 @@ namespace inklecate2Sharp.Parsed
 		{
 			this.choiceText = choiceText;
 			this.divert = divert;
+
+			divert.parent = this;
 		}
 
 		public override Runtime.Object GenerateRuntimeObject ()
@@ -29,5 +31,6 @@ namespace inklecate2Sharp.Parsed
 			runtimeChoice.pathOnChoice = divert.runtimeTargetPath;
 		}
 	}
+
 }
 

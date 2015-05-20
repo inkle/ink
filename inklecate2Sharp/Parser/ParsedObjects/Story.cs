@@ -5,11 +5,8 @@ namespace inklecate2Sharp.Parsed
 {
 	public class Story : ContainerBase
 	{
-		public List<string> errors { get; protected set; }
-
 		public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
-			errors = new List<string> ();
 		}
 
 		public Runtime.Story ExportRuntime()
@@ -61,7 +58,7 @@ namespace inklecate2Sharp.Parsed
 
 		public override void Error(string message, Parsed.Object source)
 		{
-			errors.Add (message);
+			Console.WriteLine ("ERROR: "+message);
 		}
 	}
 }

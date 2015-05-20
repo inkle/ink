@@ -68,6 +68,7 @@
     <Compile Include="Parser\InkParser_Choices.cs" />
     <Compile Include="Parser\ParsedObjects\Choice.cs" />
     <Compile Include="Runtime\Choice.cs" />
+    <Compile Include="Runtime\ChosenChoice.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

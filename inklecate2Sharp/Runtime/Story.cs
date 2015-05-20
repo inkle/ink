@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
 
 namespace inklecate2Sharp.Runtime
 {
@@ -7,6 +9,22 @@ namespace inklecate2Sharp.Runtime
 	{
 		public Path currentPath { get; protected set; }
 		public List<object> outputStream;
+
+		public List<Choice> currentChoices
+		{
+			get 
+			{
+				return CurrentOutput<Choice> ();
+			}
+		}
+
+		public string currentText
+		{
+			get 
+			{
+				return string.Join(separator:"", values: CurrentOutput<Runtime.Text> ());
+			}
+		}
 
 		public Story (Container rootContainer)
 		{
@@ -58,6 +76,24 @@ namespace inklecate2Sharp.Runtime
 			} while(currentContentObj != null && currentPath != null);
 		}
 
+		public void ContinueFromPath(Path path)
+		{
+			currentPath = path;
+			Continue ();
+		}
+
+		public void ContinueWithChoiceIndex(int choiceIdx)
+		{
+			var choices = this.currentChoices;
+			Debug.Assert (choiceIdx >= 0 && choiceIdx < choices.Count);
+
+			var choice = choices [choiceIdx];
+
+			outputStream.Add (new ChosenChoice (choice));
+
+			ContinueFromPath (choice.pathOnChoice);
+		}
+
 		public void Step()
 		{
 			// Divert step?
@@ -73,6 +109,29 @@ namespace inklecate2Sharp.Runtime
 				
 				// TODO: Try to recover by popping call stack
 			}
+		}
+
+		public List<T> CurrentOutput<T>() where T : class
+		{
+			List<T> result = new List<T> ();
+
+			for (int i = outputStream.Count - 1; i >= 0; --i) {
+				object outputObj = outputStream [i];
+
+				// "Current" is defined as "since last chosen choice"
+				if (outputObj is ChosenChoice) {
+					break;
+				}
+
+				T outputOfType = outputObj as T;
+				if (outputOfType != null) {
+
+					// Insert rather than Add since we're iterating in reverse
+					result.Insert (0, outputOfType);
+				}
+			}
+
+			return result;
 		}
 
 		private Container _rootContainer;

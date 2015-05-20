@@ -25,16 +25,21 @@ namespace inklecate2Sharp
 			Parsed.Story parsedStory = parser.Parse();
 			Runtime.Story story = parsedStory.ExportRuntime ();
 
-			foreach (string exportError in parsedStory.errors) {
-				Console.WriteLine ("ERROR: "+exportError);
-			}
-
 			if (opts.testMode) {
 				story.Begin ();
 
-				foreach(var obj in story.outputStream) {
-					Console.Write(obj);
+				var rand = new Random ();
+
+				while (story.currentChoices.Count > 0) {
+					var choices = story.currentChoices;
+					var choiceIdx = rand.Next () % choices.Count;
+
+					story.ContinueWithChoiceIndex (choiceIdx);
+
+					Console.WriteLine(story.currentText);
 				}
+
+
 			}
 		}
 
