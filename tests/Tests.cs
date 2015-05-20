@@ -1,12 +1,32 @@
 ﻿using NUnit.Framework;
 using System;
 using inklecate2Sharp;
+using inklecate2Sharp.Runtime;
 
-namespace tests
+namespace Tests
 {
 	[TestFixture ()]
-	public class Test
+	public class StringParserTests
 	{
+		// Helper compile function
+		protected Story CompileString(string str)
+		{
+			InkParser parser = new InkParser(str);
+			var parsedStory = parser.Parse();
+			Story story = parsedStory.ExportRuntime ();
+			return story;
+		}
+
+		[Test ()]
+		public void CompileHelloWorld()
+		{
+			Story story = CompileString ("Hello world");
+			story.Begin ();
+			Assert.AreEqual (story.currentText, "Hello world");
+		}
+
+		//------------------------------------------------------------------------
+
 		[Test ()]
 		public void TestStringParserABAB ()
 		{
@@ -65,6 +85,8 @@ namespace tests
 			var expected = new [] { "B", "A", "B", "B" };
 			Assert.AreEqual(expected, results);
 		}
+
+
 	}
 }
 
