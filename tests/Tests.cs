@@ -31,7 +31,7 @@ namespace Tests
 		public void TestStringParserABAB ()
 		{
 			StringParser p = new StringParser ("ABAB");
-			var results = p.Interleave (
+			var results = p.Interleave(
 				() => p.ParseString ("A"),
 				() => p.ParseString ("B"));
 

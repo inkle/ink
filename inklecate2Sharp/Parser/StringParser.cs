@@ -166,7 +166,28 @@ namespace Inklewriter
 			};
 		}
 
-		public List<object> Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null)
+		private void TryAddResultToList(object result, List<object> list, bool flatten = true)
+		{
+			if (result == ParseSuccess) {
+				return;
+			}
+
+			if (flatten) {
+				var resultCollection = result as System.Collections.ICollection;
+				if (resultCollection != null) {
+					foreach (object obj in resultCollection) {
+						list.Add (obj);
+					}
+					return;
+				} 
+			}
+
+
+			list.Add (result);
+		}
+
+		// TODO: Make this cast to generic T (since we usually have to cast anyway)
+		public List<object> Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null, bool flatten = true)
 		{
 			var results = new List<object> ();
 
@@ -174,8 +195,8 @@ namespace Inklewriter
 			var firstA = ruleA();
 			if (firstA == null) {
 				return null;
-			} else if (firstA != ParseSuccess) {
-				results.Add (firstA);
+			} else {
+				TryAddResultToList(firstA, results, flatten);
 			}
 
 			object lastMainResult = null, outerResult = null;
@@ -191,8 +212,8 @@ namespace Inklewriter
 				lastMainResult = ruleB();
 				if( lastMainResult == null ) {
 					break;
-				} else if( lastMainResult != ParseSuccess ) {
-					results.Add(lastMainResult);
+				} else {
+					TryAddResultToList(lastMainResult, results, flatten);
 				}
 
 				// Outer result (i.e. last A in ABA)
@@ -201,12 +222,14 @@ namespace Inklewriter
 					outerResult = ruleA();
 					if (outerResult == null) {
 						break;
-					} else if (outerResult != ParseSuccess) {
-						results.Add (outerResult);
+					} else {
+						TryAddResultToList(outerResult, results, flatten);
 					}
 				}
 
-			} while((lastMainResult != null || outerResult != null) && remainingLength > 0);
+			// Stop if there are no results, or if both are the placeholder "ParseSuccess" (i.e. Optional success rather than a true value)
+			} while((lastMainResult != null || outerResult != null) 
+				 && !(lastMainResult == ParseSuccess && outerResult == ParseSuccess) && remainingLength > 0);
 
 			return results;
 		}
@@ -337,7 +360,12 @@ namespace Inklewriter
 
 			} while(true);
 
-			return SucceedRule(parsedString.ToString()) as string;
+			if (parsedString.Length > 0) {
+				return SucceedRule (parsedString.ToString ()) as string;
+			} else {
+				return FailRule () as string;
+			}
+
 		}
 
 			

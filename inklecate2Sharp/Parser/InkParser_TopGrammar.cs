@@ -54,7 +54,7 @@ namespace Inklewriter
 				rulesAtLevel.Add (StitchDefinition);
 			}
 
-			rulesAtLevel.Add(Line(TextContent));
+			rulesAtLevel.Add(Line(MixedTextAndLogic));
 
 			var statement = OneOf (rulesAtLevel.ToArray());
 			if (statement == null) {
@@ -72,8 +72,8 @@ namespace Inklewriter
 		}
 
 		// Modifier to turn a rule into one that expects a newline on the end.
-		// e.g. anywhere you can use "TextContent" as a rule, you can use 
-		// "Line(TextContent)" to specify that it expects a newline afterwards.
+		// e.g. anywhere you can use "MixedTextAndLogic" as a rule, you can use 
+		// "Line(MixedTextAndLogic)" to specify that it expects a newline afterwards.
 		protected ParseRule Line(ParseRule inlineRule)
 		{
 			return () => {
@@ -86,22 +86,6 @@ namespace Inklewriter
 
 				return result;
 			};
-		}
-
-		protected Parsed.Text TextContent()
-		{
-			BeginRule ();
-
-			Whitespace ();
-
-			Parsed.Text text = SimpleText ();
-			if (text == null) {
-				return FailRule () as Parsed.Text;
-			}
-
-			Whitespace ();
-
-			return (Parsed.Text) SucceedRule (text);
 		}
 
 		protected Parsed.Divert Divert()
@@ -148,33 +132,71 @@ namespace Inklewriter
 
 			return ParseCharactersFromCharSet (_identifierCharSet);
 		}
+		private CharacterSet _identifierCharSet;
 
 
-		protected Parsed.Text SimpleText()
+		protected List<Parsed.Object> MixedTextAndLogic()
 		{
-			if (_simpleTextCharSet == null) {
-
-				_simpleTextCharSet = new CharacterSet();
-				_simpleTextCharSet.AddRange ('A', 'Z');
-				_simpleTextCharSet.AddRange ('a', 'z');
-				_simpleTextCharSet.AddRange ('0', '9');
-				_simpleTextCharSet.AddStringCharacters (".,? ");
-			}
-
-			string parsedText = ParseCharactersFromCharSet (_simpleTextCharSet);
-			if (parsedText != null) {
-
-				parsedText = parsedText.TrimEnd(' ');
-				if (parsedText.Length > 0) {
-					return new Parsed.Text (parsedText);
-				}
-			}
-
-			return null;
+			// Either, or both interleaved
+			return Interleave(Optional (ContentText), Optional (InlineLogic)).Cast<Parsed.Object>().ToList();
 		}
 
-		private CharacterSet _simpleTextCharSet;
-		private CharacterSet _identifierCharSet;
+		protected Parsed.Object InlineLogic()
+		{
+			BeginRule ();
+
+			if ( ParseString ("{") == null) {
+				return FailRule () as Parsed.Object;
+			}
+
+			Whitespace ();
+
+			var logic = InnerLogic ();
+
+			Whitespace ();
+
+			Expect (() => ParseString ("}"), "closing brace '}' for inline logic");
+
+			return SucceedRule(logic) as Parsed.Object;
+		}
+
+		protected Parsed.Object InnerLogic()
+		{
+			string str = ParseString("LOGIC_HERE");
+			return new Parsed.Text (str);
+		}
+
+		// Content text is an unusual parse rule compared with most since it's
+		// less about saying "this is is the small selection of stuff that we parse"
+		// and more "we parse ANYTHING except this small selection of stuff".
+		protected Parsed.Text ContentText()
+		{
+			// Eat through text, pausing at the following characters, and
+			// attempt to parse the nonTextRule.
+			// "/" for possible start of comment
+			// "-" for possible start of Divert
+			if (_nonTextPauseCharacters == null) {
+				_nonTextPauseCharacters = new CharacterSet ("-/");
+			}
+
+			// If we hit any of these characters, we stop *immediately* without bothering to even check the nonTextRule
+			if (_nonTextEndCharacters == null) {
+				_nonTextEndCharacters = new CharacterSet ("{\n\r");
+			}
+
+			// When the ParseUntil pauses, check these rules in case they evaluate successfully
+			ParseRule nonTextRule = () => OneOf (DivertArrow, EndOfLine);
+			
+			string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
+			if (pureTextContent != null ) {
+				return new Parsed.Text (pureTextContent);
+			} else {
+				return null;
+			}
+
+		}
+		private CharacterSet _nonTextPauseCharacters;
+		private CharacterSet _nonTextEndCharacters;
 	}
 }
 
