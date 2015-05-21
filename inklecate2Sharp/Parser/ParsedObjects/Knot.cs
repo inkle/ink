@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
-	public class Knot : ContainerBase
+	public class Knot : FlowBase
 	{
 		public Knot (string name, List<Parsed.Object> topLevelObjects) : base(name, topLevelObjects)
 		{

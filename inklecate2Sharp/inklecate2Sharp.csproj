@@ -50,7 +50,6 @@
     <Compile Include="Parser\InkParser_Whitespace.cs" />
     <Compile Include="Parser\StringParser.cs" />
     <Compile Include="Parser\InkParserState.cs" />
-    <Compile Include="Parser\ParsedObjects\ContainerBase.cs" />
     <Compile Include="Parser\ParsedObjects\DebugMetadata.cs" />
     <Compile Include="Parser\ParsedObjects\Knot.cs" />
     <Compile Include="Parser\ParsedObjects\Object.cs" />
@@ -71,6 +70,7 @@
     <Compile Include="Runtime\ChosenChoice.cs" />
     <Compile Include="Parser\ParsedObjects\Stitch.cs" />
     <Compile Include="Runtime\StackPush.cs" />
+    <Compile Include="Parser\ParsedObjects\FlowBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

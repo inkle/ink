@@ -3,12 +3,13 @@ using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
-	public class ContainerBase : Parsed.Object
+	// Base class for Knots and Stitches
+	public abstract class FlowBase : Parsed.Object
 	{
 		public string name { get; protected set; }
 		public List<Parsed.Object> content { get; protected set; }
 
-		public ContainerBase (string name = null, List<Parsed.Object> topLevelObjects = null)
+		public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null)
 		{
 			this.name = name;
 
@@ -36,7 +37,7 @@ namespace Inklewriter.Parsed
 				// Add named content (knots and stitches)
 				if (isKnotOrStitch && hasInitialContent) {
 
-					var knotOrStitch = parsedObj as ContainerBase;
+					var knotOrStitch = parsedObj as FlowBase;
 					if ( container.namedContent.ContainsKey(knotOrStitch.name) ) {
 						Error ("Duplicate content named " + knotOrStitch.name);
 					}
