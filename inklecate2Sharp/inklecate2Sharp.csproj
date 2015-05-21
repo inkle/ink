@@ -71,6 +71,7 @@
     <Compile Include="Parser\ParsedObjects\Stitch.cs" />
     <Compile Include="Runtime\StackPush.cs" />
     <Compile Include="Parser\ParsedObjects\FlowBase.cs" />
+    <Compile Include="Parser\InkParser_TopGrammar.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
