@@ -31,7 +31,7 @@ namespace Tests
 		public void TestStringParserABAB ()
 		{
 			StringParser p = new StringParser ("ABAB");
-			var results = p.Interleave(
+			var results = p.Interleave<string>(
 				() => p.ParseString ("A"),
 				() => p.ParseString ("B"));
 
@@ -43,7 +43,7 @@ namespace Tests
 		public void TestStringParserA ()
 		{
 			StringParser p = new StringParser ("A");
-			var results = p.Interleave (
+			var results = p.Interleave<string>(
 				() => p.ParseString ("A"),
 				() => p.ParseString ("B"));
 
@@ -55,7 +55,7 @@ namespace Tests
 		public void TestStringParserB ()
 		{
 			StringParser p = new StringParser ("B");
-			var result = p.Interleave (
+			var result = p.Interleave<string>(
 				() => p.ParseString ("A"),
 				() => p.ParseString ("B"));
 
@@ -66,7 +66,7 @@ namespace Tests
 		public void TestStringParserABAOptional ()
 		{
 			StringParser p = new StringParser ("ABAA");
-			var results = p.Interleave (
+			var results = p.Interleave<string>(
 				() => p.ParseString ("A"),
 				p.Optional(() => p.ParseString ("B")));
 
@@ -78,7 +78,7 @@ namespace Tests
 		public void TestStringParserABAOptional2 ()
 		{
 			StringParser p = new StringParser ("BABB");
-			var results = p.Interleave (
+			var results = p.Interleave<string>(
 				p.Optional(() => p.ParseString ("A")),
 				() => p.ParseString ("B"));
 

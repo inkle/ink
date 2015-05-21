@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Diagnostics;
 using System.Text;
 
 namespace Inklewriter
@@ -166,7 +167,7 @@ namespace Inklewriter
 			};
 		}
 
-		private void TryAddResultToList(object result, List<object> list, bool flatten = true)
+		private void TryAddResultToList<T>(object result, List<T> list, bool flatten = true)
 		{
 			if (result == ParseSuccess) {
 				return;
@@ -176,20 +177,20 @@ namespace Inklewriter
 				var resultCollection = result as System.Collections.ICollection;
 				if (resultCollection != null) {
 					foreach (object obj in resultCollection) {
-						list.Add (obj);
+						Debug.Assert (obj is T);
+						list.Add ((T)obj);
 					}
 					return;
 				} 
 			}
 
-
-			list.Add (result);
+			Debug.Assert (result is T);
+			list.Add ((T)result);
 		}
 
-		// TODO: Make this cast to generic T (since we usually have to cast anyway)
-		public List<object> Interleave(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null, bool flatten = true)
+		public List<T> Interleave<T>(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null, bool flatten = true)
 		{
-			var results = new List<object> ();
+			var results = new List<T> ();
 
 			// First outer padding
 			var firstA = ruleA();

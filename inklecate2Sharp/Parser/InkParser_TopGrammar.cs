@@ -25,10 +25,8 @@ namespace Inklewriter
 
 		protected List<Parsed.Object> StatementsAtLevel(StatementLevel level)
 		{
-			var statements = Interleave (Optional (MultilineWhitespace), 
+			return Interleave<Parsed.Object>(Optional (MultilineWhitespace), 
 				() => StatementAtLevel (level));
-
-			return statements.Cast<Parsed.Object> ().ToList ();
 		}
 
 		protected object StatementAtLevel(StatementLevel level)
@@ -138,7 +136,7 @@ namespace Inklewriter
 		protected List<Parsed.Object> MixedTextAndLogic()
 		{
 			// Either, or both interleaved
-			return Interleave(Optional (ContentText), Optional (InlineLogic)).Cast<Parsed.Object>().ToList();
+			return Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogic));
 		}
 
 		protected Parsed.Object InlineLogic()
