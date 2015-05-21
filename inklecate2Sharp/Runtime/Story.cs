@@ -31,6 +31,8 @@ namespace Inklewriter.Runtime
 			_rootContainer = rootContainer;
 
 			outputStream = new List<object> ();
+
+			_callStack = new List<Path> ();
 		}
 
 		public Runtime.Object ContentAtPath(Path path)
@@ -51,6 +53,8 @@ namespace Inklewriter.Runtime
 
 				currentContentObj = ContentAtPath(currentPath);
 				if( currentContentObj != null ) {
+
+					bool shouldStackPush = false;
 					
 					// Convert path to get first leaf content
 					Container currentContainer = currentContentObj as Container;
@@ -65,12 +69,22 @@ namespace Inklewriter.Runtime
 						_divertedPath = currentDivert.targetPath;
 					}
 
+					// Stack push?
+					// Defer it so that the path that's saved is *after the stack push
+					else if( currentContentObj is StackPush ) {
+						shouldStackPush = true;
+					}
+
 					// Content
 					else {
 						outputStream.Add(currentContentObj);
 					}
 
 					Step();
+
+					if( shouldStackPush ) {
+						PushToCallStack();
+					}
 				}
 
 			} while(currentContentObj != null && currentPath != null);
@@ -93,24 +107,7 @@ namespace Inklewriter.Runtime
 
 			ContinueFromPath (choice.pathOnChoice);
 		}
-
-		public void Step()
-		{
-			// Divert step?
-			if (_divertedPath != null) {
-				currentPath = _divertedPath;
-				_divertedPath = null;
-				return;
-			}
-
-			// Can we increment successfully?
-			currentPath = _rootContainer.IncrementPath (currentPath);
-			if (currentPath == null) {
-				
-				// TODO: Try to recover by popping call stack
-			}
-		}
-
+			
 		public List<T> CurrentOutput<T>() where T : class
 		{
 			List<T> result = new List<T> ();
@@ -134,8 +131,42 @@ namespace Inklewriter.Runtime
 			return result;
 		}
 
+		private void Step()
+		{
+			// Divert step?
+			if (_divertedPath != null) {
+				currentPath = _divertedPath;
+				_divertedPath = null;
+				return;
+			}
+
+			// Can we increment successfully?
+			currentPath = _rootContainer.IncrementPath (currentPath);
+			if (currentPath == null) {
+
+				// Failed to increment, so we've run out of content
+				// Try to pop call stack if possible
+				if (_callStack.Count > 0) {
+
+					// Pop currentPath from the call stack
+					currentPath = _callStack.Last ();
+					_callStack.RemoveAt (_callStack.Count - 1);
+
+					// Step past the point where we last called out
+					Step ();
+				}
+			}
+		}
+
+		private void PushToCallStack()
+		{
+			_callStack.Add (currentPath);
+		}
+
 		private Container _rootContainer;
 		private Path _divertedPath;
+
+		private List<Path> _callStack;
 	}
 }
 

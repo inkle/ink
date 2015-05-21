@@ -66,7 +66,7 @@ namespace Inklewriter
 					message = rule.GetMethodInfo ().Name;
 				}
 
-				Error ("Expected "+message+" on line "+(lineIndex+1));
+				Error ("Expected "+message+" on line "+(lineIndex+1)+" but saw '"+LimitedRemainingString(30)+"'");
 
 				if (recoveryRule != null) {
 					result = recoveryRule ();
@@ -96,6 +96,11 @@ namespace Inklewriter
 			get {
 				return new string(_chars, index, remainingLength);
 			}
+		}
+
+		public string LimitedRemainingString(int limit)
+		{
+			return new string (_chars, index, Math.Min (limit, remainingLength));
 		}
 
 		public int remainingLength

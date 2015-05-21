@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{D10ED1A8-CF83-4E58-B505-3714B3A16215}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>inklecate2Sharp</RootNamespace>
+    <RootNamespace>Inklewriter</RootNamespace>
     <AssemblyName>inklecate2Sharp</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
@@ -70,6 +70,7 @@
     <Compile Include="Runtime\Choice.cs" />
     <Compile Include="Runtime\ChosenChoice.cs" />
     <Compile Include="Parser\ParsedObjects\Stitch.cs" />
+    <Compile Include="Runtime\StackPush.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

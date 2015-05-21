@@ -177,6 +177,9 @@ namespace Inklewriter
 
 			Whitespace ();
 
+			var returningDivertChar = ParseString("<");
+			bool returning = returningDivertChar != null;
+
 			string divertArrowStr = DivertArrow ();
 			if (divertArrowStr == null) {
 				return FailRule () as Parsed.Divert;
@@ -189,7 +192,7 @@ namespace Inklewriter
 
 			Path targetPath = isGlobal ? Path.ToKnot (targetName) : Path.ToStitch (targetName);
 
-			return SucceedRule( new Divert( targetPath ) ) as Divert;
+			return SucceedRule( new Divert( targetPath, returning ) ) as Divert;
 		}
 
 		protected string DivertArrow()
@@ -222,7 +225,7 @@ namespace Inklewriter
 				_simpleTextCharSet.AddRange ('A', 'Z');
 				_simpleTextCharSet.AddRange ('a', 'z');
 				_simpleTextCharSet.AddRange ('0', '9');
-				_simpleTextCharSet.AddStringCharacters (".? ");
+				_simpleTextCharSet.AddStringCharacters (".,? ");
 			}
 
 			string parsedText = ParseCharactersFromCharSet (_simpleTextCharSet);

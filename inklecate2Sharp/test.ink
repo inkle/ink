@@ -2,11 +2,8 @@
 
 § FirstKnot
 	This is the first knot.
-	--> firstStitch
+	<--> firstStitch
+	Back into the first knot.
 
 	- firstStitch
-		This is the first stitch.
-		--> secondStitch
-
-	- secondStitch
-		This is the second stitch.
+		This is the first stitch, about to return.
