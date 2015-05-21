@@ -28,6 +28,11 @@ namespace Inklewriter.Parsed
 			// we want the paths to be absolute)
 			ResolvePaths ();
 
+			// Don't successfully return the object if there was an error
+			if (_criticalError) {
+				return null;
+			}
+
 			return runtimeStory;
 		}
 
@@ -59,7 +64,10 @@ namespace Inklewriter.Parsed
 		public override void Error(string message, Parsed.Object source)
 		{
 			Console.WriteLine ("ERROR: "+message);
+			_criticalError = true;
 		}
+
+		private bool _criticalError;
 	}
 }
 

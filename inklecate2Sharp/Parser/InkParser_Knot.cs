@@ -22,21 +22,48 @@ namespace Inklewriter
 
 			Expect(EndOfLine, "end of line after knot name", recoveryRule: SkipToNextLine);
 
-			var content = Expect(InnerKnotStatements, "at least one line within the knot", recoveryRule: () => {
-				var recoveredKnotContent = new List<Parsed.Object>();
-				recoveredKnotContent.Add( new Parsed.Text("<ERROR IN KNOT>" ) );
-				return recoveredKnotContent;
-			}) as List<Parsed.Object>;
+
+			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
+
+			var content = Expect(innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 			 
 			Knot knot = new Knot (knotName, content);
 
 			return SucceedRule (knot);
 		}
 
-		protected List<Parsed.Object> InnerKnotStatements()
+		protected object StitchDefinition()
 		{
-			return StatementsAtLevel (StatementLevel.Knot);
+			BeginRule ();
+
+			Whitespace ();
+
+			if (ParseString ("-") == null) {
+				return FailRule ();
+			}
+
+			Whitespace ();
+
+			string stitchName = Expect (Identifier, "stitch name") as string;
+
+			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
+
+			ParseRule innerStitchStatements = () => StatementsAtLevel (StatementLevel.Stitch);
+
+			var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
+
+			Stitch stitch = new Stitch (stitchName, content);
+
+			return SucceedRule (stitch);
 		}
+
+		protected object KnotStitchNoContentRecoveryRule()
+		{
+			var recoveredStitchContent = new List<Parsed.Object>();
+			recoveredStitchContent.Add( new Parsed.Text("<ERROR IN STITCH>" ) );
+			return recoveredStitchContent;
+		}
+
 	}
 }
 

@@ -10,6 +10,8 @@ namespace Inklewriter
 			public string inputFile;
 		}
 
+		public static int ExitCodeError = 1;
+
 		public static void Main (string[] args)
 		{
 			new CommandLineTool(args);
@@ -24,9 +26,14 @@ namespace Inklewriter
 			InkParser parser = new InkParser(inputString);
 			Parsed.Story parsedStory = parser.Parse();
 			Runtime.Story story = parsedStory.ExportRuntime ();
+			if (story == null) {
+				Environment.Exit (ExitCodeError);
+			}
 
 			if (opts.testMode) {
 				story.Begin ();
+
+				Console.WriteLine(story.currentText);
 
 				var rand = new Random ();
 

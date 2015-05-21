@@ -116,6 +116,11 @@ namespace Inklewriter
 				rulesAtLevel.Add(Line(Choice));
 			}
 
+			// Stitches can (currently) only go in Knots
+			if (level == StatementLevel.Knot) {
+				rulesAtLevel.Add (StitchDefinition);
+			}
+
 			rulesAtLevel.Add(Line(TextContent));
 
 			var statement = OneOf (rulesAtLevel.ToArray());

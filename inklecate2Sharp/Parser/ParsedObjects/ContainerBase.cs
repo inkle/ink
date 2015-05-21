@@ -30,9 +30,17 @@ namespace Inklewriter.Parsed
 			foreach (var parsedObj in content) {
 				Runtime.Object runtimeObj = parsedObj.runtimeObject;
 
+				bool isKnotOrStitch = parsedObj is Knot || parsedObj is Stitch;
 				bool hasInitialContent = container.content.Count > 0;
 
-				if (parsedObj is Knot && hasInitialContent) {
+				// Add named content (knots and stitches)
+				if (isKnotOrStitch && hasInitialContent) {
+
+					var knotOrStitch = parsedObj as ContainerBase;
+					if ( container.namedContent.ContainsKey(knotOrStitch.name) ) {
+						Error ("Duplicate content named " + knotOrStitch.name);
+					}
+
 					container.AddToNamedContentOnly ((Runtime.INamedContent) runtimeObj);
 				} else {
 					container.AddContent (runtimeObj);

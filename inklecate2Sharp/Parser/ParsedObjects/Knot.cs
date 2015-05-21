@@ -7,7 +7,6 @@ namespace Inklewriter.Parsed
 	{
 		public Knot (string name, List<Parsed.Object> topLevelObjects) : base(name, topLevelObjects)
 		{
-			this.name = name;
 		}
 
 		public override Parsed.Object ResolvePath(Path path)
@@ -20,7 +19,10 @@ namespace Inklewriter.Parsed
 			bool searchInSelf = path.knotName == null || path.knotName == this.name;
 			if (stitchName != null && searchInSelf) {
 				foreach (Parsed.Object contentObj in content) {
-					// TODO: Cast to stitch and check whether the name matches
+					var stitch = contentObj as Stitch;
+					if (stitch != null && stitch.name == stitchName) {
+						return stitch;
+					}
 				}
 			}
 

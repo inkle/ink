@@ -1,15 +1,12 @@
 ﻿
--> SecondKnot
 
 § FirstKnot
 	This is the first knot.
-	* go to first 	-> FirstKnot
-	* go to second  -> SecondKnot
-	* go to the end -> TheEnd
+	--> firstStitch
 
-§ SecondKnot
-	This is the second knot.
-	-> FirstKnot
+	- firstStitch
+		This is the first stitch.
+		--> secondStitch
 
-§ TheEnd
-	This the end.
+	- secondStitch
+		This is the second stitch.
