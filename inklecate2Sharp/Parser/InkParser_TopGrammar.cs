@@ -160,8 +160,7 @@ namespace Inklewriter
 
 		protected Parsed.Object InnerLogic()
 		{
-			string str = ParseString("LOGIC_HERE");
-			return new Parsed.Text (str);
+			return Expression ();
 		}
 
 		// Content text is an unusual parse rule compared with most since it's
