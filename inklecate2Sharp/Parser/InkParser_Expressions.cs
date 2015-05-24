@@ -89,7 +89,7 @@ namespace Inklewriter
 			}
 
 			if (negated) {
-				// TODO: Wrap expr
+				expr = new NegatedExpression (expr);
 			}
 
 			return SucceedRule (expr) as Expression;
