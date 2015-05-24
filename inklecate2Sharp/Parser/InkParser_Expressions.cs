@@ -77,12 +77,52 @@ namespace Inklewriter
 
 		protected Expression ExpressionUnary()
 		{
+			BeginRule ();
+
+			bool negated = ParseString ("-") != null;
+
+			Whitespace ();
+
+			var expr = OneOf (ExpressionParen, ExpressionValue) as Expression;
+			if (expr == null) {
+				return FailRule () as Expression;
+			}
+
+			if (negated) {
+				// TODO: Wrap expr
+			}
+
+			return SucceedRule (expr) as Expression;
+		}
+
+		protected Expression ExpressionValue()
+		{
 			int? intOrNull = ParseInt ();
 			if (intOrNull == null) {
 				return null;
 			} else {
 				return new Number (intOrNull.Value);
 			}
+		}
+
+		protected Expression ExpressionParen()
+		{
+			BeginRule ();
+
+			if (ParseString ("(") == null) {
+				return FailRule () as Expression;
+			}
+
+			var innerExpr = Expression ();
+			if (innerExpr == null) {
+				return FailRule () as Expression;
+			}
+
+			Whitespace ();
+
+			Expect (() => ParseString(")"), "closing parenthesis ')' for expression");
+
+			return SucceedRule (innerExpr) as Expression;
 		}
 
 		protected Expression ExpressionInfixRight(Parsed.Expression left, InfixOperator op)
