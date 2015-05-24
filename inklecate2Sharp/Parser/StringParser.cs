@@ -19,6 +19,8 @@ namespace Inklewriter
 		public class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
+		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");
+
 		public char currentCharacter
 		{
 			get 
@@ -232,6 +234,10 @@ namespace Inklewriter
 			} while((lastMainResult != null || outerResult != null) 
 				 && !(lastMainResult == ParseSuccess && outerResult == ParseSuccess) && remainingLength > 0);
 
+			if (results.Count == 0) {
+				return null;
+			}
+
 			return results;
 		}
 
@@ -369,7 +375,25 @@ namespace Inklewriter
 
 		}
 
-			
+		public int? ParseInt()
+		{
+			int oldIndex = index;
+
+			bool negative = ParseString ("-") != null;
+
+			// Optional whitespace
+			ParseCharactersFromString (" \t");
+
+			var parsedString = ParseCharactersFromCharSet (numbersCharacterSet);
+			int parsedInt;
+			if (int.TryParse (parsedString, out parsedInt)) {
+				return negative ? -parsedInt : parsedInt;
+			}
+
+			// Roll back and fail
+			index = oldIndex;
+			return null;
+		}
 
 		private char[] _chars;
 

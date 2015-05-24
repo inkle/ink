@@ -36,7 +36,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>DEBUG;</DefineConstants>
-    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -74,6 +74,7 @@
     <Compile Include="Parser\InkParser_TopGrammar.cs" />
     <Compile Include="Parser\ParsedObjects\Expression.cs" />
     <Compile Include="Parser\InkParser_Expressions.cs" />
+    <Compile Include="CommandLinePlayer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

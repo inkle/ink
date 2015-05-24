@@ -7,6 +7,7 @@ namespace Inklewriter
 	{
 		struct Options {
 			public bool testMode;
+			public bool playMode;
 			public string inputFile;
 		}
 
@@ -30,21 +31,11 @@ namespace Inklewriter
 				Environment.Exit (ExitCodeError);
 			}
 
-			if (opts.testMode) {
-				story.Begin ();
+			// Randomly play through
+			if (opts.playMode || opts.testMode) {
 
-				Console.WriteLine(story.currentText);
-
-				var rand = new Random ();
-
-				while (story.currentChoices.Count > 0) {
-					var choices = story.currentChoices;
-					var choiceIdx = rand.Next () % choices.Count;
-
-					story.ContinueWithChoiceIndex (choiceIdx);
-
-					Console.WriteLine(story.currentText);
-				}
+				var player = new CommandLinePlayer (story, autoPlay:opts.testMode);
+				player.Begin ();
 
 
 			}
@@ -61,12 +52,20 @@ namespace Inklewriter
 				var firstChar = arg.Substring(0,1);
 				if (firstChar == "-" && arg.Length > 1) {
 
-					var secondChar = arg.Substring(1,1);
+					char secondChar = arg [1];
 
-					// Test mode
-					if (secondChar == "t") {
-						opts.testMode = true;
+					switch (secondChar) {
+					case 't':
+						//opts.testMode = true;
+						opts.playMode = true;
 						opts.inputFile = "test.ink";
+						break;
+					case 'p':
+						opts.playMode = true;
+						break;
+					default:
+						Console.WriteLine ("Unsupported argument type: '{0}'", secondChar);
+						break;
 					}
 				}
 			}

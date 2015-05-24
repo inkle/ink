@@ -9,18 +9,6 @@ namespace Inklewriter.Parsed
 
 		public Runtime.Divert runtimeDivert { get; protected set; }
 
-		public Runtime.Path runtimeTargetPath
-		{
-			get
-			{
-				if (runtimeObject == null) {
-					return null;
-				}
-
-				return (runtimeObject as Runtime.Divert).targetPath;
-			}
-		}
-
 		public Divert (Parsed.Path target, bool returning)
 		{
 			this.target = target;
@@ -49,7 +37,7 @@ namespace Inklewriter.Parsed
 		{
 			Parsed.Object divertTargetObj = ResolvePath (target);
 			if (divertTargetObj == null) {
-				Error ("Divert: target not found: " + target);
+				Error ("Divert: target not found: '" + target.ToString () + "'");
 			} else {
 				runtimeDivert.targetPath = divertTargetObj.runtimeObject.path;
 			}

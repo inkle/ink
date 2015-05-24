@@ -34,6 +34,21 @@ namespace Inklewriter.Parsed
 		{
 			return new Path(ambiguousName: name);
 		}
+
+		public override string ToString ()
+		{
+			if (knotName != null) {
+				return "-> " + knotName;
+			}
+			if (stitchName != null) {
+				return "--> " + stitchName;
+			}
+			if (ambiguousName != null) {
+				return "-?-> " + ambiguousName;
+			}
+
+			return "<Unknown path>";
+		}
 	}
 }
 
