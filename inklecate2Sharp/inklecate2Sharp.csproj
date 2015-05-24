@@ -75,6 +75,7 @@
     <Compile Include="Parser\ParsedObjects\Expression.cs" />
     <Compile Include="Parser\InkParser_Expressions.cs" />
     <Compile Include="CommandLinePlayer.cs" />
+    <Compile Include="Parser\ParsedObjects\Number.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

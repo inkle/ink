@@ -10,6 +10,9 @@ namespace Inklewriter
 		public InkParserState state { get; }
 
 		public InkParser(string str) : base(str) { 
+
+			RegisterExpressionOperators ();
+
 			state = new InkParserState();
 		}
 			

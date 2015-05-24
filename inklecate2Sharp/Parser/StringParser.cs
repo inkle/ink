@@ -271,32 +271,38 @@ namespace Inklewriter
 			}
 		}
 
-		public string ParseUntilCharactersFromString(string str)
+		public string ParseUntilCharactersFromString(string str, int maxCount = -1)
 		{
-			return ParseCharactersFromString(str, false);
+			return ParseCharactersFromString(str, false, maxCount);
 		}
 
-		public string ParseUntilCharactersFromCharSet(CharacterSet charSet)
+		public string ParseUntilCharactersFromCharSet(CharacterSet charSet, int maxCount = -1)
 		{
-			return ParseCharactersFromCharSet(charSet, false);
+			return ParseCharactersFromCharSet(charSet, false, maxCount);
 		}
 
-		public string ParseCharactersFromString(string str)
+		public string ParseCharactersFromString(string str, int maxCount = -1)
 		{
-			return ParseCharactersFromString(str, true);
+			return ParseCharactersFromString(str, true, maxCount);
 		}
 
-		public string ParseCharactersFromString(string str, bool shouldIncludeStrChars)
+		public string ParseCharactersFromString(string str, bool shouldIncludeStrChars, int maxCount = -1)
 		{
 			return ParseCharactersFromCharSet (new CharacterSet(str), shouldIncludeStrChars);
 		}
 
-		public string ParseCharactersFromCharSet(CharacterSet charSet, bool shouldIncludeChars = true)
+		public string ParseCharactersFromCharSet(CharacterSet charSet, bool shouldIncludeChars = true, int maxCount = -1)
 		{
+			if (maxCount == -1) {
+				maxCount = int.MaxValue;
+			}
+
 			int startIndex = index;
 
-			while ( index < _chars.Length && charSet.Contains (_chars [index]) == shouldIncludeChars) {
+			int count = 0;
+			while ( index < _chars.Length && charSet.Contains (_chars [index]) == shouldIncludeChars && count < maxCount ) {
 				index++;
+				count++;
 			}
 
 			int lastCharIndex = index;

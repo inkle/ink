@@ -52,6 +52,8 @@ namespace Inklewriter
 				rulesAtLevel.Add (StitchDefinition);
 			}
 
+			rulesAtLevel.Add (LogicLine);
+
 			rulesAtLevel.Add(Line(MixedTextAndLogic));
 
 			var statement = OneOf (rulesAtLevel.ToArray());
@@ -132,6 +134,23 @@ namespace Inklewriter
 		}
 		private CharacterSet _identifierCharSet;
 
+
+		protected Parsed.Object LogicLine()
+		{
+			BeginRule ();
+
+			Whitespace ();
+
+			if (ParseString ("~") == null) {
+				return FailRule () as Parsed.Object;
+			}
+
+			Whitespace ();
+
+			var expr = (Parsed.Expression) Expect(Expression, "expression after '~'", recoveryRule: SkipToNextLine);
+
+			return SucceedRule (expr) as Expression;
+		}
 
 		protected List<Parsed.Object> MixedTextAndLogic()
 		{
