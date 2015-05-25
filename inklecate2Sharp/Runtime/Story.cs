@@ -77,7 +77,7 @@ namespace Inklewriter.Runtime
                     // Variable assignment
                     VariableAssignment varAss = currentContentObj as VariableAssignment;
                     if( varAss != null ) {
-                        object result = _evaluator.Evaluate(varAss.expression);
+                        object result = _evaluator.Evaluate(varAss.expression, this);
                         variables[varAss.variableName] = result;
                     }
 
@@ -90,7 +90,7 @@ namespace Inklewriter.Runtime
 					// Inline expression
 					else if( currentContentObj is Expression ) {
 						var expr = (Expression) currentContentObj;
-						var resultAsStr = _evaluator.Evaluate(expr).ToString();
+						var resultAsStr = _evaluator.Evaluate(expr, this).ToString();
 						outputStream.Add(new Text(resultAsStr));
 					}
 

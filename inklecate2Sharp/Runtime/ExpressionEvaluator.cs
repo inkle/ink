@@ -21,30 +21,42 @@ namespace Inklewriter.Runtime
 			RegisterUnaryOp (Expression.Negate, x => -(int)x); 
 		}
 
-		public object Evaluate(Expression expr)
+        public object Evaluate(Expression expr, Story context = null)
 		{
+            // Temporarily keep a refrence to the story context
+            currentContext = context;
+
 			evaluationStack.Clear ();
 
 			foreach(var term in expr.terms) {
 
 				// Values
-				if (term is int) {
-					Push (term);
-				} 
+                if (term is int) {
+                    Push (term);
+                } 
 
 				// Operators
 				else if (term is char) {
-					char op = (char)term;
+                    char op = (char)term;
 
-					if (binaryOps.ContainsKey (op)) {
-						DoBinary (binaryOps [op]);
-					}
+                    if (binaryOps.ContainsKey (op)) {
+                        DoBinary (binaryOps [op]);
+                    } else if (unaryOps.ContainsKey (op)) {
+                        DoUnary (unaryOps [op]);
+                    }
+                }
 
-					else if (unaryOps.ContainsKey (op)) {
-						DoUnary (unaryOps [op]);
-					}
-				}
+                // Variable reference
+                else if (term is string) {
+                    var varName = (string)term;
+                    Debug.Assert (context.variables.ContainsKey (varName), "Variable could not be found");
+                    object varContents = context.variables [varName];
+                    Push (varContents);
+                }
 			}
+
+            // Reset reference to the story context
+            currentContext = null;
 
 			Debug.Assert (evaluationStack.Count == 1);
 
@@ -62,29 +74,34 @@ namespace Inklewriter.Runtime
 			foreach(var term in expr.terms) {
 
 				// Values
-				if (term is int) {
-					Push(term);
-				} 
+                if (term is int) {
+                    Push (term);
+                } 
 
 				// Operators
 				else if (term is char) {
-					char op = (char)term;
+                    char op = (char)term;
 
-					if (binaryOps.ContainsKey (op)) {
-						DoBinary ((x, y) => string.Format ("({0} {1} {2})", x, op, y));
-					}
+                    if (binaryOps.ContainsKey (op)) {
+                        DoBinary ((x, y) => string.Format ("({0} {1} {2})", x, op, y));
+                    }
 
 					// Assume it's prefix unary (we only have negation at time of writing)
 					else if (unaryOps.ContainsKey (op)) {
 
-						// Replace special "~" negation operator with human-friendly "-"
-						if (op == Expression.Negate ) {
-							op = '-';
-						}
+                        // Replace special "~" negation operator with human-friendly "-"
+                        if (op == Expression.Negate) {
+                            op = '-';
+                        }
 
-						DoUnary (x => string.Format ("{0}{1}", op, x));
-					}
-				}
+                        DoUnary (x => string.Format ("{0}{1}", op, x));
+                    }
+                } 
+
+                // Variable reference
+                else if (term is string) {
+                    Push (term);
+                }
 			}
 
 			Debug.Assert (evaluationStack.Count == 1);
@@ -144,6 +161,7 @@ namespace Inklewriter.Runtime
 		List<object> evaluationStack;
 		Dictionary<char, BinaryOp> binaryOps;
 		Dictionary<char, UnaryOp> unaryOps;
+        Story currentContext;
 	}
 }
 

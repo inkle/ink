@@ -52,6 +52,7 @@
     <Compile Include="Parser\InkParserState.cs" />
     <Compile Include="Parser\ParsedObjects\DebugMetadata.cs" />
     <Compile Include="Parser\ParsedObjects\Knot.cs" />
+    <Compile Include="Parser\ParsedObjects\VariableReference.cs" />
     <Compile Include="Parser\ParsedObjects\Object.cs" />
     <Compile Include="Parser\ParsedObjects\Story.cs" />
     <Compile Include="Parser\ParsedObjects\Text.cs" />

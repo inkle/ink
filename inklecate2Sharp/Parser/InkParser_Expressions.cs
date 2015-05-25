@@ -128,7 +128,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			var expr = OneOf (ExpressionParen, ExpressionValue) as Expression;
+            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionVariableName) as Expression;
 			if (expr == null) {
 				return FailRule () as Expression;
 			}
@@ -140,7 +140,7 @@ namespace Inklewriter
 			return SucceedRule (expr) as Expression;
 		}
 
-		protected Expression ExpressionValue()
+		protected Expression ExpressionLiteral()
 		{
 			int? intOrNull = ParseInt ();
 			if (intOrNull == null) {
@@ -149,6 +149,16 @@ namespace Inklewriter
 				return new Number (intOrNull.Value);
 			}
 		}
+
+        protected Expression ExpressionVariableName()
+        {
+            var iden = Identifier ();
+            if (iden == null) {
+                return null;
+            } else {
+                return new VariableReference (iden);
+            }
+        }
 
 		protected Expression ExpressionParen()
 		{
