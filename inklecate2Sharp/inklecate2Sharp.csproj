@@ -77,6 +77,7 @@
     <Compile Include="CommandLinePlayer.cs" />
     <Compile Include="Parser\ParsedObjects\Number.cs" />
     <Compile Include="Runtime\Expression.cs" />
+    <Compile Include="Runtime\ExpressionEvaluator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

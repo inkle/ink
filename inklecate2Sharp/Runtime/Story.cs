@@ -33,6 +33,8 @@ namespace Inklewriter.Runtime
 			outputStream = new List<object> ();
 
 			_callStack = new List<Path> ();
+
+			_evaluator = new ExpressionEvaluator ();
 		}
 
 		public Runtime.Object ContentAtPath(Path path)
@@ -77,7 +79,7 @@ namespace Inklewriter.Runtime
 
 					else if( currentContentObj is Expression ) {
 						var expr = (Expression) currentContentObj;
-						var resultAsStr = expr.Evaluate().ToString();
+						var resultAsStr = _evaluator.Evaluate(expr).ToString();
 						outputStream.Add(new Text(resultAsStr));
 					}
 
@@ -173,6 +175,8 @@ namespace Inklewriter.Runtime
 		private Path _divertedPath;
 
 		private List<Path> _callStack;
+
+		private ExpressionEvaluator _evaluator;
 	}
 }
 
