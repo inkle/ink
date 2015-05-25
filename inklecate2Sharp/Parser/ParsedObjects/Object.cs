@@ -26,7 +26,7 @@ namespace Inklewriter.Parsed
 
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
-		public virtual void ResolvePaths()
+        public virtual void ResolveReferences(Story context)
 		{
 
 		}

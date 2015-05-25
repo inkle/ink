@@ -49,7 +49,7 @@ namespace Inklewriter.Runtime
                 // Variable reference
                 else if (term is string) {
                     var varName = (string)term;
-                    Debug.Assert (context.variables.ContainsKey (varName), "Variable could not be found");
+                    Debug.Assert (currentContext.variables.ContainsKey (varName), "Variable could not be found");
                     object varContents = context.variables [varName];
                     Push (varContents);
                 }

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 namespace Inklewriter.Parsed
 {
 	public class Story : FlowBase
-	{
+    {
 		public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
+
 		}
 
 		public Runtime.Story ExportRuntime()
@@ -26,7 +27,7 @@ namespace Inklewriter.Parsed
 			// conventions as the script format, so we resolve to actual objects before
 			// translating into an INKPath. (This also allows us to choose whether
 			// we want the paths to be absolute)
-			ResolvePaths ();
+			ResolveReferences (this);
 
 			// Don't successfully return the object if there was an error
 			if (_criticalError) {

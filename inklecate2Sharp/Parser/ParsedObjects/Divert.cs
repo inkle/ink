@@ -33,7 +33,7 @@ namespace Inklewriter.Parsed
 			}
 		}
 
-		public override void ResolvePaths()
+        public override void ResolveReferences(Story context)
 		{
 			Parsed.Object divertTargetObj = ResolvePath (target);
 			if (divertTargetObj == null) {

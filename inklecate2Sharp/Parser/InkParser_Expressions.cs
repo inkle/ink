@@ -29,7 +29,7 @@ namespace Inklewriter
             Whitespace ();
 
             // VarKeyword includes trailing whitespace
-            bool isNewDeclaration = VarKeyword () != null;
+            bool isNewDeclaration = VarKeyword ();
 
             string varName = (string) Expect(Identifier, "variable name");
 
@@ -51,20 +51,25 @@ namespace Inklewriter
             return SucceedRule(result) as Parsed.Object;
         }
 
-        protected Parsed.Object VarKeyword()
+
+        protected bool VarKeyword()
         {
             BeginRule ();
 
             if( ParseString ("var") == null ) {
-                return (Parsed.Object) FailRule();
+                FailRule ();
+                return false;
             }
 
             // Require whitespace now, since statement could be e.g. ~ variableThing = 5
             if (Whitespace() == null) {
-                return (Parsed.Object)FailRule ();
+                FailRule ();
+                return false;
             }
 
-            return SucceedRule () as Parsed.Object;
+            SucceedRule ();
+
+            return true;
         }
 
 		protected Expression Expression() {

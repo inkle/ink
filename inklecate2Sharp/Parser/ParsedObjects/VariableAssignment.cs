@@ -21,6 +21,11 @@ namespace Inklewriter.Parsed
             var runtimeVarAss = new Runtime.VariableAssignment (variableName, runtimeExpr, isNewDeclaration);
             return runtimeVarAss;
         }
+
+        public override void ResolveReferences (Story context)
+        {
+            expression.ResolveReferences (context);
+        }
     }
 }
 

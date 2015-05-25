@@ -8,6 +8,7 @@ namespace Inklewriter.Parsed
 	{
 		public string name { get; protected set; }
 		public List<Parsed.Object> content { get; protected set; }
+        public Dictionary<string, VariableAssignment> variableDeclarations;
 
 		public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null)
 		{
@@ -18,8 +19,15 @@ namespace Inklewriter.Parsed
 			}
 			this.content = topLevelObjects;
 
+            variableDeclarations = new Dictionary<string, VariableAssignment> ();
+
 			foreach (var child in this.content) {
 				child.parent = this;
+
+                var varDecl = child as VariableAssignment;
+                if (varDecl != null && varDecl.isNewDeclaration) {
+                    variableDeclarations [varDecl.variableName] = varDecl;
+                }
 			}
 		}
 
@@ -52,10 +60,10 @@ namespace Inklewriter.Parsed
 			return container;
 		}
 
-		public override void ResolvePaths ()
+        public override void ResolveReferences (Story context)
 		{
 			foreach (Parsed.Object obj in content) {
-				obj.ResolvePaths (); 
+				obj.ResolveReferences (context); 
 			}
 		}
 	}

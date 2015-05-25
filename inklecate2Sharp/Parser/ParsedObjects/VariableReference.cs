@@ -16,6 +16,13 @@ namespace Inklewriter.Parsed
         {
             termList.Add (name);
         }
+
+        public override void ResolveReferences (Story context)
+        {
+            if ( !context.variableDeclarations.ContainsKey (this.name) ) {
+                context.Error ("variable not found: " + this.name, this);
+            }
+        }
     }
 }
 

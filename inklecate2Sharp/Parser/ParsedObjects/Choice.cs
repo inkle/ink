@@ -22,12 +22,12 @@ namespace Inklewriter.Parsed
 			return runtimeChoice;
 		}
 
-		public override void ResolvePaths()
+        public override void ResolveReferences(Story context)
 		{
 			// Don't actually use the Parsed.Divert in the runtime, but use its path resolution
 			// to set the pathOnChoice property of the Runtime.Choice.
 
-			divert.ResolvePaths ();
+			divert.ResolveReferences (context);
 
 			var runtimeChoice = runtimeObject as Runtime.Choice;
 			runtimeChoice.pathOnChoice = divert.runtimeDivert.targetPath;
