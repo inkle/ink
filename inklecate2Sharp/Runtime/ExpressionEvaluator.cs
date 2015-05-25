@@ -14,14 +14,11 @@ namespace Inklewriter.Runtime
 
 			binaryOps = new Dictionary<char, BinaryOp> ();
 			unaryOps = new Dictionary<char, UnaryOp> ();
-			RegisterBinaryOp('+', (x, y) => (int)x + (int)y);
-			RegisterBinaryOp('-', (x, y) => (int)x - (int)y);
-			RegisterBinaryOp('*', (x, y) => (int)x * (int)y);
-			RegisterBinaryOp('/', (x, y) => (int)x / (int)y);
-
-			// unary negation - use different character to distinguish
-			// from binary subtraction
-			RegisterUnaryOp ('~', x => -(int)x); 
+			RegisterBinaryOp(Expression.Add, 	  (x, y) => (int)x + (int)y);
+			RegisterBinaryOp(Expression.Subtract, (x, y) => (int)x - (int)y);
+			RegisterBinaryOp(Expression.Multiply, (x, y) => (int)x * (int)y);
+			RegisterBinaryOp(Expression.Divide,   (x, y) => (int)x / (int)y);
+			RegisterUnaryOp (Expression.Negate, x => -(int)x); 
 		}
 
 		public object Evaluate(Expression expr)
@@ -81,7 +78,7 @@ namespace Inklewriter.Runtime
 					else if (unaryOps.ContainsKey (op)) {
 
 						// Replace special "~" negation operator with human-friendly "-"
-						if (op == '~') {
+						if (op == Expression.Negate ) {
 							op = '-';
 						}
 

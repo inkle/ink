@@ -133,6 +133,9 @@ namespace Inklewriter
 
 			var right = Expression (op.precedence);
 			if (right != null) {
+
+				// We assume that the character we use for the operator's type is the same
+				// as that used internally by e.g. Runtime.Expression.Add, Runtime.Expression.Multiply etc
 				var expr = new BinaryExpression (left, right, op.type);
 				return SucceedRule (expr) as Expression;
 			}

@@ -55,7 +55,7 @@ namespace Inklewriter.Parsed
 		public override void GenerateIntoList(List<object> termList)
 		{
 			innerExpression.GenerateIntoList (termList);
-			termList.Add ('~');
+			termList.Add (Runtime.Expression.Negate); // '~'
 		}
 	}
 }
