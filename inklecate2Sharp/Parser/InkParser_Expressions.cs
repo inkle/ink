@@ -22,6 +22,51 @@ namespace Inklewriter
 			}
 		}
 
+        protected Parsed.Object VariableDeclarationOrAssignment()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            // VarKeyword includes trailing whitespace
+            bool isNewDeclaration = VarKeyword () != null;
+
+            string varName = (string) Expect(Identifier, "variable name");
+
+            Whitespace();
+
+            // Optional assignment
+            Expression assignedExpression = null;
+            if (ParseString ("=") != null) {
+                assignedExpression = (Expression)Expect (Expression, "value expression to be assigned to variable");
+            }
+
+            // Default zero assignment
+            else {
+                assignedExpression = new Number (0);
+            }
+
+            var result = new VariableAssignment (varName, assignedExpression, isNewDeclaration);
+
+            return SucceedRule(result) as Parsed.Object;
+        }
+
+        protected Parsed.Object VarKeyword()
+        {
+            BeginRule ();
+
+            if( ParseString ("var") == null ) {
+                return (Parsed.Object) FailRule();
+            }
+
+            // Require whitespace now, since statement could be e.g. ~ variableThing = 5
+            if (Whitespace() == null) {
+                return (Parsed.Object)FailRule ();
+            }
+
+            return SucceedRule () as Parsed.Object;
+        }
+
 		protected Expression Expression() {
 			return Expression(minimumPrecedence:0);
 		}

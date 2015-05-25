@@ -9,6 +9,7 @@ namespace Inklewriter.Runtime
 	{
 		public Path currentPath { get; protected set; }
 		public List<object> outputStream;
+        public Dictionary<string, object> variables { get; protected set; }
 
 		public List<Choice> currentChoices
 		{
@@ -31,6 +32,8 @@ namespace Inklewriter.Runtime
 			_rootContainer = rootContainer;
 
 			outputStream = new List<object> ();
+
+            variables = new Dictionary<string, object> ();
 
 			_callStack = new List<Path> ();
 
@@ -70,6 +73,13 @@ namespace Inklewriter.Runtime
 					if( currentDivert != null ) {
 						_divertedPath = currentDivert.targetPath;
 					}
+
+                    // Variable assignment
+                    VariableAssignment varAss = currentContentObj as VariableAssignment;
+                    if( varAss != null ) {
+                        object result = _evaluator.Evaluate(varAss.expression);
+                        variables[varAss.variableName] = result;
+                    }
 
 					// Stack push?
 					// Defer it so that the path that's saved is *after the stack push

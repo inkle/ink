@@ -78,6 +78,8 @@
     <Compile Include="Parser\ParsedObjects\Number.cs" />
     <Compile Include="Runtime\Expression.cs" />
     <Compile Include="Runtime\ExpressionEvaluator.cs" />
+    <Compile Include="Parser\ParsedObjects\VariableAssignment.cs" />
+    <Compile Include="Runtime\VariableAssignment.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

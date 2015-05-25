@@ -147,10 +147,12 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			var expr = (Parsed.Expression) Expect(Expression, "expression after '~'", recoveryRule: SkipToNextLine);
+            ParseRule afterTilda = () => OneOf (VariableDeclarationOrAssignment, Expression);
+
+            var parsedExpr = (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
 
 			// TODO: A piece of logic after a tilda shouldn't have its result printed as text (I don't think?)
-			return SucceedRule (expr) as Expression;
+            return SucceedRule (parsedExpr) as Parsed.Object;
 		}
 
 		protected List<Parsed.Object> MixedTextAndLogic()
