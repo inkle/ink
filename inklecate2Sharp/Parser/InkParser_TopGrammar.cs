@@ -149,6 +149,7 @@ namespace Inklewriter
 
 			var expr = (Parsed.Expression) Expect(Expression, "expression after '~'", recoveryRule: SkipToNextLine);
 
+			// TODO: A piece of logic after a tilda shouldn't have its result printed as text (I don't think?)
 			return SucceedRule (expr) as Expression;
 		}
 

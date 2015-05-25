@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Diagnostics;
 
 namespace Inklewriter.Runtime
 {
@@ -15,7 +13,14 @@ namespace Inklewriter.Runtime
 		{
 			this.terms = new List<object>(terms);
 		}
-
+			
+		public override string ToString ()
+		{
+			// For debug purposes, just create our own evaluator, even though normally
+			// the Story owns it.
+			var eval = new ExpressionEvaluator ();
+			return eval.StringRepresentation (this);
+		}
 	}
 }
 

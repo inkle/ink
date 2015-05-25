@@ -77,6 +77,7 @@ namespace Inklewriter.Runtime
 						shouldStackPush = true;
 					}
 
+					// Inline expression
 					else if( currentContentObj is Expression ) {
 						var expr = (Expression) currentContentObj;
 						var resultAsStr = _evaluator.Evaluate(expr).ToString();

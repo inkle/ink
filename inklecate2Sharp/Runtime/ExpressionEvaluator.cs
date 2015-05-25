@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Text;
 
 namespace Inklewriter.Runtime
 {
@@ -31,7 +32,7 @@ namespace Inklewriter.Runtime
 
 				// Values
 				if (term is int) {
-					evaluationStack.Add (term);
+					Push (term);
 				} 
 
 				// Operators
@@ -52,6 +53,47 @@ namespace Inklewriter.Runtime
 
 			if (evaluationStack.Count > 0) {
 				return evaluationStack.Last ();
+			}
+
+			return null;
+		}
+
+		public string StringRepresentation(Expression expr)
+		{
+			evaluationStack.Clear ();
+
+			foreach(var term in expr.terms) {
+
+				// Values
+				if (term is int) {
+					Push(term);
+				} 
+
+				// Operators
+				else if (term is char) {
+					char op = (char)term;
+
+					if (binaryOps.ContainsKey (op)) {
+						DoBinary ((x, y) => string.Format ("({0} {1} {2})", x, op, y));
+					}
+
+					// Assume it's prefix unary (we only have negation at time of writing)
+					else if (unaryOps.ContainsKey (op)) {
+
+						// Replace special "~" negation operator with human-friendly "-"
+						if (op == '~') {
+							op = '-';
+						}
+
+						DoUnary (x => string.Format ("{0}{1}", op, x));
+					}
+				}
+			}
+
+			Debug.Assert (evaluationStack.Count == 1);
+
+			if (evaluationStack.Count > 0) {
+				return evaluationStack.Last ().ToString();
 			}
 
 			return null;
