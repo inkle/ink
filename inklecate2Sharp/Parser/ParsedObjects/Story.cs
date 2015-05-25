@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Inklewriter.Parsed
 {
@@ -21,8 +22,8 @@ namespace Inklewriter.Parsed
 
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
-			// resolve (translate) links/paths.
-			// e.g. " -> knotName --> stitchName" into an INKPath (knotName.stitchName)
+			// resolve referenced symbols such as variables and paths.
+			// e.g. for paths " -> knotName --> stitchName" into an INKPath (knotName.stitchName)
 			// We don't make any assumptions that the INKPath follows the same
 			// conventions as the script format, so we resolve to actual objects before
 			// translating into an INKPath. (This also allows us to choose whether
@@ -64,7 +65,13 @@ namespace Inklewriter.Parsed
 
 		public override void Error(string message, Parsed.Object source)
 		{
-			Console.WriteLine ("ERROR: "+message);
+            var sb = new StringBuilder ();
+            sb.Append ("ERROR: ");
+            sb.Append (message);
+            if (source != null && source.debugMetadata != null && source.debugMetadata.lineNumber >= 1 ) {
+                sb.Append (" on line "+source.debugMetadata.lineNumber);
+            }
+            Console.WriteLine (sb.ToString());
 			_criticalError = true;
 		}
 
