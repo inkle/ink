@@ -120,16 +120,22 @@ namespace Inklewriter.Runtime
             }
 
             // Redirection?
-            if( contentObj is Divert ) {
-                Divert currentDivert = (Divert) contentObj;
+            if (contentObj is Divert) {
+                Divert currentDivert = (Divert)contentObj;
                 _divertedPath = currentDivert.targetPath;
                 return true;
             }
 
-            // Stack push?
-            else if( contentObj is StackPush ) {
+            // Stack push
+            else if (contentObj is StackPush) {
 
-                // Actual stack push will be performed after Step in main loop
+                // Actual stack push/pop will be performed after Step in main loop
+                return true;
+            } 
+
+            // Stack pop
+            else if (contentObj is StackPop) {
+                _callStack.Pop();
                 return true;
             }
 

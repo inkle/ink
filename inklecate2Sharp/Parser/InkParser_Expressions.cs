@@ -72,6 +72,24 @@ namespace Inklewriter
             return true;
         }
 
+        protected Parsed.Object ReturnStatement()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            if (ParseString ("return") == null)
+                return (Parsed.Object)FailRule ();
+
+            Whitespace ();
+
+            var expr = Expression ();
+
+            var returnObj = new Return (expr);
+
+            return (Parsed.Object) SucceedRule (returnObj);
+        }
+
 		protected Expression Expression() {
 			return Expression(minimumPrecedence:0);
 		}

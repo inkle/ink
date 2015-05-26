@@ -83,5 +83,6 @@ namespace Inklewriter.Parsed
             innerExpression.ResolveReferences (context);
         }
 	}
+        
 }
 

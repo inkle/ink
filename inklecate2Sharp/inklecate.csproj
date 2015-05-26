@@ -86,6 +86,8 @@
     <Compile Include="Runtime\EvaluationCommand.cs" />
     <Compile Include="Runtime\CallStack.cs" />
     <Compile Include="Runtime\Void.cs" />
+    <Compile Include="Parser\ParsedObjects\Return.cs" />
+    <Compile Include="Runtime\StackPop.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -1,13 +1,10 @@
 ﻿
 
-Hello { world() }   
+Hello { world() } 5 + 10 = { doAddition() }
 
 § world
     to the entire world!
+    ~ return
 
-//    return 5
-
-// ~ var myVariable = 5 * -(3 + 4)
-// ~ var someOtherVar = 3 * myVariable
-// Content of someOtherVar is { someOtherVar }.
-
+§ doAddition
+    ~ return 5 + 10

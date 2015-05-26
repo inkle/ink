@@ -147,7 +147,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-            ParseRule afterTilda = () => OneOf (VariableDeclarationOrAssignment, Expression);
+            ParseRule afterTilda = () => OneOf (ReturnStatement, VariableDeclarationOrAssignment, Expression);
 
             var parsedExpr = (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
 
