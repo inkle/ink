@@ -7,8 +7,17 @@ namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{
-		public Path currentPath { get; protected set; }
+        public Path currentPath { 
+            get { 
+                return _callStack.currentElement.path; 
+            } 
+            protected set {
+                _callStack.currentElement.path = value;
+            }
+        }
+
         public List<Runtime.Object> outputStream;
+
         public Dictionary<string, Runtime.Object> variables { get; protected set; }
 
 		public List<Choice> currentChoices
@@ -37,7 +46,7 @@ namespace Inklewriter.Runtime
 
             variables = new Dictionary<string, Runtime.Object> ();
 
-			_callStack = new List<Path> ();
+            _callStack = new CallStack ();
 		}
 
 		public Runtime.Object ContentAtPath(Path path)
@@ -75,7 +84,7 @@ namespace Inklewriter.Runtime
                     if( !isLogicOrFlowControl ) {
                         
                         // Expression evaluation content
-                        if( _inExpressionEvaluation ) {
+                        if( inExpressionEvaluation ) {
                             _evaluationStack.Add(currentContentObj);
                         }
 
@@ -91,7 +100,7 @@ namespace Inklewriter.Runtime
                     // Any push to the call stack should be done after the increment to the content pointer,
                     // so that when returning from the stack, it returns to the content after the push instruction
                     if( currentContentObj is StackPush ) {
-						PushToCallStack();
+                        _callStack.Push();
 					}
 				}
 
@@ -130,12 +139,12 @@ namespace Inklewriter.Runtime
 
                 switch( evalCommand.commandType ) {
                 case EvaluationCommand.CommandType.Start:
-                    Debug.Assert(_inExpressionEvaluation == false, "Already in expression evaluation?");
-                    _inExpressionEvaluation = true;
+                    Debug.Assert(inExpressionEvaluation == false, "Already in expression evaluation?");
+                    inExpressionEvaluation = true;
                     break;
                 case EvaluationCommand.CommandType.End:
-                    Debug.Assert(_inExpressionEvaluation == true, "Not in expression evaluation mode");
-                    _inExpressionEvaluation = false;
+                    Debug.Assert(inExpressionEvaluation == true, "Not in expression evaluation mode");
+                    inExpressionEvaluation = false;
                     break;
                 case EvaluationCommand.CommandType.Output:
                     var output = PopEvaluationStack ();
@@ -250,11 +259,10 @@ namespace Inklewriter.Runtime
 
 				// Failed to increment, so we've run out of content
 				// Try to pop call stack if possible
-				if (_callStack.Count > 0) {
+				if ( _callStack.canPop ) {
 
-					// Pop currentPath from the call stack
-					currentPath = _callStack.Last ();
-					_callStack.RemoveAt (_callStack.Count - 1);
+					// Pop from the call stack
+                    _callStack.Pop();
 
 					// Step past the point where we last called out
 					NextContent ();
@@ -262,19 +270,21 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-		private void PushToCallStack()
-		{
-			_callStack.Add (currentPath);
-		}
-
-		private Container _rootContainer;
-		private Path _divertedPath;
-
-		private List<Path> _callStack;
+        private Container _rootContainer;
+        private Path _divertedPath;
+            
+        private CallStack _callStack;
 
         private List<Runtime.Object> _evaluationStack;
 
-        private bool _inExpressionEvaluation;
+        private bool inExpressionEvaluation {
+            get {
+                return _callStack.currentElement.inExpressionEvaluation;
+            }
+            set {
+                _callStack.currentElement.inExpressionEvaluation = value;
+            }
+        }
 	}
 }
 
