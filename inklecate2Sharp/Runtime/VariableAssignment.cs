@@ -2,16 +2,15 @@
 
 namespace Inklewriter.Runtime
 {
+    // The value to be assigned is popped off the evaluation stack, so no need to keep it here
     public class VariableAssignment : Runtime.Object
     {
         public string variableName { get; protected set; }
-        public Expression expression { get; protected set; }
         public bool isNewDeclaration { get; protected set; }
 
-        public VariableAssignment (string variableName, Expression assignedExpression, bool isNewDeclaration)
+        public VariableAssignment (string variableName, bool isNewDeclaration)
         {
             this.variableName = variableName;
-            this.expression = assignedExpression;
             this.isNewDeclaration = isNewDeclaration;
         }
     }

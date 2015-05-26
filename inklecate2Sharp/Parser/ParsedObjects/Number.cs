@@ -13,10 +13,11 @@ namespace Inklewriter.Parsed
 			this.value = value;
 		}
 
-		public override void GenerateIntoList (List<object> termList)
+        public override void GenerateIntoContainer (Runtime.Container container)
 		{
-			termList.Add (value);
+            container.AddContent (new Runtime.Number(value));
 		}
+         
 	}
 }
 

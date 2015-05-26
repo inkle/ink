@@ -48,7 +48,7 @@ namespace Inklewriter.Runtime
 
 			TryAddNamedContent (contentObj);
 		}
-
+            
 		public void TryAddNamedContent(Runtime.Object contentObj)
 		{
 			var namedContentObj = contentObj as INamedContent;

@@ -8,17 +8,17 @@ namespace Inklewriter
 	{
 		protected class InfixOperator
 		{
-			public char type;
+			public string type;
 			public int precedence;
 
-			public InfixOperator(char type, int precedence) {
+			public InfixOperator(string type, int precedence) {
 				this.type = type;
 				this.precedence = precedence;
 			}
 
 			public override string ToString ()
 			{
-				return new string (type, 1);
+				return type;
 			}
 		}
 
@@ -122,6 +122,8 @@ namespace Inklewriter
 				break;
 			}
 
+            Whitespace ();
+
 			return SucceedRule(expr) as Expression;
 		}
 
@@ -133,7 +135,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionVariableName) as Expression;
+            var expr = OneOf (ExpressionParen, ExpressionLiteral/*, ExpressionFunctionCall*/, ExpressionVariableName) as Expression;
 			if (expr == null) {
 				return FailRule () as Expression;
 			}
@@ -154,6 +156,34 @@ namespace Inklewriter
 				return new Number (intOrNull.Value);
 			}
 		}
+
+//        protected Expression ExpressionFunctionCall()
+//        {
+//            BeginRule ();
+//
+//            var iden = Identifier ();
+//            if (iden == null) 
+//                return (Expression) FailRule();
+//
+//            Whitespace ();
+//
+//            if (ParseString ("(") == null)
+//                return (Expression)FailRule ();
+//
+//            // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
+//            ParseRule commas = Exclude (() => ParseString (","));
+//            var arguments = Interleave<Expression>(Expression, commas);
+//
+//            Whitespace ();
+//
+//            Expect (() => ParseString (")"), "closing ')' for function call");
+//
+//            // TODO: Build function call object
+//            var f = new FunctionCall(iden, arguments);
+//
+//            return (FunctionCall) SucceedRule (f);
+//
+//        }
 
         protected Expression ExpressionVariableName()
         {
@@ -208,7 +238,7 @@ namespace Inklewriter
 		{
 			var strOperator = ParseCharactersFromCharSet (_operatorsCharSet, maxCount: 1);
 			if (strOperator != null) {
-				return _operators [strOperator [0]];
+				return _operators [strOperator];
 			} else {
 				return null;
 			}
@@ -216,22 +246,22 @@ namespace Inklewriter
 
 		void RegisterExpressionOperators()
 		{
-			_operators = new Dictionary<char, InfixOperator> ();
+			_operators = new Dictionary<string, InfixOperator> ();
 			_operatorsCharSet = new CharacterSet ();
 
-			RegisterOperator ('+', precedence:1);
-			RegisterOperator ('-', precedence:2);
-			RegisterOperator ('*', precedence:3);
-			RegisterOperator ('/', precedence:4);
+			RegisterOperator ("+", precedence:1);
+			RegisterOperator ("-", precedence:2);
+			RegisterOperator ("*", precedence:3);
+			RegisterOperator ("/", precedence:4);
 		}
 
-		void RegisterOperator(char op, int precedence)
+		void RegisterOperator(string op, int precedence)
 		{
 			_operators [op] = new InfixOperator (op, precedence);
-			_operatorsCharSet.Add (op);
+			_operatorsCharSet.Add (op[0]);
 		}
 
-		Dictionary<char, InfixOperator> _operators;
+		Dictionary<string, InfixOperator> _operators;
 		CharacterSet _operatorsCharSet;
 	}
 }

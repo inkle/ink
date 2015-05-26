@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Runtime
 {
-	public class Text : Object
+    public class Text : Runtime.Object
 	{
 		public string text { get; set; }
 

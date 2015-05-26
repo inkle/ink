@@ -29,7 +29,7 @@ namespace Inklewriter
 				// autoPlay: Pick random choice
 				if (autoPlay) {
 					choiceIdx = rand.Next () % choices.Count;
-				} 
+				}
 
 				// Normal: Ask user for choice number
 				else {

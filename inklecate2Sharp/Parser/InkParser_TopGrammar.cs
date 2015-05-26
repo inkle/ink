@@ -182,7 +182,9 @@ namespace Inklewriter
 
 		protected Parsed.Object InnerLogic()
 		{
-			return Expression ();
+            var expr = Expression ();
+            expr.outputWhenComplete = true;
+            return expr;
 		}
 
 		// Content text is an unusual parse rule compared with most since it's

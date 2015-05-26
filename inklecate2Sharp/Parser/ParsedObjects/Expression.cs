@@ -6,18 +6,29 @@ namespace Inklewriter.Parsed
 {
 	public abstract class Expression : Parsed.Object
 	{
-        public Runtime.Expression runtimeExpression { get { return (Runtime.Expression)this.runtimeObject; } }
+        public bool outputWhenComplete { get; set; }
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
-			var termList = new List<object> ();
+            var container = new Runtime.Container ();
 
-			GenerateIntoList (termList);
+            // Tell Runtime to start evaluating the following content as an expression
+            container.AddContent (Runtime.EvaluationCommand.Start());
 
-			return new Runtime.Expression (termList);
+			GenerateIntoContainer (container);
+
+            // Tell Runtime to output the result of the expression evaluation to the output stream
+            if (outputWhenComplete) {
+                container.AddContent (Runtime.EvaluationCommand.Output());
+            }
+
+            // Tell Runtime to stop evaluating the content as an expression
+            container.AddContent (Runtime.EvaluationCommand.End());
+
+            return container;
 		}
 
-		public abstract void GenerateIntoList (List<object> termList);
+        public abstract void GenerateIntoContainer (Runtime.Container container);
 
 	}
 
@@ -25,23 +36,23 @@ namespace Inklewriter.Parsed
 	{
 		public Expression leftExpression;
 		public Expression rightExpression;
-		public char op;
+		public string opName;
 
-		public BinaryExpression(Expression left, Expression right, char op)
+		public BinaryExpression(Expression left, Expression right, string opName)
 		{
 			left.parent = this;
 			right.parent = this;
 
 			leftExpression = left;
 			rightExpression = right;
-			this.op = op;
+			this.opName = opName;
 		}
 
-		public override void GenerateIntoList(List<object> termList)
+        public override void GenerateIntoContainer(Runtime.Container container)
 		{
-			leftExpression.GenerateIntoList (termList);
-			rightExpression.GenerateIntoList (termList);
-			termList.Add (op);
+			leftExpression.GenerateIntoContainer (container);
+			rightExpression.GenerateIntoContainer (container);
+            container.AddContent(Runtime.NativeFunctionCall.CallWithName(opName));
 		}
 
         public override void ResolveReferences (Story context)
@@ -61,10 +72,10 @@ namespace Inklewriter.Parsed
 			innerExpression = inner;
 		}
 
-		public override void GenerateIntoList(List<object> termList)
+        public override void GenerateIntoContainer(Runtime.Container container)
 		{
-			innerExpression.GenerateIntoList (termList);
-			termList.Add (Runtime.Expression.Negate); // '~'
+			innerExpression.GenerateIntoContainer (container);
+            container.AddContent(Runtime.NativeFunctionCall.CallWithName(Runtime.NativeFunctionCall.Negate)); // "~"
 		}
 
         public override void ResolveReferences (Story context)

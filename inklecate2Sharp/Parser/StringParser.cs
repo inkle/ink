@@ -169,6 +169,19 @@ namespace Inklewriter
 			};
 		}
 
+        // Return ParseSuccess instead the real result so that it gets excluded
+        // from result arrays (e.g. Interleave)
+        public ParseRule Exclude(ParseRule rule)
+        {
+            return () => {
+                object result = rule ();
+                if( result == null ) {
+                    return null;
+                }
+                return ParseSuccess;
+            };
+        }
+
 		private void TryAddResultToList<T>(object result, List<T> list, bool flatten = true)
 		{
 			if (result == ParseSuccess) {

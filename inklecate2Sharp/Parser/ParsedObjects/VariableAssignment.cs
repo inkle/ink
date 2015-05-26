@@ -17,9 +17,14 @@ namespace Inklewriter.Parsed
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            var runtimeExpr   = (Runtime.Expression)expression.runtimeObject;
-            var runtimeVarAss = new Runtime.VariableAssignment (variableName, runtimeExpr, isNewDeclaration);
-            return runtimeVarAss;
+            var container = new Runtime.Container ();
+
+            // The expression's runtimeObject is actually another nested container
+            container.AddContent (expression.runtimeObject);
+
+            container.AddContent (new Runtime.VariableAssignment (variableName, isNewDeclaration));
+
+            return container;
         }
 
         public override void ResolveReferences (Story context)

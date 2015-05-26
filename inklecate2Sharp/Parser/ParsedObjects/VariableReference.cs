@@ -12,9 +12,9 @@ namespace Inklewriter.Parsed
             this.name = name;
         }
 
-        public override void GenerateIntoList (List<object> termList)
+        public override void GenerateIntoContainer (Runtime.Container container)
         {
-            termList.Add (name);
+            container.AddContent(new Runtime.VariableReference(name));
         }
 
         public override void ResolveReferences (Story context)
