@@ -77,7 +77,6 @@
     <Compile Include="Parser\InkParser_Expressions.cs" />
     <Compile Include="CommandLinePlayer.cs" />
     <Compile Include="Parser\ParsedObjects\Number.cs" />
-    <Compile Include="Runtime\Expression.cs" />
     <Compile Include="Parser\ParsedObjects\VariableAssignment.cs" />
     <Compile Include="Runtime\VariableAssignment.cs" />
     <Compile Include="Parser\ParsedObjects\FunctionCall.cs" />

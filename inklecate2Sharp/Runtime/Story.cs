@@ -58,10 +58,7 @@ namespace Inklewriter.Runtime
 
 				currentContentObj = ContentAtPath(currentPath);
 				if( currentContentObj != null ) {
-
-					bool shouldStackPush = false;
-                    bool isContent = true;
-					
+                					
 					// Convert path to get first leaf content
 					Container currentContainer = currentContentObj as Container;
 					if( currentContainer != null ) {
@@ -69,27 +66,13 @@ namespace Inklewriter.Runtime
 						currentContentObj = ContentAtPath(currentPath);
 					}
 
-					// Redirection?
-                    if( currentContentObj is Divert ) {
-                        Divert currentDivert = (Divert) currentContentObj;
-						_divertedPath = currentDivert.targetPath;
-                        isContent = false;
-					}
-
-                    // Any expression evaluation
-                    else if ( TryExpressionEvaluation(currentContentObj) ) {
-                        isContent = false;
-                    }
-
-					// Stack push?
-					// Defer it so that the path that's saved is *after the stack push
-					else if( currentContentObj is StackPush ) {
-						shouldStackPush = true;
-                        isContent = false;
-					}
+                    // Is the current content object:
+                    //  - Normal content
+                    //  - Or a logic/flow statement - if so, do it
+                    bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj);
                         
                     // Content to add to evaluation stack or the output stream
-                    if( isContent ) {
+                    if( !isLogicOrFlowControl ) {
                         
                         // Expression evaluation content
                         if( _inExpressionEvaluation ) {
@@ -102,15 +85,100 @@ namespace Inklewriter.Runtime
                         }
                     }
 
-					Step();
+                    // Increment the content pointer, following diverts if necessary
+					NextContent();
 
-					if( shouldStackPush ) {
+                    // Any push to the call stack should be done after the increment to the content pointer,
+                    // so that when returning from the stack, it returns to the content after the push instruction
+                    if( currentContentObj is StackPush ) {
 						PushToCallStack();
 					}
 				}
 
 			} while(currentContentObj != null && currentPath != null);
 		}
+
+        /// <summary>
+        /// Checks whether contentObj is a control or flow object rather than a piece of content, 
+        /// and performs the required command if necessary.
+        /// </summary>
+        /// <returns><c>true</c> if object was logic or flow control, <c>false</c> if it's normal content.</returns>
+        /// <param name="contentObj">Content object.</param>
+        private bool PerformLogicAndFlowControl(Runtime.Object contentObj)
+        {
+            if( contentObj == null ) {
+                return false;
+            }
+
+            // Redirection?
+            if( contentObj is Divert ) {
+                Divert currentDivert = (Divert) contentObj;
+                _divertedPath = currentDivert.targetPath;
+                return true;
+            }
+
+            // Stack push?
+            else if( contentObj is StackPush ) {
+
+                // Actual stack push will be performed after Step in main loop
+                return true;
+            }
+
+            // Start/end an expression evaluation? Or print out the result?
+            else if( contentObj is EvaluationCommand ) {
+                var evalCommand = (EvaluationCommand) contentObj;
+
+                switch( evalCommand.commandType ) {
+                case EvaluationCommand.CommandType.Start:
+                    Debug.Assert(_inExpressionEvaluation == false, "Already in expression evaluation?");
+                    _inExpressionEvaluation = true;
+                    break;
+                case EvaluationCommand.CommandType.End:
+                    Debug.Assert(_inExpressionEvaluation == true, "Not in expression evaluation mode");
+                    _inExpressionEvaluation = false;
+                    break;
+                case EvaluationCommand.CommandType.Output:
+                    var output = PopEvaluationStack ();
+
+                    // TODO: Should we really always blanket convert to string?
+                    // It would be okay to have numbers in the output stream the
+                    // only problem is when exporting text for viewing, it skips over numbers etc.
+                    var text = new Text (output.ToString ());
+
+                    outputStream.Add(text);
+                    break;
+                }
+
+                return true;
+            }
+
+            // Variable assignment
+            else if( contentObj is VariableAssignment ) {
+                var varAss = (VariableAssignment) contentObj;
+                var assignedVal = PopEvaluationStack();
+                variables[varAss.variableName] = assignedVal;
+                return true;
+            }
+
+            // Variable reference
+            else if( contentObj is VariableReference ) {
+                var varRef = (VariableReference)contentObj;
+                _evaluationStack.Add( variables[varRef.name] );
+                return true;
+            }
+
+            // Native function call
+            else if( contentObj is NativeFunctionCall ) {
+                var func = (NativeFunctionCall) contentObj;
+                var funcParams = PopEvaluationStack(func.numberOfParamters);
+                var result = func.Call(funcParams);
+                _evaluationStack.Add(result);
+                return true;
+            }
+
+            // No control content, must be ordinary content
+            return false;
+        }
 
 		public void ContinueFromPath(Path path)
 		{
@@ -167,7 +235,7 @@ namespace Inklewriter.Runtime
 			return result;
 		}
 
-		private void Step()
+		private void NextContent()
 		{
 			// Divert step?
 			if (_divertedPath != null) {
@@ -189,72 +257,10 @@ namespace Inklewriter.Runtime
 					_callStack.RemoveAt (_callStack.Count - 1);
 
 					// Step past the point where we last called out
-					Step ();
+					NextContent ();
 				}
 			}
 		}
-
-        private bool TryExpressionEvaluation(Runtime.Object currentContentObj)
-        {
-            if( currentContentObj == null ) {
-                return false;
-            }
-
-            // Get evaluated value
-            EvaluationCommand evalCommand = currentContentObj as EvaluationCommand;
-            if( evalCommand != null ) {
-
-                switch( evalCommand.commandType ) {
-                case EvaluationCommand.CommandType.Start:
-                    Debug.Assert(_inExpressionEvaluation == false, "Already in expression evaluation?");
-                    _inExpressionEvaluation = true;
-                    break;
-                case EvaluationCommand.CommandType.End:
-                    Debug.Assert(_inExpressionEvaluation == true, "Not in expression evaluation mode");
-                    _inExpressionEvaluation = false;
-                    break;
-                case EvaluationCommand.CommandType.Output:
-                    var output = PopEvaluationStack ();
-
-                    // TODO: Should we really always blanket convert to string?
-                    // It would be okay to have numbers in the output stream the
-                    // only problem is when exporting text for viewing, it skips over numbers etc.
-                    var text = new Text (output.ToString ());
-
-                    outputStream.Add(text);
-                    break;
-                }
-
-                return true;
-            }
-
-            // Variable assignment
-            VariableAssignment varAss = currentContentObj as VariableAssignment;
-            if( varAss != null ) {
-                var assignedVal = PopEvaluationStack();
-                variables[varAss.variableName] = assignedVal;
-                return true;
-            }
-
-            // Variable reference
-            VariableReference varRef = currentContentObj as VariableReference;
-            if( varRef != null ) {
-                _evaluationStack.Add( variables[varRef.name] );
-                return true;
-            }
-
-            // Native function call
-            NativeFunctionCall func = currentContentObj as NativeFunctionCall;
-            if( func != null ) {
-                var funcParams = PopEvaluationStack(func.numberOfParamters);
-                var result = func.Call(funcParams);
-                _evaluationStack.Add(result);
-                return true;
-            }
-                
-            // No expression evaluation done
-            return false;
-        }
 
 		private void PushToCallStack()
 		{
