@@ -85,6 +85,7 @@
     <Compile Include="Runtime\NativeFunctionCall.cs" />
     <Compile Include="Runtime\EvaluationCommand.cs" />
     <Compile Include="Runtime\CallStack.cs" />
+    <Compile Include="Runtime\Void.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -147,14 +147,24 @@ namespace Inklewriter.Runtime
                     inExpressionEvaluation = false;
                     break;
                 case EvaluationCommand.CommandType.Output:
-                    var output = PopEvaluationStack ();
 
-                    // TODO: Should we really always blanket convert to string?
-                    // It would be okay to have numbers in the output stream the
-                    // only problem is when exporting text for viewing, it skips over numbers etc.
-                    var text = new Text (output.ToString ());
+                    // If the expression turned out to be empty, there may not be anything on the stack
+                    if (_evaluationStack.Count > 0) {
+                        
+                        var output = PopEvaluationStack ();
 
-                    outputStream.Add(text);
+                        // Functions may evaluate to Void, in which case we skip output
+                        if ( !(output is Void) ) {
+                            // TODO: Should we really always blanket convert to string?
+                            // It would be okay to have numbers in the output stream the
+                            // only problem is when exporting text for viewing, it skips over numbers etc.
+                            var text = new Text (output.ToString ());
+
+                            outputStream.Add(text);
+                        }
+
+                    }
+
                     break;
                 }
 
@@ -263,6 +273,12 @@ namespace Inklewriter.Runtime
 
 					// Pop from the call stack
                     _callStack.Pop();
+
+                    // This pop was due to dropping off the end of a function that didn't return anything,
+                    // so in this case, we make sure that the evaluator has something to chomp on if it needs it
+                    if (inExpressionEvaluation) {
+                        _evaluationStack.Add (new Runtime.Void());
+                    }
 
 					// Step past the point where we last called out
 					NextContent ();

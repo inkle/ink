@@ -135,7 +135,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-            var expr = OneOf (ExpressionParen, ExpressionLiteral/*, ExpressionFunctionCall*/, ExpressionVariableName) as Expression;
+            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionFunctionCall, ExpressionVariableName) as Expression;
 			if (expr == null) {
 				return FailRule () as Expression;
 			}
@@ -157,33 +157,33 @@ namespace Inklewriter
 			}
 		}
 
-//        protected Expression ExpressionFunctionCall()
-//        {
-//            BeginRule ();
-//
-//            var iden = Identifier ();
-//            if (iden == null) 
-//                return (Expression) FailRule();
-//
-//            Whitespace ();
-//
-//            if (ParseString ("(") == null)
-//                return (Expression)FailRule ();
-//
-//            // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
-//            ParseRule commas = Exclude (() => ParseString (","));
-//            var arguments = Interleave<Expression>(Expression, commas);
-//
-//            Whitespace ();
-//
-//            Expect (() => ParseString (")"), "closing ')' for function call");
-//
-//            // TODO: Build function call object
-//            var f = new FunctionCall(iden, arguments);
-//
-//            return (FunctionCall) SucceedRule (f);
-//
-//        }
+        protected Expression ExpressionFunctionCall()
+        {
+            BeginRule ();
+
+            var iden = Identifier ();
+            if (iden == null) 
+                return (Expression) FailRule();
+
+            Whitespace ();
+
+            if (ParseString ("(") == null)
+                return (Expression)FailRule ();
+
+            // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
+            ParseRule commas = Exclude (() => ParseString (","));
+            var arguments = Interleave<Expression>(Expression, commas);
+
+            Whitespace ();
+
+            Expect (() => ParseString (")"), "closing ')' for function call");
+
+            // TODO: Build function call object
+            var f = new FunctionCall(iden, arguments);
+
+            return (FunctionCall) SucceedRule (f);
+
+        }
 
         protected Expression ExpressionVariableName()
         {
