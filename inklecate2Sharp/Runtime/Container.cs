@@ -116,12 +116,20 @@ namespace Inklewriter.Runtime
 					Debug.Assert (currChild is Container, "Expected a container for deep path?");
 
 					Container childContainer = (Container)currChild;
-					Path incrementedTail = childContainer.IncrementPath (path.tail);
+                    Path tail = path.tail;
+                    Path incrementedTail = childContainer.IncrementPath (tail);
 
 					// Successfully incremented tail
 					if (incrementedTail != null) {
 						return new Path (path.head, incrementedTail);
 					}
+
+                    // A failed increment to a tail that contains a named element anywhere should cause the full path to fail.
+                    // Why? Because if you increment off the end of *any* named container, then there's nowhere
+                    // you can sensibly go.
+                    else if (tail.containsNamedComponent) {
+                        return null;
+                    }
 				}
 
 				// No tail, or failed to increment tail

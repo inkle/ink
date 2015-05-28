@@ -79,6 +79,17 @@ namespace Inklewriter.Runtime
 			} 
 		}
 
+        public bool containsNamedComponent {
+            get {
+                foreach(var comp in components) {
+                    if( !comp.isIndex ) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
 		public Path()
 		{
 			components = new List<Component> ();
