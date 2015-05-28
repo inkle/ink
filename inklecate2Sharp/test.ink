@@ -2,7 +2,11 @@
 § test
     * Hi[.], there.
         This is a piece of content associated with the first option
-    * Hello[.], world. -> done
+    * Hello[.], world.
+    * * Second[] level option.
+        This is second level content.
+    * Back[.] to first.
+        This is first level content again.
 
 § done
     Done.

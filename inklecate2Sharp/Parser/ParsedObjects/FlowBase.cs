@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Inklewriter.Parsed
 {
@@ -33,7 +34,7 @@ namespace Inklewriter.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject()
 		{
-            LinkWeaveStructure ();
+            CreateWeaveHierarchy ();
 
 			var container = new Runtime.Container ();
 			container.name = name;
@@ -69,30 +70,54 @@ namespace Inklewriter.Parsed
 			}
 		}
 
-        protected void LinkWeaveStructure ()
+        protected void CreateWeaveHierarchy ()
         {
-            Choice activeChoice = null;
+            // Active parent choices at each indentation level
+            var choiceLevels = new List<Choice> ();
 
             int contentIdx = 0;
             while (contentIdx < content.Count) {
 
                 Parsed.Object obj = content [contentIdx];
-                bool objMoved = false;
+
+                Choice parentChoiceForThisContent = null;
 
                 if (obj is Choice) {
                     var choice = (Choice)obj;
-                    if (choice.hasMultiLineContent) {
-                        activeChoice = choice;
+
+                    if (choice.indentationDepth > choiceLevels.Count + 1) {
+                        Error ("weave nesting levels shouldn't jump (i.e. number bullets should only add or remove one at each level)", choice);
+                        return;
+                    }
+
+                    // Higher (or equal) level choice
+                    if (choice.indentationDepth <= choiceLevels.Count) {
+                        int removalIndex = choice.indentationDepth - 1;
+                        choiceLevels.RemoveRange (removalIndex, choiceLevels.Count - removalIndex);
+                    }
+
+                    choiceLevels.Add (choice);
+
+                    if (choice.indentationDepth > 1) {
+                        int indentIndex = choice.indentationDepth - 1;
+                        parentChoiceForThisContent = choiceLevels [indentIndex - 1];
                     }
                 } 
 
-                // Normal content - move it into the active Choice
-                else if( activeChoice != null ) {
-                    activeChoice.AddNestedContent(obj);
-                    content.RemoveAt (contentIdx);
+                // Ordinary non-choice content
+                else {
+
+                    if (choiceLevels.Count > 0) {
+                        parentChoiceForThisContent = choiceLevels.Last ();
+                    }
+
                 }
 
-                if (!objMoved) {
+                // Move this content (choice or other) to be owned by a choice?
+                if (parentChoiceForThisContent != null) {
+                    parentChoiceForThisContent.AddNestedContent (obj);
+                    content.RemoveAt (contentIdx);
+                } else {
                     contentIdx++;
                 }
 

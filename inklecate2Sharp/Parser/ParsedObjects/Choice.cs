@@ -31,6 +31,7 @@ namespace Inklewriter.Parsed
             }
 
             _nestedContent.Add (obj);
+            obj.parent = this;
         }
 
 		public override Runtime.Object GenerateRuntimeObject ()
@@ -67,7 +68,7 @@ namespace Inklewriter.Parsed
             if (hasOwnContent) {
 
                 _weaveContentContainer = new Runtime.Container ();
-                _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString ()));
+                _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));
                 _weaveContentContainer.name = "c";
 
                 if (this.explicitPath != null) {
@@ -115,6 +116,11 @@ namespace Inklewriter.Parsed
                 }
             }
 
+            if (_nestedContent != null) {
+                foreach (var obj in _nestedContent) {
+                    obj.ResolveReferences (context);
+                }
+            }
 		}
 
         List<Parsed.Object> _nestedContent;
