@@ -12,10 +12,17 @@ namespace Inklewriter
 		
 		public StringParser (string str)
 		{
+            str = PreProcessInputString (str);
+
 			_chars = str.ToCharArray ();
 			inputString = str;
+
+            _indexStack = new List<int> ();
+
+            // Default element
+            _indexStack.Add (0);
 		}
-			
+            
 		public class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
@@ -25,7 +32,7 @@ namespace Inklewriter
 		{
 			get 
 			{
-				if (index >= 0 && remainingLength <= 0) {
+				if (index >= 0 && remainingLength > 0) {
 					return _chars [index];
 				} else {
 					return (char)0;
@@ -33,17 +40,25 @@ namespace Inklewriter
 			}
 		}
 
+        // Don't do anything by default, but provide ability for subclasses
+        // to manipulate the string before it's used as input (converted to a char array)
+        protected virtual string PreProcessInputString(string str)
+        {
+            return str;
+        }
+
 		//--------------------------------
 		// Parse state
 		//--------------------------------
 
 		protected virtual void BeginRule()
 		{
-			
+            _indexStack.Add (index);
 		}
 
 		protected virtual object FailRule()
 		{
+            _indexStack.RemoveAt (_indexStack.Count - 1);
 			return null;
 		}
 
@@ -57,6 +72,10 @@ namespace Inklewriter
 			if (result == null) {
 				result = ParseSuccess;
 			}
+
+            var currIndex = index;
+            _indexStack.RemoveRange (_indexStack.Count - 2, 2);
+            _indexStack.Add (currIndex);
 
 			return result;
 		}
@@ -117,7 +136,7 @@ namespace Inklewriter
 
 		// These are overriden to use the InkParserState values in InkParser
 		public virtual int lineIndex { get { return _lineIndex; } set { _lineIndex = value; } }
-		public virtual int index { get { return _index; } set { _index = value; } }
+        public virtual int index { get { return _indexStack[_indexStack.Count-1]; } set { _indexStack[_indexStack.Count-1] = value; } }
 
 		//--------------------------------
 		// Structuring
@@ -417,8 +436,9 @@ namespace Inklewriter
 		private char[] _chars;
 
 		// WARNING: These are invalid in InkParser since the index and lineIndex properties are overridden
-		private int _index;
 		private int _lineIndex;
+        private List<int> _indexStack;
+
 	}
 }
 

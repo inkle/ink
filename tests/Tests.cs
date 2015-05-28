@@ -86,6 +86,40 @@ namespace Tests
 			Assert.AreEqual(expected, results);
 		}
 
+        //------------------------------------------------------------------------
+
+        [Test ()]
+        public void TestCommentEliminator ()
+        {
+            var testContent = 
+@"A   // C
+A /* C */ A
+
+A * A * /* * C *// A
+/*
+C C C
+
+*/
+
+";
+
+            CommentEliminator p = new CommentEliminator (testContent);
+            var result = p.Process ();
+
+            var expected = 
+@"A   
+A  A
+
+A * A * / A
+
+
+
+
+
+";
+
+            Assert.AreEqual(expected, result);
+        }
 
 	}
 }

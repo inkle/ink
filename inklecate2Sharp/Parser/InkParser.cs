@@ -8,16 +8,19 @@ namespace Inklewriter
 	public partial class InkParser : StringParser
 	{
 		public InkParserState state { get; }
-        public Dictionary<string, Parsed.Object> globalDeclarations { get; protected set; }
 
-		public InkParser(string str) : base(str) { 
+        public InkParser(string str) : base(str) { 
 
 			RegisterExpressionOperators ();
 
 			state = new InkParserState();
-
-            globalDeclarations = new Dictionary<string, Inklewriter.Parsed.Object> ();
 		}
+
+        protected override string PreProcessInputString(string str)
+        {
+            var inputWithCommentsRemoved = (new CommentEliminator (str)).Process();
+            return inputWithCommentsRemoved;
+        }
 			
 		public override int lineIndex
 		{
