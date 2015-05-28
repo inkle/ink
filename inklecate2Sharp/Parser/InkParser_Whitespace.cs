@@ -5,7 +5,6 @@ namespace Inklewriter
 {
 	public partial class InkParser
 	{
-		// Automatically includes end of line comments due to newline
 		// Handles both newline and endOfFile
 		protected object EndOfLine()
 		{
@@ -19,16 +18,12 @@ namespace Inklewriter
 			}
 		}
 
-		// Automatically includes end of line comments
-		// However, you probably want "endOfLine", since it handles endOfFile too.
+		// You probably want "endOfLine", since it handles endOfFile too.
 		protected object Newline()
 		{
 			BeginRule();
 
-			// Optional whitespace and comment
 			Whitespace();
-			SingleLineComment();
-
 
 			// Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
 			ParseString ("\r");
@@ -46,9 +41,7 @@ namespace Inklewriter
 		{
 			BeginRule();
 
-			// Optional whitespace and comment
 			Whitespace();
-			SingleLineComment();
 
 			if( endOfInput ) {
 				return SucceedRule();
@@ -57,17 +50,6 @@ namespace Inklewriter
 			}
 		}
 
-		// You shouldn't need this in main rules since it's included in endOfLine
-		protected object SingleLineComment()
-		{
-			if( ParseString("//") == null ) {
-				return null;
-			}
-
-			ParseUntilCharactersFromCharSet(_newlineChars);
-
-			return ParseSuccess;
-		}
 
 		// General purpose space, returns N-count newlines (fails if no newlines)
 		protected object MultilineWhitespace()
@@ -100,7 +82,6 @@ namespace Inklewriter
 		}
 
 		private CharacterSet _inlineWhitespaceChars = new CharacterSet(" \t");
-		private CharacterSet _newlineChars = new CharacterSet("\n\r");
 	}
 }
 
