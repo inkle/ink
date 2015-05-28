@@ -54,7 +54,7 @@ namespace Inklewriter
 
 			rulesAtLevel.Add (LogicLine);
 
-			rulesAtLevel.Add(Line(MixedTextAndLogic));
+			rulesAtLevel.Add(LineOfMixedTextAndLogic);
 
 			var statement = OneOf (rulesAtLevel.ToArray());
 			if (statement == null) {
@@ -154,6 +154,45 @@ namespace Inklewriter
 			// TODO: A piece of logic after a tilda shouldn't have its result printed as text (I don't think?)
             return SucceedRule (parsedExpr) as Parsed.Object;
 		}
+
+        protected List<Parsed.Object> LineOfMixedTextAndLogic()
+        {
+            var result = (List<Parsed.Object>) Line (MixedTextAndLogic)();
+            if (result == null || result.Count == 0) {
+                return null;
+            }
+
+            // Special whitespace and newline treatment for a full line of text/logic
+            for (int i=0; i<result.Count; ++i) {
+
+                var parsedObj = result [i];
+
+                // Remove whitespace from start of line
+                if (i == 0 && parsedObj is Text) {
+                    var text = (Text)parsedObj;
+                    text.content = text.content.TrimStart(' ', '\t');
+                }
+
+
+                // Remove whitespace from end of line, and add a newline
+                // TODO: This will need to be more nuanced in future, to cope with line continuation
+                if (i == result.Count - 1) {
+                    if (parsedObj is Text) {
+                        var text = (Text)parsedObj;
+                        text.content = text.content.TrimEnd (' ', '\t') + "\n";
+                    } 
+
+                    // Last object in line wasn't text (but some kind of logic), so
+                    // we need to append the newline afterwards using a new object
+                    // TODO: Under what conditions should we NOT do this?
+                    else {
+                        result.Add (new Text ("\n"));
+                    }
+                }
+            }
+
+            return result;
+        }
 
 		protected List<Parsed.Object> MixedTextAndLogic()
 		{

@@ -18,12 +18,30 @@ namespace Tests
 		}
 
 		[Test ()]
-		public void CompileHelloWorld()
+		public void TestHelloWorld()
 		{
 			Story story = CompileString ("Hello world");
 			story.Begin ();
-			Assert.AreEqual (story.currentText, "Hello world");
+			Assert.AreEqual (story.currentText, "Hello world\n");
 		}
+
+        [Test ()]
+        public void TestWhitespace()
+        {
+            var storyStr =
+@"
+§ firstKnot
+    Hello!
+    -> anotherKnot
+
+§ anotherKnot
+    World.
+";
+            
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentText, "Hello!\nWorld.\n");
+        }
 
 		//------------------------------------------------------------------------
 
