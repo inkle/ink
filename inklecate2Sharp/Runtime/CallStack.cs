@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Inklewriter.Runtime
 {
@@ -47,6 +48,7 @@ namespace Inklewriter.Runtime
 
         public void Pop()
         {
+            Debug.Assert (canPop);
             _callStack.RemoveAt (_callStack.Count - 1);
         }
 

@@ -9,6 +9,15 @@ namespace Inklewriter.Runtime
 		public Divert ()
 		{
 		}
+
+        public override string ToString ()
+        {
+            if (targetPath == null) {
+                return "Divert(null)";
+            } else {
+                return "Divert(" + targetPath.ToString () + ")";
+            }
+        }
 	}
 }
 

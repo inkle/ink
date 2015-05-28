@@ -26,6 +26,10 @@ namespace Inklewriter
 
 			InkParser parser = new InkParser(inputString);
 			Parsed.Story parsedStory = parser.Parse();
+            if (parsedStory == null) {
+                Environment.Exit (ExitCodeError);
+            }
+
 			Runtime.Story story = parsedStory.ExportRuntime ();
 			if (story == null) {
 				Environment.Exit (ExitCodeError);

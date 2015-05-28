@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Text;
 
 namespace Inklewriter.Runtime
 {
@@ -123,6 +124,7 @@ namespace Inklewriter.Runtime
             if (contentObj is Divert) {
                 Divert currentDivert = (Divert)contentObj;
                 _divertedPath = currentDivert.targetPath;
+                Debug.Assert (_divertedPath != null);
                 return true;
             }
 
@@ -259,6 +261,16 @@ namespace Inklewriter.Runtime
 
 			return result;
 		}
+
+        public override string ToString ()
+        {
+            var sb = new StringBuilder ();
+
+            var currentObj = ContentAtPath (currentPath);
+            _rootContainer.BuildStringOfHierarchy (sb, 0, currentObj);
+
+            return sb.ToString ();
+        }
 
 		private void NextContent()
 		{

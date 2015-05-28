@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Inklewriter.Runtime
 {
@@ -156,6 +157,98 @@ namespace Inklewriter.Runtime
 			// Not a child
 			return null;
 		}
+
+        public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
+        {
+            Action appendIndentation = () => { 
+                const int spacesPerIndent = 2;
+                for(int i=0; i<spacesPerIndent*indentation;++i) { 
+                    sb.Append(" "); 
+                } 
+            };
+
+            appendIndentation ();
+            sb.Append("[");
+
+            if (this.hasValidName) {
+                sb.AppendFormat (" ({0})", this.name);
+            }
+
+            if (this == pointedObj) {
+                sb.Append ("  <---");
+            }
+
+            sb.AppendLine ();
+
+            indentation++;
+            
+            for (int i=0; i<content.Count; ++i) {
+
+                var obj = content [i];
+
+                if (obj is Container) {
+
+                    var container = (Container)obj;
+
+                    container.BuildStringOfHierarchy (sb, indentation, pointedObj);
+
+                } else {
+                    appendIndentation ();
+                    sb.Append (obj.ToString ());
+                }
+
+                if (i != content.Count - 1) {
+                    sb.Append (",");
+                }
+
+                if ( !(obj is Container) && obj == pointedObj ) {
+                    sb.Append ("  <---");
+                }
+                    
+                sb.AppendLine ();
+            }
+                
+
+            var onlyNamed = new Dictionary<string, INamedContent> ();
+
+            foreach (var objKV in namedContent) {
+                if (content.Contains ((Runtime.Object)objKV.Value)) {
+                    continue;
+                } else {
+                    onlyNamed.Add (objKV.Key, objKV.Value);
+                }
+            }
+
+            if (onlyNamed.Count > 0) {
+                appendIndentation ();
+                sb.AppendLine ("-- named: --");
+
+                foreach (var objKV in onlyNamed) {
+
+                    Debug.Assert (objKV.Value is Container, "Can only print out named Containers");
+                    var container = (Container)objKV.Value;
+                    container.BuildStringOfHierarchy (sb, indentation, pointedObj);
+
+                    sb.AppendLine ();
+
+                }
+            }
+
+
+            indentation--;
+
+            appendIndentation ();
+            sb.Append ("]");
+        }
+
+        public override string ToString ()
+        {
+            var sb = new StringBuilder ();
+
+            BuildStringOfHierarchy (sb, 0, null);
+
+            return sb.ToString ();
+        }
 	}
 }
 

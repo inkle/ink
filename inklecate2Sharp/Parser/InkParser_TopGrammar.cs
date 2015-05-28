@@ -11,6 +11,9 @@ namespace Inklewriter
 		public Parsed.Story Parse()
 		{
 			List<Parsed.Object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
+            if (hadError) {
+                return null;
+            }
 
 			Parsed.Story story = new Parsed.Story (topLevelContent);
 			return story;
@@ -35,28 +38,40 @@ namespace Inklewriter
 
 			if (level >= StatementLevel.Top) {
 
-				// Knots can only be defined at Top/Global scope
+				// Knots can only be parsed at Top/Global scope
 				rulesAtLevel.Add (KnotDefinition);
 			}
 
-			// The following statements can go anywhere
+			// Diverts can go anywhere
 			rulesAtLevel.Add(Line(Divert));
 
-			// Knots and stitches only
-			if (level <= StatementLevel.Knot) {
-				rulesAtLevel.Add(Line(Choice));
-			}
+            // Error checking for Choices in the wrong place is below (after parsing)
+			rulesAtLevel.Add(Line(Choice));
 
 			// Stitches can (currently) only go in Knots
 			if (level == StatementLevel.Knot) {
 				rulesAtLevel.Add (StitchDefinition);
 			}
 
+            // Normal logic / text can go anywhere
 			rulesAtLevel.Add (LogicLine);
-
 			rulesAtLevel.Add(LineOfMixedTextAndLogic);
 
+            // Parse the rules
 			var statement = OneOf (rulesAtLevel.ToArray());
+
+            // For some statements, allow them to parse, but create errors, since
+            // writers may think they can use the statement, so it's useful to have 
+            // the error message.
+            if (level == StatementLevel.Top) {
+
+                if( statement is Return ) 
+                    Error ("should not have return statement outside of a knot");
+
+                if (statement is Choice)
+                    Error ("choices can only be in knots and stitches");
+            }
+
 			if (statement == null) {
 				return null;
 			}
@@ -157,41 +172,42 @@ namespace Inklewriter
 
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
         {
-            var result = (List<Parsed.Object>) Line (MixedTextAndLogic)();
+            BeginRule ();
+
+            var result = MixedTextAndLogic();
             if (result == null || result.Count == 0) {
-                return null;
+                return (List<Parsed.Object>) FailRule();
             }
 
-            // Special whitespace and newline treatment for a full line of text/logic
-            for (int i=0; i<result.Count; ++i) {
-
-                var parsedObj = result [i];
-
-                // Remove whitespace from start of line
-                if (i == 0 && parsedObj is Text) {
-                    var text = (Text)parsedObj;
-                    text.content = text.content.TrimStart(' ', '\t');
-                }
-
-
-                // Remove whitespace from end of line, and add a newline
-                // TODO: This will need to be more nuanced in future, to cope with line continuation
-                if (i == result.Count - 1) {
-                    if (parsedObj is Text) {
-                        var text = (Text)parsedObj;
-                        text.content = text.content.TrimEnd (' ', '\t') + "\n";
-                    } 
-
-                    // Last object in line wasn't text (but some kind of logic), so
-                    // we need to append the newline afterwards using a new object
-                    // TODO: Under what conditions should we NOT do this?
-                    else {
-                        result.Add (new Text ("\n"));
-                    }
+            // Trim whitepace from start
+            var firstText = result[0] as Text;
+            if (firstText != null) {
+                firstText.content = firstText.content.TrimStart(' ', '\t');
+                if (firstText.content.Length == 0) {
+                    result.RemoveAt (0);
                 }
             }
+            if (result.Count == 0) {
+                return (List<Parsed.Object>) FailRule();
+            }
 
-            return result;
+            // Trim whitespace from end and add a newline
+            var lastObj = result.Last ();
+            if (lastObj is Text) {
+                var text = (Text)lastObj;
+                text.content = text.content.TrimEnd (' ', '\t') + "\n";
+            } 
+
+            // Last object in line wasn't text (but some kind of logic), so
+            // we need to append the newline afterwards using a new object
+            // TODO: Under what conditions should we NOT do this?
+            else {
+                result.Add (new Text ("\n"));
+            }
+
+            Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
+
+            return (List<Parsed.Object>) SucceedRule(result);
         }
 
 		protected List<Parsed.Object> MixedTextAndLogic()

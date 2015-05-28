@@ -29,6 +29,11 @@ namespace Inklewriter.Runtime
         public static EvaluationCommand End() {
             return new EvaluationCommand(CommandType.End);
         }
+
+        public override string ToString ()
+        {
+            return "Evaluation"+commandType.ToString();
+        }
     }
 }
 

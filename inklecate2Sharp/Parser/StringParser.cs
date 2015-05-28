@@ -39,6 +39,8 @@ namespace Inklewriter
 
         public StringParserState state { get; }
 
+        public bool hadError { get; protected set; }
+
         // Don't do anything by default, but provide ability for subclasses
         // to manipulate the string before it's used as input (converted to a char array)
         protected virtual string PreProcessInputString(string str)
@@ -98,7 +100,7 @@ namespace Inklewriter
 					message = rule.GetMethodInfo ().Name;
 				}
 
-				Error ("Expected "+message+" on line "+(lineIndex+1)+" but saw '"+LimitedRemainingString(30)+"'");
+				Error ("Expected "+message+" but saw '"+LimitedRemainingString(30)+"'");
 
 				if (recoveryRule != null) {
 					result = recoveryRule ();
@@ -110,7 +112,8 @@ namespace Inklewriter
 		protected void Error(string message)
 		{
 			// TODO: Do something more sensible than this. Probably don't assert though?
-			Console.WriteLine ("ERROR: " + message);
+            Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
+            hadError = true;
 		}
             
 		public bool endOfInput

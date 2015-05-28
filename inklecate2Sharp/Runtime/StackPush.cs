@@ -7,6 +7,11 @@ namespace Inklewriter.Runtime
 		public StackPush ()
 		{
 		}
+
+        public override string ToString ()
+        {
+            return "StackPush";
+        }
 	}
 }
 

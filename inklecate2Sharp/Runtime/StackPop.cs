@@ -7,6 +7,11 @@ namespace Inklewriter.Runtime
         public StackPop ()
         {
         }
+
+        public override string ToString ()
+        {
+            return "StackPop";
+        }
     }
 }
 

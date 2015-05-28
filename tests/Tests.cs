@@ -43,6 +43,29 @@ namespace Tests
             Assert.AreEqual (story.currentText, "Hello!\nWorld.\n");
         }
 
+        [Test ()]
+        public void TestCallStackEvaluation()
+        {
+            var storyStr =
+                @"
+                § eight
+                   { six() + two() }
+
+                § six
+                    ~ return four() + two()
+
+                § four
+                    ~ return two() + two()
+
+                § two
+                    ~ return 2
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentText, "8\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
