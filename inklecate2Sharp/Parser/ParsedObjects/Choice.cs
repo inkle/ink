@@ -1,37 +1,98 @@
 ﻿using System;
+using System.Text;
 
 namespace Inklewriter.Parsed
 {
 	public class Choice : Parsed.Object
 	{
-		public string choiceText { get; protected set; }
-		public Divert divert { get; }
+        public string startText { get; protected set; }
+        public string choiceOnlyText { get; protected set; }
+        public string contentOnlyText { get; protected set; }
+		public Path   explicitPath { get; }
 
-		public Choice (string choiceText, Divert divert)
+        public Choice (string startText, string choiceOnlyText, string contentOnlyText, Divert divert)
 		{
-			this.choiceText = choiceText;
-			this.divert = divert;
+            this.startText = startText;
+            this.choiceOnlyText = choiceOnlyText;
+            this.contentOnlyText = contentOnlyText;
 
-			divert.parent = this;
+            if (divert != null) {
+                this.explicitPath = divert.target;
+            }
 		}
 
 		public override Runtime.Object GenerateRuntimeObject ()
-		{
-			var runtimeChoice = new Runtime.Choice (choiceText);
-			this.divert.GenerateRuntimeObject ();
-			return runtimeChoice;
+        {
+            // Choice Text
+            var choiceTextSB = new StringBuilder ();
+            if (startText != null) {
+                choiceTextSB.Append (startText);
+            }
+            if (choiceOnlyText != null) {
+                choiceTextSB.Append (choiceOnlyText);
+            }
+
+            // Content (Weave style choices)
+            var contentTextSB = new StringBuilder ();
+            if (startText != null) {
+                contentTextSB.Append (startText);
+            }
+            if (contentOnlyText != null) {
+                contentTextSB.Append (contentOnlyText);
+            }
+            bool hasOwnContent = contentTextSB.Length > 0;
+
+            // Build choice itself
+            _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString());
+
+            // Nested content like this:
+            // [
+            //     choice: -> "c"
+            //     (c) = [
+            //         weave content
+            //     ]
+            // ]
+            if (hasOwnContent) {
+
+                _weaveContentContainer = new Runtime.Container ();
+                _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString ()));
+                _weaveContentContainer.name = "c";
+
+                _weaveOuterContainer = new Runtime.Container ();
+                _weaveOuterContainer.AddContent (_runtimeChoice);
+                _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
+
+                return _weaveOuterContainer;
+            } 
+
+            // Simple/normal choice
+            else {
+                return _runtimeChoice;
+            }
 		}
 
         public override void ResolveReferences(Story context)
 		{
-			// Don't actually use the Parsed.Divert in the runtime, but use its path resolution
-			// to set the pathOnChoice property of the Runtime.Choice.
+			// Weave style choice - target own content container
+            if (_weaveContentContainer != null) {
+                _runtimeChoice.pathOnChoice = _weaveContentContainer.path;
+            }
 
-			divert.ResolveReferences (context);
+            // Normal/old style choice - resolve path that was explicitly specified
+            else if (explicitPath != null) {
+                Parsed.Object obj = ResolvePath (explicitPath);
+                if (obj == null) {
+                    Error ("Choice: target not found: '" + explicitPath.ToString () + "'");
+                }
 
-			var runtimeChoice = runtimeObject as Runtime.Choice;
-			runtimeChoice.pathOnChoice = divert.runtimeDivert.targetPath;
+                _runtimeChoice.pathOnChoice = obj.runtimeObject.path;
+            }
+
 		}
+
+        Runtime.Choice _runtimeChoice;
+        Runtime.Container _weaveContentContainer;
+        Runtime.Container _weaveOuterContainer;
 	}
 
 }

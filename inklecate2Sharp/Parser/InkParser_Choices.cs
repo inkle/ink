@@ -9,35 +9,63 @@ namespace Inklewriter
 		{
 			BeginRule ();
 
-			Whitespace ();
+            var bullets = Interleave <string>(OptionalExclude(Whitespace), () => ParseString ("*") );
+            if (bullets == null) {
+                return (Choice) FailRule ();
+            }
+                
+            string startText = ChoiceText ();
+            string optionOnlyText = null;
+            string contentOnlyText = null;
 
-			if (ParseString ("*") == null) {
-				return (Choice) FailRule ();
-			}
+            // Check for a the weave style format:
+            //   * "Hello[."]," he said.
+            bool midTextStarter = ParseString("[") != null;
+            if (midTextStarter) {
+                optionOnlyText = ChoiceText ();
 
-			Whitespace ();
+                Expect (() => ParseString ("]"), "closing ']' for weave-style option");
 
-			if( _choicePauseCharacters == null ) {
-				_choicePauseCharacters = new CharacterSet ("-");
-			}
-			if (_choiceEndCharacters == null) {
-				_choiceEndCharacters = new CharacterSet("{\n\r");
-			}
+                contentOnlyText = ChoiceText ();
+            }
+             
+            // Trim
+            if (contentOnlyText != null) {
+                contentOnlyText = contentOnlyText.TrimEnd (' ', '\t');
+                if (contentOnlyText.Length == 0)
+                    contentOnlyText = null;
+            } else {
+                startText = startText.TrimEnd (' ', '\t');
+                if (startText.Length == 0)
+                    startText = null;
+            }
 
-			string choiceText = ParseUntil(Divert, pauseCharacters: _choicePauseCharacters, endCharacters: _choiceEndCharacters);
-
-			choiceText = choiceText.TrimEnd (' ');
-
+            if (startText == null && optionOnlyText == null) {
+                Error ("choice text cannot be empty");
+            }
+                
 			Whitespace ();
 
 			var divert =  Divert ();
 
-			return SucceedRule( new Choice(choiceText, divert) ) as Choice;
+            return SucceedRule( new Choice(startText, optionOnlyText, contentOnlyText, divert) ) as Choice;
 
 		}
 
-		private CharacterSet _choicePauseCharacters;
-		private CharacterSet _choiceEndCharacters;
+        protected string ChoiceText()
+        {
+            if( _choiceTextPauseCharacters == null ) {
+                _choiceTextPauseCharacters = new CharacterSet ("-");
+            }
+            if (_choiceTextEndCharacters == null) {
+                _choiceTextEndCharacters = new CharacterSet("[]{\n\r");
+            }
+
+            return ParseUntil(Divert, pauseCharacters: _choiceTextPauseCharacters, endCharacters: _choiceTextEndCharacters);
+        }
+
+		private CharacterSet _choiceTextPauseCharacters;
+		private CharacterSet _choiceTextEndCharacters;
 	}
 }
 

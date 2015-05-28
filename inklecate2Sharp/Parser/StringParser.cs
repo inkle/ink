@@ -230,6 +230,15 @@ namespace Inklewriter
             };
         }
 
+        // Combination of both of the above
+        public ParseRule OptionalExclude(ParseRule rule)
+        {
+            return () => {
+                rule ();
+                return ParseSuccess;
+            };
+        }
+
 		private void TryAddResultToList<T>(object result, List<T> list, bool flatten = true)
 		{
 			if (result == ParseSuccess) {

@@ -66,6 +66,23 @@ namespace Tests
             Assert.AreEqual (story.currentText, "8\n");
         }
 
+        [Test ()]
+        public void TestWeaveOptions()
+        {
+            var storyStr =
+                @"
+                    § test
+                        * Hello[.], world.
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentChoices[0].choiceText, "Hello.");
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (story.currentText, "Hello, world.");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

@@ -40,15 +40,16 @@ namespace Inklewriter
 						i++;
 					}
 
-					string userInput = Console.ReadLine ();
+                    string userInput = Console.ReadLine ();
 
-					var inputParser = new StringParser (userInput);
-					var intOrNull = inputParser.ParseInt ();
-					if (intOrNull == null) {
-						Console.WriteLine ("That's not a choice number");
-					} else {
-						choiceIdx = ((int) intOrNull)-1;
-					}
+                    var inputParser = new StringParser (userInput);
+                    var intOrNull = inputParser.ParseInt ();
+                    if (intOrNull == null) {
+                        Console.WriteLine ("That's not a choice number");
+                    } else {
+                        choiceIdx = ((int) intOrNull)-1;
+                    }
+
 				}
 
 				story.ContinueWithChoiceIndex (choiceIdx);

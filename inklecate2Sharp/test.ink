@@ -1,6 +1,3 @@
 ﻿
-    § test
-        Hello
-
-   § world
-    World
+§ test
+    * Hello[.], world.
