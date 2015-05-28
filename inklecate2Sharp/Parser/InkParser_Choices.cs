@@ -48,6 +48,9 @@ namespace Inklewriter
 
 			var divert =  Divert ();
 
+            var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
+            choice.indentationDepth = bullets.Count;
+
             return SucceedRule( new Choice(startText, optionOnlyText, contentOnlyText, divert) ) as Choice;
 
 		}

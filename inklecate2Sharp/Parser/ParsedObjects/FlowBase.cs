@@ -33,6 +33,8 @@ namespace Inklewriter.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject()
 		{
+            LinkWeaveStructure ();
+
 			var container = new Runtime.Container ();
 			container.name = name;
 
@@ -66,6 +68,36 @@ namespace Inklewriter.Parsed
 				obj.ResolveReferences (context); 
 			}
 		}
+
+        protected void LinkWeaveStructure ()
+        {
+            Choice activeChoice = null;
+
+            int contentIdx = 0;
+            while (contentIdx < content.Count) {
+
+                Parsed.Object obj = content [contentIdx];
+                bool objMoved = false;
+
+                if (obj is Choice) {
+                    var choice = (Choice)obj;
+                    if (choice.hasMultiLineContent) {
+                        activeChoice = choice;
+                    }
+                } 
+
+                // Normal content - move it into the active Choice
+                else if( activeChoice != null ) {
+                    activeChoice.AddNestedContent(obj);
+                    content.RemoveAt (contentIdx);
+                }
+
+                if (!objMoved) {
+                    contentIdx++;
+                }
+
+            }
+        }
 	}
 }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
@@ -9,6 +10,8 @@ namespace Inklewriter.Parsed
         public string choiceOnlyText { get; protected set; }
         public string contentOnlyText { get; protected set; }
 		public Path   explicitPath { get; }
+        public int    indentationDepth { get; set; } = 1;
+        public bool   hasMultiLineContent { get { return this.explicitPath == null; } }
 
         public Choice (string startText, string choiceOnlyText, string contentOnlyText, Divert divert)
 		{
@@ -20,6 +23,15 @@ namespace Inklewriter.Parsed
                 this.explicitPath = divert.target;
             }
 		}
+
+        public void AddNestedContent(Parsed.Object obj)
+        {
+            if (_nestedContent == null) {
+                _nestedContent = new List<Parsed.Object> ();
+            }
+
+            _nestedContent.Add (obj);
+        }
 
 		public override Runtime.Object GenerateRuntimeObject ()
         {
@@ -40,7 +52,7 @@ namespace Inklewriter.Parsed
             if (contentOnlyText != null) {
                 contentTextSB.Append (contentOnlyText);
             }
-            bool hasOwnContent = contentTextSB.Length > 0;
+            bool hasOwnContent = contentTextSB.Length > 0 || (_nestedContent != null && _nestedContent.Count > 0);
 
             // Build choice itself
             _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString());
@@ -67,7 +79,11 @@ namespace Inklewriter.Parsed
                 _weaveOuterContainer.AddContent (_runtimeChoice);
                 _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
 
-
+                if (_nestedContent != null) {
+                    foreach(var nestedObj in _nestedContent) {
+                        _weaveContentContainer.AddContent(nestedObj.runtimeObject);
+                    }
+                }
 
                 return _weaveOuterContainer;
             } 
@@ -100,6 +116,8 @@ namespace Inklewriter.Parsed
             }
 
 		}
+
+        List<Parsed.Object> _nestedContent;
 
         Runtime.Choice _runtimeChoice;
         Runtime.Container _weaveContentContainer;
