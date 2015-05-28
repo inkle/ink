@@ -8,14 +8,12 @@ namespace Inklewriter
     {
         public CommentEliminator (string input) : base(input)
         {
-            _commentStartCharacter = new CharacterSet ("/");
-            _newlineCharacters = new CharacterSet ("\n\r");
-            _commentBlockEndPauseCharacters = new CharacterSet ("\n\r*");
         }
 
         public string Process()
         {
-            var stringList = Interleave<string>(Optional (Comment), NonComment);
+            // Make both comments and non-comments optional to handle trivial empty file case (or *only* comments)
+            var stringList = Interleave<string>(Optional (Comment), Optional(NonComment));
 
             return string.Join ("", stringList);
         }
@@ -49,36 +47,29 @@ namespace Inklewriter
                 return null;
             }
 
-            var newlinesOnly = new StringBuilder ();
+            int startLineIndex = lineIndex;
 
-            do {
-                
-                ParseUntilCharactersFromCharSet (_commentBlockEndPauseCharacters);
+            var commentResult = ParseUntil (() => ParseString ("*/"), _commentBlockEndCharacter, null);
 
-                // Parse any newlines - it's important that we retain them so that line numbers remain consistent
-                string newlines = ParseCharactersFromCharSet(_newlineCharacters);
-                if (newlines != null && newlines.Length > 0) {
-                    newlinesOnly.Append (newlines);
-                } 
+            if (!endOfInput) {
+                ParseString ("*/");
+            }
 
-                // Parse end of comment block
-                else if (ParseString ("*/") != null) {
-                    break;
-                }
+            // Count the number of lines that were inside the block, and replicate them as newlines
+            // so that the line indexing still works from the original source
+            if (commentResult != null) {
+                return new string ('\n', lineIndex - startLineIndex);
+            } 
 
-                // Step past pause character (i.e. likely to be a '*')
-                else {
-                    index++;
-                }
-
-            } while(true);
-
-            return newlinesOnly.ToString();
+            // No comment at all
+            else {
+                return null;
+            }
         }
           
-        CharacterSet _commentStartCharacter;
-        CharacterSet _commentBlockEndPauseCharacters;
-        CharacterSet _newlineCharacters;
+        CharacterSet _commentStartCharacter = new CharacterSet ("/");
+        CharacterSet _commentBlockEndCharacter = new CharacterSet("*");
+        CharacterSet _newlineCharacters = new CharacterSet ("\n\r");
     }
 }
 

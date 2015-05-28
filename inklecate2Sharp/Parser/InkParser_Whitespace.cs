@@ -10,7 +10,7 @@ namespace Inklewriter
 		{
 			BeginRule();
 
-			object newlineOrEndOfFile = OneOf(Newline, EndOfFile);
+            object newlineOrEndOfFile = OneOf(Newline, EndOfFile);
 			if( newlineOrEndOfFile == null ) {
 				return FailRule();
 			} else {
@@ -18,24 +18,23 @@ namespace Inklewriter
 			}
 		}
 
-		// You probably want "endOfLine", since it handles endOfFile too.
-		protected object Newline()
-		{
-			BeginRule();
+        // Allow whitespace before the actual newline
+        protected object Newline()
+        {
+            BeginRule();
 
-			Whitespace();
+            Whitespace();
 
-			// Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
-			ParseString ("\r");
-			bool gotNewline = ParseString ("\n") != null;
+            bool gotNewline = ParseNewline () != null;
 
-			if( !gotNewline ) {
-				return FailRule();
-			} else {
-				IncrementLine();
-				return SucceedRule(ParseSuccess);
-			}
-		}
+            // Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
+
+            if( !gotNewline ) {
+                return FailRule();
+            } else {
+                return SucceedRule(ParseSuccess);
+            }
+        }
 
 		protected object EndOfFile()
 		{
@@ -56,7 +55,7 @@ namespace Inklewriter
 		{
 			BeginRule();
 
-			List<object> newlines = OneOrMore(Newline);
+            List<object> newlines = OneOrMore(Newline);
 			if( newlines == null ) {
 				return FailRule();
 			}

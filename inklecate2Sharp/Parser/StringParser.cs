@@ -14,13 +14,10 @@ namespace Inklewriter
 		{
             str = PreProcessInputString (str);
 
+            state = new StringParserState();
+
 			_chars = str.ToCharArray ();
 			inputString = str;
-
-            _indexStack = new List<int> ();
-
-            // Default element
-            _indexStack.Add (0);
 		}
             
 		public class ParseSuccessStruct {};
@@ -40,6 +37,8 @@ namespace Inklewriter
 			}
 		}
 
+        public StringParserState state { get; }
+
         // Don't do anything by default, but provide ability for subclasses
         // to manipulate the string before it's used as input (converted to a char array)
         protected virtual string PreProcessInputString(string str)
@@ -51,35 +50,46 @@ namespace Inklewriter
 		// Parse state
 		//--------------------------------
 
-		protected virtual void BeginRule()
-		{
-            _indexStack.Add (index);
-		}
+        protected void BeginRule()
+        {
+            state.Push ();
+        }
 
-		protected virtual object FailRule()
-		{
-            _indexStack.RemoveAt (_indexStack.Count - 1);
-			return null;
-		}
+        protected object FailRule()
+        {
+            state.Pop ();
+            return null;
+        }
 
-		protected virtual void CancelRule()
-		{
-			FailRule ();
-		}
+        protected void CancelRule()
+        {
+            state.Pop ();
+        }
 
-		protected virtual object SucceedRule(object result = null)
-		{
-			if (result == null) {
-				result = ParseSuccess;
-			}
+        protected object SucceedRule(object result = null)
+        {
+            // Get state at point where this rule stared evaluating
+            var stateAtBeginRule = state.Peek ();
 
-            var currIndex = index;
-            _indexStack.RemoveRange (_indexStack.Count - 2, 2);
-            _indexStack.Add (currIndex);
+            // Allow subclass to receive callback
+            RuleDidSucceed (result, stateAtBeginRule);
 
-			return result;
-		}
+            // Flatten state stack so that we maintain the same values,
+            // but remove one level in the stack.
+            state.Squash();
 
+            if (result == null) {
+                result = ParseSuccess;
+            }
+
+            return result;
+        }
+
+        protected virtual void RuleDidSucceed(object result, StringParserState.Element state)
+        {
+
+        }
+            
 		protected object Expect(ParseRule rule, string message = null, ParseRule recoveryRule = null)
 		{
 			object result = rule ();
@@ -102,12 +112,7 @@ namespace Inklewriter
 			// TODO: Do something more sensible than this. Probably don't assert though?
 			Console.WriteLine ("ERROR: " + message);
 		}
-
-		protected void IncrementLine()
-		{
-			lineIndex++;
-		}
-
+            
 		public bool endOfInput
 		{
 			get { return index >= _chars.Length; }
@@ -134,9 +139,30 @@ namespace Inklewriter
 
 		public string inputString { get; }
 
-		// These are overriden to use the InkParserState values in InkParser
-		public virtual int lineIndex { get { return _lineIndex; } set { _lineIndex = value; } }
-        public virtual int index { get { return _indexStack[_indexStack.Count-1]; } set { _indexStack[_indexStack.Count-1] = value; } }
+
+        public int lineIndex
+        {
+            set {
+                state.lineIndex = value;
+            }
+            get {
+                return state.lineIndex;
+            }
+        }
+
+        public int index
+        {
+            // If we want subclass parsers to be able to set the index directly,
+            // then we would need to know what the lineIndex of the new
+            // index would be - would we have to step through manually
+            // counting the newlines to do so?
+            private set {
+                state.characterIndex = value;
+            }
+            get {
+                return state.characterIndex;
+            }
+        }
 
 		//--------------------------------
 		// Structuring
@@ -283,7 +309,7 @@ namespace Inklewriter
 				return null;
 			}
 
-			int oldIndex = index;
+            BeginRule ();
 
 			bool success = true;
 			foreach (char c in str) {
@@ -291,15 +317,17 @@ namespace Inklewriter
 					success = false;
 					break;
 				}
+                if (c == '\n') {
+                    lineIndex++;
+                }
 				index++;
 			}
 
 			if (success) {
-				return str;
+                return (string) SucceedRule(str);
 			}
 			else {
-				index = oldIndex;
-				return null;
+                return (string) FailRule ();
 			}
 		}
 
@@ -333,7 +361,10 @@ namespace Inklewriter
 
 			int count = 0;
 			while ( index < _chars.Length && charSet.Contains (_chars [index]) == shouldIncludeChars && count < maxCount ) {
-				index++;
+                if (_chars [index] == '\n') {
+                    lineIndex++;
+                }
+                index++;
 				count++;
 			}
 
@@ -396,6 +427,9 @@ namespace Inklewriter
 					char pauseCharacter = currentCharacter;
 					if( pauseCharacters != null && pauseCharacters.Contains(pauseCharacter) ) {
 						parsedString.Append(pauseCharacter);
+                        if( pauseCharacter == '\n' ) {
+                            lineIndex++;
+                        }
 						index++;
 						continue;
 					} else {
@@ -433,12 +467,27 @@ namespace Inklewriter
 			return null;
 		}
 
+        // You probably want "endOfLine", since it handles endOfFile too.
+        protected string ParseNewline()
+        {
+            BeginRule();
+
+            // Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
+            var r = ParseString ("\r");
+            var n = ParseString ("\n");
+
+            if (r != null && n != null) {
+                n = r + n;
+            }
+
+            if( n == null ) {
+                return (string) FailRule();
+            } else {
+                return (string) SucceedRule(n);
+            }
+        }
+
 		private char[] _chars;
-
-		// WARNING: These are invalid in InkParser since the index and lineIndex properties are overridden
-		private int _lineIndex;
-        private List<int> _indexStack;
-
 	}
 }
 

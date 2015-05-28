@@ -67,7 +67,7 @@ namespace Inklewriter
 		protected object SkipToNextLine()
 		{
 			ParseUntilCharactersFromString ("\n\r");
-			Newline ();
+			ParseNewline ();
 			return ParseSuccess;
 		}
 

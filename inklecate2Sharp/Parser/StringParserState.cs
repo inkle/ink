@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Inklewriter
 {
-	public class InkParserState
+	public class StringParserState
 	{
 		public int lineIndex { 
 			get { return currentElement.lineIndex; } 
@@ -33,17 +33,12 @@ namespace Inklewriter
 			}
 		}
 
-		public InkParserState ()
+		public StringParserState ()
 		{
 			_stack = new List<Element> ();
 
 			// Default element
 			_stack.Add (new Element ());
-		}
-
-		public void IncrementLine()
-		{
-			currentElement.lineIndex++;
 		}
 
 		public void Push()

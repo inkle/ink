@@ -49,7 +49,6 @@
     <Compile Include="Parser\InkParser_Knot.cs" />
     <Compile Include="Parser\InkParser_Whitespace.cs" />
     <Compile Include="Parser\StringParser.cs" />
-    <Compile Include="Parser\InkParserState.cs" />
     <Compile Include="Parser\ParsedObjects\DebugMetadata.cs" />
     <Compile Include="Parser\ParsedObjects\Knot.cs" />
     <Compile Include="Parser\ParsedObjects\VariableReference.cs" />
@@ -89,6 +88,7 @@
     <Compile Include="Parser\ParsedObjects\Return.cs" />
     <Compile Include="Runtime\StackPop.cs" />
     <Compile Include="Parser\CommentEliminator.cs" />
+    <Compile Include="Parser\StringParserState.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
