@@ -58,9 +58,16 @@ namespace Inklewriter.Parsed
                 _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString ()));
                 _weaveContentContainer.name = "c";
 
+                if (this.explicitPath != null) {
+                    _weaveContentEndDivert = new Runtime.Divert ();
+                    _weaveContentContainer.AddContent (_weaveContentEndDivert);
+                }
+
                 _weaveOuterContainer = new Runtime.Container ();
                 _weaveOuterContainer.AddContent (_runtimeChoice);
                 _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
+
+
 
                 return _weaveOuterContainer;
             } 
@@ -78,14 +85,18 @@ namespace Inklewriter.Parsed
                 _runtimeChoice.pathOnChoice = _weaveContentContainer.path;
             }
 
-            // Normal/old style choice - resolve path that was explicitly specified
-            else if (explicitPath != null) {
+            // Resolve path that was explicitly specified (either at the end of the weave choice, or just as the normal choice path)
+            if (explicitPath != null) {
                 Parsed.Object obj = ResolvePath (explicitPath);
                 if (obj == null) {
                     Error ("Choice: target not found: '" + explicitPath.ToString () + "'");
                 }
 
-                _runtimeChoice.pathOnChoice = obj.runtimeObject.path;
+                if (_weaveContentEndDivert != null) {
+                    _weaveContentEndDivert.targetPath = obj.runtimeObject.path;
+                } else {
+                    _runtimeChoice.pathOnChoice = obj.runtimeObject.path;
+                }
             }
 
 		}
@@ -93,6 +104,7 @@ namespace Inklewriter.Parsed
         Runtime.Choice _runtimeChoice;
         Runtime.Container _weaveContentContainer;
         Runtime.Container _weaveOuterContainer;
+        Runtime.Divert _weaveContentEndDivert;
 	}
 
 }
