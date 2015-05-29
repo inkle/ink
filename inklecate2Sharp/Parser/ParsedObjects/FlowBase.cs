@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Inklewriter.Parsed
 {
@@ -93,8 +94,8 @@ namespace Inklewriter.Parsed
 
         protected void CreateWeaveHierarchy ()
         {
-            // Active parent choices at each indentation level
-            var choiceLevels = new List<Choice> ();
+            // Choices at each indentation level
+            var allChoicesByIndentationLevel = new List<List<Choice>> ();
 
             int contentIdx = 0;
             while (contentIdx < content.Count) {
@@ -106,30 +107,59 @@ namespace Inklewriter.Parsed
                 if (obj is Choice) {
                     var choice = (Choice)obj;
 
-                    if (choice.indentationDepth > choiceLevels.Count + 1) {
+                    int indentIndex = choice.indentationDepth - 1;
+
+                    if (choice.indentationDepth >= allChoicesByIndentationLevel.Count + 2) {
                         Error ("weave nesting levels shouldn't jump (i.e. number bullets should only add or remove one at each level)", choice);
                         return;
                     }
 
-                    // Higher (or equal) level choice
-                    if (choice.indentationDepth <= choiceLevels.Count) {
-                        int removalIndex = choice.indentationDepth - 1;
-                        choiceLevels.RemoveRange (removalIndex, choiceLevels.Count - removalIndex);
+                    // Going back outer scope? (smaller number of bullets)
+                    if (indentIndex < allChoicesByIndentationLevel.Count-1) {
+                        int removalIndex = indentIndex+1;
+                        allChoicesByIndentationLevel.RemoveRange (removalIndex, allChoicesByIndentationLevel.Count - removalIndex);
                     }
 
-                    choiceLevels.Add (choice);
+                    // Drilling into more indentated level (more bullets)
+                    if (indentIndex >= allChoicesByIndentationLevel.Count) {
+                        allChoicesByIndentationLevel.Add (new List<Choice> ());
+                        Debug.Assert (indentIndex == allChoicesByIndentationLevel.Count - 1);
+                    } 
+
+                    var choicesThisLevel = allChoicesByIndentationLevel [indentIndex];
+                    choicesThisLevel.Add (choice);
 
                     if (choice.indentationDepth > 1) {
-                        int indentIndex = choice.indentationDepth - 1;
-                        parentChoiceForThisContent = choiceLevels [indentIndex - 1];
+                        //int indentIndex = choice.indentationDepth - 1;
+                        var choicesAtParentLevel = allChoicesByIndentationLevel[indentIndex - 1];
+                        parentChoiceForThisContent = choicesAtParentLevel.Last ();
                     }
                 } 
+
+                else if (obj is Gather) {
+                    var gather = (Gather)obj;
+
+                    // Gather loose ends
+                    int indentIndex = gather.indentationDepth-1;
+
+                    for (var ind = indentIndex; ind < allChoicesByIndentationLevel.Count; ++ind) {
+                        var choicesAtLevel = allChoicesByIndentationLevel [ind];
+                        foreach(var choice in choicesAtLevel) {
+                            if (choice.hasLooseEnd) {
+                                choice.AddNestedContent (new Parsed.Divert (gather, false));
+                            }
+                        }
+                    }
+
+                    allChoicesByIndentationLevel.RemoveRange (indentIndex, allChoicesByIndentationLevel.Count - indentIndex);
+
+                }
 
                 // Ordinary non-choice content
                 else {
 
-                    if (choiceLevels.Count > 0) {
-                        parentChoiceForThisContent = choiceLevels.Last ();
+                    if (allChoicesByIndentationLevel.Count > 0) {
+                        parentChoiceForThisContent = allChoicesByIndentationLevel.Last().Last();
                     }
 
                 }

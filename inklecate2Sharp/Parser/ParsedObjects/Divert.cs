@@ -5,6 +5,7 @@ namespace Inklewriter.Parsed
 	public class Divert : Parsed.Object
 	{
 		public Parsed.Path target { get; protected set; }
+        public Parsed.Object targetContent { get; protected set; }
 		public bool returning { get; }
 
 		public Runtime.Divert runtimeDivert { get; protected set; }
@@ -14,6 +15,12 @@ namespace Inklewriter.Parsed
 			this.target = target;
 			this.returning = returning;
 		}
+
+        public Divert (Parsed.Object targetContent, bool returning)
+        {
+            this.targetContent = targetContent;
+            this.returning = returning;
+        }
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
@@ -35,11 +42,31 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences(Story context)
 		{
-			Parsed.Object divertTargetObj = ResolvePath (target);
-			if (divertTargetObj == null) {
-				Error ("Divert: target not found: '" + target.ToString () + "'");
-			} else {
-				runtimeDivert.targetPath = divertTargetObj.runtimeObject.path;
+            if (targetContent == null) {
+                targetContent = ResolvePath (target);
+
+                if (targetContent == null) {
+
+                    bool foundAlternative = false;
+                    Path alternativePath = target.debugSuggestedAlternative;
+                    if (alternativePath != null) {
+                        targetContent = ResolvePath (alternativePath);
+                        if (targetContent != null) {
+                            foundAlternative = true;
+                        }
+                    }
+
+                    if (foundAlternative) {
+                        Error ("Divert: target not found: '" + target.ToString () + "'. Did you mean '"+alternativePath+"'?");
+                        target = alternativePath;
+                    } else {
+                        Error ("Divert: target not found: '" + target.ToString () + "'");
+                    }
+                }
+            }
+
+			if (targetContent != null) {
+				runtimeDivert.targetPath = targetContent.runtimeObject.path;
 			}
 		}
 			

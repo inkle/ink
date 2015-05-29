@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Inklewriter.Parsed;
@@ -28,8 +29,10 @@ namespace Inklewriter
 
 		protected List<Parsed.Object> StatementsAtLevel(StatementLevel level)
 		{
-			return Interleave<Parsed.Object>(Optional (MultilineWhitespace), 
-				() => StatementAtLevel (level));
+			return Interleave<Parsed.Object>(
+                Optional (MultilineWhitespace), 
+                () => StatementAtLevel (level), 
+                untilTerminator: () => StatementsBreakForLevel(level));
 		}
 
 		protected object StatementAtLevel(StatementLevel level)
@@ -47,8 +50,9 @@ namespace Inklewriter
 
             // Error checking for Choices in the wrong place is below (after parsing)
 			rulesAtLevel.Add(Line(Choice));
+            rulesAtLevel.Add (Line(Gather));
 
-			// Stitches can (currently) only go in Knots
+            // Stitches (and gathers) can (currently) only go in Knots
 			if (level == StatementLevel.Knot) {
 				rulesAtLevel.Add (StitchDefinition);
 			}
@@ -70,6 +74,9 @@ namespace Inklewriter
 
                 if (statement is Choice)
                     Error ("choices can only be in knots and stitches");
+
+                if (statement is Gather)
+                    Error ("gather points can only be in knots and stitches");
             }
 
 			if (statement == null) {
@@ -78,6 +85,32 @@ namespace Inklewriter
 
 			return statement;
 		}
+
+        protected object StatementsBreakForLevel(StatementLevel level)
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            var breakingRules = new List<ParseRule> ();
+
+            // Break current knot with a new knot
+            if (level <= StatementLevel.Knot) {
+                breakingRules.Add (KnotTitleEquals);
+            }
+
+            // Break current stitch with a new stitch
+            if (level <= StatementLevel.Stitch) {
+                breakingRules.Add (String("="));
+            }
+
+            var breakRuleResult = OneOf (breakingRules.ToArray ());
+            if (breakRuleResult == null) {
+                return FailRule ();
+            }
+
+            return SucceedRule (breakRuleResult);
+        }
 
 		protected object SkipToNextLine()
 		{
@@ -131,7 +164,6 @@ namespace Inklewriter
 		{
             return OneOf(String("->"), String("-->")) as string;
 		}
-
 
 		protected string Identifier()
 		{
@@ -264,6 +296,8 @@ namespace Inklewriter
 		// and more "we parse ANYTHING except this small selection of stuff".
 		protected Parsed.Text ContentText()
 		{
+            BeginRule ();
+
 			// Eat through text, pausing at the following characters, and
 			// attempt to parse the nonTextRule.
 			// "/" for possible start of comment
@@ -282,9 +316,10 @@ namespace Inklewriter
 			
 			string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
 			if (pureTextContent != null ) {
-				return new Parsed.Text (pureTextContent);
+                return (Parsed.Text) SucceedRule( new Parsed.Text (pureTextContent) );
+
 			} else {
-				return null;
+                return (Parsed.Text) FailRule();
 			}
 
 		}

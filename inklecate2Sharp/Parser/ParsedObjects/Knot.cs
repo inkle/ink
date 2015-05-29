@@ -26,7 +26,7 @@ namespace Inklewriter.Parsed
 				}
 			}
 
-			return base.ResolvePath (path);
+            return base.ResolvePath (path);
 		}
 	}
 }

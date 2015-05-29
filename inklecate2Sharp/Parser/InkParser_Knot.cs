@@ -78,6 +78,7 @@ namespace Inklewriter
 			return SucceedRule (stitch);
 		}
 
+
 		protected object KnotStitchNoContentRecoveryRule()
 		{
 			var recoveredStitchContent = new List<Parsed.Object>();

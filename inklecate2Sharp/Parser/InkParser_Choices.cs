@@ -69,6 +69,50 @@ namespace Inklewriter
 
 		private CharacterSet _choiceTextPauseCharacters;
 		private CharacterSet _choiceTextEndCharacters;
+
+
+        protected Gather Gather()
+        {
+            BeginRule ();
+
+            // TODO: Handle multiple dashes
+            var dashes = Interleave<string>(OptionalExclude(Whitespace), String("-"));
+            if (dashes == null) {
+                return (Gather) FailRule ();
+            }
+
+            // Optional name for the gather
+            string optionalName = BracketedName();
+
+            Whitespace ();
+
+            // Optional content from the rest of the line
+            var content = MixedTextAndLogic ();
+
+            Gather gather = new Gather (optionalName, content, dashes.Count);
+
+            return (Gather) SucceedRule (gather);
+        }
+
+        protected string BracketedName()
+        {
+            BeginRule ();
+
+            if (ParseString ("(") == null)
+                return (string) FailRule ();
+
+            Whitespace ();
+
+            string name = Identifier ();
+            if (name == null)
+                return (string)FailRule ();
+
+            Whitespace ();
+
+            Expect (String (")"), "closing ')' for bracketed name");
+
+            return (string) SucceedRule (name);
+        }
 	}
 }
 

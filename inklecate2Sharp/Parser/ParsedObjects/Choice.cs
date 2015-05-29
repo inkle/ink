@@ -13,6 +13,17 @@ namespace Inklewriter.Parsed
         public int    indentationDepth { get; set; } = 1;
         public bool   hasMultiLineContent { get { return this.explicitPath == null; } }
 
+        public bool   hasLooseEnd { 
+            get { 
+                if (hasMultiLineContent) {
+                    // TODO: Be more intelligent about whether it actually has a loose end
+                    return true; 
+                }
+
+                return false;
+            } 
+        }
+
         public Choice (string startText, string choiceOnlyText, string contentOnlyText, Divert divert)
 		{
             this.startText = startText;

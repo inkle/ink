@@ -8,6 +8,17 @@ namespace Inklewriter.Parsed
 		public string stitchName { get; protected set; }
 		public string ambiguousName { get; protected set; }
 
+        public Path debugSuggestedAlternative { 
+            get {
+                if (this.knotName != null) {
+                    return Path.ToStitch (this.knotName);
+                } else if (this.stitchName != null) {
+                    return Path.ToKnot (this.stitchName);
+                }
+                return null;
+            }
+        }
+
 		protected Path(string knotName = null, string stitchName = null, string ambiguousName = null)
 		{
 			this.knotName = knotName;

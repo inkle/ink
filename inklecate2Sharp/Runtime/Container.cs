@@ -128,6 +128,7 @@ namespace Inklewriter.Runtime
                     // Why? Because if you increment off the end of *any* named container, then there's nowhere
                     // you can sensibly go.
                     else if (tail.containsNamedComponent) {
+                        
                         return null;
                     }
 				}

@@ -75,6 +75,8 @@ namespace Tests
                         * Hello[.], world.
                 ";
 
+
+
             Story story = CompileString (storyStr);
             story.Begin ();
             Assert.AreEqual (story.currentChoices[0].choiceText, "Hello.");

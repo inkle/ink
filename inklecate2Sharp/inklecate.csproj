@@ -89,6 +89,7 @@
     <Compile Include="Runtime\StackPop.cs" />
     <Compile Include="Parser\CommentEliminator.cs" />
     <Compile Include="Parser\StringParserState.cs" />
+    <Compile Include="Parser\ParsedObjects\Gather.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
