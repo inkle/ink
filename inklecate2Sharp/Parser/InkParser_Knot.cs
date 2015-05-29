@@ -38,9 +38,10 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			if (ParseString ("-") == null) {
-				return FailRule ();
-			}
+            var startChar = (string) OneOf (String ("+"), String ("-"));
+            if (startChar == null) {
+                return FailRule ();
+            }
 
 			Whitespace ();
 
@@ -53,6 +54,10 @@ namespace Inklewriter
 			var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
 			Stitch stitch = new Stitch (stitchName, content);
+
+            if (startChar == "+") {
+
+            }
 
 			return SucceedRule (stitch);
 		}

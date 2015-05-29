@@ -9,7 +9,7 @@ namespace Inklewriter
 		{
 			BeginRule ();
 
-            var bullets = Interleave <string>(OptionalExclude(Whitespace), () => ParseString ("*") );
+            var bullets = Interleave <string>(OptionalExclude(Whitespace), String("*") );
             if (bullets == null) {
                 return (Choice) FailRule ();
             }
@@ -24,7 +24,7 @@ namespace Inklewriter
             if (midTextStarter) {
                 optionOnlyText = ChoiceText ();
 
-                Expect (() => ParseString ("]"), "closing ']' for weave-style option");
+                Expect (String("]"), "closing ']' for weave-style option");
 
                 contentOnlyText = ChoiceText ();
             }

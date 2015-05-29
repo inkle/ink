@@ -49,7 +49,7 @@ namespace Inklewriter
 
             int startLineIndex = lineIndex;
 
-            var commentResult = ParseUntil (() => ParseString ("*/"), _commentBlockEndCharacter, null);
+            var commentResult = ParseUntil (String("*/"), _commentBlockEndCharacter, null);
 
             if (!endOfInput) {
                 ParseString ("*/");

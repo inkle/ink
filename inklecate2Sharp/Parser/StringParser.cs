@@ -239,6 +239,14 @@ namespace Inklewriter
             };
         }
 
+        // Convenience method for creating more readable ParseString rules that can be combined
+        // in other structuring rules (like OneOf etc)
+        // e.g. OneOf(String("one"), String("two"))
+        protected ParseRule String(string str)
+        {
+            return () => ParseString (str);
+        }
+
 		private void TryAddResultToList<T>(object result, List<T> list, bool flatten = true)
 		{
 			if (result == ParseSuccess) {

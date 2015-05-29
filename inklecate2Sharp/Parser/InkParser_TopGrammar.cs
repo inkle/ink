@@ -129,8 +129,7 @@ namespace Inklewriter
 
 		protected string DivertArrow()
 		{
-			return OneOf(() => ParseString("->"), 
-				() => ParseString("-->")) as string;
+            return OneOf(String("->"), String("-->")) as string;
 		}
 
 
@@ -248,7 +247,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			Expect (() => ParseString ("}"), "closing brace '}' for inline logic");
+            Expect (String("}"), "closing brace '}' for inline logic");
 
 			return SucceedRule(logic) as Parsed.Object;
 		}

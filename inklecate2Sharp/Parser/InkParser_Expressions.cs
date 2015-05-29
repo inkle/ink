@@ -189,12 +189,12 @@ namespace Inklewriter
                 return (Expression)FailRule ();
 
             // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
-            ParseRule commas = Exclude (() => ParseString (","));
+            ParseRule commas = Exclude (String (","));
             var arguments = Interleave<Expression>(Expression, commas);
 
             Whitespace ();
 
-            Expect (() => ParseString (")"), "closing ')' for function call");
+            Expect (String (")"), "closing ')' for function call");
 
             // TODO: Build function call object
             var f = new FunctionCall(iden, arguments);
@@ -228,7 +228,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			Expect (() => ParseString(")"), "closing parenthesis ')' for expression");
+            Expect (String(")"), "closing parenthesis ')' for expression");
 
 			return SucceedRule (innerExpr) as Expression;
 		}
