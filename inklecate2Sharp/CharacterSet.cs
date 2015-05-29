@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Inklewriter
@@ -11,8 +12,13 @@ namespace Inklewriter
 
 		public CharacterSet(string str)
 		{
-			AddStringCharacters (str);
+            AddCharacters (str);
 		}
+
+        public CharacterSet(CharacterSet charSetToCopy)
+        {
+            AddCharacters (charSetToCopy);
+        }
 
 		public void AddRange(char start, char end)
 		{
@@ -21,9 +27,12 @@ namespace Inklewriter
 			}
 		}
 
-		public void AddStringCharacters(string str)
+        // IEnumerable<char> automatically makes it compatible with:
+        //  - string
+        //  - another CharacterSet
+        public void AddCharacters(IEnumerable<char> chars)
 		{
-			foreach (char c in str) {
+            foreach (char c in chars) {
 				Add (c);
 			}
 		}

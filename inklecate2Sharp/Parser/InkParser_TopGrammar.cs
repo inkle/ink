@@ -138,15 +138,33 @@ namespace Inklewriter
 		{
 			if (_identifierCharSet == null) {
 
-				_identifierCharSet = new CharacterSet();
-				_identifierCharSet.AddRange ('A', 'Z');
-				_identifierCharSet.AddRange ('a', 'z');
+                _identifierFirstCharSet = new CharacterSet ();
+                _identifierFirstCharSet.AddRange ('A', 'Z');
+                _identifierFirstCharSet.AddRange ('a', 'z');
+                _identifierFirstCharSet.AddRange ('0', '9');
+                _identifierFirstCharSet.Add ('_');
+
+                _identifierCharSet = new CharacterSet(_identifierFirstCharSet);
 				_identifierCharSet.AddRange ('0', '9');
-				_identifierCharSet.Add ('_');
 			}
 
-			return ParseCharactersFromCharSet (_identifierCharSet);
+            BeginRule ();
+
+            // Parse single character first
+            var name = ParseCharactersFromCharSet (_identifierFirstCharSet, true, 1);
+            if (name == null) {
+                return (string) FailRule ();
+            }
+
+            // Parse remaining characters (if any)
+            var tailChars = ParseCharactersFromCharSet (_identifierCharSet);
+            if (tailChars != null) {
+                name = name + tailChars;
+            }
+
+            return (string) SucceedRule(name);
 		}
+        private CharacterSet _identifierFirstCharSet;
 		private CharacterSet _identifierCharSet;
 
 
