@@ -30,11 +30,11 @@ namespace Tests
         {
             var storyStr =
 @"
-§ firstKnot
+=== firstKnot
     Hello!
     -> anotherKnot
 
-§ anotherKnot
+=== anotherKnot
     World.
 ";
             
@@ -48,16 +48,16 @@ namespace Tests
         {
             var storyStr =
                 @"
-                § eight
+                === eight
                    { six() + two() }
 
-                § six
+                === six
                     ~ return four() + two()
 
-                § four
+                === four
                     ~ return two() + two()
 
-                § two
+                === two
                     ~ return 2
                 ";
 
@@ -71,7 +71,7 @@ namespace Tests
         {
             var storyStr =
                 @"
-                    § test
+                    === test
                         * Hello[.], world.
                 ";
 
@@ -80,7 +80,7 @@ namespace Tests
             Assert.AreEqual (story.currentChoices[0].choiceText, "Hello.");
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "Hello, world.");
+            Assert.AreEqual (story.currentText, "Hello, world.\n");
         }
 
 		//------------------------------------------------------------------------

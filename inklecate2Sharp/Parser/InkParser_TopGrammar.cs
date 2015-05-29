@@ -274,7 +274,7 @@ namespace Inklewriter
 
 			// If we hit any of these characters, we stop *immediately* without bothering to even check the nonTextRule
 			if (_nonTextEndCharacters == null) {
-				_nonTextEndCharacters = new CharacterSet ("§{\n\r");
+				_nonTextEndCharacters = new CharacterSet ("={\n\r");
 			}
 
 			// When the ParseUntil pauses, check these rules in case they evaluate successfully

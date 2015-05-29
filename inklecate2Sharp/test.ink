@@ -1,7 +1,7 @@
 ﻿
-§ test
+=== test ===
 Initial content
- - start
+= start
     * Hi[.], there.
         This is a piece of content associated with the first option
     * Hello[.], world.
@@ -10,5 +10,5 @@ Initial content
     * Back[.] to first.
         This is first level content again.
 
-§ done
+=== done
     Done.
