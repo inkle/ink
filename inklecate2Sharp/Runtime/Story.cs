@@ -262,7 +262,7 @@ namespace Inklewriter.Runtime
 			return result;
 		}
 
-        public override string ToString ()
+        public virtual string BuildStringOfHierarchy()
         {
             var sb = new StringBuilder ();
 

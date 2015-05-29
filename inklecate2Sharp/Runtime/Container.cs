@@ -249,7 +249,7 @@ namespace Inklewriter.Runtime
             sb.Append ("]");
         }
 
-        public override string ToString ()
+        public virtual string BuildStringOfHierarchy()
         {
             var sb = new StringBuilder ();
 
@@ -257,6 +257,7 @@ namespace Inklewriter.Runtime
 
             return sb.ToString ();
         }
+
 	}
 }
 
