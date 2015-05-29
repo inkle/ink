@@ -34,29 +34,50 @@ namespace Inklewriter.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject()
 		{
-            CreateWeaveHierarchy ();
+            if (this is Knot || this is Stitch) {
+                CreateWeaveHierarchy ();
+            }
 
 			var container = new Runtime.Container ();
 			container.name = name;
 
+            FlowBase firstSubFlow = null;
+
 			foreach (var parsedObj in content) {
 				Runtime.Object runtimeObj = parsedObj.runtimeObject;
 
-				bool isKnotOrStitch = parsedObj is Knot || parsedObj is Stitch;
-				bool hasInitialContent = container.content.Count > 0;
 
-				// Add named content (knots and stitches)
-				if (isKnotOrStitch && hasInitialContent) {
+                // "sub-flow" means "stitch within knot" or "knot within story"
+                bool isSubFlow = parsedObj is FlowBase;
 
-					var knotOrStitch = parsedObj as FlowBase;
+                // First defined sub-flow within this flow?
+                bool isFirstSubFlow = isSubFlow && firstSubFlow == null;
+
+				
+                if (isSubFlow) {
+                    var knotOrStitch = (FlowBase) parsedObj;
 					if ( container.namedContent.ContainsKey(knotOrStitch.name) ) {
 						Error ("Duplicate content named " + knotOrStitch.name);
 					}
+				} 
 
-					container.AddToNamedContentOnly ((Runtime.INamedContent) runtimeObj);
-				} else {
-					container.AddContent (runtimeObj);
+                // In general, stitches aren't automatically stepped into, but have to be explicitly linked to.
+                // However, the first stitch in a knot is automatically added to the sequential flow as an entry point,
+                // even if there's some other content before it.
+                // TODO: This is currently true of stories/knots as well - the first knot is automatically stepped into,
+                // under the assumption that if the writer wants to divert elsewhere first, then they will do so. Could
+                // re-evaluate that decision though...
+                bool includeInSequentialFlow = !isSubFlow || isFirstSubFlow;
+                if (includeInSequentialFlow) {
+                    container.AddContent (runtimeObj);
+
+                } else {
+                    container.AddToNamedContentOnly ((Runtime.INamedContent) runtimeObj);
 				}
+
+                if (isFirstSubFlow) {
+                    firstSubFlow = (FlowBase) parsedObj;
+                }
 					
 			}
 
