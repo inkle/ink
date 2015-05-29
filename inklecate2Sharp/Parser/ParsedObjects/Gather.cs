@@ -15,6 +15,12 @@ namespace Inklewriter.Parsed
             this.indentationDepth = indentationDepth;
         }
 
+        public void AddNestedContent(Parsed.Object obj)
+        {
+            content.Add (obj);
+            obj.parent = this;
+        }
+
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();
@@ -33,6 +39,7 @@ namespace Inklewriter.Parsed
                 obj.ResolveReferences (context);
             }
         }
+
     }
 }
 
