@@ -71,7 +71,7 @@ namespace Inklewriter
         protected object SucceedRule(object result = null)
         {
             // Get state at point where this rule stared evaluating
-            var stateAtBeginRule = state.Peek ();
+            var stateAtBeginRule = state.PeekPenultimate ();
 
             // Allow subclass to receive callback
             RuleDidSucceed (result, stateAtBeginRule);

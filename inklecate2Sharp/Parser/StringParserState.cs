@@ -61,6 +61,15 @@ namespace Inklewriter
 			return _stack.Last ();
 		}
 
+        public Element PeekPenultimate()
+        {
+            if (_stack.Count >= 2) {
+                return _stack [_stack.Count - 2];
+            } else {
+                return null;
+            }
+        }
+
 		// Reduce stack height while maintaining currentElement
 		// Remove second last element: i.e. "squash last two elements together"
 		public void Squash()
