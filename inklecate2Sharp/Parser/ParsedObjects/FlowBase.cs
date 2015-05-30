@@ -48,12 +48,15 @@ namespace Inklewriter.Parsed
             public Runtime.Container container;
             public List<IWeavePoint> looseEnds;
 
-            public FlowContentResult() {
+            List<GatheredLooseEnd> gatheredLooseEnds;
+
+            public FlowContentResult(List<GatheredLooseEnd> gatheredLooseEnds) {
                 rootContainer = container = new Runtime.Container();
                 looseEnds = new List<IWeavePoint> ();
+                this.gatheredLooseEnds = gatheredLooseEnds;
             }
 
-            public void StartGather(Gather gather, List<GatheredLooseEnd> gatheredLooseEnds)
+            public void StartGather(Gather gather)
             {
                 var gatherContainer = gather.runtimeContainer;
                 gatherContainer.name = "gather" + _gatherCount;
@@ -89,14 +92,29 @@ namespace Inklewriter.Parsed
                 _latestLooseGather = gather;
             }
 
-            public void AddLooseEnd(IWeavePoint looseEnd)
+            public void AddWeavePoint(IWeavePoint weavePoint)
             {
-                looseEnds.Add (looseEnd);
+                // Current level Gather
+                if (weavePoint is Gather) {
+                    StartGather ((Gather)weavePoint);
+                } 
 
-                // A gather stops becoming a loose end itself 
-                // once it gets a choice
-                if (_latestLooseGather != null && looseEnd is Choice) {
-                    looseEnds.Remove (_latestLooseGather);
+                // Current level choice
+                else if (weavePoint is Choice) {
+                    container.AddContent (((Choice)weavePoint).runtimeObject);
+                }
+
+                // TODO: Do further analysis on this weavePoint to determine whether
+                // it really is a loose end (e.g. does it end in a divert)
+                if (weavePoint.hasLooseEnd) {
+
+                    looseEnds.Add (weavePoint);
+
+                    // A gather stops becoming a loose end itself 
+                    // once it gets a choice
+                    if (_latestLooseGather != null && weavePoint is Choice) {
+                        looseEnds.Remove (_latestLooseGather);
+                    }
                 }
             }
 
@@ -168,8 +186,7 @@ namespace Inklewriter.Parsed
         // Recursive for further indentation levels.
         FlowContentResult GenerateFlowContent(ref int contentIdx, int indentIndex)
         {
-            var result = new FlowContentResult ();
-            //int gatherCount = 0;
+            var result = new FlowContentResult (gatheredLooseEnds);
 
             // Keep track of previous weave point (Choice or Gather)
             // at the current indentation level:
@@ -219,22 +236,8 @@ namespace Inklewriter.Parsed
                         }
                         continue;
                     } 
-
-                    // Current level Gather
-                    if (obj is Gather) {
-                        result.StartGather ((Gather)obj, gatheredLooseEnds);
-                    } 
-
-                    // Current level choice
-                    else if (obj is Choice) {
-                        result.container.AddContent (obj.runtimeObject);
-                    }
                         
-                    // TODO: Do further analysis on this weavePoint to determine whether
-                    // it really is a loose end (e.g. does it end in a divert)
-                    if (weavePoint.hasLooseEnd) {
-                        result.AddLooseEnd (weavePoint);
-                    }
+                    result.AddWeavePoint (weavePoint);
                    
                     previousWeavePoint = weavePoint;
                 } 
