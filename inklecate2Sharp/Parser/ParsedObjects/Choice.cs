@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
-	public class Choice : Parsed.Object
+    public class Choice : Parsed.Object, IWeavePoint
 	{
         public string startText { get; protected set; }
         public string choiceOnlyText { get; protected set; }

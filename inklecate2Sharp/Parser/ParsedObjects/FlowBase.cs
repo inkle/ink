@@ -95,62 +95,41 @@ namespace Inklewriter.Parsed
         protected void CreateWeaveHierarchy ()
         {
             // Choices at each indentation level
-            var allWeavePointsByIndentation = new List<List<Parsed.Object>> ();
+            var allWeavePointsByIndentation = new List<List<IWeavePoint>> ();
 
             int contentIdx = 0;
             while (contentIdx < content.Count) {
 
                 Parsed.Object obj = content [contentIdx];
+                IWeavePoint parentObjForThisContent = null;
 
-                int indentIndex = -1;
-                int removeIndentFrom = -1;
+                // Weave points are Choices and Gathers (i.e. "weave bullets"
+                if (obj is IWeavePoint) {
 
-                Parsed.Object parentObjForThisContent = null;
+                    var weavePoint = (IWeavePoint) obj;
 
-                if (obj is Choice) {
-                    var choice = (Choice)obj;
+                    int indentIndex = weavePoint.indentationDepth - 1;
+                    int removeIndentFrom = -1;
 
-                    indentIndex = choice.indentationDepth - 1;
-                    removeIndentFrom = indentIndex+1;
-                } 
+                    if (obj is Gather) {
+                        var gather = (Gather)obj;
 
-                else if (obj is Gather) {
-                    var gather = (Gather)obj;
+                        // Gather loose ends
+                        indentIndex = gather.indentationDepth-1;
 
-                    // Gather loose ends
-                    indentIndex = gather.indentationDepth-1;
-
-                    for (var ind = indentIndex; ind < allWeavePointsByIndentation.Count; ++ind) {
-                        var weavePointsAtLevel = allWeavePointsByIndentation [ind];
-                        foreach(var weavePoint in weavePointsAtLevel) {
-
-                            if (weavePoint is Choice) {
-                                var choice = (Choice)weavePoint;
-                                if (choice.hasLooseEnd) {
-                                    choice.AddNestedContent (new Parsed.Divert (gather, false));
+                        // Point loose ends at this gather point
+                        for (var ind = indentIndex; ind < allWeavePointsByIndentation.Count; ++ind) {
+                            var weavePointsAtLevel = allWeavePointsByIndentation [ind];
+                            foreach(var previousWeavePoint in weavePointsAtLevel) {
+                                if (previousWeavePoint.hasLooseEnd) {
+                                    previousWeavePoint.AddNestedContent (new Parsed.Divert (gather, false));
                                 }
-                            } else if (weavePoint is Gather) {
-                                var parentGather = (Gather) weavePoint;
-                                parentGather.AddNestedContent (new Parsed.Divert (gather, false));
                             }
-
-
                         }
+
+                        // Loose ends dealt with, reduce indent level
+                        removeIndentFrom = indentIndex;
                     }
-
-                    removeIndentFrom = indentIndex;
-                }
-
-                // Ordinary non-choice content
-                else {
-
-                    if (allWeavePointsByIndentation.Count > 0) {
-                        parentObjForThisContent = allWeavePointsByIndentation.Last().Last();
-                    }
-
-                }
-
-                if( indentIndex >= 0 ) {
 
                     if (indentIndex >= allWeavePointsByIndentation.Count + 1) {
                         Error ("weave nesting levels shouldn't jump (i.e. number bullets should only add or remove one at each level)", obj);
@@ -164,12 +143,12 @@ namespace Inklewriter.Parsed
 
                     // Drilling into more indentated level (more bullets)
                     if (indentIndex >= allWeavePointsByIndentation.Count) {
-                        allWeavePointsByIndentation.Add (new List<Parsed.Object> ());
+                        allWeavePointsByIndentation.Add (new List<IWeavePoint> ());
                         Debug.Assert (indentIndex == allWeavePointsByIndentation.Count - 1);
                     } 
 
                     var weavePointsThisLevel = allWeavePointsByIndentation [indentIndex];
-                    weavePointsThisLevel.Add (obj);
+                    weavePointsThisLevel.Add (weavePoint);
 
                     if (indentIndex > 0) {
                         var weavePointsForLevel = allWeavePointsByIndentation[indentIndex - 1];
@@ -178,18 +157,17 @@ namespace Inklewriter.Parsed
 
                 }
 
-                // Move this content (choice or other) to be owned by a choice/gather?
-                if (parentObjForThisContent != null) {
-
-                    // TODO: Create IWeavePoint
-                    if (parentObjForThisContent is Choice) {
-                        var parentChoice = (Choice)parentObjForThisContent;
-                        parentChoice.AddNestedContent (obj);
-                    } else {
-                        var parentGather = (Gather)parentObjForThisContent;
-                        parentGather.AddNestedContent (obj);
+                // Ordinary non-choice content
+                else {
+                    if (allWeavePointsByIndentation.Count > 0) {
+                        parentObjForThisContent = allWeavePointsByIndentation.Last().Last();
                     }
+                }
 
+                // Move this content (choice or gather) to be owned by
+                // the latest weave point if asked to
+                if (parentObjForThisContent != null) {
+                    parentObjForThisContent.AddNestedContent (obj);
                     content.RemoveAt (contentIdx);
                 } else {
                     contentIdx++;

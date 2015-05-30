@@ -90,6 +90,7 @@
     <Compile Include="Parser\CommentEliminator.cs" />
     <Compile Include="Parser\StringParserState.cs" />
     <Compile Include="Parser\ParsedObjects\Gather.cs" />
+    <Compile Include="Parser\ParsedObjects\IWeavePoint.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
