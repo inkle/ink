@@ -33,158 +33,212 @@ namespace Inklewriter.Parsed
 			}
 		}
 
-		public override Runtime.Object GenerateRuntimeObject()
-		{
-            var newContent = new List<Parsed.Object> ();
 
+        class GatheredLooseEnd
+        {
+            public Runtime.Divert divert;
+            public Gather targetGather;
+        }
+
+        List<GatheredLooseEnd> gatheredLooseEnds;
+
+        class FlowContentResult
+        {
+            public Runtime.Container container;
+            public List<IWeavePoint> looseEnds;
+
+            public FlowContentResult() {
+                container = new Runtime.Container();
+                looseEnds = new List<IWeavePoint> ();
+            }
+        }
+
+
+        public override Runtime.Object GenerateRuntimeObject ()
+        {
             var container = new Runtime.Container ();
-            container.name = name;
 
-            // Choices at each indentation level
-            var allWeavePointsByIndentation = new List<List<IWeavePoint>> ();
+            // Maintain a list of gathered loose ends so that we can resolve
+            // their divert paths in ResolveReferences
+            this.gatheredLooseEnds = new List<GatheredLooseEnd> ();
 
-            FlowBase firstSubFlow = null;
+            bool initialKnotOrStitchEntered = false;
 
+            // Run through content defined for this knot/stitch:
+            //  - First of all, any initial content before a sub-stitch
+            //    or any weave content is added to the main content container
+            //  - The first inner knot/stitch is automatically entered, while
+            //    the others are only accessible by an explicit divert
+            //  - Any Choices and Gathers (i.e. IWeavePoint) found are 
+            //    processsed by GenerateFlowContent.
             int contentIdx = 0;
             while (contentIdx < content.Count) {
 
                 Parsed.Object obj = content [contentIdx];
-                IWeavePoint parentObjForThisContent = null;
 
+                // Inner knots and stitches
+                if (obj is FlowBase) {
 
+                    var childFlow = (FlowBase)obj;
 
-                // "sub-flow" means "stitch within knot" or "knot within story"
-                bool isSubFlow = obj is FlowBase;
-
-                // First defined sub-flow within this flow?
-                bool isFirstSubFlow = isSubFlow && firstSubFlow == null;
-
-
-                if (isSubFlow) {
-                    var knotOrStitch = (FlowBase) obj;
-                    if ( container.namedContent.ContainsKey(knotOrStitch.name) ) {
-                        Error ("Duplicate content named " + knotOrStitch.name);
-                    }
-
-                    if (isFirstSubFlow) {
-                        firstSubFlow = knotOrStitch;
-                    }
-                } 
-
-
-
-
-                // Weave points are Choices and Gathers (i.e. "weave bullets"
-                if (obj is IWeavePoint) {
-
-                    var weavePoint = (IWeavePoint) obj;
-
-                    int indentIndex = weavePoint.indentationDepth - 1;
-                    int removeIndentFrom = -1;
-
-                    if (obj is Gather) {
-                        var gather = (Gather)obj;
-
-                        gather.name = "g" + contentIdx;
-
-                        // Gather loose ends
-                        indentIndex = gather.indentationDepth-1;
-
-                        // Point loose ends at this gather point
-                        for (var ind = indentIndex; ind < allWeavePointsByIndentation.Count; ++ind) {
-                            var weavePointsAtLevel = allWeavePointsByIndentation [ind];
-                            foreach(var previousWeavePoint in weavePointsAtLevel) {
-                                if (previousWeavePoint.hasLooseEnd) {
-                                    var gatherDivert = new Parsed.Divert (gather, false);
-                                    newContent.Add (gatherDivert);
-                                    previousWeavePoint.runtimeContainer.AddContent(gatherDivert.runtimeObject);
-                                }
-                            }
-                        }
-
-                        // Loose ends dealt with, reduce indent level
-                        removeIndentFrom = indentIndex;
-                    }
-
-                    if (indentIndex >= allWeavePointsByIndentation.Count + 1) {
-                        Error ("weave nesting levels shouldn't jump (i.e. number bullets should only add or remove one at each level)", obj);
-                        return container;
-                    }
-
-                    // Going back outer scope? (smaller number of bullets)
-                    if (removeIndentFrom >= 0 && removeIndentFrom < allWeavePointsByIndentation.Count) {
-                        allWeavePointsByIndentation.RemoveRange (removeIndentFrom, allWeavePointsByIndentation.Count - removeIndentFrom);
-                    }
-
-                    // Drilling into more indentated level (more bullets)
-                    if (indentIndex >= allWeavePointsByIndentation.Count) {
-                        allWeavePointsByIndentation.Add (new List<IWeavePoint> ());
-                        Debug.Assert (indentIndex == allWeavePointsByIndentation.Count - 1);
+                    // First inner knot/stitch - automatically step into it
+                    if (!initialKnotOrStitchEntered) {
+                        container.AddContent (childFlow.runtimeObject);
+                        initialKnotOrStitchEntered = true;
                     } 
 
-                    var weavePointsThisLevel = allWeavePointsByIndentation [indentIndex];
-                    weavePointsThisLevel.Add (weavePoint);
-
-                    if (indentIndex > 0) {
-                        var weavePointsForLevel = allWeavePointsByIndentation[indentIndex - 1];
-                        parentObjForThisContent = weavePointsForLevel.Last ();
+                    // All other knots/stitches are only accessible by name:
+                    // i.e. by explicit divert
+                    else {
+                        container.AddToNamedContentOnly ((Runtime.INamedContent) childFlow.runtimeObject);
                     }
-
                 }
 
-                // Ordinary non-choice content
+                // Choices and Gathers: Process as blocks of weave-like content
+                else if (obj is IWeavePoint) {
+                    var result = GenerateFlowContent (ref contentIdx, indentIndex: 0);
+                    container.AddContent (result.container);
+                } 
+
+                // Normal content (defined at start)
                 else {
-                    if (allWeavePointsByIndentation.Count > 0) {
-                        parentObjForThisContent = allWeavePointsByIndentation.Last().Last();
-                    }
+                    container.AddContent (obj.runtimeObject);
                 }
-
-                Runtime.Container containerToAddTo;
-
-
-
-                // Move this content (choice or gather) to be owned by
-                // the latest weave point if asked to
-                if (parentObjForThisContent != null) {
-
-
-                    containerToAddTo = parentObjForThisContent.runtimeContainer;
-
-                    //parentObjForThisContent.AddNestedContent (obj);
-                    //content.RemoveAt (contentIdx);
-                } else {
-                    containerToAddTo = container;
-                    //contentIdx++;
-                }
-
-
-
-                bool includeInSequentialFlow = !isSubFlow || isFirstSubFlow;
-                if (obj is Gather)
-                    includeInSequentialFlow = false;
-
-                if (includeInSequentialFlow) {
-                    containerToAddTo.AddContent (obj.runtimeObject);
-
-                } else {
-                    containerToAddTo.AddToNamedContentOnly ((Runtime.INamedContent) obj.runtimeObject);
-                }
-
 
                 contentIdx++;
+            }
+                
+            return container;
+        }
+            
+        void CreateGatherDivert(IWeavePoint looseEnd, Gather gather)
+        {
+            var divert = new Runtime.Divert ();
+            looseEnd.runtimeContainer.AddContent (divert);
 
+            gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
+        }
+
+        // Initially called from main GenerateRuntimeObject
+        // Generate a container of content for a particular indent level.
+        // Recursive for further indentation levels.
+        FlowContentResult GenerateFlowContent(ref int contentIdx, int indentIndex)
+        {
+            var result = new FlowContentResult ();
+            int gatherCount = 0;
+
+            // Keep track of previous weave point (Choice or Gather)
+            // at the current indentation level:
+            //  - to add ordinary content to be nested under it
+            //  - to add nested content under it when it's indented
+            //  - to remove it from the list of loose ends when it has
+            //    indented content since it's no longer a loose end
+            IWeavePoint previousWeavePoint = null;
+
+            // Iterate through content for the block at this level of indentation
+            //  - Normal content is nested under Choices and Gathers
+            //  - Blocks that are further indented cause recursion
+            //  - Keep track of loose ends so that they can be diverted to Gathers
+            while (contentIdx < content.Count) {
+                
+                Parsed.Object obj = content [contentIdx];
+
+                // Choice or Gather
+                if (obj is IWeavePoint) {
+                    var weavePoint = (IWeavePoint)obj;
+                    var weaveIndentIdx = weavePoint.indentationDepth - 1;
+
+                    // Moving to outer level indent
+                    if (weaveIndentIdx < indentIndex) {
+                        return result;
+                    }
+
+                    // Inner level indentation
+                    else if (weaveIndentIdx > indentIndex) {
+                        var nestedResult = GenerateFlowContent (ref contentIdx, weaveIndentIdx);
+
+                        // Add this inner block to current container
+                        // (i.e. within the main container, or within the last defined Choice/Gather)
+                        if (previousWeavePoint == null) {
+                            result.container.AddContent (nestedResult.container);
+                        } else {
+                            previousWeavePoint.runtimeContainer.AddContent (nestedResult.container);
+                        }
+
+                        // Append the indented block's loose ends to our own
+                        result.looseEnds.AddRange (nestedResult.looseEnds);
+
+                        // Now there's a deeper indentation level, the previous weave point doesn't
+                        // count as a loose end
+                        if (previousWeavePoint != null) {
+                            result.looseEnds.Remove (previousWeavePoint);
+                        }
+                        continue;
+                    } 
+
+                    // Current level Gather
+                    if (obj is Gather) {
+                        var gather = (Gather)obj;
+                        var gatherContainer = gather.runtimeContainer;
+                        gatherContainer.name = "gather" + gatherCount;
+                        gatherCount++;
+
+                        // Consume loose ends: divert them to this gather
+                        foreach (IWeavePoint looseEnd in result.looseEnds) {
+                            var divert = new Runtime.Divert ();
+                            looseEnd.runtimeContainer.AddContent (divert);
+
+                            // Maintain a list of them so that we can resolve their paths later
+                            gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
+                        }
+                        result.looseEnds.RemoveRange (0, result.looseEnds.Count);
+
+                        // Finally, add this gather to the main content, but only accessible
+                        // by name so that it isn't stepped into automatically, but only via
+                        // a divert from a loose end
+                        result.container.AddToNamedContentOnly (gatherContainer);
+                    } 
+
+                    // Current level choice
+                    else if (obj is Choice) {
+                        result.container.AddContent (obj.runtimeObject);
+                    }
+                        
+                    // TODO: Do further analysis on this weavePoint to determine whether
+                    // it really is a loose end (e.g. does it end in a divert)
+                    result.looseEnds.Add (weavePoint);
+
+                    previousWeavePoint = weavePoint;
+                } 
+
+                // Normal content
+                else {
+                    if (previousWeavePoint != null) {
+                        previousWeavePoint.runtimeContainer.AddContent (obj.runtimeObject);
+                    } else {
+                        result.container.AddContent (obj.runtimeObject);
+                    }
+
+                }
+
+                contentIdx++;
             }
 
-            this.content.AddRange (newContent);
-
-            return container;
-		}
+            return result;
+        }
 
         public override void ResolveReferences (Story context)
 		{
 			foreach (Parsed.Object obj in content) {
 				obj.ResolveReferences (context); 
 			}
+
+            if (gatheredLooseEnds != null) {
+                foreach(GatheredLooseEnd looseEnd in gatheredLooseEnds) {
+                    looseEnd.divert.targetPath = looseEnd.targetGather.runtimeObject.path;
+                }
+            }
+
         }
 	}
 }
