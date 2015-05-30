@@ -29,7 +29,7 @@ namespace Inklewriter.Parsed
 			// If returning, do a stack push first
 			if (returning) {
 				var container = new Runtime.Container ();
-				container.AddContent (new Runtime.StackPush ());
+                container.AddContent (Runtime.ControlCommand.StackPush());
 				container.AddContent (runtimeDivert);
 				return container;
 			} 

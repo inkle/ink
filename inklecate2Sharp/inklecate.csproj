@@ -69,7 +69,6 @@
     <Compile Include="Runtime\Choice.cs" />
     <Compile Include="Runtime\ChosenChoice.cs" />
     <Compile Include="Parser\ParsedObjects\Stitch.cs" />
-    <Compile Include="Runtime\StackPush.cs" />
     <Compile Include="Parser\ParsedObjects\FlowBase.cs" />
     <Compile Include="Parser\InkParser_TopGrammar.cs" />
     <Compile Include="Parser\ParsedObjects\Expression.cs" />
@@ -82,15 +81,14 @@
     <Compile Include="Runtime\Number.cs" />
     <Compile Include="Runtime\VariableReference.cs" />
     <Compile Include="Runtime\NativeFunctionCall.cs" />
-    <Compile Include="Runtime\EvaluationCommand.cs" />
     <Compile Include="Runtime\CallStack.cs" />
     <Compile Include="Runtime\Void.cs" />
     <Compile Include="Parser\ParsedObjects\Return.cs" />
-    <Compile Include="Runtime\StackPop.cs" />
     <Compile Include="Parser\CommentEliminator.cs" />
     <Compile Include="Parser\StringParserState.cs" />
     <Compile Include="Parser\ParsedObjects\Gather.cs" />
     <Compile Include="Parser\ParsedObjects\IWeavePoint.cs" />
+    <Compile Include="Runtime\ControlCommand.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

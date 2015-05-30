@@ -20,7 +20,7 @@ namespace Inklewriter.Parsed
             runtimeDivert = new Runtime.Divert ();
 
             // TODO: Pass arguments
-            container.AddContent (new Runtime.StackPush ());
+            container.AddContent (Runtime.ControlCommand.StackPush());
             container.AddContent (runtimeDivert);
         }
 

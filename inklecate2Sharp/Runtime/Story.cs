@@ -100,9 +100,11 @@ namespace Inklewriter.Runtime
 
                     // Any push to the call stack should be done after the increment to the content pointer,
                     // so that when returning from the stack, it returns to the content after the push instruction
-                    if( currentContentObj is StackPush ) {
+                    bool isStackPush = currentContentObj is ControlCommand && ((ControlCommand)currentContentObj).commandType == ControlCommand.CommandType.StackPush;
+                    if( isStackPush ) {
                         _callStack.Push();
 					}
+
 				}
 
 			} while(currentContentObj != null && currentPath != null);
@@ -128,33 +130,23 @@ namespace Inklewriter.Runtime
                 return true;
             }
 
-            // Stack push
-            else if (contentObj is StackPush) {
-
-                // Actual stack push/pop will be performed after Step in main loop
-                return true;
-            } 
-
-            // Stack pop
-            else if (contentObj is StackPop) {
-                _callStack.Pop();
-                return true;
-            }
-
             // Start/end an expression evaluation? Or print out the result?
-            else if( contentObj is EvaluationCommand ) {
-                var evalCommand = (EvaluationCommand) contentObj;
+            else if( contentObj is ControlCommand ) {
+                var evalCommand = (ControlCommand) contentObj;
 
-                switch( evalCommand.commandType ) {
-                case EvaluationCommand.CommandType.Start:
-                    Debug.Assert(inExpressionEvaluation == false, "Already in expression evaluation?");
+                switch (evalCommand.commandType) {
+
+                case ControlCommand.CommandType.EvalStart:
+                    Debug.Assert (inExpressionEvaluation == false, "Already in expression evaluation?");
                     inExpressionEvaluation = true;
                     break;
-                case EvaluationCommand.CommandType.End:
-                    Debug.Assert(inExpressionEvaluation == true, "Not in expression evaluation mode");
+
+                case ControlCommand.CommandType.EvalEnd:
+                    Debug.Assert (inExpressionEvaluation == true, "Not in expression evaluation mode");
                     inExpressionEvaluation = false;
                     break;
-                case EvaluationCommand.CommandType.Output:
+
+                case ControlCommand.CommandType.EvalOutput:
 
                     // If the expression turned out to be empty, there may not be anything on the stack
                     if (_evaluationStack.Count > 0) {
@@ -162,17 +154,24 @@ namespace Inklewriter.Runtime
                         var output = PopEvaluationStack ();
 
                         // Functions may evaluate to Void, in which case we skip output
-                        if ( !(output is Void) ) {
+                        if (!(output is Void)) {
                             // TODO: Should we really always blanket convert to string?
                             // It would be okay to have numbers in the output stream the
                             // only problem is when exporting text for viewing, it skips over numbers etc.
                             var text = new Text (output.ToString ());
 
-                            outputStream.Add(text);
+                            outputStream.Add (text);
                         }
 
                     }
+                    break;
 
+                // Actual stack push/pop will be performed after Step in main loop
+                case ControlCommand.CommandType.StackPush:
+                    break;
+
+                case ControlCommand.CommandType.StackPop:
+                    _callStack.Pop();
                     break;
                 }
 

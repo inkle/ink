@@ -13,17 +13,17 @@ namespace Inklewriter.Parsed
             var container = new Runtime.Container ();
 
             // Tell Runtime to start evaluating the following content as an expression
-            container.AddContent (Runtime.EvaluationCommand.Start());
+            container.AddContent (Runtime.ControlCommand.EvalStart());
 
 			GenerateIntoContainer (container);
 
             // Tell Runtime to output the result of the expression evaluation to the output stream
             if (outputWhenComplete) {
-                container.AddContent (Runtime.EvaluationCommand.Output());
+                container.AddContent (Runtime.ControlCommand.EvalOutput());
             }
 
             // Tell Runtime to stop evaluating the content as an expression
-            container.AddContent (Runtime.EvaluationCommand.End());
+            container.AddContent (Runtime.ControlCommand.EvalEnd());
 
             return container;
 		}

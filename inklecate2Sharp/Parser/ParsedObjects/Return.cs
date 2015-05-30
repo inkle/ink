@@ -26,14 +26,14 @@ namespace Inklewriter.Parsed
             // Return Runtime.Void when there's no expression to evaluate
             // (This evaluation will just add the Void object to the evaluation stack)
             else {
-                container.AddContent (Runtime.EvaluationCommand.Start ());
+                container.AddContent (Runtime.ControlCommand.EvalStart ());
                 container.AddContent (new Runtime.Void());
-                container.AddContent (Runtime.EvaluationCommand.End ());
+                container.AddContent (Runtime.ControlCommand.EvalEnd ());
             }
 
             // Then pop the call stack
             // (the evaluated expression will leave the return value on the evaluation stack)
-            container.AddContent (new Runtime.StackPop ()); 
+            container.AddContent (Runtime.ControlCommand.StackPop()); 
 
             return container;
         }
