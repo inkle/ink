@@ -11,20 +11,22 @@ namespace Inklewriter.Parsed
         public string contentOnlyText { get; protected set; }
 		public Path   explicitPath { get; }
         public int    indentationDepth { get; set; } = 1;
-        public bool   hasMultiLineContent { get { return this.explicitPath == null; } }
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
         public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
 
+        public bool   hasOwnContent {
+            get {
+                return hasWeaveStyleInlineBrackets || this.explicitPath == null;
+            }
+        }
+
         public bool   hasLooseEnd { 
             get { 
-                if (hasMultiLineContent) {
-                    // TODO: Be more intelligent about whether it actually has a loose end
-                    return true; 
-                }
-
-                return false;
-            } 
+                // TODO: Detect whether own content ends in a divert, in which
+                // case it's not a loose end
+                return hasOwnContent;
+            }
         }
 
         public Choice (string startText, string choiceOnlyText, string contentOnlyText, Divert divert)
@@ -80,7 +82,7 @@ namespace Inklewriter.Parsed
             //         weave content
             //     ]
             // ]
-            if (hasWeaveStyleInlineBrackets || this.explicitPath == null) {
+            if ( hasOwnContent ) {
 
                 _weaveContentContainer = new Runtime.Container ();
                 _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));

@@ -179,14 +179,7 @@ namespace Inklewriter.Parsed
                         // Consume loose ends: divert them to this gather
                         foreach (IWeavePoint looseEnd in result.looseEnds) {
                             var divert = new Runtime.Divert ();
-
-                            // A choice "loose end" may not have a container
-                            // if it's a simple choice that has a built in divert
-                            // (TODO: we should detect this earlier and not
-                            //  add it as a loose end)
-                            if (looseEnd.runtimeContainer != null) {
-                                looseEnd.runtimeContainer.AddContent (divert);
-                            }
+                            looseEnd.runtimeContainer.AddContent (divert);
 
                             // Maintain a list of them so that we can resolve their paths later
                             gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
@@ -206,7 +199,10 @@ namespace Inklewriter.Parsed
                         
                     // TODO: Do further analysis on this weavePoint to determine whether
                     // it really is a loose end (e.g. does it end in a divert)
-                    result.looseEnds.Add (weavePoint);
+                    if (weavePoint.hasLooseEnd) {
+                        result.looseEnds.Add (weavePoint);
+                    }
+                   
 
                     previousWeavePoint = weavePoint;
                 } 
