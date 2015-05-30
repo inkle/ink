@@ -137,7 +137,7 @@ namespace Inklewriter.Parsed
                     }
 
                     // Going back outer scope? (smaller number of bullets)
-                    if (removeIndentFrom < allWeavePointsByIndentation.Count) {
+                    if (removeIndentFrom >= 0 && removeIndentFrom < allWeavePointsByIndentation.Count) {
                         allWeavePointsByIndentation.RemoveRange (removeIndentFrom, allWeavePointsByIndentation.Count - removeIndentFrom);
                     }
 
