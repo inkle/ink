@@ -50,7 +50,7 @@ namespace Inklewriter
 
             // Error checking for Choices in the wrong place is below (after parsing)
 			rulesAtLevel.Add(Line(Choice));
-            rulesAtLevel.Add (Line(Gather));
+            rulesAtLevel.Add (GatherLine);
 
             // Stitches (and gathers) can (currently) only go in Knots
 			if (level == StatementLevel.Knot) {

@@ -61,26 +61,46 @@ namespace Inklewriter.Parsed
 
                 // Consume loose ends: divert them to this gather
                 foreach (IWeavePoint looseEnd in looseEnds) {
-                    var divert = new Runtime.Divert ();
-                    looseEnd.runtimeContainer.AddContent (divert);
 
-                    // Maintain a list of them so that we can resolve their paths later
-                    gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
-                }
+                    if (looseEnd.hasLooseEnd) {
+                        var divert = new Runtime.Divert ();
+                        looseEnd.runtimeContainer.AddContent (divert);
+
+                        // Maintain a list of them so that we can resolve their paths later
+                        gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
+
+                    }
+               }
                 looseEnds.RemoveRange (0, looseEnds.Count);
 
                 // Finally, add this gather to the main content, but only accessible
                 // by name so that it isn't stepped into automatically, but only via
                 // a divert from a loose end
-                container.AddToNamedContentOnly (gatherContainer);
+                if (container.content.Count == 0) {
+                    container.AddContent (gatherContainer);
+                } else {
+                    container.AddToNamedContentOnly (gatherContainer);
+                }
+
 
                 // Replace the current container itself
                 container = gatherContainer;
 
-                //_currentGather = gather;
+                _latestLooseGather = gather;
             }
 
-            //Gather _currentGather;
+            public void AddLooseEnd(IWeavePoint looseEnd)
+            {
+                looseEnds.Add (looseEnd);
+
+                // A gather stops becoming a loose end itself 
+                // once it gets a choice
+                if (_latestLooseGather != null && looseEnd is Choice) {
+                    looseEnds.Remove (_latestLooseGather);
+                }
+            }
+
+            Gather _latestLooseGather;
             int _gatherCount;
         }
 
@@ -202,10 +222,7 @@ namespace Inklewriter.Parsed
 
                     // Current level Gather
                     if (obj is Gather) {
-                        var gather = (Gather)obj;
-
-
-                        result.StartGather (gather, gatheredLooseEnds);
+                        result.StartGather ((Gather)obj, gatheredLooseEnds);
                     } 
 
                     // Current level choice
@@ -216,10 +233,9 @@ namespace Inklewriter.Parsed
                     // TODO: Do further analysis on this weavePoint to determine whether
                     // it really is a loose end (e.g. does it end in a divert)
                     if (weavePoint.hasLooseEnd) {
-                        result.looseEnds.Add (weavePoint);
+                        result.AddLooseEnd (weavePoint);
                     }
                    
-
                     previousWeavePoint = weavePoint;
                 } 
 

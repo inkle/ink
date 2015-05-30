@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Inklewriter.Parsed;
 
 namespace Inklewriter
@@ -72,7 +73,7 @@ namespace Inklewriter
 		private CharacterSet _choiceTextEndCharacters;
 
 
-        protected Gather Gather()
+        protected Gather GatherLine()
         {
             BeginRule ();
 
@@ -89,6 +90,12 @@ namespace Inklewriter
 
             // Optional content from the rest of the line
             var content = MixedTextAndLogic ();
+            if (content == null) {
+                content = new List<Parsed.Object> ();
+            }
+
+            Expect (EndOfLine, "end of line after gather ('-' with content)");
+            content.Add (new Parsed.Text ("\n"));
 
             Gather gather = new Gather (optionalName, content, dashes.Count);
 
