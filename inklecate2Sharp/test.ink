@@ -1,8 +1,9 @@
 ﻿
 === test ===
-Initial content
+Initial content 
+//--> two
 = start
-        * Hi[.], there.
+        * Hi[.], there. 
             This is a piece of content associated with the first option
         * Hello[.], world.
             Since it's a great world.
@@ -15,5 +16,16 @@ Initial content
             This is first level content again.
     - This is a join.
 
+= two
+    Another stitch
+    * Opt 1 --> out
+    * Opt 2 --> out
+    * Opt 3
+    -
+    ...just continues!
+
+
+= out
+    This is out
 
 

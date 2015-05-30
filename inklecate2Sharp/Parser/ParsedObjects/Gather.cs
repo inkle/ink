@@ -29,8 +29,11 @@ namespace Inklewriter.Parsed
             var container = new Runtime.Container ();
             container.name = name;
 
-            foreach (var c in content) {
-                container.AddContent (c.runtimeObject);
+            // A gather can have null content, e.g. it's just purely a line with "-"
+            if (content != null) {
+                foreach (var c in content) {
+                    container.AddContent (c.runtimeObject);
+                }
             }
 
             return container;
@@ -39,6 +42,10 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
+            // A gather can have null content, e.g. it's just purely a line with "-"
+            if (content == null)
+                return;
+                
             foreach (var obj in content) {
                 obj.ResolveReferences (context);
             }

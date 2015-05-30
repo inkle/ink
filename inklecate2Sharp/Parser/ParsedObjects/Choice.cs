@@ -12,6 +12,7 @@ namespace Inklewriter.Parsed
 		public Path   explicitPath { get; }
         public int    indentationDepth { get; set; } = 1;
         public bool   hasMultiLineContent { get { return this.explicitPath == null; } }
+        public bool   hasWeaveStyleInlineBrackets { get; set; }
 
         public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
 
@@ -60,13 +61,14 @@ namespace Inklewriter.Parsed
 
             // Content (Weave style choices)
             var contentTextSB = new StringBuilder ();
-            if (startText != null) {
-                contentTextSB.Append (startText);
+            if (hasWeaveStyleInlineBrackets) {
+                if (startText != null) {
+                    contentTextSB.Append (startText);
+                }
+                if (contentOnlyText != null) {
+                    contentTextSB.Append (contentOnlyText);
+                }
             }
-            if (contentOnlyText != null) {
-                contentTextSB.Append (contentOnlyText);
-            }
-            bool hasOwnContent = contentTextSB.Length > 0 || (_nestedContent != null && _nestedContent.Count > 0);
 
             // Build choice itself
             _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString());
@@ -78,7 +80,7 @@ namespace Inklewriter.Parsed
             //         weave content
             //     ]
             // ]
-            if (hasOwnContent) {
+            if (hasWeaveStyleInlineBrackets || this.explicitPath == null) {
 
                 _weaveContentContainer = new Runtime.Container ();
                 _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));

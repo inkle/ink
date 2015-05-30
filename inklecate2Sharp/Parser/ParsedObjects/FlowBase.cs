@@ -57,6 +57,7 @@ namespace Inklewriter.Parsed
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();
+            container.name = name;
 
             // Maintain a list of gathered loose ends so that we can resolve
             // their divert paths in ResolveReferences
@@ -109,14 +110,6 @@ namespace Inklewriter.Parsed
             }
                 
             return container;
-        }
-            
-        void CreateGatherDivert(IWeavePoint looseEnd, Gather gather)
-        {
-            var divert = new Runtime.Divert ();
-            looseEnd.runtimeContainer.AddContent (divert);
-
-            gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
         }
 
         // Initially called from main GenerateRuntimeObject
@@ -186,7 +179,14 @@ namespace Inklewriter.Parsed
                         // Consume loose ends: divert them to this gather
                         foreach (IWeavePoint looseEnd in result.looseEnds) {
                             var divert = new Runtime.Divert ();
-                            looseEnd.runtimeContainer.AddContent (divert);
+
+                            // A choice "loose end" may not have a container
+                            // if it's a simple choice that has a built in divert
+                            // (TODO: we should detect this earlier and not
+                            //  add it as a loose end)
+                            if (looseEnd.runtimeContainer != null) {
+                                looseEnd.runtimeContainer.AddContent (divert);
+                            }
 
                             // Maintain a list of them so that we can resolve their paths later
                             gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });

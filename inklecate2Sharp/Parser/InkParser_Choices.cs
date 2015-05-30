@@ -20,8 +20,8 @@ namespace Inklewriter
 
             // Check for a the weave style format:
             //   * "Hello[."]," he said.
-            bool midTextStarter = ParseString("[") != null;
-            if (midTextStarter) {
+            bool hasWeaveStyleInlineBrackets = ParseString("[") != null;
+            if (hasWeaveStyleInlineBrackets) {
                 optionOnlyText = ChoiceText ();
 
                 Expect (String("]"), "closing ']' for weave-style option");
@@ -34,7 +34,7 @@ namespace Inklewriter
                 contentOnlyText = contentOnlyText.TrimEnd (' ', '\t');
                 if (contentOnlyText.Length == 0)
                     contentOnlyText = null;
-            } else {
+            } else if( startText != null ) {
                 startText = startText.TrimEnd (' ', '\t');
                 if (startText.Length == 0)
                     startText = null;
@@ -50,6 +50,7 @@ namespace Inklewriter
 
             var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
             choice.indentationDepth = bullets.Count;
+            choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
 
             return SucceedRule(choice) as Choice;
 
