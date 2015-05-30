@@ -6,6 +6,7 @@ namespace Inklewriter.Parsed
     {
         int indentationDepth { get; }
         bool hasLooseEnd { get; }
+        Runtime.Container runtimeContainer { get; }
 
         void AddNestedContent(Parsed.Object obj);
     }

@@ -4,10 +4,12 @@ namespace Inklewriter.Parsed
 {
     public class Gather : Parsed.Object, IWeavePoint
     { 
-        public string name { get; protected set; }
+        public string name { get; set; }
         public List<Parsed.Object> content;
         public int indentationDepth { get; protected set; }
         public bool hasLooseEnd { get { return true; } }
+
+        public Runtime.Container runtimeContainer { get { return (Runtime.Container) runtimeObject; } }
 
         public Gather (string name, List<Parsed.Object> content, int indentationDepth)
         {
@@ -25,6 +27,7 @@ namespace Inklewriter.Parsed
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();
+            container.name = name;
 
             foreach (var c in content) {
                 container.AddContent (c.runtimeObject);

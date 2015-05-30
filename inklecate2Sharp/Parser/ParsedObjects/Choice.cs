@@ -13,6 +13,8 @@ namespace Inklewriter.Parsed
         public int    indentationDepth { get; set; } = 1;
         public bool   hasMultiLineContent { get { return this.explicitPath == null; } }
 
+        public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
+
         public bool   hasLooseEnd { 
             get { 
                 if (hasMultiLineContent) {
