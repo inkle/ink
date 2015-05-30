@@ -44,13 +44,44 @@ namespace Inklewriter.Parsed
 
         class FlowContentResult
         {
+            public Runtime.Container rootContainer;
             public Runtime.Container container;
             public List<IWeavePoint> looseEnds;
 
             public FlowContentResult() {
-                container = new Runtime.Container();
+                rootContainer = container = new Runtime.Container();
                 looseEnds = new List<IWeavePoint> ();
             }
+
+            public void StartGather(Gather gather, List<GatheredLooseEnd> gatheredLooseEnds)
+            {
+                var gatherContainer = gather.runtimeContainer;
+                gatherContainer.name = "gather" + _gatherCount;
+                _gatherCount++;
+
+                // Consume loose ends: divert them to this gather
+                foreach (IWeavePoint looseEnd in looseEnds) {
+                    var divert = new Runtime.Divert ();
+                    looseEnd.runtimeContainer.AddContent (divert);
+
+                    // Maintain a list of them so that we can resolve their paths later
+                    gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
+                }
+                looseEnds.RemoveRange (0, looseEnds.Count);
+
+                // Finally, add this gather to the main content, but only accessible
+                // by name so that it isn't stepped into automatically, but only via
+                // a divert from a loose end
+                container.AddToNamedContentOnly (gatherContainer);
+
+                // Replace the current container itself
+                container = gatherContainer;
+
+                //_currentGather = gather;
+            }
+
+            //Gather _currentGather;
+            int _gatherCount;
         }
 
 
@@ -98,7 +129,7 @@ namespace Inklewriter.Parsed
                 // Choices and Gathers: Process as blocks of weave-like content
                 else if (obj is IWeavePoint) {
                     var result = GenerateFlowContent (ref contentIdx, indentIndex: 0);
-                    container.AddContent (result.container);
+                    container.AddContent (result.rootContainer);
                 } 
 
                 // Normal content (defined at start)
@@ -118,7 +149,7 @@ namespace Inklewriter.Parsed
         FlowContentResult GenerateFlowContent(ref int contentIdx, int indentIndex)
         {
             var result = new FlowContentResult ();
-            int gatherCount = 0;
+            //int gatherCount = 0;
 
             // Keep track of previous weave point (Choice or Gather)
             // at the current indentation level:
@@ -153,9 +184,9 @@ namespace Inklewriter.Parsed
                         // Add this inner block to current container
                         // (i.e. within the main container, or within the last defined Choice/Gather)
                         if (previousWeavePoint == null) {
-                            result.container.AddContent (nestedResult.container);
+                            result.container.AddContent (nestedResult.rootContainer);
                         } else {
-                            previousWeavePoint.runtimeContainer.AddContent (nestedResult.container);
+                            previousWeavePoint.runtimeContainer.AddContent (nestedResult.rootContainer);
                         }
 
                         // Append the indented block's loose ends to our own
@@ -172,24 +203,9 @@ namespace Inklewriter.Parsed
                     // Current level Gather
                     if (obj is Gather) {
                         var gather = (Gather)obj;
-                        var gatherContainer = gather.runtimeContainer;
-                        gatherContainer.name = "gather" + gatherCount;
-                        gatherCount++;
 
-                        // Consume loose ends: divert them to this gather
-                        foreach (IWeavePoint looseEnd in result.looseEnds) {
-                            var divert = new Runtime.Divert ();
-                            looseEnd.runtimeContainer.AddContent (divert);
 
-                            // Maintain a list of them so that we can resolve their paths later
-                            gatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
-                        }
-                        result.looseEnds.RemoveRange (0, result.looseEnds.Count);
-
-                        // Finally, add this gather to the main content, but only accessible
-                        // by name so that it isn't stepped into automatically, but only via
-                        // a divert from a loose end
-                        result.container.AddToNamedContentOnly (gatherContainer);
+                        result.StartGather (gather, gatheredLooseEnds);
                     } 
 
                     // Current level choice
