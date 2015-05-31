@@ -149,13 +149,21 @@ namespace Inklewriter
 			if (divertArrowStr == null) {
 				return FailRule () as Parsed.Divert;
 			}
-            bool isToKnot = divertArrowStr == "==>";
 
 			Whitespace ();
 
 			string targetName = Identifier ();
 
-			Path targetPath = isToKnot ? Path.ToKnot (targetName) : Path.ToStitch (targetName);
+            Path targetPath = null;
+            if (divertArrowStr == "==>") {
+                targetPath = Path.To (knotName: targetName);
+            }
+            else if (divertArrowStr == "=>") {
+                targetPath = Path.To (stitchName: targetName);
+            }
+            else {
+                targetPath = Path.To (weavePointName: targetName);
+            }
 
 			return SucceedRule( new Divert( targetPath, returning ) ) as Divert;
 		}

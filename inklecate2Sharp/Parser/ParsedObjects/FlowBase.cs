@@ -11,6 +11,7 @@ namespace Inklewriter.Parsed
 		public string name { get; protected set; }
 		public List<Parsed.Object> content { get; protected set; }
         public Dictionary<string, VariableAssignment> variableDeclarations;
+        public abstract FlowLevel flowLevel { get; }
 
 		public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null)
 		{
@@ -151,6 +152,25 @@ namespace Inklewriter.Parsed
             }
 
         }
+
+        public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
+        {
+            foreach (var obj in content) {
+
+                // TODO: INamedContent?
+                var namedContent = obj as FlowBase;
+                if (namedContent != null && namedContent.name == name) {
+
+                    if (levelType != null || namedContent.flowLevel == levelType) {
+                        return namedContent;
+                    }
+
+                }
+            }
+
+            return null;
+        }
+            
             
         void OnLooseEndGathered (Runtime.Divert divert, Gather gather)
         {

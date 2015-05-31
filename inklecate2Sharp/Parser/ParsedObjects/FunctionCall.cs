@@ -27,7 +27,7 @@ namespace Inklewriter.Parsed
         public override void ResolveReferences (Story context)
         {
             Path ambiguousPath = Path.To (name);
-            var targetObject = ResolvePath (ambiguousPath);
+            var targetObject = ambiguousPath.ResolveFromContext (this);
 
             if (targetObject == null) {
                 context.Error ("Function (knot) not found: '" + name + "'", this);

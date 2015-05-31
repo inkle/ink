@@ -90,6 +90,7 @@
     <Compile Include="Runtime\ControlCommand.cs" />
     <Compile Include="Parser\ParsedObjects\WeaveFlow\IWeavePoint.cs" />
     <Compile Include="Parser\ParsedObjects\WeaveFlow\WeaveBlockRuntimeResult.cs" />
+    <Compile Include="Parser\ParsedObjects\FlowLevel.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

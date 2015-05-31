@@ -43,14 +43,14 @@ namespace Inklewriter.Parsed
         public override void ResolveReferences(Story context)
 		{
             if (targetContent == null) {
-                targetContent = ResolvePath (target);
+                targetContent = target.ResolveFromContext (this);
 
                 if (targetContent == null) {
 
                     bool foundAlternative = false;
                     Path alternativePath = target.debugSuggestedAlternative;
                     if (alternativePath != null) {
-                        targetContent = ResolvePath (alternativePath);
+                        targetContent = alternativePath.ResolveFromContext (this);
                         if (targetContent != null) {
                             foundAlternative = true;
                         }

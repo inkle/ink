@@ -6,6 +6,8 @@ namespace Inklewriter.Parsed
 {
 	public class Story : FlowBase
     {
+        public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
+
 		public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
 
@@ -36,43 +38,6 @@ namespace Inklewriter.Parsed
 			}
 
 			return runtimeStory;
-		}
-
-		public override Parsed.Object ResolvePath(Path path)
-		{
-			string knotName = path.knotName;
-			if (knotName == null) {
-				knotName = path.ambiguousName;
-			}
-
-            string stitchName = path.stitchName;
-            if (stitchName == null) {
-                stitchName = path.ambiguousName;
-            }
-
-			// Try to find the knot with the given name,
-			// and if necessary dig in and find the stitch within
-			if (knotName != null || stitchName != null) {
-				foreach (Parsed.Object contentObj in content) {
-
-					Knot knot = contentObj as Knot;
-					if (knot != null && knot.name == knotName) {
-						if (path.stitchName != null) {
-							return knot.ResolvePath (path);
-						} else {
-							return knot;
-						}
-					}
-
-                    Stitch stitch = contentObj as Stitch;
-                    if (stitch != null && stitch.name == stitchName) {
-                        return stitch;
-                    }
-
-				}
-			}
-
-			return null;
 		}
 
 		public override void Error(string message, Parsed.Object source)

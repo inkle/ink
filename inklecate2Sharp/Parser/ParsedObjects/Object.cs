@@ -46,15 +46,6 @@ namespace Inklewriter.Parsed
 
 		}
 
-		public virtual Parsed.Object ResolvePath(Path path)
-		{
-			if (parent == null) {
-				return null;
-			} else {
-				return parent.ResolvePath (path);
-			}
-		}
-
 		public virtual void Error(string message, Parsed.Object source = null)
 		{
 			if (source == null) {
