@@ -52,7 +52,7 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public bool HasVariableWithName(string varName)
+        public virtual bool HasVariableWithName(string varName)
         {
             if (variableDeclarations.ContainsKey (varName))
                 return true;
@@ -80,7 +80,7 @@ namespace Inklewriter.Parsed
             // their divert paths in ResolveReferences
             this._allGatheredLooseEnds = new List<GatheredLooseEnd> ();
 
-            bool foundFirstKnotOrStitch = false;
+            bool foundFirstKnotStitchOrWeave = false;
 
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
@@ -102,7 +102,7 @@ namespace Inklewriter.Parsed
                     var childFlow = (FlowBase)obj;
 
                     // First inner knot/stitch - automatically step into it
-                    if (!foundFirstKnotOrStitch && !childFlow.hasParameters) {
+                    if (!foundFirstKnotStitchOrWeave && !childFlow.hasParameters) {
                         container.AddContent (childFlow.runtimeObject);
                     } 
 
@@ -112,13 +112,15 @@ namespace Inklewriter.Parsed
                         container.AddToNamedContentOnly ((Runtime.INamedContent) childFlow.runtimeObject);
                     }
 
-                    foundFirstKnotOrStitch = true;
+                    foundFirstKnotStitchOrWeave = true;
                 }
 
                 // Choices and Gathers: Process as blocks of weave-like content
                 else if (obj is IWeavePoint) {
                     var result = GenerateWeaveBlockRuntime (ref contentIdx, indentIndex: 0);
                     container.AddContent (result.rootContainer);
+
+                    foundFirstKnotStitchOrWeave = true;
                 } 
 
                 // Normal content (defined at start)
@@ -147,6 +149,14 @@ namespace Inklewriter.Parsed
             while (contentIdx < content.Count) {
                 
                 Parsed.Object obj = content [contentIdx];
+
+                // If we've now found a knot/stitch, we've overstepped,
+                // since it certainly doesn't belong inside a weave block,
+                // since it's a higher level construct
+                if (obj is FlowBase) {
+                    contentIdx--;
+                    return result;
+                }
 
                 // Choice or Gather
                 if (obj is IWeavePoint) {

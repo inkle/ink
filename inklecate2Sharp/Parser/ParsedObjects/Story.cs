@@ -26,6 +26,15 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public override bool HasVariableWithName(string varName)
+        {
+            if (_allKnotAndStitchNames.Contains (varName)) {
+                return true;
+            }
+
+            return base.HasVariableWithName (varName);
+        }
+
 		public Runtime.Story ExportRuntime()
 		{
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method

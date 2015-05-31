@@ -1,6 +1,13 @@
-﻿~ var woo = 5
+﻿== test ==
+Hello world {test}. {other:Other has been seen {other} times.}
+ * loop  ==> test
+ * other ==> other
+ * done  => inner
 
-This was the { woo and 1:
-    - first
-    - second 
-} time I'd seen him.
+= inner
+  This is inner! Inner has been seen {test.inner} times.
+  ==> test
+
+== other ==
+Other!
+ ==> test

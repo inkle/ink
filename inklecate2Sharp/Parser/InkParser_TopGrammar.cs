@@ -197,6 +197,9 @@ namespace Inklewriter
                 _identifierFirstCharSet.AddRange ('0', '9');
                 _identifierFirstCharSet.Add ('_');
 
+                // TEMP: Allow read counts like "myKnot.myStitch" to be parsed
+                _identifierFirstCharSet.Add ('.');
+
                 _identifierCharSet = new CharacterSet(_identifierFirstCharSet);
 				_identifierCharSet.AddRange ('0', '9');
 			}
