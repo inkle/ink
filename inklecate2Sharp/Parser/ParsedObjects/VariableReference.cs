@@ -21,11 +21,16 @@ namespace Inklewriter.Parsed
         {
             bool resolved = false;
 
+            List<string> searchedLocations = new List<string> ();
+
             var ancestor = this.parent;
             while (ancestor != null) {
 
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
+                    if (ancestorFlow.name != null) {
+                        searchedLocations.Add ("'"+ancestorFlow.name+"'");
+                    }
                     if( ancestorFlow.HasVariableWithName(this.name) ) {
                         resolved = true;
                         break;
@@ -36,7 +41,13 @@ namespace Inklewriter.Parsed
             }
 
             if ( !resolved ) {
-                context.Error ("variable not found: " + this.name, this);
+                var locationsStr = "";
+                if (searchedLocations.Count > 0) {
+                    var locationsListStr = string.Join (", ", searchedLocations);
+                    locationsStr = " in " + locationsListStr + " or globally";
+                }
+                string.Join (", ", searchedLocations);
+                context.Error ("variable '" + this.name + "' not found"+locationsStr, this);
             }
         }
     }
