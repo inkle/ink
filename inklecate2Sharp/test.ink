@@ -1,8 +1,8 @@
 ﻿
-=== test ===
+=== test ( paramName1, paramName2 ) ===
 Initial content 
 
-= start
+= start (stitchParamName)
     - (top)
         Welcome to the top!
 
@@ -29,7 +29,7 @@ Initial content
     - And some more content after the join
       => two
 
-= two
+= two ()
     Another stitch
     * Opt 1 => out
     * (opt2) Opt 2 => out

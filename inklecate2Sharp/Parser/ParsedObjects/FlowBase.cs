@@ -10,10 +10,11 @@ namespace Inklewriter.Parsed
 	{
 		public string name { get; set; }
 		public List<Parsed.Object> content { get; protected set; }
+        public List<string> parameterNames { get; protected set; }
         public Dictionary<string, VariableAssignment> variableDeclarations;
         public abstract FlowLevel flowLevel { get; }
 
-		public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null)
+        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<string> parameterNames = null)
 		{
 			this.name = name;
 
@@ -21,6 +22,8 @@ namespace Inklewriter.Parsed
 				topLevelObjects = new List<Parsed.Object> ();
 			}
 			this.content = topLevelObjects;
+
+            this.parameterNames = parameterNames;
 
             variableDeclarations = new Dictionary<string, VariableAssignment> ();
 

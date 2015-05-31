@@ -22,16 +22,20 @@ namespace Inklewriter
 
             Whitespace ();
 
+            List<string> parameterNames = BracketedParameterNames ();
+
+            Whitespace ();
+
             // Optional equals after name
             KnotTitleEquals ();
 
-			Expect(EndOfLine, "end of line after knot name", recoveryRule: SkipToNextLine);
+			Expect(EndOfLine, "end of line after knot name definition", recoveryRule: SkipToNextLine);
 
 			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
 
 			var content = Expect(innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 			 
-			Knot knot = new Knot (knotName, content);
+            Knot knot = new Knot (knotName, content, parameterNames);
 
             return (Knot) SucceedRule (knot);
 		}
@@ -67,13 +71,19 @@ namespace Inklewriter
 
 			string stitchName = Expect (Identifier, "stitch name") as string;
 
+            Whitespace ();
+
+            List<string> parameterNames = BracketedParameterNames ();
+
+            Whitespace ();
+
 			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
 
 			ParseRule innerStitchStatements = () => StatementsAtLevel (StatementLevel.Stitch);
 
 			var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
-			Stitch stitch = new Stitch (stitchName, content);
+            Stitch stitch = new Stitch (stitchName, content, parameterNames);
 
 			return SucceedRule (stitch);
 		}
@@ -85,6 +95,26 @@ namespace Inklewriter
 			recoveredStitchContent.Add( new Parsed.Text("<ERROR IN STITCH>" ) );
 			return recoveredStitchContent;
 		}
+
+        protected List<string> BracketedParameterNames()
+        {
+            BeginRule ();
+
+            if (ParseString ("(") == null)
+                return (List<string>) FailRule ();
+
+            var parameterNames = Interleave<string>(Spaced(Identifier), Exclude (String(",")));
+
+            Expect (String (")"), "closing ')' for parameter list");
+
+            // If no parameters, create an empty list so that this method is type safe and 
+            // doesn't attempt to return the ParseSuccess object
+            if (parameterNames == null) {
+                parameterNames = new List<string> ();
+            }
+
+            return (List<string>) SucceedRule (parameterNames);
+        }
 
 	}
 }

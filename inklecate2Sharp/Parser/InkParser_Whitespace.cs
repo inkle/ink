@@ -80,6 +80,24 @@ namespace Inklewriter
 			return null;
 		}
 
+        protected ParseRule Spaced(ParseRule rule)
+        {
+            return () => {
+                BeginRule ();
+
+                Whitespace ();
+
+                var result = rule ();
+                if (result == null) {
+                    return FailRule ();
+                }
+
+                Whitespace ();
+
+                return SucceedRule (result);
+            };
+        }
+
 		private CharacterSet _inlineWhitespaceChars = new CharacterSet(" \t");
 	}
 }

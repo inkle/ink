@@ -206,7 +206,6 @@ namespace Inklewriter
             var f = new FunctionCall(iden, arguments);
 
             return (FunctionCall) SucceedRule (f);
-
         }
 
         protected Expression ExpressionVariableName()

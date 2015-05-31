@@ -100,7 +100,15 @@ namespace Inklewriter
 					message = rule.GetMethodInfo ().Name;
 				}
 
-				Error ("Expected "+message+" but saw '"+LimitedRemainingString(30)+"'");
+                string butSaw;
+                string lineRemainder = LineRemainder ();
+                if (lineRemainder == null || lineRemainder.Length == 0) {
+                    butSaw = "end of line";
+                } else {
+                    butSaw = "'" + lineRemainder + "'";
+                }
+                    
+                Error ("Expected "+message+" but saw "+butSaw);
 
 				if (recoveryRule != null) {
 					result = recoveryRule ();
@@ -128,9 +136,9 @@ namespace Inklewriter
 			}
 		}
 
-		public string LimitedRemainingString(int limit)
+        public string LineRemainder()
 		{
-			return new string (_chars, index, Math.Min (limit, remainingLength));
+            return (string) Peek (() => ParseUntilCharactersFromString ("\n\r"));
 		}
 
 		public int remainingLength
