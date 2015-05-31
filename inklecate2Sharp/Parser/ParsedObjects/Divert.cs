@@ -99,12 +99,18 @@ namespace Inklewriter.Parsed
                     if (arguments != null && arguments.Count > 0)
                         numArgs = arguments.Count;
 
-                    if (!(targetContent is FlowBase)) {
+                    FlowBase targetFlow = targetContent as FlowBase;
+
+                    // No error, crikey!
+                    if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
+                        return;
+                    }
+
+                    if (targetFlow == null && numArgs > 0) {
                         Error ("target needs to be a knot or stitch in order to pass arguments");
                         return;
                     } 
-
-                    var targetFlow = (FlowBase)targetContent;
+                        
                     if (targetFlow.parameterNames == null && numArgs > 0) {
                         Error ("target (" + targetFlow.name + ") doesn't take parameters");
                         return;
