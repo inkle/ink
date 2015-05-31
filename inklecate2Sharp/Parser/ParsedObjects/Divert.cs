@@ -6,38 +6,22 @@ namespace Inklewriter.Parsed
 	{
 		public Parsed.Path target { get; protected set; }
         public Parsed.Object targetContent { get; protected set; }
-		public bool returning { get; }
-
 		public Runtime.Divert runtimeDivert { get; protected set; }
 
-		public Divert (Parsed.Path target, bool returning)
+		public Divert (Parsed.Path target)
 		{
 			this.target = target;
-			this.returning = returning;
 		}
 
-        public Divert (Parsed.Object targetContent, bool returning)
+        public Divert (Parsed.Object targetContent)
         {
             this.targetContent = targetContent;
-            this.returning = returning;
         }
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
 			runtimeDivert = new Runtime.Divert ();
-
-			// If returning, do a stack push first
-			if (returning) {
-				var container = new Runtime.Container ();
-                container.AddContent (Runtime.ControlCommand.StackPush());
-				container.AddContent (runtimeDivert);
-				return container;
-			} 
-
-			// Pure divert, no need for Container
-			else {
-				return runtimeDivert;
-			}
+            return runtimeDivert;
 		}
 
         public override void ResolveReferences(Story context)

@@ -146,9 +146,6 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			var returningDivertChar = ParseString("<");
-			bool returning = returningDivertChar != null;
-
             var knotName = DivertTargetWithArrow (knotDivertArrow);
             var stitchName = DivertTargetWithArrow (stitchDivertArrow);
             var weavePointName = DivertTargetWithArrow (weavePointDivertArrow);
@@ -158,7 +155,7 @@ namespace Inklewriter
 
             Path targetPath = Path.To(knotName, stitchName, weavePointName);
 
-			return SucceedRule( new Divert( targetPath, returning ) ) as Divert;
+			return SucceedRule( new Divert(targetPath) ) as Divert;
 		}
 
         string DivertTargetWithArrow(string arrowStr)
@@ -230,6 +227,14 @@ namespace Inklewriter
 
 			Whitespace ();
 
+            // Some example lines we need to be able to distinguish between:
+            // ~ var x = 5  -- var decl + assign
+            // ~ var x      -- var decl
+            // ~ x = 5      -- var assign
+            // ~ x          -- expr (not var decl or assign)
+            // ~ f()        -- expr
+            // We don't treat variable decl/assign as an expression since we don't want an assignment
+            // to have a return value, or to be used in compound expressions.
             ParseRule afterTilda = () => OneOf (ReturnStatement, VariableDeclarationOrAssignment, Expression);
 
             var parsedExpr = (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);

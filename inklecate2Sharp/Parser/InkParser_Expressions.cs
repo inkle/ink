@@ -41,6 +41,12 @@ namespace Inklewriter
                 assignedExpression = (Expression)Expect (Expression, "value expression to be assigned to variable");
             }
 
+            // If it's neither an assignment nor a new declaration,
+            // it's got nothing to do with this rule (e.g. it's actually just "~ myExpr" or even "~ myFunc()"
+            else if (!isNewDeclaration) {
+                return (Parsed.Object) FailRule ();
+            }
+
             // Default zero assignment
             else {
                 assignedExpression = new Number (0);
@@ -48,7 +54,7 @@ namespace Inklewriter
 
             var result = new VariableAssignment (varName, assignedExpression, isNewDeclaration);
 
-            return SucceedRule(result) as Parsed.Object;
+            return (Parsed.Object) SucceedRule(result);
         }
 
 

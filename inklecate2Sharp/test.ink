@@ -39,6 +39,7 @@ Initial content
 
 
 = out
+    ~ aside_content()
     This is out
 
 
@@ -51,3 +52,9 @@ Initial content
         Hello, this is somewhere else ENTIRELY.
         ==> test => out
 
+
+=== aside_content ===
+
+This is just a random aside about something that could happen.
+
+It's just some random content and isn't very important.
