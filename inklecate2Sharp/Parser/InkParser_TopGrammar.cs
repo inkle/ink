@@ -149,20 +149,20 @@ namespace Inklewriter
 			if (divertArrowStr == null) {
 				return FailRule () as Parsed.Divert;
 			}
-			bool isGlobal = divertArrowStr == "->";
+            bool isToKnot = divertArrowStr == "==>";
 
 			Whitespace ();
 
 			string targetName = Identifier ();
 
-			Path targetPath = isGlobal ? Path.ToKnot (targetName) : Path.ToStitch (targetName);
+			Path targetPath = isToKnot ? Path.ToKnot (targetName) : Path.ToStitch (targetName);
 
 			return SucceedRule( new Divert( targetPath, returning ) ) as Divert;
 		}
 
 		protected string DivertArrow()
 		{
-            return OneOf(String("->"), String("-->")) as string;
+            return OneOf(String("=>"), String("==>"), String("->")) as string;
 		}
 
 		protected string Identifier()
@@ -300,13 +300,14 @@ namespace Inklewriter
 
 			// Eat through text, pausing at the following characters, and
 			// attempt to parse the nonTextRule.
-			// "/" for possible start of comment
-			// "-" for possible start of Divert
+			// "-": possible start of divert or start of gather
 			if (_nonTextPauseCharacters == null) {
-				_nonTextPauseCharacters = new CharacterSet ("-/");
+				_nonTextPauseCharacters = new CharacterSet ("-");
 			}
 
 			// If we hit any of these characters, we stop *immediately* without bothering to even check the nonTextRule
+            // "{" for start of logic
+            // "=" for start of divert or new stitch
 			if (_nonTextEndCharacters == null) {
 				_nonTextEndCharacters = new CharacterSet ("={\n\r");
 			}

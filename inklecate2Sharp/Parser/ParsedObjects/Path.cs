@@ -49,10 +49,10 @@ namespace Inklewriter.Parsed
 		public override string ToString ()
 		{
 			if (knotName != null) {
-				return "-> " + knotName;
+				return "==> " + knotName;
 			}
 			if (stitchName != null) {
-				return "--> " + stitchName;
+				return "=> " + stitchName;
 			}
 			if (ambiguousName != null) {
 				return "-?-> " + ambiguousName;

@@ -32,7 +32,7 @@ namespace Tests
 @"
 === firstKnot
     Hello!
-    -> anotherKnot
+    ==> anotherKnot
 
 === anotherKnot
     World.

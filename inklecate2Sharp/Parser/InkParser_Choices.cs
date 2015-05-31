@@ -63,7 +63,7 @@ namespace Inklewriter
                 _choiceTextPauseCharacters = new CharacterSet ("-");
             }
             if (_choiceTextEndCharacters == null) {
-                _choiceTextEndCharacters = new CharacterSet("[]{\n\r");
+                _choiceTextEndCharacters = new CharacterSet("[]={\n\r");
             }
 
             return ParseUntil(Divert, pauseCharacters: _choiceTextPauseCharacters, endCharacters: _choiceTextEndCharacters);
