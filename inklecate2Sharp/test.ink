@@ -1,4 +1,6 @@
-﻿~ var good = 1
-~ var bad = 0
+﻿~ var woo = 5
 
-{good and bad:stupid|sensible}
+This was the { woo and 1:
+    - first
+    - second 
+} time I'd seen him.

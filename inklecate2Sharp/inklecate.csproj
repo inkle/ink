@@ -94,6 +94,7 @@
     <Compile Include="Parser\ParsedObjects\INamedContent.cs" />
     <Compile Include="Parser\ParsedObjects\Conditional.cs" />
     <Compile Include="Runtime\Branch.cs" />
+    <Compile Include="Parser\InkParser_Logic.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

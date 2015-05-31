@@ -276,6 +276,7 @@ namespace Inklewriter
 			list.Add ((T)result);
 		}
 
+
 		public List<T> Interleave<T>(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null, bool flatten = true)
 		{
 			var results = new List<T> ();
