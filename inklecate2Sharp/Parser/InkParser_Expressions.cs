@@ -10,10 +10,12 @@ namespace Inklewriter
 		{
 			public string type;
 			public int precedence;
+            public bool requireWhitespace;
 
-			public InfixOperator(string type, int precedence) {
+            public InfixOperator(string type, int precedence, bool requireWhitespace) {
 				this.type = type;
 				this.precedence = precedence;
+                this.requireWhitespace = requireWhitespace;
 			}
 
 			public override string ToString ()
@@ -284,9 +286,22 @@ namespace Inklewriter
 		private InfixOperator ParseInfixOperator()
 		{
             foreach (var op in _binaryOperators) {
+
+                BeginRule ();
+
                 if (ParseString (op.type) != null) {
-                    return op;
+
+                    if (op.requireWhitespace) {
+                        if (Whitespace () == null) {
+                            FailRule ();
+                            continue;
+                        }
+                    }
+
+                    return (InfixOperator) SucceedRule(op);
                 }
+
+                FailRule ();
             }
 
             return null;
@@ -299,22 +314,28 @@ namespace Inklewriter
 
             // These will be tried in order, so we need "<=" before "<"
             // for correctness
-            RegisterBinaryOperator ("==", precedence:1);
-            RegisterBinaryOperator (">=", precedence:1);
-            RegisterBinaryOperator ("<=", precedence:1);
-            RegisterBinaryOperator ("<", precedence:1);
-            RegisterBinaryOperator (">", precedence:1);
-            RegisterBinaryOperator ("!=", precedence:1);
 
-			RegisterBinaryOperator ("+", precedence:2);
-			RegisterBinaryOperator ("-", precedence:3);
-			RegisterBinaryOperator ("*", precedence:4);
-			RegisterBinaryOperator ("/", precedence:5);
+            RegisterBinaryOperator ("&&", precedence:1);
+            RegisterBinaryOperator ("||", precedence:1);
+            RegisterBinaryOperator ("and", precedence:1, requireWhitespace: true);
+            RegisterBinaryOperator ("or", precedence:1, requireWhitespace: true);
+
+            RegisterBinaryOperator ("==", precedence:2);
+            RegisterBinaryOperator (">=", precedence:2);
+            RegisterBinaryOperator ("<=", precedence:2);
+            RegisterBinaryOperator ("<", precedence:2);
+            RegisterBinaryOperator (">", precedence:2);
+            RegisterBinaryOperator ("!=", precedence:2);
+
+			RegisterBinaryOperator ("+", precedence:3);
+			RegisterBinaryOperator ("-", precedence:4);
+			RegisterBinaryOperator ("*", precedence:5);
+			RegisterBinaryOperator ("/", precedence:6);
 		}
 
-		void RegisterBinaryOperator(string op, int precedence)
+        void RegisterBinaryOperator(string op, int precedence, bool requireWhitespace = false)
 		{
-            _binaryOperators.Add(new InfixOperator (op, precedence));
+            _binaryOperators.Add(new InfixOperator (op, precedence, requireWhitespace));
             _maxBinaryOpLength = Math.Max (_maxBinaryOpLength, op.Length);
 		}
 

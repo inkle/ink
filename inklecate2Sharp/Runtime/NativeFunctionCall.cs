@@ -20,6 +20,11 @@ namespace Inklewriter.Runtime
         public const string NotEquals   = "!=";
         public const string Not      = "!";
 
+        public const string And      = "&&";
+        public const string Or       = "||";
+        public const string AndWord  = "and";
+        public const string OrWord   = "or";
+
         public static NativeFunctionCall CallWithName(string functionName)
         {
             GenerateNativeFunctionsIfNecessary ();
@@ -82,6 +87,12 @@ namespace Inklewriter.Runtime
                 AddBinaryOp(LessThanOrEquals, (x, y) => x <= y ? 1 : 0);
                 AddBinaryOp(NotEquals, (x, y) => x != y ? 1 : 0);
                 AddUnaryOp (Not,       x => (x == 0) ? 1 : 0); 
+
+                AddBinaryOp(And,      (x, y) => x != 0 && y != 0 ? 1 : 0);
+                AddBinaryOp(AndWord,  (x, y) => x != 0 && y != 0 ? 1 : 0);
+                AddBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
+                AddBinaryOp(OrWord,   (x, y) => x != 0 || y != 0 ? 1 : 0);
+
             }
         }
 
