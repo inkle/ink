@@ -36,11 +36,24 @@ namespace Inklewriter.Parsed
                 }
 			}
 		}
+
+        public bool HasVariableWithName(string varName)
+        {
+            if (variableDeclarations.ContainsKey (varName))
+                return true;
+
+            if (this.parameterNames != null && this.parameterNames.Contains (varName))
+                return true;
+
+            return false;
+        }
             
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();
             container.name = name;
+
+            GenerateArgumentVariableAssignments (container);
 
             // Maintain a list of gathered loose ends so that we can resolve
             // their divert paths in ResolveReferences
@@ -140,6 +153,23 @@ namespace Inklewriter.Parsed
             }
 
             return result;
+        }
+
+        public void GenerateArgumentVariableAssignments(Runtime.Container container)
+        {
+            if (this.parameterNames == null || this.parameterNames.Count == 0) {
+                return;
+            }
+
+            // Assign parameters in reverse since they'll be popped off the evaluation stack
+            // No need to generate EvalStart and EvalEnd since there's nothing being pushed
+            // back onto the evaluation stack.
+            for (int i = parameterNames.Count - 1; i >= 0; --i) {
+                var paramName = parameterNames [i];
+
+                var assign = new Runtime.VariableAssignment (paramName, isNewDeclaration:true);
+                container.AddContent (assign);
+            }
         }
 
         public override void ResolveReferences (Story context)

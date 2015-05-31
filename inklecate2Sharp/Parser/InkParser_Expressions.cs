@@ -191,21 +191,36 @@ namespace Inklewriter
 
             Whitespace ();
 
-            if (ParseString ("(") == null)
-                return (Expression)FailRule ();
-
-            // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
-            ParseRule commas = Exclude (String (","));
-            var arguments = Interleave<Expression>(Expression, commas);
-
-            Whitespace ();
-
-            Expect (String (")"), "closing ')' for function call");
+            var arguments = ExpressionFunctionCallArguments ();
+            if (arguments == null) {
+                return (Expression) FailRule ();
+            }
 
             // TODO: Build function call object
             var f = new FunctionCall(iden, arguments);
 
             return (FunctionCall) SucceedRule (f);
+        }
+
+        protected List<Expression> ExpressionFunctionCallArguments()
+        {
+            BeginRule ();
+
+            if (ParseString ("(") == null)
+                return (List<Expression>)FailRule ();
+
+            // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
+            ParseRule commas = Exclude (String (","));
+            var arguments = Interleave<Expression>(Expression, commas);
+            if (arguments == null) {
+                arguments = new List<Expression> ();
+            }
+
+            Whitespace ();
+
+            Expect (String (")"), "closing ')' for function call");
+
+            return (List<Expression>) SucceedRule (arguments);
         }
 
         protected Expression ExpressionVariableName()

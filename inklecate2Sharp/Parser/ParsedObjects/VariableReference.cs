@@ -19,7 +19,23 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            if ( !context.variableDeclarations.ContainsKey (this.name) ) {
+            bool resolved = false;
+
+            var ancestor = this.parent;
+            while (ancestor != null) {
+
+                if (ancestor is FlowBase) {
+                    var ancestorFlow = (FlowBase)ancestor;
+                    if( ancestorFlow.HasVariableWithName(this.name) ) {
+                        resolved = true;
+                        break;
+                    }
+                }
+
+                ancestor = ancestor.parent;
+            }
+
+            if ( !resolved ) {
                 context.Error ("variable not found: " + this.name, this);
             }
         }

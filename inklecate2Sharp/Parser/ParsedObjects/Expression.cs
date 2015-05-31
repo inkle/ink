@@ -10,23 +10,30 @@ namespace Inklewriter.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
+            return GenerateRuntimeExpressions (this);
+		}
+
+        public static Runtime.Container GenerateRuntimeExpressions(params Expression[] expressions)
+        {
             var container = new Runtime.Container ();
 
             // Tell Runtime to start evaluating the following content as an expression
             container.AddContent (Runtime.ControlCommand.EvalStart());
 
-			GenerateIntoContainer (container);
+            foreach (var expr in expressions) {
+                expr.GenerateIntoContainer (container);
 
-            // Tell Runtime to output the result of the expression evaluation to the output stream
-            if (outputWhenComplete) {
-                container.AddContent (Runtime.ControlCommand.EvalOutput());
+                // Tell Runtime to output the result of the expression evaluation to the output stream
+                if (expr.outputWhenComplete) {
+                    container.AddContent (Runtime.ControlCommand.EvalOutput());
+                }
             }
 
             // Tell Runtime to stop evaluating the content as an expression
             container.AddContent (Runtime.ControlCommand.EvalEnd());
 
             return container;
-		}
+        }
 
         public abstract void GenerateIntoContainer (Runtime.Container container);
 

@@ -153,9 +153,13 @@ namespace Inklewriter
                 return (Parsed.Divert)FailRule ();
             }
 
+            Whitespace ();
+
+            var optionalArguments = ExpressionFunctionCallArguments ();
+
             Path targetPath = Path.To(knotName, stitchName, weavePointName);
 
-			return SucceedRule( new Divert(targetPath) ) as Divert;
+            return SucceedRule( new Divert(targetPath, optionalArguments) ) as Divert;
 		}
 
         string DivertTargetWithArrow(string arrowStr)

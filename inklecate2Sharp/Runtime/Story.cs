@@ -19,7 +19,11 @@ namespace Inklewriter.Runtime
 
         public List<Runtime.Object> outputStream;
 
-        public Dictionary<string, Runtime.Object> variables { get; protected set; }
+        public Dictionary<string, Runtime.Object> variables { 
+            get { 
+                return _callStack.currentElement.variables; 
+            } 
+        }
 
 		public List<Choice> currentChoices
 		{
@@ -44,8 +48,6 @@ namespace Inklewriter.Runtime
             outputStream = new List<Runtime.Object> ();
 
             _evaluationStack = new List<Runtime.Object> ();
-
-            variables = new Dictionary<string, Runtime.Object> ();
 
             _callStack = new CallStack ();
 		}
@@ -189,7 +191,8 @@ namespace Inklewriter.Runtime
             // Variable reference
             else if( contentObj is VariableReference ) {
                 var varRef = (VariableReference)contentObj;
-                _evaluationStack.Add( variables[varRef.name] );
+                var varContents = _callStack.GetVariableWithName (varRef.name);
+                _evaluationStack.Add( varContents );
                 return true;
             }
 

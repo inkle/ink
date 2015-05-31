@@ -11,6 +11,7 @@ namespace Inklewriter.Runtime
         {
             public Path path;
             public bool inExpressionEvaluation;
+            public Dictionary<string, Runtime.Object> variables;
 
             public Element(Path initialPath = null, bool inExpressionEvaluation = false) {
                 if( initialPath == null ) {
@@ -19,6 +20,7 @@ namespace Inklewriter.Runtime
 
                 this.path = initialPath;
                 this.inExpressionEvaluation = inExpressionEvaluation;
+                this.variables = new Dictionary<string, Object>();
             }
         }
 
@@ -50,6 +52,22 @@ namespace Inklewriter.Runtime
         {
             Debug.Assert (canPop);
             _callStack.RemoveAt (_callStack.Count - 1);
+        }
+
+        public Runtime.Object GetVariableWithName(string name)
+        {
+            Runtime.Object varValue = null;
+
+            // Search down the scope stack for a variable with this value
+            for (int elIdx = _callStack.Count - 1; elIdx >= 0; --elIdx) {
+                var element = _callStack [elIdx];
+
+                if (element.variables.TryGetValue (name, out varValue)) {
+                    return varValue;
+                }
+            }
+
+            return null;
         }
 
         private List<Element> _callStack;
