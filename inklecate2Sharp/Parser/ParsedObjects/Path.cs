@@ -146,6 +146,7 @@ namespace Inklewriter.Parsed
                 // Both knots and stories may contain e.g. stitches, so
                 // we may still need to loop upwards to find the container
                 // that owns the content type we're looping for
+
                 do {
                     var foundContent = flowContext.ContentWithNameAtLevel (nameAtLevel, pathComponentLevel);
 

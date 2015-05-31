@@ -136,6 +136,10 @@ namespace Inklewriter
 			};
 		}
 
+        const string knotDivertArrow = "==>";
+        const string stitchDivertArrow = "=>";
+        const string weavePointDivertArrow = "->";
+
 		protected Parsed.Divert Divert()
 		{
 			BeginRule ();
@@ -145,33 +149,40 @@ namespace Inklewriter
 			var returningDivertChar = ParseString("<");
 			bool returning = returningDivertChar != null;
 
-			string divertArrowStr = DivertArrow ();
-			if (divertArrowStr == null) {
-				return FailRule () as Parsed.Divert;
-			}
-
-			Whitespace ();
-
-			string targetName = Identifier ();
-
-            Path targetPath = null;
-            if (divertArrowStr == "==>") {
-                targetPath = Path.To (knotName: targetName);
+            var knotName = DivertTargetWithArrow (knotDivertArrow);
+            var stitchName = DivertTargetWithArrow (stitchDivertArrow);
+            var weavePointName = DivertTargetWithArrow (weavePointDivertArrow);
+            if (knotName == null && stitchName == null && weavePointName == null) {
+                return (Parsed.Divert)FailRule ();
             }
-            else if (divertArrowStr == "=>") {
-                targetPath = Path.To (stitchName: targetName);
-            }
-            else {
-                targetPath = Path.To (weavePointName: targetName);
-            }
+
+            Path targetPath = Path.To(knotName, stitchName, weavePointName);
 
 			return SucceedRule( new Divert( targetPath, returning ) ) as Divert;
 		}
 
+        string DivertTargetWithArrow(string arrowStr)
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            if (ParseString (arrowStr) == null)
+                return (string)FailRule ();
+
+            Whitespace ();
+
+            var targetName = Expect(Identifier, "name of target to divert to");
+
+            return (string) SucceedRule (targetName);
+        }
+
 		protected string DivertArrow()
 		{
-            return OneOf(String("=>"), String("==>"), String("->")) as string;
+            return OneOf(String(knotDivertArrow), String(stitchDivertArrow), String(weavePointDivertArrow)) as string;
 		}
+
+
 
 		protected string Identifier()
 		{

@@ -41,6 +41,8 @@ namespace Inklewriter.Parsed
                 if (_weaveContentContainer != null) {
                     return _weaveContentContainer.path;
                 } else {
+                    // This Choice may or may not have been resolved already
+                    ResolveExplicitPathIfNecessary ();
                     return _resolvedExplicitPath;
                 }
             }

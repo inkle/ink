@@ -174,9 +174,19 @@ namespace Inklewriter.Parsed
                     } 
 
                     // Searching for Choice/Gather
-                    else if (levelType == FlowLevel.WeavePoint && obj is IWeavePoint) {
-                        return obj;
+                    // WEIRD: FOR SOME REASON THIS DOESN'T WORK, BUT THE ELSE BELOW DOES
+//                    else if ( (levelType == FlowLevel.WeavePoint) && (obj is IWeavePoint) ) {
+//                        Console.WriteLine ("woo");
+//                        return obj;
+//                    }
+              
+                    else {
+                        bool weaveLevelRequested = levelType == FlowLevel.WeavePoint;
+                        bool isWeavePoint = obj is IWeavePoint;
+                        if( weaveLevelRequested && isWeavePoint ) 
+                            return obj;
                     }
+
                 }
             }
 

@@ -5,12 +5,15 @@ Initial content
 = start
     - (top)
         Welcome to the top!
+
         * (firstOption) Hi[.], there. 
             This is a piece of content associated with the first option
+
         * Hello[.], world.
             Since it's a great world.
             * * Second[] level option.
                 This is second level content.
+                => two -> opt2
             * * Another[] second level option
           - - Gather after level 2.
                 And the level 2 gather content continues.
@@ -18,8 +21,10 @@ Initial content
             * * Another choice below level 2
           - - Second gather at level 2
             -> top
+
         * Back[.] to first.
             -> firstOption
+
     - This is a join.
     - And some more content after the join
       => two
@@ -27,7 +32,7 @@ Initial content
 = two
     Another stitch
     * Opt 1 => out
-    * Opt 2 => out
+    * (opt2) Opt 2 => out
     * Opt 3
     -
     ...just continues!
