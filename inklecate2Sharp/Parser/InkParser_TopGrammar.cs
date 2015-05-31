@@ -337,17 +337,17 @@ namespace Inklewriter
             if (ParseString (":") == null)
                 return (Conditional) FailRule ();
 
-            // TODO: Upgrade to MixedTextAndLogic for nesting
-            var textAlternatives = Interleave<Parsed.Text>(ContentText, Exclude (String ("|")));
-            if (textAlternatives == null || textAlternatives.Count < 1 || textAlternatives.Count > 2) {
+            // Upgrade to MixedTextAndLogic for nesting
+            var alternatives = Interleave<Parsed.Object>(MixedTextAndLogic, Exclude (String ("|")));
+            if (alternatives == null || alternatives.Count < 1 || alternatives.Count > 2) {
                 Error ("Expected one or two alternatives separated by '|' in inline conditional");
                 return (Conditional)FailRule ();
             }
 
-            Parsed.Object contentIfTrue = textAlternatives [0];
+            Parsed.Object contentIfTrue = alternatives [0];
             Parsed.Object contentIfFalse = null;
-            if (textAlternatives.Count > 1) {
-                contentIfFalse = textAlternatives [1];
+            if (alternatives.Count > 1) {
+                contentIfFalse = alternatives [1];
             }
 
             var cond = new Conditional (expr, contentIfTrue, contentIfFalse);

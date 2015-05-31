@@ -82,6 +82,11 @@ namespace Inklewriter.Parsed
                 _falseDivert.targetPath = _falseTargetObj.path;
                 _falseCompleteDivert.targetPath = pathToReJoin;
             }
+
+            contentIfTrue.ResolveReferences (context);
+            if (contentIfFalse != null) {
+                contentIfFalse.ResolveReferences (context);
+            }
         }
 
         Runtime.Divert _trueDivert;
