@@ -19,9 +19,12 @@ namespace Inklewriter.Parsed
             foreach (var obj in contentIfTrue) {
                 obj.parent = this;
             }
-            foreach (var obj in contentIfFalse) {
-                obj.parent = this;
+            if (contentIfFalse != null) {
+                foreach (var obj in contentIfFalse) {
+                    obj.parent = this;
+                }
             }
+
         }
 
         public override Runtime.Object GenerateRuntimeObject ()

@@ -214,6 +214,9 @@ namespace Inklewriter.Runtime
             else if( contentObj is VariableReference ) {
                 var varRef = (VariableReference)contentObj;
                 var varContents = _callStack.GetVariableWithName (varRef.name);
+                if (varContents == null) {
+                    throw new System.Exception ("Uninitialised variable: " + varRef.name);
+                }
                 _evaluationStack.Add( varContents );
                 return true;
             }

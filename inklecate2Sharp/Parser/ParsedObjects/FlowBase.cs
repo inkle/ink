@@ -38,6 +38,20 @@ namespace Inklewriter.Parsed
 			}
 		}
 
+        public string dotSeparatedFullName {
+            get {
+                if (this.parent != null) {
+                    var parentFlow = (FlowBase)this.parent;
+                    var parentName = parentFlow.dotSeparatedFullName;
+                    if (parentName != null) {
+                        return parentFlow.dotSeparatedFullName + "." + this.name;
+                    }
+                }
+
+                return this.name;
+            }
+        }
+
         public bool HasVariableWithName(string varName)
         {
             if (variableDeclarations.ContainsKey (varName))
@@ -45,6 +59,10 @@ namespace Inklewriter.Parsed
 
             if (this.parameterNames != null && this.parameterNames.Contains (varName))
                 return true;
+
+            if (ContentWithNameAtLevel (varName) != null) {
+                return true;
+            }
 
             return false;
         }
@@ -55,6 +73,8 @@ namespace Inklewriter.Parsed
             container.name = name;
 
             GenerateArgumentVariableAssignments (container);
+
+            GenerateReadCountUpdate (container);
 
             // Maintain a list of gathered loose ends so that we can resolve
             // their divert paths in ResolveReferences
@@ -159,7 +179,7 @@ namespace Inklewriter.Parsed
             return result;
         }
 
-        public void GenerateArgumentVariableAssignments(Runtime.Container container)
+        void GenerateArgumentVariableAssignments(Runtime.Container container)
         {
             if (this.parameterNames == null || this.parameterNames.Count == 0) {
                 return;
@@ -174,6 +194,23 @@ namespace Inklewriter.Parsed
                 var assign = new Runtime.VariableAssignment (paramName, isNewDeclaration:true);
                 container.AddContent (assign);
             }
+        }
+
+        protected virtual void GenerateReadCountUpdate(Runtime.Container container)
+        {
+            if (name == null) {
+                return;
+            }
+
+            container.AddContent (Runtime.ControlCommand.EvalStart());
+
+            string varName = dotSeparatedFullName;
+            container.AddContent (new Runtime.VariableReference (varName));
+            container.AddContent (new Runtime.Number(1));
+            container.AddContent (Runtime.NativeFunctionCall.CallWithName("+"));
+            container.AddContent (new Runtime.VariableAssignment (varName, false));
+
+            container.AddContent (Runtime.ControlCommand.EvalEnd());
         }
 
         public override void ResolveReferences (Story context)
