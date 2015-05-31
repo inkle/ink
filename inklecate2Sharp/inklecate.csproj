@@ -92,6 +92,8 @@
     <Compile Include="Parser\ParsedObjects\WeaveFlow\WeaveBlockRuntimeResult.cs" />
     <Compile Include="Parser\ParsedObjects\FlowLevel.cs" />
     <Compile Include="Parser\ParsedObjects\INamedContent.cs" />
+    <Compile Include="Parser\ParsedObjects\Conditional.cs" />
+    <Compile Include="Runtime\Branch.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

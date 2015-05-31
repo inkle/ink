@@ -19,8 +19,7 @@ namespace Inklewriter.Runtime
 
 		public Path pathToFirstLeafContent
 		{
-			get 
-			{
+			get {
 				if (content.Count > 0) {
 					Path path = Path.ToFirstElement();
 					var subContainer = content.First () as Container;
@@ -34,6 +33,13 @@ namespace Inklewriter.Runtime
 				return null;
 			}
 		}
+
+        public Path pathToEnd
+        {
+            get {
+                return Path.ToElementWithIndex (content.Count);
+            }
+        }
 
 		public Container ()
 		{

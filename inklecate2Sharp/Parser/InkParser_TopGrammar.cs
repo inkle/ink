@@ -314,7 +314,41 @@ namespace Inklewriter
 			return SucceedRule(logic) as Parsed.Object;
 		}
 
-		protected Parsed.Object InnerLogic()
+        protected Parsed.Object InnerLogic()
+        {
+            return (Parsed.Object) OneOf (InnerConditionalContent, InnerExpression);
+        }
+
+        protected Conditional InnerConditionalContent()
+        {
+            BeginRule ();
+
+            var expr = Expression ();
+
+            Whitespace ();
+
+            if (ParseString (":") == null)
+                return (Conditional) FailRule ();
+
+            // TODO: Upgrade to MixedTextAndLogic for nesting
+            var textAlternatives = Interleave<Parsed.Text>(ContentText, Exclude (String ("|")));
+            if (textAlternatives == null || textAlternatives.Count < 1 || textAlternatives.Count > 2) {
+                Error ("Expected one or two alternatives separated by '|' in inline conditional");
+                return (Conditional)FailRule ();
+            }
+
+            Parsed.Object contentIfTrue = textAlternatives [0];
+            Parsed.Object contentIfFalse = null;
+            if (textAlternatives.Count > 1) {
+                contentIfFalse = textAlternatives [1];
+            }
+
+            var cond = new Conditional (expr, contentIfTrue, contentIfFalse);
+
+            return (Conditional) SucceedRule(cond);
+        }
+
+		protected Parsed.Object InnerExpression()
 		{
             var expr = Expression ();
             expr.outputWhenComplete = true;
@@ -339,7 +373,7 @@ namespace Inklewriter
             // "{" for start of logic
             // "=" for start of divert or new stitch
 			if (_nonTextEndCharacters == null) {
-				_nonTextEndCharacters = new CharacterSet ("={\n\r");
+                _nonTextEndCharacters = new CharacterSet ("={}|\n\r");
 			}
 
 			// When the ParseUntil pauses, check these rules in case they evaluate successfully

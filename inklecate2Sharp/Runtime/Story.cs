@@ -121,15 +121,35 @@ namespace Inklewriter.Runtime
         private bool PerformLogicAndFlowControl(Runtime.Object contentObj)
         {
             if( contentObj == null ) {
+                
                 return false;
             }
 
-            // Redirection?
+            // Divert
             if (contentObj is Divert) {
                 
                 Divert currentDivert = (Divert)contentObj;
                 _divertedPath = currentDivert.targetPath;
                 Debug.Assert (_divertedPath != null);
+                return true;
+            } 
+
+            // Branch (conditional divert)
+            else if (contentObj is Branch) {
+                var branch = (Branch)contentObj;
+                var conditionValue = PopEvaluationStack();
+
+                bool conditionBool = false;
+                if (conditionValue is Number) {
+                    var number = (Number)conditionValue;
+                    conditionBool = number.value != 0;
+                }
+
+                if (conditionBool == true)
+                    _divertedPath = branch.trueDivert.targetPath;
+                else if (branch.falseDivert != null)
+                    _divertedPath = branch.falseDivert.targetPath;
+                
                 return true;
             }
 
@@ -287,7 +307,16 @@ namespace Inklewriter.Runtime
 			if (_divertedPath != null) {
 				currentPath = _divertedPath;
 				_divertedPath = null;
-				return;
+
+                // Diverted location has valid content?
+                if (ContentAtPath (currentPath) != null) {
+                    return;
+                }
+				
+                // Otherwise, if diverted location doesn't have valid content,
+                // drop down and attempt to increment.
+                // This can happen if the diverted path is intentionally jumping
+                // to the end of a container - e.g. a Conditional that's re-joining
 			}
 
 			// Can we increment successfully?
