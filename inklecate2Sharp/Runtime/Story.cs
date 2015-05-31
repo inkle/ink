@@ -126,6 +126,7 @@ namespace Inklewriter.Runtime
 
             // Redirection?
             if (contentObj is Divert) {
+                
                 Divert currentDivert = (Divert)contentObj;
                 _divertedPath = currentDivert.targetPath;
                 Debug.Assert (_divertedPath != null);
@@ -270,7 +271,11 @@ namespace Inklewriter.Runtime
         {
             var sb = new StringBuilder ();
 
-            var currentObj = ContentAtPath (currentPath);
+
+            Runtime.Object currentObj = null;
+            if (currentPath != null) {
+                currentObj = ContentAtPath (currentPath);
+            }
             _rootContainer.BuildStringOfHierarchy (sb, 0, currentObj);
 
             return sb.ToString ();

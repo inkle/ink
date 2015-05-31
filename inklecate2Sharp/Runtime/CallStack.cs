@@ -51,7 +51,9 @@ namespace Inklewriter.Runtime
         public void Pop()
         {
             Debug.Assert (canPop);
-            _callStack.RemoveAt (_callStack.Count - 1);
+            if (canPop) {
+                _callStack.RemoveAt (_callStack.Count - 1);
+            }
         }
 
         public Runtime.Object GetVariableWithName(string name)

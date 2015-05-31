@@ -39,14 +39,16 @@ namespace Inklewriter
 		{
 			List<ParseRule> rulesAtLevel = new List<ParseRule> ();
 
+
+            // Diverts can go anywhere
+            // (Check before KnotDefinition since possible "==>" has to be found before "== name ==")
+            rulesAtLevel.Add(Line(Divert));
+
 			if (level >= StatementLevel.Top) {
 
 				// Knots can only be parsed at Top/Global scope
 				rulesAtLevel.Add (KnotDefinition);
 			}
-
-			// Diverts can go anywhere
-			rulesAtLevel.Add(Line(Divert));
 
             // Error checking for Choices in the wrong place is below (after parsing)
 			rulesAtLevel.Add(Line(Choice));

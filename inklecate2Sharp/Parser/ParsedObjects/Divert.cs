@@ -33,7 +33,7 @@ namespace Inklewriter.Parsed
             runtimeDivert = new Runtime.Divert ();
 
             // Passing arguments to the knot
-            if (arguments != null && arguments.Count > 0) {
+            if ( (arguments != null && arguments.Count > 0) || isFunctionCall) {
 
                 var container = new Runtime.Container ();
 
@@ -91,49 +91,48 @@ namespace Inklewriter.Parsed
                         Error ("target not found: '" + target.ToString () + "'");
                     }
                 }
-
-                // Argument passing: Check for errors in number of arguments
-                if (targetContent != null) {
-
-                    var numArgs = 0;
-                    if (arguments != null && arguments.Count > 0)
-                        numArgs = arguments.Count;
-
-                    FlowBase targetFlow = targetContent as FlowBase;
-
-                    // No error, crikey!
-                    if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
-                        return;
-                    }
-
-                    if (targetFlow == null && numArgs > 0) {
-                        Error ("target needs to be a knot or stitch in order to pass arguments");
-                        return;
-                    } 
-                        
-                    if (targetFlow.parameterNames == null && numArgs > 0) {
-                        Error ("target (" + targetFlow.name + ") doesn't take parameters");
-                        return;
-                    }
-
-                    var paramCount = targetFlow.parameterNames.Count;
-                    if (paramCount != numArgs) {
-                        string butClause;
-                        if (numArgs == 0) {
-                            butClause = "but there weren't any passed to it";
-                        } else if (numArgs < paramCount) {
-                            butClause = "but only got " + numArgs;
-                        } else {
-                            butClause = "but got " + numArgs;
-                        }
-                        Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
-                        return;
-                    }
-                }
+                    
             }
 
 			if (targetContent != null) {
+                
 				runtimeDivert.targetPath = targetContent.runtimePath;
+
+                // Argument passing: Check for errors in number of arguments
+                var numArgs = 0;
+                if (arguments != null && arguments.Count > 0)
+                    numArgs = arguments.Count;
+
+                FlowBase targetFlow = targetContent as FlowBase;
+
+                // No error, crikey!
+                if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
+                    return;
+                }
+
+                if (targetFlow == null && numArgs > 0) {
+                    Error ("target needs to be a knot or stitch in order to pass arguments");
+                    return;
+                } 
+
+                if (targetFlow.parameterNames == null && numArgs > 0) {
+                    Error ("target (" + targetFlow.name + ") doesn't take parameters");
+                    return;
+                }
+
+                var paramCount = targetFlow.parameterNames.Count;
+                if (paramCount != numArgs) {
+                    string butClause;
+                    if (numArgs == 0) {
+                        butClause = "but there weren't any passed to it";
+                    } else if (numArgs < paramCount) {
+                        butClause = "but only got " + numArgs;
+                    } else {
+                        butClause = "but got " + numArgs;
+                    }
+                    Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
+                    return;
+                }
 			}
 		}
 
