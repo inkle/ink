@@ -1,18 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
     public class Conditional : Parsed.Object
     {
         public Expression condition { get; }
-        public Parsed.Object contentIfTrue { get; }
-        public Parsed.Object contentIfFalse { get; }
+        public List<Parsed.Object> contentIfTrue { get; }
+        public List<Parsed.Object> contentIfFalse { get; }
         
-        public Conditional (Expression condition, Parsed.Object contentIfTrue, Parsed.Object contentIfFalse = null)
+        public Conditional (Expression condition, List<Parsed.Object> contentIfTrue, List<Parsed.Object> contentIfFalse = null)
         {
             this.condition = condition;
             this.contentIfTrue = contentIfTrue;
             this.contentIfFalse = contentIfFalse;
+
+            this.condition.parent = this;
+            foreach (var obj in contentIfTrue) {
+                obj.parent = this;
+            }
+            foreach (var obj in contentIfFalse) {
+                obj.parent = this;
+            }
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -21,8 +30,7 @@ namespace Inklewriter.Parsed
 
             container.AddContent (condition.runtimeObject);
 
-            var trueRuntimeObj = contentIfTrue.runtimeObject;
-            var trueRuntimeContainer = WrapInContainerIfNecessary (trueRuntimeObj);
+            var trueRuntimeContainer = RuntimeContentForList (contentIfTrue);
             trueRuntimeContainer.name = "true";
             container.AddToNamedContentOnly (trueRuntimeContainer);
             _trueTargetObj = trueRuntimeContainer;
@@ -33,8 +41,8 @@ namespace Inklewriter.Parsed
 
             Runtime.Container falseRuntimeContainer = null; 
             if (contentIfFalse != null) {
-                var falseRuntimeObj = contentIfFalse.runtimeObject;
-                falseRuntimeContainer = WrapInContainerIfNecessary (falseRuntimeObj);
+                //var falseRuntimeObj = contentIfFalse.runtimeObject;
+                falseRuntimeContainer = RuntimeContentForList (contentIfFalse);
                 if (falseRuntimeContainer != null) {
                     falseRuntimeContainer.name = "false";
                     container.AddToNamedContentOnly (falseRuntimeContainer);
@@ -52,21 +60,29 @@ namespace Inklewriter.Parsed
             return container;
         }
 
-        Runtime.Container WrapInContainerIfNecessary(Runtime.Object obj)
+        Runtime.Container RuntimeContentForList(List<Parsed.Object> content)
         {
-            if (obj == null)
+            if (content == null)
                 return null;
 
-            if (obj is Runtime.Container) {
-                var container = (Runtime.Container)obj;
-                if (!container.hasValidName) {
-                    return container;
+            var container = new Runtime.Container ();
+
+            foreach (var parsedObj in content) {
+                container.AddContent (parsedObj.runtimeObject);
+            }
+
+            // Small optimisation: If it's just one piece of content that has
+            // its own container already (without an explicit name), then just
+            // re-use that container rather than nesting further.
+            if (container.content.Count == 1) {
+                var runtimeObj = container.content [0];
+                var singleContentContainer = runtimeObj as Runtime.Container;
+                if (singleContentContainer != null && !singleContentContainer.hasValidName) {
+                    return singleContentContainer;
                 }
             }
 
-            var wrapper = new Runtime.Container ();
-            wrapper.AddContent (obj);
-            return wrapper;
+            return container;
         }
 
         public override void ResolveReferences (Story context)
@@ -83,10 +99,17 @@ namespace Inklewriter.Parsed
                 _falseCompleteDivert.targetPath = pathToReJoin;
             }
 
-            contentIfTrue.ResolveReferences (context);
-            if (contentIfFalse != null) {
-                contentIfFalse.ResolveReferences (context);
+            foreach (var obj in contentIfTrue) {
+                obj.ResolveReferences (context);
             }
+            if (contentIfFalse != null) {
+                foreach (var obj in contentIfFalse) {
+                    obj.ResolveReferences (context);
+                }
+            }
+
+            condition.ResolveReferences (context);
+
         }
 
         Runtime.Divert _trueDivert;

@@ -337,15 +337,25 @@ namespace Inklewriter
             if (ParseString (":") == null)
                 return (Conditional) FailRule ();
 
-            // Upgrade to MixedTextAndLogic for nesting
-            var alternatives = Interleave<Parsed.Object>(MixedTextAndLogic, Exclude (String ("|")));
+            List<List<Parsed.Object>> alternatives;
+
+            // Multi-line conditional
+            if (Newline () != null) {
+                alternatives = (List<List<Parsed.Object>>) Expect (MultilineConditionalOptions, "conditional branches on following lines");
+            } 
+
+            // Inline conditional
+            else {
+                alternatives = Interleave<List<Parsed.Object>>(MixedTextAndLogic, Exclude (String ("|")), flatten:false);
+            }
+
             if (alternatives == null || alternatives.Count < 1 || alternatives.Count > 2) {
                 Error ("Expected one or two alternatives separated by '|' in inline conditional");
                 return (Conditional)FailRule ();
             }
 
-            Parsed.Object contentIfTrue = alternatives [0];
-            Parsed.Object contentIfFalse = null;
+            List<Parsed.Object> contentIfTrue = alternatives [0];
+            List<Parsed.Object> contentIfFalse = null;
             if (alternatives.Count > 1) {
                 contentIfFalse = alternatives [1];
             }
@@ -353,6 +363,27 @@ namespace Inklewriter
             var cond = new Conditional (expr, contentIfTrue, contentIfFalse);
 
             return (Conditional) SucceedRule(cond);
+        }
+
+        protected List<List<Parsed.Object>> MultilineConditionalOptions()
+        {
+            return OneOrMore (IndividualConditionBranchLine).Cast<List<Parsed.Object>>().ToList();
+        }
+
+        protected List<Parsed.Object> IndividualConditionBranchLine()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            if (ParseString ("-") == null)
+                return (List<Parsed.Object>) FailRule ();
+
+            Whitespace ();
+
+            List<Parsed.Object> content = LineOfMixedTextAndLogic ();
+
+            return (List<Parsed.Object>) SucceedRule (content);
         }
 
 		protected Parsed.Object InnerExpression()
