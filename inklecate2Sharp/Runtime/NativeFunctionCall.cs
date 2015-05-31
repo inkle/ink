@@ -18,6 +18,7 @@ namespace Inklewriter.Runtime
         public const string GreaterThanOrEquals = ">=";
         public const string LessThanOrEquals = "<=";
         public const string NotEquals   = "!=";
+        public const string Not      = "!";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
@@ -80,6 +81,7 @@ namespace Inklewriter.Runtime
                 AddBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? 1 : 0);
                 AddBinaryOp(LessThanOrEquals, (x, y) => x <= y ? 1 : 0);
                 AddBinaryOp(NotEquals, (x, y) => x != y ? 1 : 0);
+                AddUnaryOp (Not,       x => (x == 0) ? 1 : 0); 
             }
         }
 

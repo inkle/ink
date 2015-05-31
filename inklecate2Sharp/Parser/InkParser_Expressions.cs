@@ -136,6 +136,9 @@ namespace Inklewriter
 					// Expect right hand side of operator
 					var expectationMessage = string.Format("right side of '{0}' expression", infixOp.type);
 					var multiaryExpr = Expect (() => ExpressionInfixRight (left: expr, op: infixOp), expectationMessage);
+                    if (multiaryExpr == null) {
+                        return (Expression) FailRule ();
+                    }
 
 					expr = SucceedRule(multiaryExpr) as Parsed.Expression;
 
@@ -155,17 +158,23 @@ namespace Inklewriter
 		{
 			BeginRule ();
 
-			bool negated = ParseString ("-") != null;
+            var unaryOp = (string) OneOf (String ("-"), String ("!"));
 
 			Whitespace ();
 
             var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionFunctionCall, ExpressionVariableName) as Expression;
+
+            // Only recurse immediately if we have one of the (usually optional) unary ops
+            if (expr == null && unaryOp != null) {
+                expr = ExpressionUnary ();
+            }
+
 			if (expr == null) {
 				return FailRule () as Expression;
 			}
 
-			if (negated) {
-				expr = new NegatedExpression (expr);
+            if (unaryOp != null) {
+                expr = new UnaryExpression (expr, unaryOp);
 			}
 
 			return SucceedRule (expr) as Expression;
@@ -274,43 +283,43 @@ namespace Inklewriter
 
 		private InfixOperator ParseInfixOperator()
 		{
-            var strOperator = ParseCharactersFromCharSet (_operatorsCharSet, maxCount: _maxOpLength);
-			if (strOperator != null) {
-				return _operators [strOperator];
-			} else {
-				return null;
-			}
+            foreach (var op in _binaryOperators) {
+                if (ParseString (op.type) != null) {
+                    return op;
+                }
+            }
+
+            return null;
 		}
 
 		void RegisterExpressionOperators()
 		{
-            _maxOpLength = 0;
-			_operators = new Dictionary<string, InfixOperator> ();
-			_operatorsCharSet = new CharacterSet ();
+            _maxBinaryOpLength = 0;
+			_binaryOperators = new List<InfixOperator> ();
 
-            RegisterOperator ("==", precedence:1);
-            RegisterOperator (">=", precedence:1);
-            RegisterOperator ("<=", precedence:1);
-            RegisterOperator ("<", precedence:1);
-            RegisterOperator (">", precedence:1);
-            RegisterOperator ("!=", precedence:1);
+            // These will be tried in order, so we need "<=" before "<"
+            // for correctness
+            RegisterBinaryOperator ("==", precedence:1);
+            RegisterBinaryOperator (">=", precedence:1);
+            RegisterBinaryOperator ("<=", precedence:1);
+            RegisterBinaryOperator ("<", precedence:1);
+            RegisterBinaryOperator (">", precedence:1);
+            RegisterBinaryOperator ("!=", precedence:1);
 
-			RegisterOperator ("+", precedence:2);
-			RegisterOperator ("-", precedence:3);
-			RegisterOperator ("*", precedence:4);
-			RegisterOperator ("/", precedence:5);
+			RegisterBinaryOperator ("+", precedence:2);
+			RegisterBinaryOperator ("-", precedence:3);
+			RegisterBinaryOperator ("*", precedence:4);
+			RegisterBinaryOperator ("/", precedence:5);
 		}
 
-		void RegisterOperator(string op, int precedence)
+		void RegisterBinaryOperator(string op, int precedence)
 		{
-			_operators [op] = new InfixOperator (op, precedence);
-			_operatorsCharSet.AddCharacters (op);
-            _maxOpLength = Math.Max (_maxOpLength, op.Length);
+            _binaryOperators.Add(new InfixOperator (op, precedence));
+            _maxBinaryOpLength = Math.Max (_maxBinaryOpLength, op.Length);
 		}
 
-		Dictionary<string, InfixOperator> _operators;
-		CharacterSet _operatorsCharSet;
-        int _maxOpLength;
+        List<InfixOperator> _binaryOperators;
+        int _maxBinaryOpLength;
 	}
 }
 

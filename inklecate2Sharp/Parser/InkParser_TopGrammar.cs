@@ -305,7 +305,11 @@ namespace Inklewriter
 
 			Whitespace ();
 
-			var logic = InnerLogic ();
+            var logic = Expect(InnerLogic, "inner logic within '{' and '}' braces");
+            if (logic == null) {
+                return (Parsed.Object) FailRule ();
+            }
+
 
 			Whitespace ();
 
@@ -324,6 +328,9 @@ namespace Inklewriter
             BeginRule ();
 
             var expr = Expression ();
+            if (expr == null) {
+                return (Conditional) FailRule ();
+            }
 
             Whitespace ();
 
@@ -351,7 +358,9 @@ namespace Inklewriter
 		protected Parsed.Object InnerExpression()
 		{
             var expr = Expression ();
-            expr.outputWhenComplete = true;
+            if (expr != null) {
+                expr.outputWhenComplete = true;
+            }
             return expr;
 		}
 

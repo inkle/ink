@@ -63,20 +63,30 @@ namespace Inklewriter.Parsed
         }
 	}
 
-	public class NegatedExpression : Expression
+    public class UnaryExpression : Expression
 	{
 		public Expression innerExpression;
+        public string op;
 
-		public NegatedExpression(Expression inner)
+        public UnaryExpression(Expression inner, string op)
 		{
 			inner.parent = this;
-			innerExpression = inner;
+			this.innerExpression = inner;
+            this.op = op;
 		}
 
         public override void GenerateIntoContainer(Runtime.Container container)
 		{
 			innerExpression.GenerateIntoContainer (container);
-            container.AddContent(Runtime.NativeFunctionCall.CallWithName(Runtime.NativeFunctionCall.Negate)); // "~"
+
+            string nativeOp = this.op;
+
+            // Replace "-" with "~" to make it unique
+            if (this.op == "-") {
+                nativeOp = Runtime.NativeFunctionCall.Negate;
+            }
+            
+            container.AddContent(Runtime.NativeFunctionCall.CallWithName(nativeOp));
 		}
 
         public override void ResolveReferences (Story context)
