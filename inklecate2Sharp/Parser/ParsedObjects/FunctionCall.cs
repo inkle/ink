@@ -32,7 +32,7 @@ namespace Inklewriter.Parsed
             if (targetObject == null) {
                 context.Error ("Function (knot) not found: '" + name + "'", this);
             } else {
-                runtimeDivert.targetPath = targetObject.runtimeObject.path;
+                runtimeDivert.targetPath = targetObject.runtimePath;
             }
         }
     }

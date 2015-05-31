@@ -14,6 +14,11 @@ namespace Inklewriter
             if (bullets == null) {
                 return (Choice) FailRule ();
             }
+
+            // Optional name for the gather
+            string optionalName = BracketedName();
+
+            Whitespace ();
                 
             string startText = ChoiceText ();
             string optionOnlyText = null;
@@ -50,6 +55,7 @@ namespace Inklewriter
 			var divert =  Divert ();
 
             var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
+            choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
 

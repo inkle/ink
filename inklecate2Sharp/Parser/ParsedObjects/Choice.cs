@@ -4,11 +4,14 @@ using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
-    public class Choice : Parsed.Object, IWeavePoint
+    public class Choice : Parsed.Object, IWeavePoint, INamedContent
 	{
         public string startText { get; protected set; }
         public string choiceOnlyText { get; protected set; }
         public string contentOnlyText { get; protected set; }
+
+        public string name { get; set; }
+
 		public Path   explicitPath { get; }
         public int    indentationDepth { get; set; } = 1;
         public bool   hasWeaveStyleInlineBrackets { get; set; }
@@ -26,6 +29,20 @@ namespace Inklewriter.Parsed
                 // TODO: Detect whether own content ends in a divert, in which
                 // case it's not a loose end
                 return hasOwnContent;
+            }
+        }
+
+        // Override runtimePath to point to the Choice's target content (after it's chosen),
+        // as opposed to the default implementation which would point to the choice itself
+        // (or it's outer container), which is what runtimeObject is.
+        public override Runtime.Path runtimePath
+        {
+            get {
+                if (_weaveContentContainer != null) {
+                    return _weaveContentContainer.path;
+                } else {
+                    return _resolvedExplicitPath;
+                }
             }
         }
 
@@ -112,6 +129,26 @@ namespace Inklewriter.Parsed
             }
 		}
 
+        void ResolveExplicitPathIfNecessary()
+        {
+            if ( _resolvedExplicitPath != null) {
+                return;
+            }
+
+            Parsed.Object obj = explicitPath.ResolveFromContext (this);
+            if (obj == null) {
+                Error ("Choice: target not found: '" + explicitPath.ToString () + "'");
+            }
+
+            _resolvedExplicitPath = obj.runtimePath;
+
+            if (_weaveContentEndDivert != null) {
+                _weaveContentEndDivert.targetPath = _resolvedExplicitPath;
+            } else {
+                _runtimeChoice.pathOnChoice = _resolvedExplicitPath;
+            }
+        }
+
         public override void ResolveReferences(Story context)
 		{
 			// Weave style choice - target own content container
@@ -121,17 +158,7 @@ namespace Inklewriter.Parsed
 
             // Resolve path that was explicitly specified (either at the end of the weave choice, or just as the normal choice path)
             if (explicitPath != null) {
-                
-                Parsed.Object obj = explicitPath.ResolveFromContext (this);
-                if (obj == null) {
-                    Error ("Choice: target not found: '" + explicitPath.ToString () + "'");
-                }
-
-                if (_weaveContentEndDivert != null) {
-                    _weaveContentEndDivert.targetPath = obj.runtimeObject.path;
-                } else {
-                    _runtimeChoice.pathOnChoice = obj.runtimeObject.path;
-                }
+                ResolveExplicitPathIfNecessary ();
             }
 
             if (_nestedContent != null) {
@@ -147,6 +174,7 @@ namespace Inklewriter.Parsed
         Runtime.Container _weaveContentContainer;
         Runtime.Container _weaveOuterContainer;
         Runtime.Divert _weaveContentEndDivert;
+        Runtime.Path _resolvedExplicitPath;
 	}
 
 }

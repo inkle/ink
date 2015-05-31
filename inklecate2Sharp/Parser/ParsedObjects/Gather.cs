@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Parsed
 {
-    public class Gather : Parsed.Object, IWeavePoint
+    public class Gather : Parsed.Object, IWeavePoint, INamedContent
     { 
         public string name { get; set; }
         public List<Parsed.Object> content;

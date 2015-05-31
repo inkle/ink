@@ -6,9 +6,9 @@ using System.Diagnostics;
 namespace Inklewriter.Parsed
 {
 	// Base class for Knots and Stitches
-	public abstract class FlowBase : Parsed.Object
+    public abstract class FlowBase : Parsed.Object, INamedContent
 	{
-		public string name { get; protected set; }
+		public string name { get; set; }
 		public List<Parsed.Object> content { get; protected set; }
         public Dictionary<string, VariableAssignment> variableDeclarations;
         public abstract FlowLevel flowLevel { get; }
@@ -147,24 +147,36 @@ namespace Inklewriter.Parsed
 
             if (_allGatheredLooseEnds != null) {
                 foreach(GatheredLooseEnd looseEnd in _allGatheredLooseEnds) {
-                    looseEnd.divert.targetPath = looseEnd.targetGather.runtimeObject.path;
+                    looseEnd.divert.targetPath = looseEnd.targetGather.runtimePath;
                 }
             }
 
         }
-
+            
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
         {
-            foreach (var obj in content) {
+            foreach(var obj in content) {
 
-                // TODO: INamedContent?
-                var namedContent = obj as FlowBase;
+                var namedContent = obj as INamedContent;
                 if (namedContent != null && namedContent.name == name) {
 
-                    if (levelType != null || namedContent.flowLevel == levelType) {
-                        return namedContent;
-                    }
+                    // No FlowLevel specified
+                    if (levelType == null) {
+                        return obj;
+                    } 
 
+                    // Searching for Knot/Stitch
+                    else if (obj is FlowBase) {
+                        var flowContent = (FlowBase)obj;
+                        if (flowContent.flowLevel == levelType) {
+                            return obj;
+                        }
+                    } 
+
+                    // Searching for Choice/Gather
+                    else if (levelType == FlowLevel.WeavePoint && obj is IWeavePoint) {
+                        return obj;
+                    }
                 }
             }
 

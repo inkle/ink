@@ -31,8 +31,12 @@ namespace Inklewriter.Parsed
         public void StartGather(Gather gather)
         {
             var gatherContainer = gather.runtimeContainer;
-            gatherContainer.name = "gather" + _gatherCount;
-            _gatherCount++;
+
+            if (gather.name == null) {
+                // Use disallowed character so it's impossible to have a name collision
+                gatherContainer.name = "-" + _unnamedGatherCount;
+                _unnamedGatherCount++;
+            }
 
             // Consume loose ends: divert them to this gather
             foreach (IWeavePoint looseEnd in looseEnds) {
@@ -129,7 +133,7 @@ namespace Inklewriter.Parsed
         IWeavePoint previousWeavePoint = null;
 
         Gather _latestLooseGather;
-        int _gatherCount;
+        int _unnamedGatherCount;
     }
 }
 

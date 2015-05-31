@@ -39,6 +39,17 @@ namespace Inklewriter.Parsed
 			}
 		}
 
+        // virtual so that certian object types can return a different
+        // path than just the path to the main runtimeObject.
+        // e.g. a Choice returns a path to its content rather than
+        // its outer container.
+        public virtual Runtime.Path runtimePath
+        {
+            get {
+                return runtimeObject.path;
+            }
+        }
+
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
         public virtual void ResolveReferences(Story context)

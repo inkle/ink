@@ -3,7 +3,9 @@
 Initial content 
 
 = start
-        * Hi[.], there. 
+    - (top)
+        Welcome to the top!
+        * (firstOption) Hi[.], there. 
             This is a piece of content associated with the first option
         * Hello[.], world.
             Since it's a great world.
@@ -15,8 +17,9 @@ Initial content
             * * A choice below level 2
             * * Another choice below level 2
           - - Second gather at level 2
+            -> top
         * Back[.] to first.
-            This is first level content again.
+            -> firstOption
     - This is a join.
     - And some more content after the join
       => two

@@ -66,7 +66,7 @@ namespace Inklewriter.Parsed
             }
 
 			if (targetContent != null) {
-				runtimeDivert.targetPath = targetContent.runtimeObject.path;
+				runtimeDivert.targetPath = targetContent.runtimePath;
 			}
 		}
 			
