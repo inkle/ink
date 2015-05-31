@@ -170,7 +170,7 @@ namespace Inklewriter.Runtime
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
             Action appendIndentation = () => { 
-                const int spacesPerIndent = 2;
+                const int spacesPerIndent = 4;
                 for(int i=0; i<spacesPerIndent*indentation;++i) { 
                     sb.Append(" "); 
                 } 

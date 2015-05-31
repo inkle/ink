@@ -185,6 +185,7 @@ namespace Inklewriter.Runtime
                 var varAss = (VariableAssignment) contentObj;
                 var assignedVal = PopEvaluationStack();
                 variables[varAss.variableName] = assignedVal;
+
                 return true;
             }
 
@@ -236,6 +237,7 @@ namespace Inklewriter.Runtime
 
         protected List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
         {
+            
             var popped = _evaluationStack.GetRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
             _evaluationStack.RemoveRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
             return popped;

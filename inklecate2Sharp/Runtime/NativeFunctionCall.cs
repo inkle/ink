@@ -81,6 +81,11 @@ namespace Inklewriter.Runtime
             _nativeFunctions [name] = f;
         }
 
+        public override string ToString ()
+        {
+            return "Native '" + name + "'";
+        }
+
         delegate int BinaryOp(int left, int right);
         delegate int UnaryOp(int val);
 

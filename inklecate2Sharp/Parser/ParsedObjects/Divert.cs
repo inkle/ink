@@ -9,6 +9,7 @@ namespace Inklewriter.Parsed
         public Parsed.Object targetContent { get; protected set; }
         public List<Expression> arguments { get; protected set; }
 		public Runtime.Divert runtimeDivert { get; protected set; }
+        public bool isFunctionCall { get; set; }
 
         public Divert (Parsed.Path target, List<Expression> arguments = null)
 		{
@@ -36,9 +37,23 @@ namespace Inklewriter.Parsed
 
                 var container = new Runtime.Container ();
 
-                var expressionsRuntimeContainer = Expression.GenerateRuntimeExpressions (arguments.ToArray ());
+                if (!isFunctionCall) {
+                    container.AddContent (Runtime.ControlCommand.EvalStart());
+                }
 
-                container.AddContent (expressionsRuntimeContainer);
+                foreach (var expr in arguments) {
+                    expr.GenerateIntoContainer (container);
+                }
+
+                if (!isFunctionCall) {
+                    container.AddContent (Runtime.ControlCommand.EvalEnd());
+                }
+
+                // If this divert is a function call, we push to the call stack
+                // so we can return again
+                if (isFunctionCall) {
+                    container.AddContent (Runtime.ControlCommand.StackPush());
+                }
 
                 // Jump into the "function" (knot/stitch)
                 container.AddContent (runtimeDivert);
@@ -70,10 +85,10 @@ namespace Inklewriter.Parsed
                     }
 
                     if (foundAlternative) {
-                        Error ("Divert: target not found: '" + target.ToString () + "'. Did you mean '"+alternativePath+"'?");
+                        Error ("target not found: '" + target.ToString () + "'. Did you mean '"+alternativePath+"'?");
                         target = alternativePath;
                     } else {
-                        Error ("Divert: target not found: '" + target.ToString () + "'");
+                        Error ("target not found: '" + target.ToString () + "'");
                     }
                 }
 
@@ -85,13 +100,13 @@ namespace Inklewriter.Parsed
                         numArgs = arguments.Count;
 
                     if (!(targetContent is FlowBase)) {
-                        Error ("Divert target needs to be a knot or stitch in order to pass arguments");
+                        Error ("target needs to be a knot or stitch in order to pass arguments");
                         return;
                     } 
 
                     var targetFlow = (FlowBase)targetContent;
                     if (targetFlow.parameterNames == null && numArgs > 0) {
-                        Error ("Divert's target (" + targetFlow.name + ") doesn't take parameters");
+                        Error ("target (" + targetFlow.name + ") doesn't take parameters");
                         return;
                     }
 
@@ -105,7 +120,7 @@ namespace Inklewriter.Parsed
                         } else {
                             butClause = "but got " + numArgs;
                         }
-                        Error ("Divert to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
+                        Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
                         return;
                     }
                 }
@@ -115,6 +130,16 @@ namespace Inklewriter.Parsed
 				runtimeDivert.targetPath = targetContent.runtimePath;
 			}
 		}
+
+        public override void Error (string message, Object source = null)
+        {
+            if (isFunctionCall) {
+                base.Error ("Function call " + message, source);
+            } else {
+                base.Error ("Divert " + message, source);
+            }
+
+        }
             			
 	}
 }

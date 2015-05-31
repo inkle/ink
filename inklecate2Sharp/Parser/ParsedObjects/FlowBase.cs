@@ -11,6 +11,7 @@ namespace Inklewriter.Parsed
 		public string name { get; set; }
 		public List<Parsed.Object> content { get; protected set; }
         public List<string> parameterNames { get; protected set; }
+        public bool hasParameters { get { return parameterNames != null && parameterNames.Count > 0; } }
         public Dictionary<string, VariableAssignment> variableDeclarations;
         public abstract FlowLevel flowLevel { get; }
 
@@ -59,13 +60,15 @@ namespace Inklewriter.Parsed
             // their divert paths in ResolveReferences
             this._allGatheredLooseEnds = new List<GatheredLooseEnd> ();
 
-            bool initialKnotOrStitchEntered = false;
+            bool foundFirstKnotOrStitch = false;
 
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
             //    or any weave content is added to the main content container
             //  - The first inner knot/stitch is automatically entered, while
             //    the others are only accessible by an explicit divert
+            //       - The exception to this rule is if the knot/stitch takes
+            //         parameters, in which case it can't be auto-entered.
             //  - Any Choices and Gathers (i.e. IWeavePoint) found are 
             //    processsed by GenerateFlowContent.
             int contentIdx = 0;
@@ -79,9 +82,8 @@ namespace Inklewriter.Parsed
                     var childFlow = (FlowBase)obj;
 
                     // First inner knot/stitch - automatically step into it
-                    if (!initialKnotOrStitchEntered) {
+                    if (!foundFirstKnotOrStitch && !childFlow.hasParameters) {
                         container.AddContent (childFlow.runtimeObject);
-                        initialKnotOrStitchEntered = true;
                     } 
 
                     // All other knots/stitches are only accessible by name:
@@ -89,6 +91,8 @@ namespace Inklewriter.Parsed
                     else {
                         container.AddToNamedContentOnly ((Runtime.INamedContent) childFlow.runtimeObject);
                     }
+
+                    foundFirstKnotOrStitch = true;
                 }
 
                 // Choices and Gathers: Process as blocks of weave-like content

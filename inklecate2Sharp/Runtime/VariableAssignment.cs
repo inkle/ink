@@ -13,6 +13,11 @@ namespace Inklewriter.Runtime
             this.variableName = variableName;
             this.isNewDeclaration = isNewDeclaration;
         }
+
+        public override string ToString ()
+        {
+            return "VarAssign to " + variableName;
+        }
     }
 }
 

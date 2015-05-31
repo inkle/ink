@@ -42,7 +42,7 @@ namespace Inklewriter.Runtime
 
         public override string ToString ()
         {
-            return "Evaluation"+commandType.ToString();
+            return commandType.ToString();
         }
     }
 }

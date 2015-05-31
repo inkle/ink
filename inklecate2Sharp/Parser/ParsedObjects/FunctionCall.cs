@@ -5,36 +5,28 @@ namespace Inklewriter.Parsed
 {
     public class FunctionCall : Expression
     {
-        public string name { get; protected set; }
-        public List<Expression> arguments { get; protected set; }
-        public Runtime.Divert runtimeDivert { get; protected set; }
+        public string name { get { return _proxyDivert.target.ambiguousName; } }
+        public List<Expression> arguments { get { return _proxyDivert.arguments; } }
+        public Runtime.Divert runtimeDivert { get { return _proxyDivert.runtimeDivert; } }
 
         public FunctionCall (string functionName, List<Expression> arguments)
         {
-            this.name = functionName;
-            this.arguments = arguments;
+            _proxyDivert = new Parsed.Divert(Path.ToAmbiguous(functionName), arguments);
+            _proxyDivert.parent = this;
+            _proxyDivert.isFunctionCall = true;
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            runtimeDivert = new Runtime.Divert ();
-
-            // TODO: Pass arguments
-            container.AddContent (Runtime.ControlCommand.StackPush());
-            container.AddContent (runtimeDivert);
+            container.AddContent (_proxyDivert.runtimeObject);
         }
 
         public override void ResolveReferences (Story context)
         {
-            Path ambiguousPath = Path.To (name);
-            var targetObject = ambiguousPath.ResolveFromContext (this);
-
-            if (targetObject == null) {
-                context.Error ("Function (knot) not found: '" + name + "'", this);
-            } else {
-                runtimeDivert.targetPath = targetObject.runtimePath;
-            }
+            _proxyDivert.ResolveReferences (context);
         }
+
+        Parsed.Divert _proxyDivert;
     }
 }
 
