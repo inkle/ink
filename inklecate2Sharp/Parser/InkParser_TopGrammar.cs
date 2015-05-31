@@ -52,8 +52,8 @@ namespace Inklewriter
 			rulesAtLevel.Add(Line(Choice));
             rulesAtLevel.Add (GatherLine);
 
-            // Stitches (and gathers) can (currently) only go in Knots
-			if (level == StatementLevel.Knot) {
+            // Stitches (and gathers) can (currently) only go in Knots and top level
+			if (level >= StatementLevel.Knot) {
 				rulesAtLevel.Add (StitchDefinition);
 			}
 

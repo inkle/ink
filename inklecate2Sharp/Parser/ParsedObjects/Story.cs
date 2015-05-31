@@ -45,10 +45,16 @@ namespace Inklewriter.Parsed
 				knotName = path.ambiguousName;
 			}
 
+            string stitchName = path.stitchName;
+            if (stitchName == null) {
+                stitchName = path.ambiguousName;
+            }
+
 			// Try to find the knot with the given name,
 			// and if necessary dig in and find the stitch within
-			if (knotName != null) {
+			if (knotName != null || stitchName != null) {
 				foreach (Parsed.Object contentObj in content) {
+
 					Knot knot = contentObj as Knot;
 					if (knot != null && knot.name == knotName) {
 						if (path.stitchName != null) {
@@ -57,6 +63,12 @@ namespace Inklewriter.Parsed
 							return knot;
 						}
 					}
+
+                    Stitch stitch = contentObj as Stitch;
+                    if (stitch != null && stitch.name == stitchName) {
+                        return stitch;
+                    }
+
 				}
 			}
 

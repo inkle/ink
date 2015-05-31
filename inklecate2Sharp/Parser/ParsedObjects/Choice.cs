@@ -121,6 +121,7 @@ namespace Inklewriter.Parsed
 
             // Resolve path that was explicitly specified (either at the end of the weave choice, or just as the normal choice path)
             if (explicitPath != null) {
+                
                 Parsed.Object obj = ResolvePath (explicitPath);
                 if (obj == null) {
                     Error ("Choice: target not found: '" + explicitPath.ToString () + "'");

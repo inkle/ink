@@ -1,7 +1,7 @@
 ﻿
 === test ===
 Initial content 
-//=> two
+
 = start
         * Hi[.], there. 
             This is a piece of content associated with the first option
