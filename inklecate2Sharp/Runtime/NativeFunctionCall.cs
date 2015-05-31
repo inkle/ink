@@ -12,6 +12,13 @@ namespace Inklewriter.Runtime
         public const string Multiply = "*";
         public const string Negate   = "~";
 
+        public const string Equal    = "==";
+        public const string Greater  = ">";
+        public const string Less     = "<";
+        public const string GreaterThanOrEquals = ">=";
+        public const string LessThanOrEquals = "<=";
+        public const string NotEquals   = "!=";
+
         public static NativeFunctionCall CallWithName(string functionName)
         {
             GenerateNativeFunctionsIfNecessary ();
@@ -66,6 +73,13 @@ namespace Inklewriter.Runtime
                 AddBinaryOp(Multiply, (x, y) => (int)x * (int)y);
                 AddBinaryOp(Divide,   (x, y) => (int)x / (int)y);
                 AddUnaryOp (Negate,   x => -(int)x); 
+
+                AddBinaryOp(Equal,    (x, y) => x == y ? 1 : 0);
+                AddBinaryOp(Greater,  (x, y) => x > y  ? 1 : 0);
+                AddBinaryOp(Less,     (x, y) => x < y  ? 1 : 0);
+                AddBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? 1 : 0);
+                AddBinaryOp(LessThanOrEquals, (x, y) => x <= y ? 1 : 0);
+                AddBinaryOp(NotEquals, (x, y) => x != y ? 1 : 0);
             }
         }
 

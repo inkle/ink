@@ -274,7 +274,7 @@ namespace Inklewriter
 
 		private InfixOperator ParseInfixOperator()
 		{
-			var strOperator = ParseCharactersFromCharSet (_operatorsCharSet, maxCount: 1);
+            var strOperator = ParseCharactersFromCharSet (_operatorsCharSet, maxCount: _maxOpLength);
 			if (strOperator != null) {
 				return _operators [strOperator];
 			} else {
@@ -284,23 +284,33 @@ namespace Inklewriter
 
 		void RegisterExpressionOperators()
 		{
+            _maxOpLength = 0;
 			_operators = new Dictionary<string, InfixOperator> ();
 			_operatorsCharSet = new CharacterSet ();
 
-			RegisterOperator ("+", precedence:1);
-			RegisterOperator ("-", precedence:2);
-			RegisterOperator ("*", precedence:3);
-			RegisterOperator ("/", precedence:4);
+            RegisterOperator ("==", precedence:1);
+            RegisterOperator (">=", precedence:1);
+            RegisterOperator ("<=", precedence:1);
+            RegisterOperator ("<", precedence:1);
+            RegisterOperator (">", precedence:1);
+            RegisterOperator ("!=", precedence:1);
+
+			RegisterOperator ("+", precedence:2);
+			RegisterOperator ("-", precedence:3);
+			RegisterOperator ("*", precedence:4);
+			RegisterOperator ("/", precedence:5);
 		}
 
 		void RegisterOperator(string op, int precedence)
 		{
 			_operators [op] = new InfixOperator (op, precedence);
-			_operatorsCharSet.Add (op[0]);
+			_operatorsCharSet.AddCharacters (op);
+            _maxOpLength = Math.Max (_maxOpLength, op.Length);
 		}
 
 		Dictionary<string, InfixOperator> _operators;
 		CharacterSet _operatorsCharSet;
+        int _maxOpLength;
 	}
 }
 
