@@ -14,7 +14,8 @@ namespace Inklewriter.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            container.AddContent(new Runtime.VariableReference(name));
+            _runtimeVarRef = new Runtime.VariableReference (name);
+            container.AddContent(_runtimeVarRef);
         }
 
         public override void ResolveReferences (Story context)
@@ -35,6 +36,17 @@ namespace Inklewriter.Parsed
                         resolved = true;
                         break;
                     }
+                    var content = ancestorFlow.ContentWithNameAtLevel (this.name);
+                    if (content != null) {
+                        var namedContent = (FlowBase)content;
+
+                        // Update the name using the *full* name of the content
+                        this.name = namedContent.dotSeparatedFullName;
+                        _runtimeVarRef.name = this.name;
+
+                        resolved = true;
+                        break;
+                    }
                 }
 
                 ancestor = ancestor.parent;
@@ -50,6 +62,8 @@ namespace Inklewriter.Parsed
                 context.Error ("variable '" + this.name + "' not found"+locationsStr, this);
             }
         }
+
+        Runtime.VariableReference _runtimeVarRef;
     }
 }
 

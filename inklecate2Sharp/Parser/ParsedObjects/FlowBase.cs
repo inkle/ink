@@ -60,10 +60,6 @@ namespace Inklewriter.Parsed
             if (this.parameterNames != null && this.parameterNames.Contains (varName))
                 return true;
 
-            if (ContentWithNameAtLevel (varName) != null) {
-                return true;
-            }
-
             return false;
         }
             

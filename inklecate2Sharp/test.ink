@@ -1,13 +1,6 @@
 ﻿== test ==
-Hello world {test}. {other:Other has been seen {other} times.}
- * loop  ==> test
- * other ==> other
- * done  => inner
 
 = inner
-  This is inner! Inner has been seen {test.inner} times.
-  ==> test
-
-== other ==
-Other!
- ==> test
+    // Compiler notices that "inner" is the name of a stitch in the current context,
+    // and generates the full name of the variable
+  This is inner! Inner has been seen {inner} times.
