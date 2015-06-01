@@ -10,6 +10,7 @@ namespace Inklewriter.Parsed
         public List<Expression> arguments { get; protected set; }
 		public Runtime.Divert runtimeDivert { get; protected set; }
         public bool isFunctionCall { get; set; }
+        public bool isToGather { get; set; }
 
         public Divert (Parsed.Path target, List<Expression> arguments = null)
 		{
@@ -70,6 +71,10 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences(Story context)
 		{
+            if (isToGather) {
+                return;
+            }
+
             if (targetContent == null) {
                 targetContent = target.ResolveFromContext (this);
 

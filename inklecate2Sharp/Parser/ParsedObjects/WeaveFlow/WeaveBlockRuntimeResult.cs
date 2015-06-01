@@ -80,11 +80,15 @@ namespace Inklewriter.Parsed
             }
 
             // Keep track of loose ends
+            addContentToPreviousWeavePoint = false; // default
             if (WeavePointHasLooseEnd (weavePoint)) {
                 looseEnds.Add (weavePoint);
-                previousWeavePointIsLooseEnd = true;
-            } else {
-                previousWeavePointIsLooseEnd = false;
+
+                // If choice has an explicit gather divert ("->") then
+                var looseChoice = weavePoint as Choice;
+                if (looseChoice != null && !looseChoice.explicitGather) {
+                    addContentToPreviousWeavePoint = true;
+                }
             }
             previousWeavePoint = weavePoint;
 
@@ -110,7 +114,7 @@ namespace Inklewriter.Parsed
             // count as a loose end (since it will have content to go to)
             if (previousWeavePoint != null) {
                 looseEnds.Remove (previousWeavePoint);
-                previousWeavePointIsLooseEnd = false;
+                addContentToPreviousWeavePoint = false;
             }
         }
 
@@ -118,7 +122,7 @@ namespace Inklewriter.Parsed
         // unless there hasn't been one yet.
         public void AddContent(Runtime.Object content)
         {
-            if (previousWeavePointIsLooseEnd) {
+            if (addContentToPreviousWeavePoint) {
                 previousWeavePoint.runtimeContainer.AddContent (content);
             } else {
                 currentContainer.AddContent (content);
@@ -134,6 +138,9 @@ namespace Inklewriter.Parsed
                 if (choice.explicitPath != null) {
                     return false;
                 }
+                if (choice.explicitGather) {
+                    return true;
+                }
             }
 
             // No content, and no simple divert above, must be a loose end.
@@ -148,8 +155,8 @@ namespace Inklewriter.Parsed
             // although it doesn't actually make a difference!
             else {
                 for (int i = weavePoint.content.Count - 1; i >= 0; --i) {
-                    var innerContent = weavePoint.content [i];
-                    if (innerContent is Divert) {
+                    var innerDivert = weavePoint.content [i] as Divert;
+                    if (innerDivert != null && !innerDivert.isToGather) {
                         return false;
                     }
                 }
@@ -165,7 +172,7 @@ namespace Inklewriter.Parsed
         //  - to remove it from the list of loose ends when it has
         //    indented content since it's no longer a loose end
         IWeavePoint previousWeavePoint = null;
-        bool previousWeavePointIsLooseEnd = false;
+        bool addContentToPreviousWeavePoint = false;
 
         Gather _latestLooseGather;
         int _unnamedGatherCount;

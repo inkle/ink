@@ -13,6 +13,7 @@ namespace Inklewriter.Parsed
         public string name { get; set; }
 
 		public Path   explicitPath { get; }
+        public bool   explicitGather { get; }
         public int    indentationDepth { get; set; } = 1;
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
@@ -49,7 +50,11 @@ namespace Inklewriter.Parsed
             this.contentOnlyText = contentOnlyText;
 
             if (divert != null) {
-                this.explicitPath = divert.target;
+                if (divert.isToGather) {
+                    this.explicitGather = true;
+                } else {
+                    this.explicitPath = divert.target;
+                }
             }
 		}
 
@@ -112,6 +117,14 @@ namespace Inklewriter.Parsed
 
                 if (_nestedContent != null) {
                     foreach(var nestedObj in _nestedContent) {
+
+                        // Explicit gather diverts aren't included since the
+                        // weave generating algorithm adds another normal divert
+                        var divert = nestedObj as Divert;
+                        if (divert != null && divert.isToGather) {
+                            continue;
+                        }
+
                         _weaveContentContainer.AddContent(nestedObj.runtimeObject);
                     }
                 }

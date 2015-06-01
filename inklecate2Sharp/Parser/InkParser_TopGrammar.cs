@@ -141,8 +141,9 @@ namespace Inklewriter
         const string knotDivertArrow = "==>";
         const string stitchDivertArrow = "=>";
         const string weavePointDivertArrow = "->";
+        const string weavePointExplicitGather = "<explicit-gather>";
 
-		protected Parsed.Divert Divert()
+		protected Divert Divert()
 		{
 			BeginRule ();
 
@@ -152,16 +153,25 @@ namespace Inklewriter
             var stitchName = DivertTargetWithArrow (stitchDivertArrow);
             var weavePointName = DivertTargetWithArrow (weavePointDivertArrow);
             if (knotName == null && stitchName == null && weavePointName == null) {
-                return (Parsed.Divert)FailRule ();
+                return (Divert)FailRule ();
             }
 
             Whitespace ();
 
             var optionalArguments = ExpressionFunctionCallArguments ();
 
-            Path targetPath = Path.To(knotName, stitchName, weavePointName);
+            // Weave point explicit gather
+            if (weavePointName == weavePointExplicitGather) {
+                var gatherDivert = new Divert (null);
+                gatherDivert.isToGather = true;
+                return (Divert) SucceedRule (gatherDivert);
+            }
 
-            return SucceedRule( new Divert(targetPath, optionalArguments) ) as Divert;
+            // Normal divert
+            else {
+                Path targetPath = Path.To(knotName, stitchName, weavePointName);
+                return (Divert) SucceedRule( new Divert(targetPath, optionalArguments) );
+            }
 		}
 
         string DivertTargetWithArrow(string arrowStr)
@@ -175,8 +185,18 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var targetName = Expect(Identifier, "name of target to divert to");
+            string targetName = null;
 
+            // Weave arrows without a target mean "explicit gather"
+            if (arrowStr == weavePointDivertArrow) {
+                targetName = Identifier ();
+                if (targetName == null) {
+                    targetName = weavePointExplicitGather;
+                }
+            } else {
+                targetName = (string) Expect(Identifier, "name of target to divert to");
+            }
+                
             return (string) SucceedRule (targetName);
         }
 
@@ -184,8 +204,6 @@ namespace Inklewriter
 		{
             return OneOf(String(knotDivertArrow), String(stitchDivertArrow), String(weavePointDivertArrow)) as string;
 		}
-
-
 
 		protected string Identifier()
 		{
