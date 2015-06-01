@@ -476,6 +476,7 @@ namespace Inklewriter
 
 		}
 
+        // No need to Begin/End rule since we never parse a newline, so keeping oldIndex is good enough
 		public int? ParseInt()
 		{
 			int oldIndex = index;
@@ -495,6 +496,28 @@ namespace Inklewriter
 			index = oldIndex;
 			return null;
 		}
+
+        // No need to Begin/End rule since we never parse a newline, so keeping oldIndex is good enough
+        public float? ParseFloat()
+        {
+            int oldIndex = index;
+
+            BeginRule ();
+
+            int? leadingInt = ParseInt ();
+            if (leadingInt != null) {
+
+                if (ParseString (".") != null) {
+
+                    var afterDecimalPointStr = ParseCharactersFromCharSet (numbersCharacterSet);
+                    return float.Parse (leadingInt+"." + afterDecimalPointStr);
+                }
+            }
+
+            // Roll back and fail
+            index = oldIndex;
+            return null;
+        }
 
         // You probably want "endOfLine", since it handles endOfFile too.
         protected string ParseNewline()

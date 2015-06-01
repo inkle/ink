@@ -1,4 +1,5 @@
-﻿~ var x = 5
+﻿~ var x = 3.1415926
+{x}
 
 == test ==
 Hello world.

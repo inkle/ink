@@ -184,13 +184,28 @@ namespace Inklewriter
 
 		protected Expression ExpressionLiteral()
 		{
-			int? intOrNull = ParseInt ();
-			if (intOrNull == null) {
-				return null;
-			} else {
-				return new Number (intOrNull.Value);
-			}
+            return (Expression) OneOf (ExpressionFloat, ExpressionInt);
 		}
+
+        protected Number ExpressionInt()
+        {
+            int? intOrNull = ParseInt ();
+            if (intOrNull == null) {
+                return null;
+            } else {
+                return new Number (intOrNull.Value);
+            }
+        }
+
+        protected Number ExpressionFloat()
+        {
+            float? floatOrNull = ParseFloat ();
+            if (floatOrNull == null) {
+                return null;
+            } else {
+                return new Number (floatOrNull.Value);
+            }
+        }
 
         protected Expression ExpressionFunctionCall()
         {
