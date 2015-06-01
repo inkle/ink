@@ -62,8 +62,12 @@ namespace Inklewriter.Parsed
 			return runtimeStory;
 		}
 
-        // Initialise all read counts in override for Story
-        protected override void GenerateReadCountUpdate(Runtime.Container container)
+        // Initialise all read count variables for every knot and stitch name
+        // TODO: This seems a bit overkill, to mass-generate a load of variable assignment
+        // statements. Could probably just include a bespoke "initial variable state" in
+        // the story, or even just a list of knots/stitches that the story automatically
+        // initialises.
+        protected override void OnRuntimeGenerationDidStart(Runtime.Container container)
         {
             container.AddContent (Runtime.ControlCommand.EvalStart());
 
@@ -74,7 +78,8 @@ namespace Inklewriter.Parsed
 
             container.AddContent (Runtime.ControlCommand.EvalEnd());
 
-            base.GenerateReadCountUpdate(container);
+            // FlowBase handles argument variable assignment and read count updates
+            base.OnRuntimeGenerationDidStart(container);
         }
 
 		public override void Error(string message, Parsed.Object source)

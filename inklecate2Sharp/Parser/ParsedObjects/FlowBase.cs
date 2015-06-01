@@ -72,9 +72,7 @@ namespace Inklewriter.Parsed
             var container = new Runtime.Container ();
             container.name = name;
 
-            GenerateArgumentVariableAssignments (container);
-
-            GenerateReadCountUpdate (container);
+            OnRuntimeGenerationDidStart (container);
 
             // Maintain a list of gathered loose ends so that we can resolve
             // their divert paths in ResolveReferences
@@ -132,6 +130,13 @@ namespace Inklewriter.Parsed
             }
                 
             return container;
+        }
+
+        protected virtual void OnRuntimeGenerationDidStart(Runtime.Container container)
+        {
+            GenerateArgumentVariableAssignments (container);
+
+            GenerateReadCountUpdate (container);
         }
 
         // Initially called from main GenerateRuntimeObject
@@ -206,7 +211,7 @@ namespace Inklewriter.Parsed
             }
         }
 
-        protected virtual void GenerateReadCountUpdate(Runtime.Container container)
+        protected void GenerateReadCountUpdate(Runtime.Container container)
         {
             if (name == null) {
                 return;
