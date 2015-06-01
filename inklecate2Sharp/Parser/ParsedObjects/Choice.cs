@@ -24,13 +24,7 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public bool   hasLooseEnd { 
-            get { 
-                // TODO: Detect whether own content ends in a divert, in which
-                // case it's not a loose end
-                return hasOwnContent;
-            }
-        }
+        public List<Parsed.Object> content { get { return _nestedContent; } }
 
         // Override runtimePath to point to the Choice's target content (after it's chosen),
         // as opposed to the default implementation which would point to the choice itself

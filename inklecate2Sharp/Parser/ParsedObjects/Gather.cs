@@ -5,11 +5,11 @@ namespace Inklewriter.Parsed
     public class Gather : Parsed.Object, IWeavePoint, INamedContent
     { 
         public string name { get; set; }
-        public List<Parsed.Object> content;
         public int indentationDepth { get; protected set; }
-        public bool hasLooseEnd { get { return true; } }
 
         public Runtime.Container runtimeContainer { get { return (Runtime.Container) runtimeObject; } }
+
+        public List<Parsed.Object> content { get; protected set; }
 
         public Gather (string name, List<Parsed.Object> content, int indentationDepth)
         {
