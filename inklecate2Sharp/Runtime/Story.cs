@@ -83,8 +83,16 @@ namespace Inklewriter.Runtime
                     //  - Or a logic/flow statement - if so, do it
                     bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj);
                         
+                    // Choice with condition?
+                    bool shouldAddObject = true;
+                    var choice = currentContentObj as Choice;
+                    if( choice != null && choice.hasCondition ) {
+                        var conditionValue = PopEvaluationStack();
+                        shouldAddObject = IsTruthy(conditionValue);
+                    }
+
                     // Content to add to evaluation stack or the output stream
-                    if( !isLogicOrFlowControl ) {
+                    if( !isLogicOrFlowControl && shouldAddObject ) {
                         
                         // Expression evaluation content
                         if( inExpressionEvaluation ) {
@@ -111,6 +119,18 @@ namespace Inklewriter.Runtime
 
 			} while(currentContentObj != null && currentPath != null);
 		}
+
+        // Does the expression result represented by this object evaluate to true?
+        // e.g. is it a Number that's not equal to 1?
+        bool IsTruthy(Runtime.Object obj)
+        {
+            bool truthy = false;
+            if (obj is Number) {
+                var number = (Number)obj;
+                truthy = number.value != 0;
+            }
+            return truthy;
+        }
 
         /// <summary>
         /// Checks whether contentObj is a control or flow object rather than a piece of content, 
@@ -139,13 +159,7 @@ namespace Inklewriter.Runtime
                 var branch = (Branch)contentObj;
                 var conditionValue = PopEvaluationStack();
 
-                bool conditionBool = false;
-                if (conditionValue is Number) {
-                    var number = (Number)conditionValue;
-                    conditionBool = number.value != 0;
-                }
-
-                if (conditionBool == true)
+                if ( IsTruthy(conditionValue) )
                     _divertedPath = branch.trueDivert.targetPath;
                 else if (branch.falseDivert != null)
                     _divertedPath = branch.falseDivert.targetPath;

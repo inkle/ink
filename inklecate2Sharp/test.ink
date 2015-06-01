@@ -1,16 +1,14 @@
-﻿=> inner
+﻿~ var x = 5
 
-= inner
-    Start content
-    * test option
-        The first option has extra content
-    * test option2  => elsewhere
-    Some content below options
-    * test option3  ->
-    Another piece of content
-  -
-    Content below gather 
+== test ==
+Hello world.
+ * choice 1     { x >= 3 }
+    Chosen 1.
+ * choice 2 ==> out    { x > 3 }
+ * choice 3
+    Chosen 3.
+- 
+  Done.
 
-   
-= elsewhere
- This is elsewhere.
+== out ==
+ Out!

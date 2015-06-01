@@ -54,10 +54,15 @@ namespace Inklewriter
 
 			var divert =  Divert ();
 
+            Whitespace ();
+
+            var conditionExpr = ChoiceCondition ();
+
             var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
+            choice.condition = conditionExpr;
 
             return SucceedRule(choice) as Choice;
 
@@ -78,6 +83,19 @@ namespace Inklewriter
 		private CharacterSet _choiceTextPauseCharacters;
 		private CharacterSet _choiceTextEndCharacters;
 
+        protected Expression ChoiceCondition()
+        {
+            BeginRule ();
+
+            if (ParseString ("{") == null)
+                return (Expression) FailRule ();
+
+            var condExpr = Expect(Expression, "choice condition inside { }");
+
+            Expect (String ("}"), "closing '}' for choice condition");
+
+            return (Expression) SucceedRule (condExpr);
+        }
 
         protected Gather GatherLine()
         {

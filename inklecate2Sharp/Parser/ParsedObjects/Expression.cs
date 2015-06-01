@@ -27,7 +27,6 @@ namespace Inklewriter.Parsed
 
             return container;
 		}
-            
 
         public abstract void GenerateIntoContainer (Runtime.Container container);
 

@@ -73,6 +73,15 @@ namespace Inklewriter.Runtime
 			namedContent [namedContentObj.name] = namedContentObj;
 		}
 
+        public void AddContentsOfContainer(Container otherContainer)
+        {
+            content.AddRange (otherContainer.content);
+            foreach (var obj in otherContainer.content) {
+                obj.parent = this;
+                TryAddNamedContent (obj);
+            }
+        }
+
 		protected Runtime.Object ContentWithPathComponent(Path.Component component)
 		{
 			if( component.isIndex ) {

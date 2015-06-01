@@ -11,6 +11,7 @@ namespace Inklewriter.Parsed
         public string contentOnlyText { get; protected set; }
 
         public string name { get; set; }
+        public Expression condition { get; set; }
 
 		public Path   explicitPath { get; }
         public bool   explicitGather { get; }
@@ -100,32 +101,43 @@ namespace Inklewriter.Parsed
             //         weave content
             //     ]
             // ]
-            if ( hasOwnContent ) {
-
-                _weaveContentContainer = new Runtime.Container ();
-                _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));
-                _weaveContentContainer.name = "c";
-
-                if (this.explicitPath != null) {
-                    _weaveContentEndDivert = new Runtime.Divert ();
-                    _weaveContentContainer.AddContent (_weaveContentEndDivert);
-                }
+            if ( hasOwnContent || condition != null ) {
 
                 _weaveOuterContainer = new Runtime.Container ();
+
+                if (condition != null) {
+                    var exprContainer = (Runtime.Container) condition.runtimeObject;
+                    _weaveOuterContainer.AddContentsOfContainer (exprContainer);
+                    _runtimeChoice.hasCondition = true;
+                }
+
                 _weaveOuterContainer.AddContent (_runtimeChoice);
-                _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
 
-                if (_nestedContent != null) {
-                    foreach(var nestedObj in _nestedContent) {
+                if( hasOwnContent ) {
 
-                        // Explicit gather diverts aren't included since the
-                        // weave generating algorithm adds another normal divert
-                        var divert = nestedObj as Divert;
-                        if (divert != null && divert.isToGather) {
-                            continue;
+                    _weaveContentContainer = new Runtime.Container ();
+                    _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));
+                    _weaveContentContainer.name = "c";
+
+                    if (this.explicitPath != null) {
+                        _weaveContentEndDivert = new Runtime.Divert ();
+                        _weaveContentContainer.AddContent (_weaveContentEndDivert);
+                    }
+
+                    _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
+
+                    if (_nestedContent != null) {
+                        foreach(var nestedObj in _nestedContent) {
+
+                            // Explicit gather diverts aren't included since the
+                            // weave generating algorithm adds another normal divert
+                            var divert = nestedObj as Divert;
+                            if (divert != null && divert.isToGather) {
+                                continue;
+                            }
+
+                            _weaveContentContainer.AddContent(nestedObj.runtimeObject);
                         }
-
-                        _weaveContentContainer.AddContent(nestedObj.runtimeObject);
                     }
                 }
 
@@ -147,6 +159,7 @@ namespace Inklewriter.Parsed
             Parsed.Object obj = explicitPath.ResolveFromContext (this);
             if (obj == null) {
                 Error ("Choice: target not found: '" + explicitPath.ToString () + "'");
+                return;
             }
 
             _resolvedExplicitPath = obj.runtimePath;

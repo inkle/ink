@@ -6,6 +6,7 @@ namespace Inklewriter.Runtime
 	{
 		public Path pathOnChoice { get; set; }
 		public string choiceText { get; set; }
+        public bool hasCondition { get; set; }
 
 		public Choice (string choiceText)
 		{
