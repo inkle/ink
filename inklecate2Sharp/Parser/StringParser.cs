@@ -298,10 +298,9 @@ namespace Inklewriter
 			do {
 
 				// "until" condition hit?
-				// TODO: Do this
-//				if( untilTerminator != null && LookaheadParseRule(untilTerminator) ) {
-//					break;
-//				}
+				if( untilTerminator != null && Peek(untilTerminator) != null ) {
+					break;
+				}
 
 				// Main inner
 				lastMainResult = ruleB();

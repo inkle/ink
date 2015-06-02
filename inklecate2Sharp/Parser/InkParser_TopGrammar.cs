@@ -22,6 +22,7 @@ namespace Inklewriter
 
 		protected enum StatementLevel
 		{
+            InnerBlock,
 			Stitch,
 			Knot,
 			Top
@@ -39,7 +40,6 @@ namespace Inklewriter
 		{
 			List<ParseRule> rulesAtLevel = new List<ParseRule> ();
 
-
             // Diverts can go anywhere
             // (Check before KnotDefinition since possible "==>" has to be found before "== name ==")
             rulesAtLevel.Add(Line(Divert));
@@ -52,7 +52,12 @@ namespace Inklewriter
 
             // Error checking for Choices in the wrong place is below (after parsing)
 			rulesAtLevel.Add(Line(Choice));
-            rulesAtLevel.Add (GatherLine);
+
+            // Gather lines would be confused with multi-line block separators, like
+            // within a multi-line if statement
+            if (level > StatementLevel.InnerBlock) {
+                rulesAtLevel.Add (GatherLine);
+            }
 
             // Stitches (and gathers) can (currently) only go in Knots and top level
 			if (level >= StatementLevel.Knot) {
@@ -60,7 +65,7 @@ namespace Inklewriter
 			}
 
             // Normal logic / text can go anywhere
-			rulesAtLevel.Add (LogicLine);
+			rulesAtLevel.Add(LogicLine);
 			rulesAtLevel.Add(LineOfMixedTextAndLogic);
 
             // Parse the rules
@@ -104,6 +109,12 @@ namespace Inklewriter
             // Break current stitch with a new stitch
             if (level <= StatementLevel.Stitch) {
                 breakingRules.Add (String("="));
+            }
+
+            // Breaking an inner block (like a multi-line condition statement)
+            if (level <= StatementLevel.InnerBlock) {
+                breakingRules.Add (String ("-"));
+                breakingRules.Add (String ("}"));
             }
 
             var breakRuleResult = OneOf (breakingRules.ToArray ());

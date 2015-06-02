@@ -1,12 +1,16 @@
 ﻿
-=== conditions_example ===
-~ var apples = 5
-I have {apples > 5:more apples than expected|{apples < 5:fewer apples than expected|the right number of apples}}.
+~ var x = 5
 
-I have { apples > 5:
- - more apples than expected
- - { apples < 5:
-    - fewer apples than expected
-    - the right number of apples
-    }
- }.
+{ 0:
+    - Hello world
+    - This is a multi-line condition.
+      It has several lines.
+      ~ x = x + 5
+      { x >= 10:
+        - greater than ten
+          which is marvelous.
+          ~ x = x + 5
+        - less than ten
+      }
+}
+{ x }

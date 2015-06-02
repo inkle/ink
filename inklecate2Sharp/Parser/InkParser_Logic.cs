@@ -166,9 +166,7 @@ namespace Inklewriter
             if (ParseString ("-") == null)
                 return (List<Parsed.Object>) FailRule ();
 
-            Whitespace ();
-
-            List<Parsed.Object> content = LineOfMixedTextAndLogic ();
+            List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
 
             return (List<Parsed.Object>) SucceedRule (content);
         }
