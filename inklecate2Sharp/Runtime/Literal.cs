@@ -14,13 +14,11 @@ namespace Inklewriter.Runtime
         public abstract bool isTruthy { get; }
     }
 
-    public class LiteralInt : Literal
+    public abstract class Literal<T> : Literal
     {
-        public int value { get; set; }
-        public override LiteralType literalType { get { return LiteralType.Int; } }
-        public override bool isTruthy { get { return value != 0; } }
+        public T value { get; set; }
 
-        public LiteralInt (int literalVal)
+        public Literal (T literalVal)
         {
             value = literalVal;
         }
@@ -28,6 +26,16 @@ namespace Inklewriter.Runtime
         public override string ToString ()
         {
             return value.ToString();
+        }
+    }
+
+    public class LiteralInt : Literal<int>
+    {
+        public override LiteralType literalType { get { return LiteralType.Int; } }
+        public override bool isTruthy { get { return value != 0; } }
+
+        public LiteralInt(int literalVal) : base(literalVal)
+        {
         }
     }
         
