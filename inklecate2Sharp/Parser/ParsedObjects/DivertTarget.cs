@@ -14,10 +14,16 @@ namespace Inklewriter.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            _runtimeDivert = (Runtime.Divert) divert.runtimeObject;
-            _runtimeLiteralDivertTarget = new Runtime.LiteralDivertTarget (_runtimeDivert);
+            divert.GenerateRuntimeObject();
 
+            _runtimeDivert = (Runtime.Divert) divert.runtimeDivert;
+            _runtimeLiteralDivertTarget = new Runtime.LiteralDivertTarget (_runtimeDivert);
             _runtimeLiteralDivertTarget.divert = _runtimeDivert;
+
+            if (divert.arguments != null && divert.arguments.Count > 0) {
+                Error ("Can't use a divert target as a variable if it has parameters");
+                return;
+            }
 
             container.AddContent (_runtimeLiteralDivertTarget);
         }
