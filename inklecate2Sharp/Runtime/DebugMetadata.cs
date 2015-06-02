@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Inklewriter.Parsed
+namespace Inklewriter.Runtime
 {
 	public class DebugMetadata
 	{

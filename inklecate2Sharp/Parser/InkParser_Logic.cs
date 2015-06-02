@@ -36,7 +36,7 @@ namespace Inklewriter
             return SucceedRule (parsedExpr) as Parsed.Object;
         }
 
-        protected IncludedFile IncludeStatement()
+        protected object IncludeStatement()
         {
             BeginRule ();
 
@@ -53,22 +53,27 @@ namespace Inklewriter
             try {
                 string includedString = System.IO.File.ReadAllText(filename);
 
-                InkParser parser = new InkParser(includedString);
+                InkParser parser = new InkParser(includedString, filename);
                 includedStory = parser.Parse();
+
+                if( includedStory == null ) {
+                    // This error should never happen: if the includedStory isn't
+                    // returned, then it should've been due to some error that
+                    // has already been reported, so this is a last resort.
+                    if( !parser.hadError ) {
+                        Error ("Failed to parse included file '" + filename + "'");
+                    }
+                }
+
             }
             catch {
                 Error ("Included file not found: " + filename);
-                return (IncludedFile) FailRule ();
             }
 
-            if (includedStory == null) {
-                Error ("Failed to parse included file '" + filename + "'");
-                return (IncludedFile) FailRule ();
-            }
-
+            // Succeed even when story failed to parse and we have a null story:
+            //  we don't want to attempt to re-parse the include line as something else
             var includedFile = new IncludedFile (includedStory);
-            return (IncludedFile) SucceedRule (includedFile);
-
+            return SucceedRule (includedFile);
         }
 
         protected List<Parsed.Object> LineOfMixedTextAndLogic()

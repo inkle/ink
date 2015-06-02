@@ -36,27 +36,35 @@ namespace Inklewriter.Parsed
                 var obj = topLevelContent [i];
                 if (obj is IncludedFile) {
 
-                    var nonFlowContent = new List<Parsed.Object> ();
-
-                    var subStory = ((IncludedFile)obj).includedStory;
-                    foreach (var subStoryObj in subStory.content) {
-                        if (subStoryObj is FlowBase) {
-                            flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
-                        } else {
-                            nonFlowContent.Add (subStoryObj);
-                        }
-                    }
+                    var file = (IncludedFile)obj;
 
                     // Remove the IncludedFile itself
                     topLevelContent.RemoveAt (i);
 
-                    // Add contents of the file in its place
-                    topLevelContent.InsertRange (i, nonFlowContent);
+                    // When an included story fails to load, the include
+                    // line itself is still valid, so we have to handle it here
+                    if (file.includedStory != null) {
+                        
+                        var nonFlowContent = new List<Parsed.Object> ();
 
-                    // Skip past the lines of this sub story
-                    // (since it will already have recursively included
-                    //  any lines from other files)
-                    i += nonFlowContent.Count;
+                        var subStory = file.includedStory;
+                        foreach (var subStoryObj in subStory.content) {
+                            if (subStoryObj is FlowBase) {
+                                flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
+                            } else {
+                                nonFlowContent.Add (subStoryObj);
+                            }
+                        }
+
+                        // Add contents of the file in its place
+                        topLevelContent.InsertRange (i, nonFlowContent);
+
+                        // Skip past the lines of this sub story
+                        // (since it will already have recursively included
+                        //  any lines from other files)
+                        i += nonFlowContent.Count;
+                    }
+                    
                 }
                 i++;
             }

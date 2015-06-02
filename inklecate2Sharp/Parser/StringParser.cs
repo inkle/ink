@@ -9,6 +9,8 @@ namespace Inklewriter
 	public class StringParser
 	{
 		public delegate object ParseRule();
+
+        public delegate void ErrorHandler(string message, int index, int lineIndex);
 		
 		public StringParser (string str)
 		{
@@ -24,6 +26,8 @@ namespace Inklewriter
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");
+
+        public ErrorHandler errorHandler { get; set; }
 
 		public char currentCharacter
 		{
@@ -121,10 +125,15 @@ namespace Inklewriter
 		{
             if ( !state.errorReportedAlreadyInScope ) {
                 // TODO: Do something more sensible than this. Probably don't assert though?
-                Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
+
+                if (errorHandler == null) {
+                    Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
+                } else {
+                    errorHandler (message, index, lineIndex);
+                }
+
                 state.NoteErrorReported ();
             }
-
 
             hadError = true;
 		}

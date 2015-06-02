@@ -5,7 +5,7 @@ namespace Inklewriter.Parsed
 {
 	public abstract class Object
 	{
-		public DebugMetadata debugMetadata { 
+        public Runtime.DebugMetadata debugMetadata { 
             get {
                 if (_debugMetadata == null) {
                     if (parent != null) {
@@ -20,7 +20,7 @@ namespace Inklewriter.Parsed
                 _debugMetadata = value;
             }
         }
-        private DebugMetadata _debugMetadata;
+        private Runtime.DebugMetadata _debugMetadata;
 
 		public Parsed.Object parent { get; set; }
 

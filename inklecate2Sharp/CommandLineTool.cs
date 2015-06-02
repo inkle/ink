@@ -41,7 +41,7 @@ namespace Inklewriter
             }
 			
 
-			InkParser parser = new InkParser(inputString);
+            InkParser parser = new InkParser(inputString, opts.inputFile);
 			Parsed.Story parsedStory = parser.Parse();
             if (parsedStory == null) {
                 Environment.Exit (ExitCodeError);
