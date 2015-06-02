@@ -1,13 +1,22 @@
-﻿
-==> goto(==> another_place)
+﻿~ var lunch = 1
 
-== goto(then) ==
-    Going there.
-    ==> more_indirection(then)
+== start ==
+ You're at the start.
+  ==> goto(==> lake, ==> forest)
 
-== more_indirection(callback) ==
-    This is further indirection.
-    ==> callback
+== goto(firstPlace, secondPlace) ==
+  ~ firstPlace()
+  ~ secondPlace()
 
-== another_place ==
-    In another place
+== lake ==
+ You're at the lake.
+ ~ eat()
+
+
+== forest ==
+ You're at the forest
+ ~ eat()
+
+== eat ==
+ {lunch > 0:You have lunch.|Your stomach rumbles}
+ ~ lunch = lunch - 1

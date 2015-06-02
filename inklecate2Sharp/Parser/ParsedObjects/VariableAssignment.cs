@@ -13,6 +13,7 @@ namespace Inklewriter.Parsed
             this.variableName = variableName;
             this.expression = assignedExpression;
             this.isNewDeclaration = isNewDeclaration;
+            assignedExpression.parent = this;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()

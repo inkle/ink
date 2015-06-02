@@ -32,7 +32,7 @@ namespace Inklewriter.Parsed
                     if (ancestorFlow.name != null) {
                         searchedLocations.Add ("'"+ancestorFlow.name+"'");
                     }
-                    if( ancestorFlow.HasVariableWithName(this.name) ) {
+                    if( ancestorFlow.HasVariableWithName(this.name, true, false) ) {
                         resolved = true;
                         break;
                     }
@@ -60,6 +60,7 @@ namespace Inklewriter.Parsed
                 }
                 string.Join (", ", searchedLocations);
                 context.Error ("variable '" + this.name + "' not found"+locationsStr, this);
+                ResolveReferences (context);
             }
         }
 

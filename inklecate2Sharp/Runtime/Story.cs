@@ -236,8 +236,7 @@ namespace Inklewriter.Runtime
             else if( contentObj is VariableAssignment ) {
                 var varAss = (VariableAssignment) contentObj;
                 var assignedVal = PopEvaluationStack();
-                variables[varAss.variableName] = assignedVal;
-
+                _callStack.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration);
                 return true;
             }
 

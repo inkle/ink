@@ -74,8 +74,8 @@ namespace Inklewriter.Parsed
         // as such by getting the variable name.
         public string PathAsVariableName()
         {
-            if (target.weavePointName != null || target.ambiguousName != null) {
-                return null;
+            if (target.ambiguousName != null) {
+                return target.ambiguousName;
             }
 
             if (target.knotName != null && target.stitchName == null) {

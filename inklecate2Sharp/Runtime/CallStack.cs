@@ -72,6 +72,26 @@ namespace Inklewriter.Runtime
             return null;
         }
 
+        public void SetVariable(string name, Runtime.Object value, bool declareNew)
+        {
+            if (declareNew) {
+                currentElement.variables [name] = value;
+                return;
+            }
+
+            // Search down the scope stack for the variable to assign to
+            for (int elIdx = _callStack.Count - 1; elIdx >= 0; --elIdx) {
+                var element = _callStack [elIdx];
+
+                if (element.variables.ContainsKey (name)) {
+                    element.variables [name] = value;
+                    return;
+                }
+            }
+
+            throw new System.Exception ("Could not find variable to set: " + name);
+        }
+
         private List<Element> _callStack;
     }
 }
