@@ -54,7 +54,7 @@ namespace Inklewriter.Runtime
 
 		public Runtime.Object ContentAtPath(Path path)
 		{
-			return _rootContainer.ContentAtPath (path);
+			return rootContainer.ContentAtPath (path);
 		}
 
 		public void Begin()
@@ -240,7 +240,13 @@ namespace Inklewriter.Runtime
             else if( contentObj is VariableAssignment ) {
                 var varAss = (VariableAssignment) contentObj;
                 var assignedVal = PopEvaluationStack();
-                _callStack.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration);
+
+                // When in temporary evaluation, don't create new variables purely within
+                // the temporary context, but attempt to create them globally
+                var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
+
+                _callStack.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration, prioritiseHigherInCallStack);
+
                 return true;
             }
 
@@ -269,8 +275,16 @@ namespace Inklewriter.Runtime
             return false;
         }
 
-		public void ContinueFromPath(Path path)
+        // TODO: Add choice marker is a hack, do it a better way!
+        // The problem is that ContinueFromPath may be called externally,
+        // and if it is then it wouldn't have a ChosenChoice to mark where
+        // the last chunk of content ended
+        public void ContinueFromPath(Path path, bool addChoiceMarker = true)
 		{
+            if (addChoiceMarker) {
+                outputStream.Add (new ChosenChoice (null));
+            }
+
             _previousPath = currentPath;
 
 			currentPath = path;
@@ -286,8 +300,44 @@ namespace Inklewriter.Runtime
 
 			outputStream.Add (new ChosenChoice (choice));
 
-			ContinueFromPath (choice.pathOnChoice);
+			ContinueFromPath (choice.pathOnChoice, addChoiceMarker:false);
 		}
+
+        public Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
+        {
+            int startCallStackHeight = _callStack.elements.Count;
+
+            _callStack.Push ();
+
+            _temporaryEvaluationContainer = exprContainer;
+
+            currentPath = Path.ToFirstElement ();
+
+            int evalStackHeight = _evaluationStack.Count;
+
+            try {
+                Continue ();
+            } catch(System.Exception e) {
+                Console.WriteLine (e.Message);
+            }
+
+            _temporaryEvaluationContainer = null;
+
+            // Should have fallen off the end of the Container, which should
+            // have auto-popped, but just in case we didn't for some reason,
+            // manually pop to restore the state (including currentPath).
+            if (_callStack.elements.Count > startCallStackHeight) {
+                _callStack.Pop ();
+            }
+
+            int endStackHeight = _evaluationStack.Count;
+            if (endStackHeight > evalStackHeight) {
+                return PopEvaluationStack ();
+            } else {
+                return null;
+            }
+
+        }
 
         protected Runtime.Object PopEvaluationStack()
         {
@@ -361,7 +411,7 @@ namespace Inklewriter.Runtime
 			}
 
 			// Can we increment successfully?
-			currentPath = _rootContainer.IncrementPath (currentPath);
+			currentPath = rootContainer.IncrementPath (currentPath);
 			if (currentPath == null) {
 
 				// Failed to increment, so we've run out of content
@@ -378,7 +428,9 @@ namespace Inklewriter.Runtime
                     }
 
 					// Step past the point where we last called out
-					NextContent ();
+                    if (currentPath != null) {
+                        NextContent ();
+                    }
 				}
 			}
 		}
@@ -463,7 +515,18 @@ namespace Inklewriter.Runtime
             return null;
         }
 
+        Container rootContainer {
+            get {
+                if (_temporaryEvaluationContainer != null) {
+                    return _temporaryEvaluationContainer;
+                } else {
+                    return _rootContainer;
+                }
+            }
+        }
+
         private Container _rootContainer;
+        private Container _temporaryEvaluationContainer;
         private Path _divertedPath;
             
         private CallStack _callStack;

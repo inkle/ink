@@ -18,7 +18,12 @@ namespace Inklewriter
 
             state = new StringParserState();
 
-			_chars = str.ToCharArray ();
+            if (str != null) {
+                _chars = str.ToCharArray ();
+            } else {
+                _chars = new char[0];
+            }
+			
 			inputString = str;
 		}
             

@@ -97,6 +97,7 @@
     <Compile Include="Parser\ParsedObjects\DivertTarget.cs" />
     <Compile Include="Parser\ParsedObjects\IncludedFile.cs" />
     <Compile Include="Runtime\DebugMetadata.cs" />
+    <Compile Include="Parser\InkParser_CommandLineInput.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

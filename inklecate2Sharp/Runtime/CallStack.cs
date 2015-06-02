@@ -78,12 +78,20 @@ namespace Inklewriter.Runtime
             return null;
         }
 
-        public void SetVariable(string name, Runtime.Object value, bool declareNew)
+        public void SetVariable(string name, Runtime.Object value, bool declareNew, bool prioritiseHigherInCallStack = false)
         {
             if (declareNew) {
-                currentElement.variables [name] = value;
+                Element el;
+                if (prioritiseHigherInCallStack) {
+                    el = _callStack.First ();
+                } else {
+                    el = currentElement;
+                }
+                el.variables [name] = value;
                 return;
             }
+
+            new List<Element> (_callStack);
 
             // Search down the scope stack for the variable to assign to
             for (int elIdx = _callStack.Count - 1; elIdx >= 0; --elIdx) {

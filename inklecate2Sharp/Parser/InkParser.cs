@@ -37,7 +37,7 @@ namespace Inklewriter
             if (_filename != null) {
                 Console.WriteLine ("Error in '{0}' line {1}: {2}", _filename, (lineIndex+1), message);
             } else {
-                Console.WriteLine ("Error on line {1}: {2}", (lineIndex+1), message);
+                Console.WriteLine ("Error on line {0}: {1}", (lineIndex+1), message);
             }
         }
 

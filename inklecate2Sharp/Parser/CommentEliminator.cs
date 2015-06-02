@@ -15,7 +15,11 @@ namespace Inklewriter
             // Make both comments and non-comments optional to handle trivial empty file case (or *only* comments)
             var stringList = Interleave<string>(Optional (Comment), Optional(NonComment));
 
-            return string.Join ("", stringList);
+            if (stringList != null) {
+                return string.Join ("", stringList);
+            } else {
+                return null;
+            }
         }
 
         string NonComment()
