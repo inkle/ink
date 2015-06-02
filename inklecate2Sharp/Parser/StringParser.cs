@@ -119,8 +119,13 @@ namespace Inklewriter
 
 		protected void Error(string message)
 		{
-			// TODO: Do something more sensible than this. Probably don't assert though?
-            Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
+            if ( !state.errorReportedAlreadyInScope ) {
+                // TODO: Do something more sensible than this. Probably don't assert though?
+                Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
+                state.NoteErrorReported ();
+            }
+
+
             hadError = true;
 		}
             

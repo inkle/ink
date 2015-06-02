@@ -15,10 +15,17 @@ namespace Inklewriter
 			get { return currentElement.characterIndex; } 
 			set { currentElement.characterIndex = value; } 
 		}
+
+        public bool errorReportedAlreadyInScope {
+            get {
+                return currentElement.reportedErrorInScope;
+            }
+        }
 					
 		public class Element : ICloneable {
 			public int characterIndex;
 			public int lineIndex;
+            public bool reportedErrorInScope;
 
 			public Element() {}
 
@@ -81,6 +88,13 @@ namespace Inklewriter
 			_stack.RemoveAt (_stack.Count - 2);
 		}
 
+        public void NoteErrorReported()
+        {
+            foreach (var el in _stack) {
+                el.reportedErrorInScope = true;
+            }
+        }
+            
 		protected Element currentElement
 		{
 			get {
