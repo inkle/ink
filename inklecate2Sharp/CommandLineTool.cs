@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Inklewriter
 {
 	class CommandLineTool
 	{
-		struct Options {
+		class Options {
 			public bool testMode;
 			public bool playMode;
 			public string inputFile;
@@ -20,9 +22,24 @@ namespace Inklewriter
 
 		CommandLineTool(string[] args)
 		{
-			Options opts = ProcessArguments(args);
+            Options opts;
 
-			string inputString = File.ReadAllText(opts.inputFile);
+            if (ProcessArguments (args, out opts) == false) {
+                Console.WriteLine (
+                    "Usage: inklecate [-p] <ink file> \n"+
+                    "   -p:    Play mode");
+                Environment.Exit (ExitCodeError);
+            }
+
+            string inputString = null;
+            try {
+                inputString = File.ReadAllText(opts.inputFile);
+            }
+            catch {
+                Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
+                Environment.Exit (ExitCodeError);
+            }
+			
 
 			InkParser parser = new InkParser(inputString);
 			Parsed.Story parsedStory = parser.Parse();
@@ -41,13 +58,17 @@ namespace Inklewriter
 				var player = new CommandLinePlayer (story, autoPlay:opts.testMode);
 				player.Begin ();
 
-
 			}
 		}
 
-		Options ProcessArguments(string[] args)
+        bool ProcessArguments(string[] args, out Options opts)
 		{
-			Options opts = new Options();
+            if (args.Length < 1) {
+                opts = null;
+                return false;
+            }
+
+			opts = new Options();
 
 			// Process arguments
 			foreach (string arg in args) {
@@ -60,8 +81,7 @@ namespace Inklewriter
 
 					switch (secondChar) {
 					case 't':
-						//opts.testMode = true;
-						opts.playMode = true;
+						opts.testMode = true;
 						opts.inputFile = "test.ink";
 						break;
 					case 'p':
@@ -74,7 +94,11 @@ namespace Inklewriter
 				}
 			}
 
-			return opts;
+            if (opts.testMode == false) {
+                opts.inputFile = args.Last ();
+            }
+
+			return true;
 		}
 
 	}
