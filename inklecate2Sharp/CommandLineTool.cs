@@ -26,7 +26,7 @@ namespace Inklewriter
 
             if (ProcessArguments (args, out opts) == false) {
                 Console.WriteLine (
-                    "Usage: inklecate [-p] <ink file> \n"+
+                    "Usage: inklecate2 [-p] <ink file> \n"+
                     "   -p:    Play mode");
                 Environment.Exit (ExitCodeError);
             }
