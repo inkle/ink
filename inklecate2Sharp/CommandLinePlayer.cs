@@ -68,37 +68,39 @@ namespace Inklewriter
                         else if( evaluatedInput is string && (string)evaluatedInput == "help" ) {
                             Console.WriteLine("Type a choice number, a divert (e.g. '==> myKnot'), an expression, or a variable assignment (e.g. 'x = 5')");
                         }
+                            
+                        // User entered some ink
+                        else if( evaluatedInput is Parsed.Object ) {
 
-                        // Divert
-                        else if( evaluatedInput is Parsed.Divert ) {
-                            var divert = (Parsed.Divert) evaluatedInput;
-                            divert.parent = parsedStory;
-                            divert.GenerateRuntimeObject();
-                            divert.ResolveReferences(parsedStory);
-                            userDivertedPath = divert.runtimeDivert.targetPath;
-                        }
+                            // Variable assignment: create in Parsed.Story as well as the Runtime.Story
+                            // so that we don't get an error message during reference resolution
+                            if( evaluatedInput is Parsed.VariableAssignment ) {
+                                var varAssign = (Parsed.VariableAssignment) evaluatedInput;
+                                if( varAssign.isNewDeclaration ) {
+                                    parsedStory.variableDeclarations[varAssign.variableName] = varAssign;
+                                }
+                            }
 
-                        // Expression
-                        else if( evaluatedInput is Parsed.Expression ) {
-                            var expr = (Parsed.Expression) evaluatedInput;
-                            expr.parent = parsedStory;
-                            expr.GenerateRuntimeObject();
-                            var exprContainer = (Runtime.Container) expr.runtimeObject;
-                            var result = story.EvaluateExpression(exprContainer);
-                            Console.WriteLine(result);
-                        }
+                            var parsedObj = (Parsed.Object) evaluatedInput;
+                            parsedObj.parent = parsedStory;
+                            parsedObj.GenerateRuntimeObject();
+                            parsedObj.ResolveReferences(parsedStory);
+                            var runtimeObj = parsedObj.runtimeObject;
 
-                        // Variable assignment
-                        else if( evaluatedInput is Parsed.VariableAssignment ) {
-                            var varAss = (Parsed.VariableAssignment)evaluatedInput;
-                            varAss.parent = parsedStory;
-                            varAss.GenerateRuntimeObject();
-                            var exprContainer = (Runtime.Container) varAss.runtimeObject;
-                            var result = story.EvaluateExpression(exprContainer);
-                            if( result != null ) {
-                                Console.WriteLine(result);
+                            // Divert
+                            if( evaluatedInput is Parsed.Divert ) {
+                                userDivertedPath = ((Parsed.Divert)evaluatedInput).runtimeDivert.targetPath;
+                            }
+
+                            // Expression or variable assignment
+                            else if( evaluatedInput is Parsed.Expression || evaluatedInput is Parsed.VariableAssignment ) {
+                                var result = story.EvaluateExpression((Container)runtimeObj);
+                                if( result != null ) {
+                                    Console.WriteLine(result);
+                                }
                             }
                         }
+
 
                         else {
                             Console.WriteLine ("Unexpected input. Type 'help' or a choice number.");
@@ -118,6 +120,7 @@ namespace Inklewriter
 				Console.WriteLine(story.currentText);
 			}
 		}
+            
 	}
 }
 

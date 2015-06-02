@@ -60,7 +60,6 @@ namespace Inklewriter.Parsed
                 }
                 string.Join (", ", searchedLocations);
                 context.Error ("variable '" + this.name + "' not found"+locationsStr, this);
-                ResolveReferences (context);
             }
         }
 
