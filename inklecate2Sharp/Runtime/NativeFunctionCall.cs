@@ -37,20 +37,70 @@ namespace Inklewriter.Runtime
 
         public Runtime.Object Call(List<Runtime.Object> parameters)
         {
-            Debug.Assert (_binaryOp != null || _unaryOp != null, "No function implemention defined?");
+            //Debug.Assert (_binaryOp != null || _unaryOp != null, "No function implemention defined?");
 
-            // TODO: Handle various other types other than Number (int)
-            LiteralInt param1 = (LiteralInt) parameters [0];
+            var coercedParams = CoerceLiteralsToSingleType (parameters);
 
-            int result = 0;
-            if (_binaryOp != null) {
-                LiteralInt param2 = (LiteralInt) parameters [1];
-                result = _binaryOp (param1.value, param2.value);
-            } else if (_unaryOp != null) {
-                result = _unaryOp (param1.value);
+            Literal param1 = (Literal) coercedParams [0];
+            LiteralType chosenType = param1.literalType;
+
+            object opForType = null;
+
+            Literal result = null;
+
+            if (parameters.Count == 2) {
+                opForType = _binaryOps [chosenType];
+
+                if (chosenType == LiteralType.Int) {
+                    var int1 = (LiteralInt)param1;
+                    var int2 = (LiteralInt)coercedParams [1];
+                    var intOp = (BinaryOp<int>)opForType;
+                    int intResult = intOp (int1.value, int2.value);
+                    result = new LiteralInt (intResult);
+                }
+            } else if (parameters.Count == 1) {
+                opForType = _unaryOps [chosenType];
+
+                if (chosenType == LiteralType.Int) {
+                    var int1 = (LiteralInt)param1;
+                    var intOp = (UnaryOp<int>)opForType;
+                    int intResult = intOp (int1.value);
+                    result = new LiteralInt (intResult);
+                }
+            } 
+
+            else {
+                throw new System.Exception ("Unexpected number of parameters to NativeFunctionCall: " + parameters.Count);
             }
 
-            return new LiteralInt (result);
+            return result;
+        }
+
+
+
+        List<Literal> CoerceLiteralsToSingleType(List<Runtime.Object> parametersIn)
+        {
+            LiteralType litType = LiteralType.Int;
+
+            // Find out what the output type is
+            // "higher level" types infect both so that binary operations
+            // use the same type on both sides. e.g. binary operation of
+            // int and float causes the int to be casted to a float.
+            foreach (var obj in parametersIn) {
+                var literal = (Literal)obj;
+                if (literal.literalType == LiteralType.Float) {
+                    litType = LiteralType.Float;
+                }
+            }
+
+            // Coerce to this chosen type
+            var parametersOut = new List<Literal> ();
+            foreach (Literal literal in parametersIn) {
+                var castedLiteral = literal.Cast (litType);
+                parametersOut.Add (castedLiteral);
+            }
+
+            return parametersOut;
         }
 
         NativeFunctionCall (string name, int numberOfParamters)
@@ -58,54 +108,72 @@ namespace Inklewriter.Runtime
             this.name = name;
             this.numberOfParamters = numberOfParamters;
         }
-
-        NativeFunctionCall (string name, int numberOfParamters, BinaryOp binaryOp) : this(name, numberOfParamters)
-        {
-            _binaryOp = binaryOp;
-        }
-
-        NativeFunctionCall (string name, int numberOfParamters, UnaryOp unaryOp) : this(name, numberOfParamters)
-        {
-            _unaryOp = unaryOp;
-        }
             
         static void GenerateNativeFunctionsIfNecessary()
         {
             if (_nativeFunctions == null) {
                 _nativeFunctions = new Dictionary<string, NativeFunctionCall> ();
 
-                AddBinaryOp(Add,      (x, y) => (int)x + (int)y);
-                AddBinaryOp(Subtract, (x, y) => (int)x - (int)y);
-                AddBinaryOp(Multiply, (x, y) => (int)x * (int)y);
-                AddBinaryOp(Divide,   (x, y) => (int)x / (int)y);
-                AddUnaryOp (Negate,   x => -(int)x); 
+                AddIntBinaryOp(Add,      (x, y) => x + y);
+                AddIntBinaryOp(Subtract, (x, y) => x - y);
+                AddIntBinaryOp(Multiply, (x, y) => x * y);
+                AddIntBinaryOp(Divide,   (x, y) => x / y);
+                AddIntUnaryOp (Negate,   x => -x); 
 
-                AddBinaryOp(Equal,    (x, y) => x == y ? 1 : 0);
-                AddBinaryOp(Greater,  (x, y) => x > y  ? 1 : 0);
-                AddBinaryOp(Less,     (x, y) => x < y  ? 1 : 0);
-                AddBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? 1 : 0);
-                AddBinaryOp(LessThanOrEquals, (x, y) => x <= y ? 1 : 0);
-                AddBinaryOp(NotEquals, (x, y) => x != y ? 1 : 0);
-                AddUnaryOp (Not,       x => (x == 0) ? 1 : 0); 
+                AddIntBinaryOp(Equal,    (x, y) => x == y ? 1 : 0);
+                AddIntBinaryOp(Greater,  (x, y) => x > y  ? 1 : 0);
+                AddIntBinaryOp(Less,     (x, y) => x < y  ? 1 : 0);
+                AddIntBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? 1 : 0);
+                AddIntBinaryOp(LessThanOrEquals, (x, y) => x <= y ? 1 : 0);
+                AddIntBinaryOp(NotEquals, (x, y) => x != y ? 1 : 0);
+                AddIntUnaryOp (Not,       x => (x == 0) ? 1 : 0); 
 
-                AddBinaryOp(And,      (x, y) => x != 0 && y != 0 ? 1 : 0);
-                AddBinaryOp(AndWord,  (x, y) => x != 0 && y != 0 ? 1 : 0);
-                AddBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
-                AddBinaryOp(OrWord,   (x, y) => x != 0 || y != 0 ? 1 : 0);
+                AddIntBinaryOp(And,      (x, y) => x != 0 && y != 0 ? 1 : 0);
+                AddIntBinaryOp(AndWord,  (x, y) => x != 0 && y != 0 ? 1 : 0);
+                AddIntBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
+                AddIntBinaryOp(OrWord,   (x, y) => x != 0 || y != 0 ? 1 : 0);
 
             }
         }
 
-        static void AddBinaryOp(string name, BinaryOp op)
+        void AddBinaryOp<T>(LiteralType litType, BinaryOp<T> op)
         {
-            var f = new NativeFunctionCall (name, 2, op);
-            _nativeFunctions [name] = f;
+            if (_binaryOps == null) {
+                _binaryOps = new Dictionary<LiteralType, object> ();
+            }
+
+            _binaryOps [litType] = op;
         }
 
-        static void AddUnaryOp(string name, UnaryOp op)
+        void AddUnaryOp<T>(LiteralType litType, UnaryOp<T> op)
         {
-            var f = new NativeFunctionCall (name, 1, op);
-            _nativeFunctions [name] = f;
+            if (_unaryOps == null) {
+                _unaryOps = new Dictionary<LiteralType, object> ();
+            }
+
+            _unaryOps [litType] = op;
+        }
+
+        static void AddIntBinaryOp(string name, BinaryOp<int> op)
+        {
+            NativeFunctionCall nativeFunc = null;
+            if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
+                nativeFunc = new NativeFunctionCall (name, 2);
+                _nativeFunctions [name] = nativeFunc;
+            }
+
+            nativeFunc.AddBinaryOp(LiteralType.Int, op);
+        }
+
+        static void AddIntUnaryOp(string name, UnaryOp<int> op)
+        {
+            NativeFunctionCall nativeFunc = null;
+            if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
+                nativeFunc = new NativeFunctionCall (name, 1);
+                _nativeFunctions [name] = nativeFunc;
+            }
+
+            nativeFunc.AddUnaryOp(LiteralType.Int, op);
         }
 
         public override string ToString ()
@@ -113,11 +181,12 @@ namespace Inklewriter.Runtime
             return "Native '" + name + "'";
         }
 
-        delegate int BinaryOp(int left, int right);
-        delegate int UnaryOp(int val);
+        delegate int BinaryOp<T>(T left, T right);
+        delegate int UnaryOp<T>(T val);
 
-        BinaryOp _binaryOp;
-        UnaryOp _unaryOp;
+        // Operations for each data type, for a single operation (e.g. "+")
+        Dictionary<LiteralType, object> _binaryOps;
+        Dictionary<LiteralType, object> _unaryOps;
 
         static Dictionary<string, NativeFunctionCall> _nativeFunctions;
 
