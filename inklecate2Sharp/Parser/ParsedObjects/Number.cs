@@ -6,22 +6,24 @@ namespace Inklewriter.Parsed
 	// TODO: Handle other number types
 	public class Number : Parsed.Expression
 	{
-		public int value;
+		public object value;
 		
-		public Number(int value)
+		public Number(object value)
 		{
-			this.value = value;
+            if (value is int || value is float) {
+                this.value = value;
+            } else {
+                throw new System.Exception ("Unexpected object type in Number");
+            }
 		}
-
-        public Number(float value)
-        {
-            // TODO: SEPARATE INTO NEW CLASS!
-            this.value = (int)value;
-        }
 
         public override void GenerateIntoContainer (Runtime.Container container)
 		{
-            container.AddContent (new Runtime.LiteralInt(value));
+            if (value is int) {
+                container.AddContent (new Runtime.LiteralInt ((int)value));
+            } else if (value is float) {
+                container.AddContent (new Runtime.LiteralFloat ((float)value));
+            }
 		}
          
 	}

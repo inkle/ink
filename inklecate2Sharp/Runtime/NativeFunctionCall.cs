@@ -33,50 +33,59 @@ namespace Inklewriter.Runtime
         }
 
         public string name { get; protected set; }
-        public int numberOfParamters { get; protected set; }
+        public int numberOfParameters { get; protected set; }
 
         public Runtime.Object Call(List<Runtime.Object> parameters)
         {
-            //Debug.Assert (_binaryOp != null || _unaryOp != null, "No function implemention defined?");
+            if (numberOfParameters != parameters.Count) {
+                throw new System.Exception ("Unexpected number of parameters");
+            }
 
             var coercedParams = CoerceLiteralsToSingleType (parameters);
+            LiteralType coercedType = coercedParams[0].literalType;
 
-            Literal param1 = (Literal) coercedParams [0];
-            LiteralType chosenType = param1.literalType;
+            if (coercedType == LiteralType.Int) {
+                return Call<int> (coercedParams);
+            } else if (coercedType == LiteralType.Float) {
+                return Call<float> (coercedParams);
+            }
+                
+            return null;
+        }
 
-            object opForType = null;
+        Literal Call<T>(List<Literal> parametersOfSingleType)
+        {
+            Literal param1 = (Literal) parametersOfSingleType [0];
+            LiteralType litType = param1.literalType;
 
-            Literal result = null;
+            var val1 = (Literal<T>)param1;
 
-            if (parameters.Count == 2) {
-                opForType = _binaryOps [chosenType];
+            // Binary
+            if (parametersOfSingleType.Count == 2) {
+                Literal param2 = (Literal) parametersOfSingleType [1];
 
-                if (chosenType == LiteralType.Int) {
-                    var int1 = (LiteralInt)param1;
-                    var int2 = (LiteralInt)coercedParams [1];
-                    var intOp = (BinaryOp<int>)opForType;
-                    int intResult = intOp (int1.value, int2.value);
-                    result = new LiteralInt (intResult);
-                }
-            } else if (parameters.Count == 1) {
-                opForType = _unaryOps [chosenType];
+                var val2 = (Literal<T>)param2;
+                var opForType = (BinaryOp<T>)_operationFuncs [litType];
 
-                if (chosenType == LiteralType.Int) {
-                    var int1 = (LiteralInt)param1;
-                    var intOp = (UnaryOp<int>)opForType;
-                    int intResult = intOp (int1.value);
-                    result = new LiteralInt (intResult);
-                }
+                // Return value unknown until it's evaluated
+                object resultVal = opForType (val1.value, val2.value);
+
+                return Literal.Create (resultVal);
+            } 
+
+            // Unary
+            else if (parametersOfSingleType.Count == 1) {
+
+                var opForType = (UnaryOp<T>)_operationFuncs [litType];
+                var resultVal = opForType (val1.value);
+
+                return Literal.Create (resultVal);
             } 
 
             else {
-                throw new System.Exception ("Unexpected number of parameters to NativeFunctionCall: " + parameters.Count);
+                throw new System.Exception ("Unexpected number of parameters to NativeFunctionCall: " + parametersOfSingleType.Count);
             }
-
-            return result;
         }
-
-
 
         List<Literal> CoerceLiteralsToSingleType(List<Runtime.Object> parametersIn)
         {
@@ -106,7 +115,7 @@ namespace Inklewriter.Runtime
         NativeFunctionCall (string name, int numberOfParamters)
         {
             this.name = name;
-            this.numberOfParamters = numberOfParamters;
+            this.numberOfParameters = numberOfParamters;
         }
             
         static void GenerateNativeFunctionsIfNecessary()
@@ -114,6 +123,7 @@ namespace Inklewriter.Runtime
             if (_nativeFunctions == null) {
                 _nativeFunctions = new Dictionary<string, NativeFunctionCall> ();
 
+                // Int operations
                 AddIntBinaryOp(Add,      (x, y) => x + y);
                 AddIntBinaryOp(Subtract, (x, y) => x - y);
                 AddIntBinaryOp(Multiply, (x, y) => x * y);
@@ -133,47 +143,67 @@ namespace Inklewriter.Runtime
                 AddIntBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
                 AddIntBinaryOp(OrWord,   (x, y) => x != 0 || y != 0 ? 1 : 0);
 
+                // Float operations
+                AddFloatBinaryOp(Add,      (x, y) => x + y);
+                AddFloatBinaryOp(Subtract, (x, y) => x - y);
+                AddFloatBinaryOp(Multiply, (x, y) => x * y);
+                AddFloatBinaryOp(Divide,   (x, y) => x / y);
+                AddFloatUnaryOp (Negate,   x => -x); 
+
+                AddFloatBinaryOp(Equal,    (x, y) => x == y ? (int)1 : (int)0);
+                AddFloatBinaryOp(Greater,  (x, y) => x > y  ? (int)1 : (int)0);
+                AddFloatBinaryOp(Less,     (x, y) => x < y  ? (int)1 : (int)0);
+                AddFloatBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? (int)1 : (int)0);
+                AddFloatBinaryOp(LessThanOrEquals, (x, y) => x <= y ? (int)1 : (int)0);
+                AddFloatBinaryOp(NotEquals, (x, y) => x != y ? (int)1 : (int)0);
+                AddFloatUnaryOp (Not,       x => (x == 0.0f) ? (int)1 : (int)0); 
+
+                AddFloatBinaryOp(And,      (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
+                AddFloatBinaryOp(AndWord,  (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
+                AddFloatBinaryOp(Or,       (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
+                AddFloatBinaryOp(OrWord,   (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
+
             }
         }
 
-        void AddBinaryOp<T>(LiteralType litType, BinaryOp<T> op)
+        void AddOpFuncForType(LiteralType litType, object op)
         {
-            if (_binaryOps == null) {
-                _binaryOps = new Dictionary<LiteralType, object> ();
+            if (_operationFuncs == null) {
+                _operationFuncs = new Dictionary<LiteralType, object> ();
             }
 
-            _binaryOps [litType] = op;
+            _operationFuncs [litType] = op;
         }
 
-        void AddUnaryOp<T>(LiteralType litType, UnaryOp<T> op)
+        static void AddOpToNativeFunc(string name, int args, LiteralType litType, object op)
         {
-            if (_unaryOps == null) {
-                _unaryOps = new Dictionary<LiteralType, object> ();
+            NativeFunctionCall nativeFunc = null;
+            if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
+                nativeFunc = new NativeFunctionCall (name, args);
+                _nativeFunctions [name] = nativeFunc;
             }
 
-            _unaryOps [litType] = op;
+            nativeFunc.AddOpFuncForType (litType, op);
         }
 
         static void AddIntBinaryOp(string name, BinaryOp<int> op)
         {
-            NativeFunctionCall nativeFunc = null;
-            if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
-                nativeFunc = new NativeFunctionCall (name, 2);
-                _nativeFunctions [name] = nativeFunc;
-            }
-
-            nativeFunc.AddBinaryOp(LiteralType.Int, op);
+            AddOpToNativeFunc (name, 2, LiteralType.Int, op);
         }
 
         static void AddIntUnaryOp(string name, UnaryOp<int> op)
         {
-            NativeFunctionCall nativeFunc = null;
-            if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
-                nativeFunc = new NativeFunctionCall (name, 1);
-                _nativeFunctions [name] = nativeFunc;
-            }
+            AddOpToNativeFunc (name, 1, LiteralType.Int, op);
+        }
 
-            nativeFunc.AddUnaryOp(LiteralType.Int, op);
+        static void AddFloatBinaryOp(string name, BinaryOp<float> op)
+        {
+            AddOpToNativeFunc (name, 2, LiteralType.Float, op);
+        }
+
+        static void AddFloatUnaryOp(string name, UnaryOp<int> op)
+        {
+            AddOpToNativeFunc (name, 1, LiteralType.Int, op);
         }
 
         public override string ToString ()
@@ -181,12 +211,11 @@ namespace Inklewriter.Runtime
             return "Native '" + name + "'";
         }
 
-        delegate int BinaryOp<T>(T left, T right);
-        delegate int UnaryOp<T>(T val);
+        delegate object BinaryOp<T>(T left, T right);
+        delegate object UnaryOp<T>(T val);
 
         // Operations for each data type, for a single operation (e.g. "+")
-        Dictionary<LiteralType, object> _binaryOps;
-        Dictionary<LiteralType, object> _unaryOps;
+        Dictionary<LiteralType, object> _operationFuncs;
 
         static Dictionary<string, NativeFunctionCall> _nativeFunctions;
 

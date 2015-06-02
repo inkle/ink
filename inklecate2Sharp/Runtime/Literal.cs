@@ -14,6 +14,17 @@ namespace Inklewriter.Runtime
         public abstract bool isTruthy { get; }
 
         public abstract Literal Cast(LiteralType newType);
+
+        public static Literal Create(object val)
+        {
+            if (val is int) {
+                return new LiteralInt ((int)val);
+            } else if (val is float) {
+                return new LiteralFloat ((float)val);
+            }
+
+            return null;
+        }
     }
 
     public abstract class Literal<T> : Literal

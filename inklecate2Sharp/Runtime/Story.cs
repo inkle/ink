@@ -239,7 +239,7 @@ namespace Inklewriter.Runtime
             // Native function call
             else if( contentObj is NativeFunctionCall ) {
                 var func = (NativeFunctionCall) contentObj;
-                var funcParams = PopEvaluationStack(func.numberOfParamters);
+                var funcParams = PopEvaluationStack(func.numberOfParameters);
                 var result = func.Call(funcParams);
                 _evaluationStack.Add(result);
                 return true;
