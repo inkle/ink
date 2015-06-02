@@ -153,7 +153,7 @@ namespace Inklewriter.Runtime
                     var varContents = _callStack.GetVariableWithName (currentDivert.variableDivertName);
 
                     if ( !(varContents is LiteralDivertTarget) ) {
-                        throw new System.Exception ("Tried to divert to a target from a variable, but the variable ("+varContents+") didn't contain a divert target");
+                        Error("Tried to divert to a target from a variable, but the variable ("+varContents+") didn't contain a divert target");
                     }
 
                     var target = (LiteralDivertTarget)varContents;
@@ -164,10 +164,10 @@ namespace Inklewriter.Runtime
                 _divertedPath = currentDivert.targetPath;
 
                 if (_divertedPath == null) {
-                    throw new System.Exception ("Divert resolution failed: " + currentDivert);
+                    Error ("Divert resolution failed: " + currentDivert);
                 }
 
-                Debug.Assert (_divertedPath != null);
+                Assert (_divertedPath != null, "diverted path is null");
                 return true;
             } 
 
@@ -191,12 +191,12 @@ namespace Inklewriter.Runtime
                 switch (evalCommand.commandType) {
 
                 case ControlCommand.CommandType.EvalStart:
-                    Debug.Assert (inExpressionEvaluation == false, "Already in expression evaluation?");
+                    Assert (inExpressionEvaluation == false, "Already in expression evaluation?");
                     inExpressionEvaluation = true;
                     break;
 
                 case ControlCommand.CommandType.EvalEnd:
-                    Debug.Assert (inExpressionEvaluation == true, "Not in expression evaluation mode");
+                    Assert (inExpressionEvaluation == true, "Not in expression evaluation mode");
                     inExpressionEvaluation = false;
                     break;
 
@@ -225,7 +225,8 @@ namespace Inklewriter.Runtime
                     break;
 
                 case ControlCommand.CommandType.StackPop:
-                    _callStack.Pop();
+                    Assert (_callStack.canPop, "Popped off the stack when we shouldn't");
+                    _callStack.Pop ();
                     break;
 
                 case ControlCommand.CommandType.NoOp:
@@ -249,7 +250,7 @@ namespace Inklewriter.Runtime
                 var varContents = _callStack.GetVariableWithName (varRef.name);
                 if (varContents == null) {
                     
-                    throw new System.Exception ("Uninitialised variable: " + varRef.name);
+                    Error("Uninitialised variable: " + varRef.name);
                 }
                 _evaluationStack.Add( varContents );
                 return true;
@@ -277,7 +278,7 @@ namespace Inklewriter.Runtime
 		public void ContinueWithChoiceIndex(int choiceIdx)
 		{
 			var choices = this.currentChoices;
-			Debug.Assert (choiceIdx >= 0 && choiceIdx < choices.Count);
+			Assert (choiceIdx >= 0 && choiceIdx < choices.Count, "choice out of range");
 
 			var choice = choices [choiceIdx];
 
@@ -378,6 +379,22 @@ namespace Inklewriter.Runtime
 				}
 			}
 		}
+
+        void Error(string message, params object[] formatParams)
+        {
+            var formatMessage = string.Format (message, formatParams);
+            throw new System.Exception (formatMessage);
+        }
+
+        void Assert(bool condition, string message = null, params object[] formatParams)
+        {
+            if (condition == false) {
+                if (message == null) {
+                    message = "Story assert";
+                }
+                Error (message, formatParams);
+            }
+        }
 
         private Container _rootContainer;
         private Path _divertedPath;
