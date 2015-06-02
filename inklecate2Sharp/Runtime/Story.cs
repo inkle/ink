@@ -419,7 +419,6 @@ namespace Inklewriter.Runtime
                 }
 
                 // Try last path
-                //if( _previousPath 
                 dm = DebugMetadataAtPath (_previousPath);
                 if (dm != null) {
                     return dm;
