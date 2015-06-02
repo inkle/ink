@@ -1,22 +1,12 @@
-﻿~ var lunch = 1
+﻿
+=== conditions_example ===
+~ var apples = 5
+I have {apples > 5:more apples than expected|{apples < 5:fewer apples than expected|the right number of apples}}.
 
-== start ==
- You're at the start.
-  ==> goto(==> lake, ==> forest)
-
-== goto(firstPlace, secondPlace) ==
-  ~ firstPlace()
-  ~ secondPlace()
-
-== lake ==
- You're at the lake.
- ~ eat()
-
-
-== forest ==
- You're at the forest
- ~ eat()
-
-== eat ==
- {lunch > 0:You have lunch.|Your stomach rumbles}
- ~ lunch = lunch - 1
+I have { apples > 5:
+ - more apples than expected
+ - { apples < 5:
+    - fewer apples than expected
+    - the right number of apples
+    }
+ }.

@@ -10,7 +10,8 @@ namespace Inklewriter.Runtime
             EvalOutput,
             EvalEnd,
             StackPush,
-            StackPop
+            StackPop,
+            NoOp
         }
 
         public CommandType commandType { get; protected set; }
@@ -38,6 +39,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand StackPop() {
             return new ControlCommand(CommandType.StackPop);
+        }
+
+        public static ControlCommand NoOp() {
+            return new ControlCommand(CommandType.NoOp);
         }
 
         public override string ToString ()

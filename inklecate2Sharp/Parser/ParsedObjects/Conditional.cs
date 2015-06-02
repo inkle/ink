@@ -33,6 +33,7 @@ namespace Inklewriter.Parsed
 
             container.AddContent (condition.runtimeObject);
 
+            // True branch - always generate runtime
             var trueRuntimeContainer = RuntimeContentForList (contentIfTrue);
             trueRuntimeContainer.name = "true";
             container.AddToNamedContentOnly (trueRuntimeContainer);
@@ -42,9 +43,9 @@ namespace Inklewriter.Parsed
             _trueCompleteDivert = new Runtime.Divert ();
             trueRuntimeContainer.AddContent (_trueCompleteDivert);
 
+            // False branch - optional
             Runtime.Container falseRuntimeContainer = null; 
             if (contentIfFalse != null) {
-                //var falseRuntimeObj = contentIfFalse.runtimeObject;
                 falseRuntimeContainer = RuntimeContentForList (contentIfFalse);
                 if (falseRuntimeContainer != null) {
                     falseRuntimeContainer.name = "false";
@@ -59,6 +60,9 @@ namespace Inklewriter.Parsed
 
             var branch = new Runtime.Branch (_trueDivert, _falseDivert);
             container.AddContent (branch);
+
+            _reJoinTarget = Runtime.ControlCommand.NoOp ();
+            container.AddContent (_reJoinTarget);
 
             return container;
         }
@@ -92,7 +96,7 @@ namespace Inklewriter.Parsed
         {
             var container = (Runtime.Container)runtimeObject;
 
-            var pathToReJoin = container.path.PathByAppendingPath(container.pathToEnd);
+            var pathToReJoin = _reJoinTarget.path;
 
             _trueDivert.targetPath = _trueTargetObj.path;
             _trueCompleteDivert.targetPath = pathToReJoin;
@@ -123,6 +127,8 @@ namespace Inklewriter.Parsed
 
         Runtime.Divert _trueCompleteDivert;
         Runtime.Divert _falseCompleteDivert;
+
+        Runtime.ControlCommand _reJoinTarget;
     }
 }
 

@@ -227,6 +227,9 @@ namespace Inklewriter.Runtime
                 case ControlCommand.CommandType.StackPop:
                     _callStack.Pop();
                     break;
+
+                case ControlCommand.CommandType.NoOp:
+                    break;
                 }
 
                 return true;
