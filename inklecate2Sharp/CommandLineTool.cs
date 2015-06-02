@@ -55,7 +55,7 @@ namespace Inklewriter
 			// Randomly play through
 			if (opts.playMode || opts.testMode) {
 
-				var player = new CommandLinePlayer (story, autoPlay:opts.testMode);
+				var player = new CommandLinePlayer (story, autoPlay:false);
 				player.Begin ();
 
 			}

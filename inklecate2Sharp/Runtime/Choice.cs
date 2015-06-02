@@ -12,6 +12,11 @@ namespace Inklewriter.Runtime
 		{
 			this.choiceText = choiceText;
 		}
+
+        public override string ToString ()
+        {
+            return "Choice: '" + choiceText + "' -> " + pathOnChoice;
+        }
 	}
 }
 

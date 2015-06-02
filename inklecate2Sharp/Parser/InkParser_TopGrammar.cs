@@ -50,7 +50,6 @@ namespace Inklewriter
 				rulesAtLevel.Add (KnotDefinition);
 			}
 
-            // Error checking for Choices in the wrong place is below (after parsing)
 			rulesAtLevel.Add(Line(Choice));
 
             // Gather lines would be confused with multi-line block separators, like
@@ -75,15 +74,8 @@ namespace Inklewriter
             // writers may think they can use the statement, so it's useful to have 
             // the error message.
             if (level == StatementLevel.Top) {
-
                 if( statement is Return ) 
                     Error ("should not have return statement outside of a knot");
-
-                if (statement is Choice)
-                    Error ("choices can only be in knots and stitches");
-
-                if (statement is Gather)
-                    Error ("gather points can only be in knots and stitches");
             }
 
 			if (statement == null) {
