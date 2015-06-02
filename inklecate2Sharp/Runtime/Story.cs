@@ -149,7 +149,24 @@ namespace Inklewriter.Runtime
             if (contentObj is Divert) {
                 
                 Divert currentDivert = (Divert)contentObj;
+                if (currentDivert.hasVariableTarget) {
+                    var varContents = _callStack.GetVariableWithName (currentDivert.variableDivertName);
+
+                    if ( !(varContents is LiteralDivertTarget) ) {
+                        throw new System.Exception ("Tried to divert to a target from a variable, but the variable ("+varContents+") didn't contain a divert target");
+                    }
+
+                    var target = (LiteralDivertTarget)varContents;
+                    currentDivert = target.divert;
+
+                }
+
                 _divertedPath = currentDivert.targetPath;
+
+                if (_divertedPath == null) {
+                    throw new System.Exception ("Divert resolution failed: " + currentDivert);
+                }
+
                 Debug.Assert (_divertedPath != null);
                 return true;
             } 

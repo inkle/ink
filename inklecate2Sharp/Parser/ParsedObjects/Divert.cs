@@ -65,9 +65,27 @@ namespace Inklewriter.Parsed
             // Simple divert
             else {
                 return runtimeDivert;
-            }
-			
+            }			
 		}
+
+
+        // When the divert is to a target that's actually a variable name
+        // rather than an explicit knot/stitch name, try interpretting it
+        // as such by getting the variable name.
+        public string PathAsVariableName()
+        {
+            if (target.weavePointName != null || target.ambiguousName != null) {
+                return null;
+            }
+
+            if (target.knotName != null && target.stitchName == null) {
+                return target.knotName;
+            } else if (target.stitchName != null && target.knotName == null) {
+                return target.stitchName;
+            }
+
+            return null;
+        }
 
         public override void ResolveReferences(Story context)
 		{
@@ -76,6 +94,19 @@ namespace Inklewriter.Parsed
             }
 
             if (targetContent == null) {
+
+                // Is target of this divert a variable name that will be de-referenced
+                // at runtime? If so, there won't be any further reference resolution
+                // we can do at this point.
+                var variableTargetName = PathAsVariableName ();
+                if (variableTargetName != null) {
+                    var flowBaseScope = ClosestFlowBase ();
+                    if (flowBaseScope.HasVariableWithName (variableTargetName, allowReadCounts:false, searchAncestors: true)) {
+                        runtimeDivert.variableDivertName = variableTargetName;
+                        return;
+                    }
+                }
+
                 targetContent = target.ResolveFromContext (this);
 
                 if (targetContent == null) {
@@ -97,6 +128,12 @@ namespace Inklewriter.Parsed
                     }
                 }
                     
+            }
+
+            if (arguments != null) {
+                foreach(var arg in arguments) {
+                    arg.ResolveReferences (context);
+                }
             }
 
 			if (targetContent != null) {
@@ -143,6 +180,12 @@ namespace Inklewriter.Parsed
 
         public override void Error (string message, Object source = null)
         {
+            // Could be getting an error from a nested Divert
+            if (source != this && source != null) {
+                base.Error (message, source);
+                return;
+            }
+
             if (isFunctionCall) {
                 base.Error ("Function call " + message, source);
             } else {

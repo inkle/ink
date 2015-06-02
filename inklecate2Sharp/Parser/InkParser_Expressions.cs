@@ -164,7 +164,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionFunctionCall, ExpressionVariableName) as Expression;
+            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionDivertTarget, ExpressionFunctionCall, ExpressionVariableName) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
             if (expr == null && unaryOp != null) {
@@ -186,6 +186,24 @@ namespace Inklewriter
 		{
             return (Expression) OneOf (ExpressionFloat, ExpressionInt);
 		}
+
+        protected Expression ExpressionDivertTarget()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            var divert = Divert ();
+            if (divert == null) {
+                return (Expression) FailRule ();
+            }
+
+            Whitespace ();
+
+            var divTargetExpr = new DivertTarget (divert);
+
+            return (Expression) SucceedRule (divTargetExpr);             
+        }
 
         protected Number ExpressionInt()
         {

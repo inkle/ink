@@ -52,13 +52,17 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public virtual bool HasVariableWithName(string varName)
+        public virtual bool HasVariableWithName(string varName, bool allowReadCounts = true, bool searchAncestors=false)
         {
             if (variableDeclarations.ContainsKey (varName))
                 return true;
 
             if (this.parameterNames != null && this.parameterNames.Contains (varName))
                 return true;
+
+            if (searchAncestors && this.parent != null ) {
+                return ((FlowBase)this.parent).HasVariableWithName (varName, allowReadCounts, searchAncestors);
+            }
 
             return false;
         }

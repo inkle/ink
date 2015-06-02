@@ -5,7 +5,8 @@ namespace Inklewriter.Runtime
     public enum LiteralType
     {
         Int,
-        Float
+        Float,
+        DivertTarget
     }
 
     public abstract class Literal : Runtime.Object
@@ -21,6 +22,8 @@ namespace Inklewriter.Runtime
                 return new LiteralInt ((int)val);
             } else if (val is float) {
                 return new LiteralFloat ((float)val);
+            } else if (val is Path) {
+                return new LiteralDivertTarget ((Divert)val);
             }
 
             return null;
@@ -85,6 +88,28 @@ namespace Inklewriter.Runtime
             }
 
             throw new System.Exception ("Unexpected type cast of Litereal to new LiteralType");
+        }
+    }
+
+    public class LiteralDivertTarget : Literal<Divert>
+    {
+        public Divert divert { get; set; }
+        public override LiteralType literalType { get { return LiteralType.DivertTarget; } }
+        public override bool isTruthy { get { return true; } }
+
+        public LiteralDivertTarget(Divert divert) : base(divert)
+        {
+            this.divert = divert;
+        }
+
+        public override Literal Cast(LiteralType newType)
+        {
+            throw new System.Exception ("Unexpected type cast of Litereal to new LiteralType");
+        }
+
+        public override string ToString ()
+        {
+            return "LiteralDivertTarget(" + divert.targetPath + ")";
         }
     }
         

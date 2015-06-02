@@ -57,6 +57,19 @@ namespace Inklewriter.Parsed
 
 		}
 
+        public FlowBase ClosestFlowBase()
+        {
+            var ancestor = this.parent;
+            while (ancestor != null) {
+                if (ancestor is FlowBase) {
+                    return (FlowBase)ancestor;
+                }
+                ancestor = ancestor.parent;
+            }
+
+            return null;
+        }
+
 		public virtual void Error(string message, Parsed.Object source = null)
 		{
 			if (source == null) {

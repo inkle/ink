@@ -6,13 +6,19 @@ namespace Inklewriter.Runtime
 	{
 		public Path targetPath { get; set; }
 
+        public string variableDivertName { get; set; }
+        public bool hasVariableTarget { get { return variableDivertName != null; } }
+
 		public Divert ()
 		{
 		}
 
         public override string ToString ()
         {
-            if (targetPath == null) {
+            if (hasVariableTarget) {
+                return "Divert(variable: " + variableDivertName + ")";
+            }
+            else if (targetPath == null) {
                 return "Divert(null)";
             } else {
                 return "Divert(" + targetPath.ToString () + ")";

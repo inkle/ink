@@ -95,6 +95,7 @@
     <Compile Include="Runtime\Branch.cs" />
     <Compile Include="Parser\InkParser_Logic.cs" />
     <Compile Include="Runtime\Literal.cs" />
+    <Compile Include="Parser\ParsedObjects\DivertTarget.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

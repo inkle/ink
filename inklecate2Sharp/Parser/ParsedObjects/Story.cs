@@ -26,13 +26,15 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public override bool HasVariableWithName(string varName)
+        public override bool HasVariableWithName(string varName, bool allowReadCounts = true, bool searchAncestors=false)
         {
-            if (_allKnotAndStitchNames.Contains (varName)) {
-                return true;
+            if (allowReadCounts) {
+                if (_allKnotAndStitchNames.Contains (varName)) {
+                    return true;
+                }
             }
 
-            return base.HasVariableWithName (varName);
+            return base.HasVariableWithName (varName, allowReadCounts, searchAncestors);
         }
 
 		public Runtime.Story ExportRuntime()
