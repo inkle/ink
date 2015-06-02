@@ -10,6 +10,29 @@ namespace Inklewriter.Parsed
 
 		public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
+            // Inject included files
+            // TODO: Be clever about re-ordering the contents?
+            int i = 0;
+            while (i < toplevelObjects.Count) {
+                var obj = toplevelObjects [i];
+                if (obj is IncludedFile) {
+
+                    var subStory = ((IncludedFile)obj).includedStory;
+
+                    // Remove the file itself
+                    this.content.RemoveAt (i);
+
+                    // Add contents of the file in its place
+                    this.content.InsertRange (i, subStory.content);
+
+                    // Skip past the lines of this sub story
+                    // (since it will already have recursively included
+                    //  any lines from other files)
+                    i += subStory.content.Count;
+                }
+                i++;
+            }
+
             // Gather all FlowBase definitions as variable names
             _allKnotAndStitchNames = new List<string>();
             GetAllKnotAndStitchNames (toplevelObjects);

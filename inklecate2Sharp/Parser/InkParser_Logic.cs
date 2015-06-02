@@ -28,12 +28,47 @@ namespace Inklewriter
             // ~ f()        -- expr
             // We don't treat variable decl/assign as an expression since we don't want an assignment
             // to have a return value, or to be used in compound expressions.
-            ParseRule afterTilda = () => OneOf (ReturnStatement, VariableDeclarationOrAssignment, Expression);
+            ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, VariableDeclarationOrAssignment, Expression);
 
             var parsedExpr = (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
 
             // TODO: A piece of logic after a tilda shouldn't have its result printed as text (I don't think?)
             return SucceedRule (parsedExpr) as Parsed.Object;
+        }
+
+        protected IncludedFile IncludeStatement()
+        {
+            BeginRule ();
+
+            if (ParseString ("include") == null) {
+                return (IncludedFile)FailRule ();
+            }
+
+            Whitespace ();
+
+            var filename = (string) Expect(() => ParseUntilCharactersFromString ("\n\r"), "filename for include statement");
+            filename = filename.TrimEnd (' ', '\t');
+
+            Parsed.Story includedStory = null;
+            try {
+                string includedString = System.IO.File.ReadAllText(filename);
+
+                InkParser parser = new InkParser(includedString);
+                includedStory = parser.Parse();
+            }
+            catch {
+                Error ("Included file not found: " + filename);
+                return (IncludedFile) FailRule ();
+            }
+
+            if (includedStory == null) {
+                Error ("Failed to parse included file '" + filename + "'");
+                return (IncludedFile) FailRule ();
+            }
+
+            var includedFile = new IncludedFile (includedStory);
+            return (IncludedFile) SucceedRule (includedFile);
+
         }
 
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
