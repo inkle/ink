@@ -7,36 +7,65 @@ namespace Inklewriter.Parsed
 	public class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
+        public List<string> allKnotAndStitchNames { get { return _allKnotAndStitchNames; } }
 
-		public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
+        public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
+            // Don't do anything on construction, leave it lightweight until
+            // the ExportRuntime method is called.
+		}
+
+        // Before this function is called, we have IncludedFile objects interspersed
+        // in our content wherever an include statement was.
+        // So that the include statement can be added in a sensible place (e.g. the
+        // top of the file) without side-effects of jumping into a knot that was
+        // defined in that include, we separate knots and stitches from anything
+        // else defined at the top scope of the included file.
+        // 
+        // Algorithm: For each IncludedFile we find, split its contents into
+        // knots/stiches and any other content. Insert the normal content wherever
+        // the include statement was, and append the knots/stitches to the very
+        // end of the main story.
+        protected override void PreProcessTopLevelObjects(List<Parsed.Object> topLevelContent)
+        {
+            var flowsFromOtherFiles = new List<FlowBase> ();
+
             // Inject included files
-            // TODO: Be clever about re-ordering the contents?
             int i = 0;
-            while (i < toplevelObjects.Count) {
-                var obj = toplevelObjects [i];
+            while (i < topLevelContent.Count) {
+                var obj = topLevelContent [i];
                 if (obj is IncludedFile) {
 
-                    var subStory = ((IncludedFile)obj).includedStory;
+                    var nonFlowContent = new List<Parsed.Object> ();
 
-                    // Remove the file itself
-                    this.content.RemoveAt (i);
+                    var subStory = ((IncludedFile)obj).includedStory;
+                    foreach (var subStoryObj in subStory.content) {
+                        if (subStoryObj is FlowBase) {
+                            flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
+                        } else {
+                            nonFlowContent.Add (subStoryObj);
+                        }
+                    }
+
+                    // Remove the IncludedFile itself
+                    topLevelContent.RemoveAt (i);
 
                     // Add contents of the file in its place
-                    this.content.InsertRange (i, subStory.content);
+                    topLevelContent.InsertRange (i, nonFlowContent);
 
                     // Skip past the lines of this sub story
                     // (since it will already have recursively included
                     //  any lines from other files)
-                    i += subStory.content.Count;
+                    i += nonFlowContent.Count;
                 }
                 i++;
             }
 
-            // Gather all FlowBase definitions as variable names
-            _allKnotAndStitchNames = new List<string>();
-            GetAllKnotAndStitchNames (toplevelObjects);
-		}
+            // Add the flows we collected from the included files to the
+            // end of our list of our content
+            topLevelContent.AddRange (flowsFromOtherFiles);
+
+        }
 
         void GetAllKnotAndStitchNames(List<Parsed.Object> fromContent)
         {
@@ -62,6 +91,10 @@ namespace Inklewriter.Parsed
 
 		public Runtime.Story ExportRuntime()
 		{
+            // Gather all FlowBase definitions as variable names
+            _allKnotAndStitchNames = new List<string>();
+            GetAllKnotAndStitchNames (content);
+
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 

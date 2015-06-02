@@ -22,6 +22,9 @@ namespace Inklewriter.Parsed
 			if (topLevelObjects == null) {
 				topLevelObjects = new List<Parsed.Object> ();
 			}
+
+            PreProcessTopLevelObjects (topLevelObjects);
+
 			this.content = topLevelObjects;
 
             this.parameterNames = parameterNames;
@@ -37,6 +40,11 @@ namespace Inklewriter.Parsed
                 }
 			}
 		}
+
+        protected virtual void PreProcessTopLevelObjects(List<Parsed.Object> topLevelObjects)
+        {
+            // empty by default, used by Story to process included file references
+        }
 
         public string dotSeparatedFullName {
             get {
