@@ -40,17 +40,17 @@ namespace Inklewriter.Runtime
             Debug.Assert (_binaryOp != null || _unaryOp != null, "No function implemention defined?");
 
             // TODO: Handle various other types other than Number (int)
-            Number param1 = (Number) parameters [0];
+            LiteralInt param1 = (LiteralInt) parameters [0];
 
             int result = 0;
             if (_binaryOp != null) {
-                Number param2 = (Number) parameters [1];
+                LiteralInt param2 = (LiteralInt) parameters [1];
                 result = _binaryOp (param1.value, param2.value);
             } else if (_unaryOp != null) {
                 result = _unaryOp (param1.value);
             }
 
-            return new Number (result);
+            return new LiteralInt (result);
         }
 
         NativeFunctionCall (string name, int numberOfParamters)

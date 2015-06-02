@@ -125,9 +125,9 @@ namespace Inklewriter.Runtime
         bool IsTruthy(Runtime.Object obj)
         {
             bool truthy = false;
-            if (obj is Number) {
-                var number = (Number)obj;
-                truthy = number.value != 0;
+            if (obj is Literal) {
+                var literal = (Literal)obj;
+                return literal.isTruthy;
             }
             return truthy;
         }

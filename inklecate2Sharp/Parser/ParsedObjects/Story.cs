@@ -72,7 +72,7 @@ namespace Inklewriter.Parsed
             container.AddContent (Runtime.ControlCommand.EvalStart());
 
             foreach (string flowName in _allKnotAndStitchNames) {
-                container.AddContent (new Runtime.Number (0));
+                container.AddContent (new Runtime.LiteralInt(0));
                 container.AddContent (new Runtime.VariableAssignment (flowName, true));
             }
 

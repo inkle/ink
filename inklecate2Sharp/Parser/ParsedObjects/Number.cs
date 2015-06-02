@@ -21,7 +21,7 @@ namespace Inklewriter.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
 		{
-            container.AddContent (new Runtime.Number(value));
+            container.AddContent (new Runtime.LiteralInt(value));
 		}
          
 	}

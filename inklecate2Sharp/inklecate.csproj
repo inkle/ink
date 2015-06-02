@@ -78,7 +78,6 @@
     <Compile Include="Parser\ParsedObjects\VariableAssignment.cs" />
     <Compile Include="Runtime\VariableAssignment.cs" />
     <Compile Include="Parser\ParsedObjects\FunctionCall.cs" />
-    <Compile Include="Runtime\Number.cs" />
     <Compile Include="Runtime\VariableReference.cs" />
     <Compile Include="Runtime\NativeFunctionCall.cs" />
     <Compile Include="Runtime\CallStack.cs" />
@@ -95,6 +94,7 @@
     <Compile Include="Parser\ParsedObjects\Conditional.cs" />
     <Compile Include="Runtime\Branch.cs" />
     <Compile Include="Parser\InkParser_Logic.cs" />
+    <Compile Include="Runtime\Literal.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

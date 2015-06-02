@@ -217,7 +217,7 @@ namespace Inklewriter.Parsed
 
             string varName = dotSeparatedFullName;
             container.AddContent (new Runtime.VariableReference (varName));
-            container.AddContent (new Runtime.Number(1));
+            container.AddContent (new Runtime.LiteralInt(1));
             container.AddContent (Runtime.NativeFunctionCall.CallWithName("+"));
             container.AddContent (new Runtime.VariableAssignment (varName, false));
 
