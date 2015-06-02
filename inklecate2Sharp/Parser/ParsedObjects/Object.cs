@@ -30,6 +30,7 @@ namespace Inklewriter.Parsed
 			get {
 				if (_runtimeObject == null) {
 					_runtimeObject = GenerateRuntimeObject ();
+                    _runtimeObject.debugMetadata = debugMetadata;
 				}
 				return _runtimeObject;
 			}

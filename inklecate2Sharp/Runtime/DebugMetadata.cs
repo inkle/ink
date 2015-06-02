@@ -10,6 +10,11 @@ namespace Inklewriter.Runtime
 		public DebugMetadata ()
 		{
 		}
+
+        public override string ToString ()
+        {
+            return string.Format ("Line {0} of {1}", lineNumber, fileName);
+        }
 	}
 }
 

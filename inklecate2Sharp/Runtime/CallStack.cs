@@ -24,6 +24,12 @@ namespace Inklewriter.Runtime
             }
         }
 
+        public List<Element> elements {
+            get {
+                return _callStack;
+            }
+        }
+
         public Element currentElement { 
             get { 
                 return _callStack.Last (); 

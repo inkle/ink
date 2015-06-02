@@ -82,7 +82,7 @@ namespace Inklewriter.Runtime
                     //  - Normal content
                     //  - Or a logic/flow statement - if so, do it
                     bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj);
-                        
+
                     // Choice with condition?
                     bool shouldAddObject = true;
                     var choice = currentContentObj as Choice;
@@ -141,7 +141,6 @@ namespace Inklewriter.Runtime
         private bool PerformLogicAndFlowControl(Runtime.Object contentObj)
         {
             if( contentObj == null ) {
-                
                 return false;
             }
 
@@ -150,10 +149,11 @@ namespace Inklewriter.Runtime
                 
                 Divert currentDivert = (Divert)contentObj;
                 if (currentDivert.hasVariableTarget) {
-                    var varContents = _callStack.GetVariableWithName (currentDivert.variableDivertName);
+                    var varName = currentDivert.variableDivertName;
+                    var varContents = _callStack.GetVariableWithName (varName);
 
                     if ( !(varContents is LiteralDivertTarget) ) {
-                        Error("Tried to divert to a target from a variable, but the variable ("+varContents+") didn't contain a divert target");
+                        Error("Tried to divert to a target from a variable, but the variable ("+varName+") didn't contain a divert target, it contained '"+varContents+"'");
                     }
 
                     var target = (LiteralDivertTarget)varContents;
@@ -271,6 +271,8 @@ namespace Inklewriter.Runtime
 
 		public void ContinueFromPath(Path path)
 		{
+            _previousPath = currentPath;
+
 			currentPath = path;
 			Continue ();
 		}
@@ -329,7 +331,6 @@ namespace Inklewriter.Runtime
         {
             var sb = new StringBuilder ();
 
-
             Runtime.Object currentObj = null;
             if (currentPath != null) {
                 currentObj = ContentAtPath (currentPath);
@@ -341,6 +342,8 @@ namespace Inklewriter.Runtime
 
 		private void NextContent()
 		{
+            _previousPath = currentPath;
+
 			// Divert step?
 			if (_divertedPath != null) {
 				currentPath = _divertedPath;
@@ -382,8 +385,16 @@ namespace Inklewriter.Runtime
 
         void Error(string message, params object[] formatParams)
         {
-            var formatMessage = string.Format (message, formatParams);
-            throw new System.Exception (formatMessage);
+            var formattedMsg = string.Format (message, formatParams);
+            var dm = currentDebugMetadata;
+
+            if (dm != null) {
+                message = string.Format ("Runtime error in {0} line {1}: {2}", dm.fileName, dm.lineNumber, formattedMsg);
+            } else {
+                message = "Runtime error: "+formattedMsg;
+            }
+
+            throw new System.Exception (message);
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)
@@ -396,12 +407,71 @@ namespace Inklewriter.Runtime
             }
         }
 
+        DebugMetadata currentDebugMetadata
+        {
+            get {
+                DebugMetadata dm;
+
+                // Try to get from the current path first
+                dm = DebugMetadataAtPath(currentPath);
+                if (dm != null) {
+                    return dm;
+                }
+
+                // Try last path
+                //if( _previousPath 
+                dm = DebugMetadataAtPath (_previousPath);
+                if (dm != null) {
+                    return dm;
+                }
+
+                // Move up callstack if possible
+                for (int i = _callStack.elements.Count - 1; i >= 0; --i) {
+                    var path = _callStack.elements [i].path;
+                    dm = DebugMetadataAtPath(path);
+                    if (dm != null) {
+                        return dm;
+                    }
+                }
+
+                // Current/previous path may not be valid if we've just had an error,
+                // or if we've simply run out of content.
+                // As a last resort, try to grab something from the output stream
+                for (int i = outputStream.Count - 1; i >= 0; --i) {
+                    var outputObj = outputStream [i];
+                    dm = outputObj.debugMetadata;
+                    if (dm != null) {
+                        return dm;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        DebugMetadata DebugMetadataAtPath(Path path)
+        {
+            if (path != null) {
+                var currentObj = ContentAtPath (path);
+                if (currentObj != null) {
+                    var dm = currentObj.debugMetadata;
+                    if (dm != null) {
+                        return dm;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private Container _rootContainer;
         private Path _divertedPath;
             
         private CallStack _callStack;
 
         private List<Runtime.Object> _evaluationStack;
+
+        private Path _previousPath;
 
         private bool inExpressionEvaluation {
             get {
