@@ -33,7 +33,16 @@ namespace Inklewriter
             // VarKeyword includes trailing whitespace
             bool isNewDeclaration = VarKeyword ();
 
-            string varName = (string) Expect(Identifier, "variable name");
+            string varName = null;
+            if (isNewDeclaration) {
+                varName = (string)Expect (Identifier, "variable name");
+            } else {
+                varName = Identifier();
+            }
+
+            if (varName == null) {
+                return (Parsed.Object) FailRule ();
+            }
 
             Whitespace();
 
