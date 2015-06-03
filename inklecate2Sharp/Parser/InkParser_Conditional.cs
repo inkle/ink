@@ -30,6 +30,9 @@ namespace Inklewriter
             // Multiline innards
             else {
                 alternatives = MultilineConditionalBranches ();
+                if (alternatives == null) {
+                    return (Conditional) FailRule ();
+                }
 
                 if (initialQueryExpression != null) {
 
@@ -46,8 +49,22 @@ namespace Inklewriter
                             branch.boolRequired = i == 0 ? true : false;
                         }
                     }
+                } else {
+
+                    for (int i = 0; i < alternatives.Count - 1; ++i) {
+                        var alt = alternatives [i];
+                        if (alt.ownExpression == null) {
+                            Error ("in a multi-line condition that has no initial condition, you need a condition on the branches themselves (except the last, which can be an 'else' clause)");
+                        }
+                    }
+
+                    if (alternatives.Count == 1 && alternatives [0].ownExpression == null) {
+                        Error ("condition block with no actual conditions");
+                    }
+                    
                 }
             }
+
 
             // TODO: Come up with water-tight error conditions... it's quite a flexible system!
             // e.g.
@@ -90,7 +107,12 @@ namespace Inklewriter
 
         protected List<ConditionalSingleBranch> MultilineConditionalBranches()
         {
-            return OneOrMore (SingleMultilineCondition).Cast<ConditionalSingleBranch>().ToList();
+            List<object> multipleConditions = OneOrMore (SingleMultilineCondition);
+            if (multipleConditions == null) {
+                return null;
+            } else {
+                return multipleConditions.Cast<ConditionalSingleBranch>().ToList();
+            }
         }
 
         protected ConditionalSingleBranch SingleMultilineCondition()

@@ -45,10 +45,13 @@
 
 ~ testX()
 
-~ x = 12
+~ x = 15
 
 ~ testX()
 
+~ x = 25
+
+~ testX()
 
 == testX ==
 
@@ -63,7 +66,10 @@
     - 7: seven
     - 8: eight
     - 9: nine
-    - lots
+    - {
+        - x >= 10 and x < 20: teens
+        - lots
+    }
 }
 
 

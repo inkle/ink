@@ -17,9 +17,12 @@ namespace Inklewriter.Parsed
             }
 
             this.branches = branches;
-            foreach (var branch in this.branches) {
-                branch.parent = this;
+            if (this.branches != null) {
+                foreach (var branch in this.branches) {
+                    branch.parent = this;
+                }
             }
+
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
