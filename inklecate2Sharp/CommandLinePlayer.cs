@@ -87,20 +87,25 @@ namespace Inklewriter
                             parsedObj.ResolveReferences(parsedStory);
                             var runtimeObj = parsedObj.runtimeObject;
 
-                            // Divert
-                            if( evaluatedInput is Parsed.Divert ) {
-                                userDivertedPath = ((Parsed.Divert)evaluatedInput).runtimeDivert.targetPath;
-                            }
+                            if( !parsedStory.hadError ) {
 
-                            // Expression or variable assignment
-                            else if( evaluatedInput is Parsed.Expression || evaluatedInput is Parsed.VariableAssignment ) {
-                                var result = story.EvaluateExpression((Container)runtimeObj);
-                                if( result != null ) {
-                                    Console.WriteLine(result);
+                                // Divert
+                                if( evaluatedInput is Parsed.Divert ) {
+                                    userDivertedPath = ((Parsed.Divert)evaluatedInput).runtimeDivert.targetPath;
                                 }
-                            }
-                        }
 
+                                // Expression or variable assignment
+                                else if( evaluatedInput is Parsed.Expression || evaluatedInput is Parsed.VariableAssignment ) {
+                                    var result = story.EvaluateExpression((Container)runtimeObj);
+                                    if( result != null ) {
+                                        Console.WriteLine(result);
+                                    }
+                                }
+                            } else {
+                                parsedStory.ResetError();
+                            }
+
+                        }
 
                         else {
                             Console.WriteLine ("Unexpected input. Type 'help' or a choice number.");

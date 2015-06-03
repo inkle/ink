@@ -20,46 +20,19 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            bool resolved = false;
+            Parsed.FlowBase foundFlowForReadCount = null;
 
-            List<string> searchedLocations = new List<string> ();
+            if (context.ResolveVariableWithName (this.name, 
+                out foundFlowForReadCount, 
+                fromNode:this, 
+                allowReadCounts:true, 
+                reportErrors:true)) {
 
-            var ancestor = this.parent;
-            while (ancestor != null) {
-
-                if (ancestor is FlowBase) {
-                    var ancestorFlow = (FlowBase)ancestor;
-                    if (ancestorFlow.name != null) {
-                        searchedLocations.Add ("'"+ancestorFlow.name+"'");
-                    }
-                    if( ancestorFlow.HasVariableWithName(this.name, true, false) ) {
-                        resolved = true;
-                        break;
-                    }
-                    var content = ancestorFlow.ContentWithNameAtLevel (this.name);
-                    if (content != null) {
-                        var namedContent = (FlowBase)content;
-
-                        // Update the name using the *full* name of the content
-                        this.name = namedContent.dotSeparatedFullName;
-                        _runtimeVarRef.name = this.name;
-
-                        resolved = true;
-                        break;
-                    }
+                // Resolving a read count of a piece of flow?
+                // Update to use the full name of that flow rather than the local name
+                if (foundFlowForReadCount != null) {
+                    _runtimeVarRef.name = this.name = foundFlowForReadCount.dotSeparatedFullName;
                 }
-
-                ancestor = ancestor.parent;
-            }
-
-            if ( !resolved ) {
-                var locationsStr = "";
-                if (searchedLocations.Count > 0) {
-                    var locationsListStr = string.Join (", ", searchedLocations);
-                    locationsStr = " in " + locationsListStr + " or globally";
-                }
-                string.Join (", ", searchedLocations);
-                context.Error ("variable '" + this.name + "' not found"+locationsStr, this);
             }
         }
 

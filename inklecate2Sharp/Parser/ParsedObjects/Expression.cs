@@ -93,6 +93,57 @@ namespace Inklewriter.Parsed
             innerExpression.ResolveReferences (context);
         }
 	}
+
+    public class IncDecExpression : Expression
+    {
+        public string varName;
+        public bool isInc;
+
+        public IncDecExpression(string varName, bool isInc)
+        {
+            this.varName = varName;
+            this.isInc = isInc;
+        }
+
+        public override void GenerateIntoContainer(Runtime.Container container)
+        {
+            // x = x + 1
+            // ^^^ ^ ^ ^
+            //  4  1 3 2
+            // Reverse polish notation: (x 1 +) (assign to x)
+
+            // 1.
+            container.AddContent (new Runtime.VariableReference (varName));
+
+            // 2.
+            container.AddContent (new Runtime.LiteralInt (isInc ? 1 : -1));
+
+            // 3.
+            container.AddContent (Runtime.NativeFunctionCall.CallWithName ("+"));
+
+            // 4.
+            container.AddContent (new Runtime.VariableAssignment (varName, false));
+
+            // Finally, leave the variable on the stack so it can be used as a sub-expression
+            container.AddContent (new Runtime.VariableReference (varName));
+        }
+
+        public override void ResolveReferences (Story context)
+        {
+            if (!context.HasVariableWithName (varName, allowReadCounts: false)) {
+                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"'");
+            }
+        }
+
+        string incrementDecrementWord {
+            get {
+                if (isInc)
+                    return "increment";
+                else
+                    return "decrement";
+            }
+        }
+    }
         
 }
 

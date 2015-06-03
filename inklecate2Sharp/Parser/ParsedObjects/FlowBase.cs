@@ -60,17 +60,73 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public virtual bool HasVariableWithName(string varName, bool allowReadCounts = true, bool searchAncestors=false)
+        public bool ResolveVariableWithName(string varName, out Parsed.FlowBase foundFlow, Parsed.Object fromNode, bool allowReadCounts, bool reportErrors)
+        {
+            foundFlow = null;
+
+            if (fromNode == null) {
+                fromNode = this;
+            }
+                
+            List<string> searchedLocationsForErrorReport = null;
+            if (reportErrors) {
+                searchedLocationsForErrorReport = new List<string> ();
+            }
+
+            var ancestor = fromNode;
+            while (ancestor != null) {
+
+                if (ancestor is FlowBase) {
+                    var ancestorFlow = (FlowBase)ancestor;
+
+                    if (reportErrors && ancestorFlow.name != null) {
+                        searchedLocationsForErrorReport.Add ("'"+ancestorFlow.name+"'");
+                    }
+
+                    if( ancestorFlow.HasOwnVariableWithName(varName, allowReadCounts) ) {
+                        return true;
+                    }
+
+                    if (allowReadCounts) {
+                        var content = ancestorFlow.ContentWithNameAtLevel (varName);
+                        if (content != null) {
+                            foundFlow = (FlowBase) content;
+                            return true;
+                        }
+                    }
+
+                }
+
+                ancestor = ancestor.parent;
+            }
+
+            if (reportErrors) {
+                var locationsStr = "";
+                if (searchedLocationsForErrorReport.Count > 0) {
+                    var locationsListStr = string.Join (", ", searchedLocationsForErrorReport);
+                    locationsStr = " in " + locationsListStr + " or globally";
+                }
+                string.Join (", ", searchedLocationsForErrorReport);
+                Error ("variable '" + varName + "' not found"+locationsStr, fromNode);
+            }
+
+            return false;
+        }
+
+        public bool HasVariableWithName(string varName, bool allowReadCounts = true)
+        {
+            // Search full tree
+            Parsed.FlowBase unusedFoundFlow = null;
+            return ResolveVariableWithName (varName, out unusedFoundFlow, this, allowReadCounts, reportErrors:false);
+        }
+
+        public virtual bool HasOwnVariableWithName(string varName, bool allowReadCounts = true)
         {
             if (variableDeclarations.ContainsKey (varName))
                 return true;
 
             if (this.parameterNames != null && this.parameterNames.Contains (varName))
                 return true;
-
-            if (searchAncestors && this.parent != null ) {
-                return ((FlowBase)this.parent).HasVariableWithName (varName, allowReadCounts, searchAncestors);
-            }
 
             return false;
         }

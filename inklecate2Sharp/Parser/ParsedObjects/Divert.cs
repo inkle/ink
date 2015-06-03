@@ -101,7 +101,7 @@ namespace Inklewriter.Parsed
                 var variableTargetName = PathAsVariableName ();
                 if (variableTargetName != null) {
                     var flowBaseScope = ClosestFlowBase ();
-                    if (flowBaseScope.HasVariableWithName (variableTargetName, allowReadCounts:false, searchAncestors: true)) {
+                    if (flowBaseScope.HasVariableWithName (variableTargetName, allowReadCounts:false)) {
                         runtimeDivert.variableDivertName = variableTargetName;
                         return;
                     }

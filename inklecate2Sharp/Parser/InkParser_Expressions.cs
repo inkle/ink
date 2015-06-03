@@ -160,14 +160,14 @@ namespace Inklewriter
 		{
 			BeginRule ();
 
-            var unaryOp = (string) OneOf (String ("-"), String ("!"));
+            var prefixOp = (string) OneOf (String ("-"), String ("!"));
 
 			Whitespace ();
 
             var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionDivertTarget, ExpressionFunctionCall, ExpressionVariableName) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
-            if (expr == null && unaryOp != null) {
+            if (expr == null && prefixOp != null) {
                 expr = ExpressionUnary ();
             }
 
@@ -175,9 +175,26 @@ namespace Inklewriter
 				return FailRule () as Expression;
 			}
 
-            if (unaryOp != null) {
-                expr = new UnaryExpression (expr, unaryOp);
+            if (prefixOp != null) {
+                expr = new UnaryExpression (expr, prefixOp);
 			}
+
+            Whitespace ();
+
+            var postfixOp = (string) OneOf (String ("++"), String ("--"));
+            if (postfixOp != null) {
+                bool isInc = postfixOp == "++";
+
+                if (!(expr is VariableReference)) {
+                    Error ("can only increment and decrement variables, but saw '" + expr + "'");
+
+                    // Drop down and succeed without the increment after reporting error
+                } else {
+                    var varRef = (VariableReference)expr;
+                    expr = new IncDecExpression(varRef.name, isInc);
+                }
+
+            }
 
 			return SucceedRule (expr) as Expression;
 		}

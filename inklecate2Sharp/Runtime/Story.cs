@@ -385,7 +385,7 @@ namespace Inklewriter.Runtime
             if (currentPath != null) {
                 currentObj = ContentAtPath (currentPath);
             }
-            _rootContainer.BuildStringOfHierarchy (sb, 0, currentObj);
+            rootContainer.BuildStringOfHierarchy (sb, 0, currentObj);
 
             return sb.ToString ();
         }

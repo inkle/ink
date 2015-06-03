@@ -31,6 +31,12 @@ namespace Inklewriter.Parsed
         public override void ResolveReferences (Story context)
         {
             expression.ResolveReferences (context);
+
+            if (!this.isNewDeclaration) {
+                if (!context.HasVariableWithName (this.variableName, allowReadCounts:false)) {
+                    Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
+                }
+            }
         }
     }
 }

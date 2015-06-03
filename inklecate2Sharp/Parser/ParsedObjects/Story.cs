@@ -8,6 +8,7 @@ namespace Inklewriter.Parsed
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
         public List<string> allKnotAndStitchNames { get { return _allKnotAndStitchNames; } }
+        public bool hadError { get; protected set; }
 
         public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
@@ -86,7 +87,7 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public override bool HasVariableWithName(string varName, bool allowReadCounts = true, bool searchAncestors=false)
+        public override bool HasOwnVariableWithName(string varName, bool allowReadCounts = true)
         {
             if (allowReadCounts) {
                 if (_allKnotAndStitchNames.Contains (varName)) {
@@ -94,7 +95,7 @@ namespace Inklewriter.Parsed
                 }
             }
 
-            return base.HasVariableWithName (varName, allowReadCounts, searchAncestors);
+            return base.HasOwnVariableWithName (varName, allowReadCounts);
         }
 
 		public Runtime.Story ExportRuntime()
@@ -121,7 +122,7 @@ namespace Inklewriter.Parsed
 			ResolveReferences (this);
 
 			// Don't successfully return the object if there was an error
-			if (_criticalError) {
+            if (hadError) {
 				return null;
 			}
 
@@ -157,10 +158,14 @@ namespace Inklewriter.Parsed
                 sb.Append (" on line "+source.debugMetadata.lineNumber);
             }
             Console.WriteLine (sb.ToString());
-			_criticalError = true;
+            hadError = true;
 		}
 
-		private bool _criticalError;
+        public void ResetError()
+        {
+            hadError = false;
+        }
+
         List<string> _allKnotAndStitchNames;
 	}
 }
