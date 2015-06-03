@@ -11,6 +11,7 @@ namespace Inklewriter.Runtime
             EvalEnd,
             StackPush,
             StackPop,
+            Duplicate,
             NoOp
         }
 
@@ -39,6 +40,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand StackPop() {
             return new ControlCommand(CommandType.StackPop);
+        }
+
+        public static ControlCommand Duplicate() {
+            return new ControlCommand(CommandType.Duplicate);
         }
 
         public static ControlCommand NoOp() {

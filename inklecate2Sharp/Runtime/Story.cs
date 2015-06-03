@@ -96,7 +96,7 @@ namespace Inklewriter.Runtime
                         
                         // Expression evaluation content
                         if( inExpressionEvaluation ) {
-                            _evaluationStack.Add(currentContentObj);
+                            PushEvaluationStack(currentContentObj);
                         }
 
                         // Output stream content (i.e. not expression evaluation)
@@ -231,6 +231,10 @@ namespace Inklewriter.Runtime
 
                 case ControlCommand.CommandType.NoOp:
                     break;
+
+                case ControlCommand.CommandType.Duplicate:
+                    PushEvaluationStack (PeekEvaluationStack ());
+                    break;
                 }
 
                 return true;
@@ -339,6 +343,11 @@ namespace Inklewriter.Runtime
 
         }
 
+        protected void PushEvaluationStack(Runtime.Object obj)
+        {
+            _evaluationStack.Add(obj);
+        }
+
         protected Runtime.Object PopEvaluationStack()
         {
             var obj = _evaluationStack.Last ();
@@ -346,9 +355,14 @@ namespace Inklewriter.Runtime
             return obj;
         }
 
+        protected Runtime.Object PeekEvaluationStack()
+        {
+            return _evaluationStack.Last ();
+        }
+
         protected List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
         {
-            
+            Assert (numberOfObjects <= _evaluationStack.Count, "trying to pop too many objects");
             var popped = _evaluationStack.GetRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
             _evaluationStack.RemoveRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
             return popped;
@@ -424,7 +438,7 @@ namespace Inklewriter.Runtime
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it
                     if (inExpressionEvaluation) {
-                        _evaluationStack.Add (new Runtime.Void());
+                        PushEvaluationStack (new Runtime.Void ());
                     }
 
 					// Step past the point where we last called out
@@ -447,6 +461,7 @@ namespace Inklewriter.Runtime
             }
 
             throw new System.Exception (message);
+            // BuildStringOfHierarchy
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)

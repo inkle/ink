@@ -7,7 +7,7 @@ namespace Inklewriter.Runtime
         public Divert trueDivert { get; }
         public Divert falseDivert { get; }
 
-        public Branch (Divert trueDivert, Divert falseDivert = null)
+        public Branch (Divert trueDivert = null, Divert falseDivert = null)
         {
             this.trueDivert = trueDivert;
             this.falseDivert = falseDivert;

@@ -98,6 +98,8 @@
     <Compile Include="Parser\ParsedObjects\IncludedFile.cs" />
     <Compile Include="Runtime\DebugMetadata.cs" />
     <Compile Include="Parser\InkParser_CommandLineInput.cs" />
+    <Compile Include="Parser\InkParser_Conditional.cs" />
+    <Compile Include="Parser\ParsedObjects\ConditionalSingleBranch.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

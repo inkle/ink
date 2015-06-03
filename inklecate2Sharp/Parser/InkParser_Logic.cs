@@ -150,67 +150,6 @@ namespace Inklewriter
             return (Parsed.Object) OneOf (InnerConditionalContent, InnerExpression);
         }
 
-        protected Conditional InnerConditionalContent()
-        {
-            BeginRule ();
-
-            var expr = Expression ();
-            if (expr == null) {
-                return (Conditional) FailRule ();
-            }
-
-            Whitespace ();
-
-            if (ParseString (":") == null)
-                return (Conditional) FailRule ();
-
-            List<List<Parsed.Object>> alternatives;
-
-            // Multi-line conditional
-            if (Newline () != null) {
-                alternatives = (List<List<Parsed.Object>>) Expect (MultilineConditionalOptions, "conditional branches on following lines");
-            } 
-
-            // Inline conditional
-            else {
-                alternatives = Interleave<List<Parsed.Object>>(MixedTextAndLogic, Exclude (String ("|")), flatten:false);
-            }
-
-            if (alternatives == null || alternatives.Count < 1 || alternatives.Count > 2) {
-                Error ("Expected one or two alternatives separated by '|' in inline conditional");
-                return (Conditional)FailRule ();
-            }
-
-            List<Parsed.Object> contentIfTrue = alternatives [0];
-            List<Parsed.Object> contentIfFalse = null;
-            if (alternatives.Count > 1) {
-                contentIfFalse = alternatives [1];
-            }
-
-            var cond = new Conditional (expr, contentIfTrue, contentIfFalse);
-
-            return (Conditional) SucceedRule(cond);
-        }
-
-        protected List<List<Parsed.Object>> MultilineConditionalOptions()
-        {
-            return OneOrMore (IndividualConditionBranchLine).Cast<List<Parsed.Object>>().ToList();
-        }
-
-        protected List<Parsed.Object> IndividualConditionBranchLine()
-        {
-            BeginRule ();
-
-            Whitespace ();
-
-            if (ParseString ("-") == null)
-                return (List<Parsed.Object>) FailRule ();
-
-            List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
-
-            return (List<Parsed.Object>) SucceedRule (content);
-        }
-
         protected Parsed.Object InnerExpression()
         {
             var expr = Expression ();
