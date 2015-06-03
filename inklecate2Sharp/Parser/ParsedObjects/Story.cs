@@ -149,13 +149,14 @@ namespace Inklewriter.Parsed
             base.OnRuntimeGenerationDidStart(container);
         }
 
+
 		public override void Error(string message, Parsed.Object source)
 		{
             var sb = new StringBuilder ();
             sb.Append ("ERROR: ");
             sb.Append (message);
             if (source != null && source.debugMetadata != null && source.debugMetadata.lineNumber >= 1 ) {
-                sb.Append (" on line "+source.debugMetadata.lineNumber);
+                sb.Append (" on "+source.debugMetadata.ToString());
             }
             Console.WriteLine (sb.ToString());
             hadError = true;

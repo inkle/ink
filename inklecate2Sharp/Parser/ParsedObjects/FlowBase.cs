@@ -36,10 +36,24 @@ namespace Inklewriter.Parsed
 
                 var varDecl = child as VariableAssignment;
                 if (varDecl != null && varDecl.isNewDeclaration) {
-                    variableDeclarations [varDecl.variableName] = varDecl;
+                    TryAddNewVariableDeclaration (varDecl);
                 }
 			}
 		}
+
+        public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
+        {
+            if (variableDeclarations.ContainsKey (varDecl.variableName)) {
+                Error("found declaration variable '"+varDecl.variableName+"' that was already declared", varDecl);
+
+                var debugMetadata = variableDeclarations [varDecl.variableName].debugMetadata;
+                if (debugMetadata != null) {
+                    Error ("(previous declaration: " + debugMetadata + ")");
+                }
+            }
+
+            variableDeclarations [varDecl.variableName] = varDecl;
+        }
 
         protected virtual void PreProcessTopLevelObjects(List<Parsed.Object> topLevelObjects)
         {

@@ -77,7 +77,7 @@ namespace Inklewriter
                             if( evaluatedInput is Parsed.VariableAssignment ) {
                                 var varAssign = (Parsed.VariableAssignment) evaluatedInput;
                                 if( varAssign.isNewDeclaration ) {
-                                    parsedStory.variableDeclarations[varAssign.variableName] = varAssign;
+                                    parsedStory.TryAddNewVariableDeclaration(varAssign);
                                 }
                             }
 

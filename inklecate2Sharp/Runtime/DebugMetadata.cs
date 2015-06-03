@@ -13,7 +13,12 @@ namespace Inklewriter.Runtime
 
         public override string ToString ()
         {
-            return string.Format ("Line {0} of {1}", lineNumber, fileName);
+            if (fileName != null) {
+                return string.Format ("line {0} of {1}", lineNumber, fileName);
+            } else {
+                return "line " + lineNumber;
+            }
+
         }
 	}
 }
