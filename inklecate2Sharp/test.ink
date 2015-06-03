@@ -51,6 +51,7 @@
 
 
 == testX ==
+
 {x:
     - 0: zero
     - 1: one
@@ -62,7 +63,7 @@
     - 7: seven
     - 8: eight
     - 9: nine
-    - x >= 10: lots
+    - lots
 }
 
 

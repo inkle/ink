@@ -33,10 +33,14 @@ namespace Inklewriter
 
                 if (initialQueryExpression != null) {
 
+                    bool earlierBranchesHaveOwnExpression = false;
                     for (int i = 0; i < alternatives.Count; ++i) {
                         var branch = alternatives [i];
                         if (branch.ownExpression != null) {
                             branch.shouldMatchEquality = true;
+                            earlierBranchesHaveOwnExpression = true;
+                        } else if (earlierBranchesHaveOwnExpression) {
+                            branch.alwaysMatch = true;
                         } else {
                             branch.isBoolCondition = true;
                             branch.boolRequired = i == 0 ? true : false;

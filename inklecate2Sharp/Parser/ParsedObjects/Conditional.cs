@@ -18,9 +18,6 @@ namespace Inklewriter.Parsed
 
             this.branches = branches;
             foreach (var branch in this.branches) {
-                if (condition != null) {
-                    branch.shouldMatchEquality = true;
-                }
                 branch.parent = this;
             }
         }

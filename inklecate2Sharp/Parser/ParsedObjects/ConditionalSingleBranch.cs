@@ -10,6 +10,7 @@ namespace Inklewriter.Parsed
         public bool boolRequired { get; set; }
         public Expression ownExpression { get; set; }
         public bool shouldMatchEquality { get; set; }
+        public bool alwaysMatch { get; set; } // used for else clause
         public Runtime.Divert returnDivert { get; protected set; }
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
@@ -33,7 +34,7 @@ namespace Inklewriter.Parsed
             // branch? If so, the first thing we need to do is replicate the value that's
             // on the evaluation stack so that we don't fully consume it, in case other
             // branches need to use it.
-            if (isBoolCondition || shouldMatchEquality) {
+            if ( (isBoolCondition || shouldMatchEquality) && !alwaysMatch ) {
                 container.AddContent (Runtime.ControlCommand.Duplicate ());
             }
 
@@ -49,15 +50,22 @@ namespace Inklewriter.Parsed
                 }
             } else {
 
-                if (ownExpression != null) {
-                    container.AddContent (Runtime.ControlCommand.EvalStart ());
-                    ownExpression.GenerateIntoContainer (container);
-                    container.AddContent (Runtime.ControlCommand.EvalEnd ());
-                }
+                bool needsEval = ownExpression != null || alwaysMatch;
 
-                if (shouldMatchEquality) {
+                if( needsEval )
+                    container.AddContent (Runtime.ControlCommand.EvalStart ());
+
+                if (ownExpression != null)
+                    ownExpression.GenerateIntoContainer (container);
+
+                if (shouldMatchEquality)
                     container.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
-                }
+
+                if (alwaysMatch)
+                    container.AddContent (new Runtime.LiteralInt (1));
+
+                if( needsEval ) 
+                    container.AddContent (Runtime.ControlCommand.EvalEnd ()); 
 
                 branch = new Runtime.Branch (trueDivert: _divertOnBranch);
             }
