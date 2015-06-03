@@ -37,6 +37,18 @@ namespace Inklewriter.Parsed
                     Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
                 }
             }
+
+            if (IsReservedKeyword (variableName)) {
+                Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
+            }
+        }
+
+        // TODO: Move this somewhere more general?
+        bool IsReservedKeyword(string name)
+        {
+            return name == "true" || name == "false" 
+                || name == "on"   || name == "off" 
+                || name == "yes"  || name == "no";
         }
     }
 }

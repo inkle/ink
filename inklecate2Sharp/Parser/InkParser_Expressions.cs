@@ -210,7 +210,7 @@ namespace Inklewriter
 
 		protected Expression ExpressionLiteral()
 		{
-            return (Expression) OneOf (ExpressionFloat, ExpressionInt);
+            return (Expression) OneOf (ExpressionFloat, ExpressionInt, ExpressionBool);
 		}
 
         protected Expression ExpressionDivertTarget()
@@ -249,6 +249,20 @@ namespace Inklewriter
             } else {
                 return new Number (floatOrNull.Value);
             }
+        }
+
+        protected Number ExpressionBool()
+        {
+            BeginRule ();
+
+            var id = Identifier ();
+            if (id == "true" || id == "yes" || id == "on") {
+                return (Number) SucceedRule(new Number (1));
+            } else if (id == "false" || id == "no" || id == "off") {
+                return (Number) SucceedRule(new Number (0));
+            }
+
+            return (Number) FailRule ();
         }
 
         protected Expression ExpressionFunctionCall()
