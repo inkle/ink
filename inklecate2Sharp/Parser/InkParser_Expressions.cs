@@ -171,6 +171,14 @@ namespace Inklewriter
 
             var prefixOp = (string) OneOf (String ("-"), String ("!"));
 
+            // Don't parse like the string rules above, in case its actually 
+            // a variable that simply starts with "not", e.g. "notable".
+            // This rule uses the Identifer rule, which will scan as much text
+            // as possible before returning.
+            if (prefixOp == null) {
+                prefixOp = ExpressionNot ();
+            }
+
 			Whitespace ();
 
             var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionDivertTarget, ExpressionFunctionCall, ExpressionVariableName) as Expression;
@@ -207,6 +215,18 @@ namespace Inklewriter
 
 			return SucceedRule (expr) as Expression;
 		}
+
+        protected string ExpressionNot()
+        {
+            BeginRule ();
+
+            var id = Identifier ();
+            if (id == "not") {
+                return (string) SucceedRule (id);
+            }
+
+            return (string) FailRule ();
+        }
 
 		protected Expression ExpressionLiteral()
 		{

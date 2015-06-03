@@ -22,8 +22,6 @@ namespace Inklewriter.Runtime
 
         public const string And      = "&&";
         public const string Or       = "||";
-        public const string AndWord  = "and";
-        public const string OrWord   = "or";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
@@ -139,9 +137,7 @@ namespace Inklewriter.Runtime
                 AddIntUnaryOp (Not,       x => (x == 0) ? 1 : 0); 
 
                 AddIntBinaryOp(And,      (x, y) => x != 0 && y != 0 ? 1 : 0);
-                AddIntBinaryOp(AndWord,  (x, y) => x != 0 && y != 0 ? 1 : 0);
                 AddIntBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
-                AddIntBinaryOp(OrWord,   (x, y) => x != 0 || y != 0 ? 1 : 0);
 
                 // Float operations
                 AddFloatBinaryOp(Add,      (x, y) => x + y);
@@ -159,9 +155,7 @@ namespace Inklewriter.Runtime
                 AddFloatUnaryOp (Not,       x => (x == 0.0f) ? (int)1 : (int)0); 
 
                 AddFloatBinaryOp(And,      (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
-                AddFloatBinaryOp(AndWord,  (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
                 AddFloatBinaryOp(Or,       (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
-                AddFloatBinaryOp(OrWord,   (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
 
             }
         }

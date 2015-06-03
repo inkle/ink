@@ -52,6 +52,9 @@ namespace Inklewriter.Parsed
 		{
 			leftExpression.GenerateIntoContainer (container);
 			rightExpression.GenerateIntoContainer (container);
+
+            opName = NativeNameForOp (opName);
+
             container.AddContent(Runtime.NativeFunctionCall.CallWithName(opName));
 		}
 
@@ -59,6 +62,15 @@ namespace Inklewriter.Parsed
         {
             leftExpression.ResolveReferences (context);
             rightExpression.ResolveReferences (context);
+        }
+
+        string NativeNameForOp(string opName)
+        {
+            if (opName == "and")
+                return "&&";
+            if (opName == "or")
+                return "||";
+            return opName;
         }
 	}
 
@@ -78,19 +90,23 @@ namespace Inklewriter.Parsed
 		{
 			innerExpression.GenerateIntoContainer (container);
 
-            string nativeOp = this.op;
-
-            // Replace "-" with "~" to make it unique
-            if (this.op == "-") {
-                nativeOp = Runtime.NativeFunctionCall.Negate;
-            }
-            
+            string nativeOp = NativeNameForOp(this.op);
             container.AddContent(Runtime.NativeFunctionCall.CallWithName(nativeOp));
 		}
 
         public override void ResolveReferences (Story context)
         {
             innerExpression.ResolveReferences (context);
+        }
+
+        string NativeNameForOp(string opName)
+        {
+            // Replace "-" with "~" to make it unique
+            if (opName == "-")
+                return "~";
+            if (opName == "not")
+                return "!";
+            return opName;
         }
 	}
 
