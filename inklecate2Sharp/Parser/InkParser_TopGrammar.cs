@@ -256,7 +256,7 @@ namespace Inklewriter
 			// attempt to parse the nonTextRule.
 			// "-": possible start of divert or start of gather
 			if (_nonTextPauseCharacters == null) {
-				_nonTextPauseCharacters = new CharacterSet ("-");
+				_nonTextPauseCharacters = new CharacterSet ("-:");
 			}
 
 			// If we hit any of these characters, we stop *immediately* without bothering to even check the nonTextRule
@@ -267,7 +267,7 @@ namespace Inklewriter
 			}
 
 			// When the ParseUntil pauses, check these rules in case they evaluate successfully
-			ParseRule nonTextRule = () => OneOf (DivertArrow, EndOfLine);
+			ParseRule nonTextRule = () => OneOf (DivertArrow, EndOfLine, Glue);
 			
 			string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
 			if (pureTextContent != null ) {

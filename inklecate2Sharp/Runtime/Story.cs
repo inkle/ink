@@ -101,7 +101,7 @@ namespace Inklewriter.Runtime
 
                         // Output stream content (i.e. not expression evaluation)
                         else {
-                            outputStream.Add(currentContentObj);
+                            PushToOutputStream(currentContentObj);
                         }
                     }
 
@@ -341,6 +341,85 @@ namespace Inklewriter.Runtime
                 return null;
             }
 
+        }
+
+        protected void PushToOutputStream(Runtime.Object obj)
+        {
+            // Glue: absorbs newlines both before and after it,
+            // causing two piece of inline text to stay on the same line.
+            bool outputStreamEndsInGlue = false;
+            if (outputStream.Count > 0) {
+                outputStreamEndsInGlue = outputStream.Last () is Glue;
+            }
+
+            if (obj is Text) {
+                var text = (Text)obj;
+
+                bool canAppendNewline = !outputStreamEndsInNewline && !outputStreamEndsInGlue;
+
+                // Newline: don't allow more than one
+                if (text.text == "\n") {
+                    if( !canAppendNewline )
+                        return;
+                } 
+
+                // General text: 
+                else {
+
+                    // Remove newlines from start, and add as a single newline Text
+                    var lengthBeforeTrim = text.text.Length;
+                    var trimmedText = text.text.TrimStart ('\n');
+                    if (trimmedText.Length != lengthBeforeTrim && canAppendNewline) {
+                        outputStream.Add(new Text ("\n"));
+                    }
+
+                    // Remove newlines from end
+                    lengthBeforeTrim = trimmedText.Length;
+                    trimmedText = text.text.TrimEnd ('\n');
+
+                    // Anything left or was it just pure newlines?
+                    if (trimmedText.Length > 0) {
+                        
+                        // Add main text to output stream
+                        outputStream.Add(new Text (trimmedText));
+
+                        // Add single trailing newline if necessary
+                        if (trimmedText.Length != lengthBeforeTrim) {
+                            outputStream.Add(new Text ("\n"));
+                        }
+                    }
+                        
+                    return;
+                }
+
+            } 
+
+            // New glue: remove any existing trailing newline from output stream
+            else if (obj is Glue) {
+                if (outputStreamEndsInNewline) {
+                    outputStream.RemoveAt (outputStream.Count - 1);
+                }
+            }
+
+            // Only remove an existing glue if we're definitely now
+            // adding something new on top, since it's served its purpose.
+            if( outputStreamEndsInGlue ) 
+                outputStream.RemoveAt (outputStream.Count - 1);
+            
+            outputStream.Add(obj);
+        }
+
+        bool outputStreamEndsInNewline {
+            get {
+                if (outputStream.Count > 0) {
+                    var text = outputStream.Last () as Text;
+                    if (text != null) {
+                        return text.text == "\n";
+                    }
+                }
+
+                return false;
+            }
         }
 
         protected void PushEvaluationStack(Runtime.Object obj)

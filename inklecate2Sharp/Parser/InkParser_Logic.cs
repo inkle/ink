@@ -106,7 +106,9 @@ namespace Inklewriter
 
             // Last object in line wasn't text (but some kind of logic), so
             // we need to append the newline afterwards using a new object
-            // TODO: Under what conditions should we NOT do this?
+            // If we end up generating multiple newlines (e.g. due to conditional
+            // logic), we rely on the runtime to absorb them.
+            // TODO: Is there some more clever logic we can do here?
             else {
                 result.Add (new Text ("\n"));
             }
@@ -119,7 +121,24 @@ namespace Inklewriter
         protected List<Parsed.Object> MixedTextAndLogic()
         {
             // Either, or both interleaved
-            return Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogic));
+            return Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
+        }
+
+        protected Parsed.Object InlineLogicOrGlue()
+        {
+            return (Parsed.Object) OneOf (InlineLogic, Glue);
+        }
+
+        protected Parsed.Object<Runtime.Glue> Glue()
+        {
+            // Don't want to parse whitespace, since it might be important
+            // surrounding the glue.
+            var glueStr = ParseString("::");
+            if (glueStr != null) {
+                return new Parsed.Object<Runtime.Glue> ();
+            } else {
+                return null;
+            }
         }
 
         protected Parsed.Object InlineLogic()

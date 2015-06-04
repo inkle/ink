@@ -25,7 +25,7 @@
 }
 
 {
-    - true: do this
+    - true: do this ::
     - false: don't do this
 }
 
