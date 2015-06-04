@@ -156,8 +156,6 @@ namespace Inklewriter.Parsed
             // their divert paths in ResolveReferences
             this._allGatheredLooseEnds = new List<GatheredLooseEnd> ();
 
-            bool foundFirstKnotStitchOrWeave = false;
-
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
             //    or any weave content is added to the main content container
@@ -178,7 +176,7 @@ namespace Inklewriter.Parsed
                     var childFlow = (FlowBase)obj;
 
                     // First inner knot/stitch - automatically step into it
-                    if (!foundFirstKnotStitchOrWeave && !childFlow.hasParameters) {
+                    if (contentIdx == 0 && !childFlow.hasParameters) {
                         container.AddContent (childFlow.runtimeObject);
                     } 
 
@@ -187,16 +185,12 @@ namespace Inklewriter.Parsed
                     else {
                         container.AddToNamedContentOnly ((Runtime.INamedContent) childFlow.runtimeObject);
                     }
-
-                    foundFirstKnotStitchOrWeave = true;
                 }
 
                 // Choices and Gathers: Process as blocks of weave-like content
                 else if (obj is IWeavePoint) {
                     var result = GenerateWeaveBlockRuntime (ref contentIdx, indentIndex: 0);
                     container.AddContent (result.rootContainer);
-
-                    foundFirstKnotStitchOrWeave = true;
                 } 
 
                 // Normal content (defined at start)
