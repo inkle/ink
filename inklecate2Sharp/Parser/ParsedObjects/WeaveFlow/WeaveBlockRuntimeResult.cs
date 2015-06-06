@@ -35,12 +35,22 @@ namespace Inklewriter.Parsed
 
             if (gather.name == null) {
                 // Use disallowed character so it's impossible to have a name collision
-                gatherContainer.name = "-" + _unnamedGatherCount;
+                gatherContainer.name = "g-" + _unnamedGatherCount;
                 _unnamedGatherCount++;
             }
 
             // Consume loose ends: divert them to this gather
             foreach (IWeavePoint looseEnd in looseEnds) {
+
+                // Skip gather loose ends that are at the same level
+                // since they'll be handled by the auto-enter code below
+                // that only jumps into the gather if (current runtime choices == 0)
+                if (looseEnd is Gather) {
+                    var prevGather = (Gather)looseEnd;
+                    if (prevGather.indentationDepth == gather.indentationDepth) {
+                        continue;
+                    }
+                }
 
                 var divert = new Runtime.Divert ();
                 looseEnd.runtimeContainer.AddContent (divert);
@@ -54,17 +64,30 @@ namespace Inklewriter.Parsed
 
             // Finally, add this gather to the main content, but only accessible
             // by name so that it isn't stepped into automatically, but only via
-            // a divert from a loose end
-            if (currentContainer.content.Count == 0) {
-                currentContainer.AddContent (gatherContainer);
-            } else {
-                currentContainer.AddToNamedContentOnly (gatherContainer);
-            }
+            // a divert from a loose end.
+            // However, at runtime, we detect whether there are no choices that
+            // have been generated at this point, and if so, divert straight
+            // into the gather.
+
+            // (num choices == 0)?
+            currentContainer.AddContent(Runtime.ControlCommand.EvalStart());
+            currentContainer.AddContent(Runtime.ControlCommand.ChoiceCount());
+            currentContainer.AddContent (new Runtime.LiteralInt (0));
+            currentContainer.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
+            currentContainer.AddContent(Runtime.ControlCommand.EvalEnd());
+
+            // Branch into gather if true
+            var autoEnterDivert = new Runtime.Divert ();
+            currentContainer.AddContent (new Runtime.Branch (autoEnterDivert));
+
+            // Ensure that the divert and gather have their references resolved
+            gatheredLooseEndDelegate (autoEnterDivert, gather);
+
+            // Gather content itself is accessible by name only
+            currentContainer.AddToNamedContentOnly (gatherContainer);
 
             // Replace the current container itself
             currentContainer = gatherContainer;
-
-            _latestLooseGather = gather;
         }
 
         public void AddWeavePoint(IWeavePoint weavePoint)
@@ -91,13 +114,6 @@ namespace Inklewriter.Parsed
                 }
             }
             previousWeavePoint = weavePoint;
-
-            // A gather stops becoming a loose end itself 
-            // once it gets a choice
-            if (_latestLooseGather != null && weavePoint is Choice) {
-                looseEnds.Remove (_latestLooseGather);
-                _latestLooseGather = null;
-            }
         }
 
         // Add nested block at a greater indentation level
@@ -174,7 +190,6 @@ namespace Inklewriter.Parsed
         IWeavePoint previousWeavePoint = null;
         bool addContentToPreviousWeavePoint = false;
 
-        Gather _latestLooseGather;
         int _unnamedGatherCount;
     }
 }

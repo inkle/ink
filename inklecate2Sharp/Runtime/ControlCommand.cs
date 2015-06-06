@@ -12,7 +12,8 @@ namespace Inklewriter.Runtime
             StackPush,
             StackPop,
             Duplicate,
-            NoOp
+            NoOp,
+            ChoiceCount
         }
 
         public CommandType commandType { get; protected set; }
@@ -48,6 +49,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand NoOp() {
             return new ControlCommand(CommandType.NoOp);
+        }
+
+        public static ControlCommand ChoiceCount() {
+            return new ControlCommand(CommandType.ChoiceCount);
         }
 
         public override string ToString ()

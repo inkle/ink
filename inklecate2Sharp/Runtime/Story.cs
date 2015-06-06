@@ -235,6 +235,11 @@ namespace Inklewriter.Runtime
                 case ControlCommand.CommandType.Duplicate:
                     PushEvaluationStack (PeekEvaluationStack ());
                     break;
+
+                case ControlCommand.CommandType.ChoiceCount:
+                    var choiceCount = currentChoices.Count;
+                    PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
+                    break;
                 }
 
                 return true;
