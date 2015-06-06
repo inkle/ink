@@ -9,7 +9,6 @@ namespace Inklewriter.Parsed
     public abstract class FlowBase : Parsed.Object, INamedContent
 	{
 		public string name { get; set; }
-		public List<Parsed.Object> content { get; protected set; }
         public List<string> parameterNames { get; protected set; }
         public bool hasParameters { get { return parameterNames != null && parameterNames.Count > 0; } }
         public Dictionary<string, VariableAssignment> variableDeclarations;

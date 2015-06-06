@@ -9,21 +9,14 @@ namespace Inklewriter.Parsed
 
         public Runtime.Container runtimeContainer { get { return (Runtime.Container) runtimeObject; } }
 
-        public List<Parsed.Object> content { get; protected set; }
-
         public Gather (string name, List<Parsed.Object> content, int indentationDepth)
         {
             this.name = name;
-            this.content = content;
             this.indentationDepth = indentationDepth;
-        }
 
-        public void AddNestedContent(Parsed.Object obj)
-        {
-            content.Add (obj);
-            obj.parent = this;
+            AddContent (content);
         }
-
+            
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();

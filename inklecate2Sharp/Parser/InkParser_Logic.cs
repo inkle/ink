@@ -88,8 +88,8 @@ namespace Inklewriter
             // Trim whitepace from start
             var firstText = result[0] as Text;
             if (firstText != null) {
-                firstText.content = firstText.content.TrimStart(' ', '\t');
-                if (firstText.content.Length == 0) {
+                firstText.text = firstText.text.TrimStart(' ', '\t');
+                if (firstText.text.Length == 0) {
                     result.RemoveAt (0);
                 }
             }
@@ -101,7 +101,7 @@ namespace Inklewriter
             var lastObj = result.Last ();
             if (lastObj is Text) {
                 var text = (Text)lastObj;
-                text.content = text.content.TrimEnd (' ', '\t') + "\n";
+                text.text = text.text.TrimEnd (' ', '\t') + "\n";
             } 
 
             // Last object in line wasn't text (but some kind of logic), so

@@ -4,16 +4,16 @@ namespace Inklewriter.Parsed
 {
 	public class Text : Parsed.Object
 	{
-		public string content { get; set; }
+		public string text { get; set; }
 
 		public Text (string str)
 		{
-			content = str;
+			text = str;
 		}
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
-			return new Runtime.Text(this.content);
+			return new Runtime.Text(this.text);
 		}
 	}
 }

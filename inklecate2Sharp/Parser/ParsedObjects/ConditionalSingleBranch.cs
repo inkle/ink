@@ -5,7 +5,6 @@ namespace Inklewriter.Parsed
 {
     public class ConditionalSingleBranch : Parsed.Object
     {
-        public List<Parsed.Object> content { get; protected set; }
         public bool isBoolCondition { get; set; }
         public bool boolRequired { get; set; }
         public Expression ownExpression { get; set; }
@@ -15,6 +14,7 @@ namespace Inklewriter.Parsed
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
         {
+            AddContent (content);
             this.content = content;
             foreach (var c in this.content) {
                 c.parent = this;

@@ -23,6 +23,7 @@ namespace Inklewriter.Parsed
         private Runtime.DebugMetadata _debugMetadata;
 
 		public Parsed.Object parent { get; set; }
+        public List<Parsed.Object> content { get; protected set; }
 
 		private Runtime.Object _runtimeObject;
 		public Runtime.Object runtimeObject
@@ -48,6 +49,23 @@ namespace Inklewriter.Parsed
         {
             get {
                 return runtimeObject.path;
+            }
+        }
+
+        public void AddContent(Parsed.Object subContent)
+        {
+            if (content == null) {
+                content = new List<Parsed.Object> ();
+            }
+
+            subContent.parent = this;
+            content.Add (subContent);
+        }
+
+        public void AddContent(List<Parsed.Object> listContent)
+        {
+            foreach (var obj in listContent) {
+                AddContent (obj);
             }
         }
 

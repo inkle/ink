@@ -26,8 +26,6 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public List<Parsed.Object> content { get { return _nestedContent; } }
-
         // Override runtimePath to point to the Choice's target content (after it's chosen),
         // as opposed to the default implementation which would point to the choice itself
         // (or it's outer container), which is what runtimeObject is.
@@ -58,16 +56,6 @@ namespace Inklewriter.Parsed
                 }
             }
 		}
-
-        public void AddNestedContent(Parsed.Object obj)
-        {
-            if (_nestedContent == null) {
-                _nestedContent = new List<Parsed.Object> ();
-            }
-
-            _nestedContent.Add (obj);
-            obj.parent = this;
-        }
 
 		public override Runtime.Object GenerateRuntimeObject ()
         {
@@ -126,8 +114,8 @@ namespace Inklewriter.Parsed
 
                     _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
 
-                    if (_nestedContent != null) {
-                        foreach(var nestedObj in _nestedContent) {
+                    if (content != null) {
+                        foreach(var nestedObj in content) {
 
                             // Explicit gather diverts aren't included since the
                             // weave generating algorithm adds another normal divert
@@ -183,15 +171,13 @@ namespace Inklewriter.Parsed
                 ResolveExplicitPathIfNecessary ();
             }
 
-            if (_nestedContent != null) {
-                foreach (var obj in _nestedContent) {
+            if (content != null) {
+                foreach (var obj in content) {
                     obj.ResolveReferences (context);
                 }
             }
 		}
-
-        List<Parsed.Object> _nestedContent;
-
+            
         Runtime.Choice _runtimeChoice;
         Runtime.Container _weaveContentContainer;
         Runtime.Container _weaveOuterContainer;

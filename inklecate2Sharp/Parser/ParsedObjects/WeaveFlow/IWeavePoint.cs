@@ -9,7 +9,7 @@ namespace Inklewriter.Parsed
         Runtime.Container runtimeContainer { get; }
         List<Parsed.Object> content { get; }
 
-        void AddNestedContent(Parsed.Object obj);
+        void AddContent(Parsed.Object obj);
     }
 }
 
