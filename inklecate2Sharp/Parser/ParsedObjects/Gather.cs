@@ -16,6 +16,11 @@ namespace Inklewriter.Parsed
 
             AddContent (content);
         }
+
+        public void AddContent(Parsed.Object obj)
+        {
+            base.AddContent (obj);
+        }
             
         public override Runtime.Object GenerateRuntimeObject ()
         {

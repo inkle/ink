@@ -40,11 +40,8 @@ namespace Inklewriter.Parsed
 
 		public BinaryExpression(Expression left, Expression right, string opName)
 		{
-			left.parent = this;
-			right.parent = this;
-
-			leftExpression = left;
-			rightExpression = right;
+            leftExpression = AddContent(left);
+            rightExpression = AddContent(right);
 			this.opName = opName;
 		}
 
@@ -57,12 +54,6 @@ namespace Inklewriter.Parsed
 
             container.AddContent(Runtime.NativeFunctionCall.CallWithName(opName));
 		}
-
-        public override void ResolveReferences (Story context)
-        {
-            leftExpression.ResolveReferences (context);
-            rightExpression.ResolveReferences (context);
-        }
 
         string NativeNameForOp(string opName)
         {
@@ -81,8 +72,7 @@ namespace Inklewriter.Parsed
 
         public UnaryExpression(Expression inner, string op)
 		{
-			inner.parent = this;
-			this.innerExpression = inner;
+            this.innerExpression = AddContent(inner);
             this.op = op;
 		}
 
@@ -93,11 +83,6 @@ namespace Inklewriter.Parsed
             string nativeOp = NativeNameForOp(this.op);
             container.AddContent(Runtime.NativeFunctionCall.CallWithName(nativeOp));
 		}
-
-        public override void ResolveReferences (Story context)
-        {
-            innerExpression.ResolveReferences (context);
-        }
 
         string NativeNameForOp(string opName)
         {

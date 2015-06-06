@@ -57,6 +57,11 @@ namespace Inklewriter.Parsed
             }
 		}
 
+        public void AddContent(Parsed.Object obj)
+        {
+            base.AddContent (obj);
+        }
+
 		public override Runtime.Object GenerateRuntimeObject ()
         {
             // Choice Text

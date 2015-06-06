@@ -52,7 +52,8 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public void AddContent(Parsed.Object subContent)
+        // Return the object so that method can be chained easily
+        public T AddContent<T>(T subContent) where T : Parsed.Object
         {
             if (content == null) {
                 content = new List<Parsed.Object> ();
@@ -60,6 +61,8 @@ namespace Inklewriter.Parsed
 
             subContent.parent = this;
             content.Add (subContent);
+
+            return subContent;
         }
 
         public void AddContent(List<Parsed.Object> listContent)
@@ -73,7 +76,11 @@ namespace Inklewriter.Parsed
 
         public virtual void ResolveReferences(Story context)
 		{
-
+            if (content != null) {
+                foreach(var obj in content) {
+                    obj.ResolveReferences (context);
+                }
+            }
 		}
 
         public FlowBase ClosestFlowBase()
