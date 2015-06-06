@@ -120,6 +120,60 @@ namespace Tests
             Assert.AreEqual (story.currentText, "true\ntrue\ntrue\ntrue\ntrue\n");
         }
 
+        [Test ()]
+        public void TestConditionalChoiceInWeave()
+        {
+            var storyStr =
+                @"
+== test ==
+- start
+ { 
+    - true: * go to a stitch => a_stitch
+ }
+- gather shouldn't be seen
+
+= a_stitch
+    result
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            // Extra newline is because there's a choice object sandwiched there,
+            // so it can't be absorbed :-/
+            Assert.AreEqual (story.currentText, "start\n\n");
+            Assert.AreEqual (story.currentChoices.Count, 1);
+
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual (story.currentText, "result\n");
+        }
+
+        [Test ()]
+        public void TestConditionalChoiceInWeave2()
+        {
+            var storyStr =
+                @"
+== test ==
+- start
+ { 
+    - false: * go to a stitch => a_stitch
+ }
+- gather should be seen
+
+= a_stitch
+    result
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            // Extra newline is because there's a choice object sandwiched there,
+            // so it can't be absorbed :-/
+            Assert.AreEqual (story.currentText, "start\ngather should be seen\n");
+            Assert.AreEqual (story.currentChoices.Count, 0);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
