@@ -38,17 +38,6 @@ namespace Inklewriter.Parsed
 
         }
 
-        public override void ResolveReferences (Story context)
-        {
-            // A gather can have null content, e.g. it's just purely a line with "-"
-            if (content == null)
-                return;
-                
-            foreach (var obj in content) {
-                obj.ResolveReferences (context);
-            }
-        }
-
     }
 }
 

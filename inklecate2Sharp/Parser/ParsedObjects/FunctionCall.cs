@@ -12,18 +12,13 @@ namespace Inklewriter.Parsed
         public FunctionCall (string functionName, List<Expression> arguments)
         {
             _proxyDivert = new Parsed.Divert(Path.ToAmbiguous(functionName), arguments);
-            _proxyDivert.parent = this;
             _proxyDivert.isFunctionCall = true;
+            AddContent (_proxyDivert);
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
             container.AddContent (_proxyDivert.runtimeObject);
-        }
-
-        public override void ResolveReferences (Story context)
-        {
-            _proxyDivert.ResolveReferences (context);
         }
 
         Parsed.Divert _proxyDivert;

@@ -20,6 +20,8 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
+            base.ResolveReferences (context);
+
             Parsed.FlowBase foundFlowForReadCount = null;
 
             if (context.ResolveVariableWithName (this.name, 

@@ -7,10 +7,9 @@ namespace Inklewriter.Parsed
         public Expression returnedExpression { get; protected set; }
 
         public Return (Expression returnedExpression)
-        {
-            this.returnedExpression = returnedExpression;
-            if (this.returnedExpression != null) {
-                this.returnedExpression.parent = this;
+        {            
+            if (returnedExpression != null) {
+                this.returnedExpression = AddContent(returnedExpression);
             }
         }
 
@@ -36,13 +35,6 @@ namespace Inklewriter.Parsed
             container.AddContent (Runtime.ControlCommand.StackPop()); 
 
             return container;
-        }
-
-        public override void ResolveReferences (Story context)
-        {
-            if (this.returnedExpression != null) {
-                this.returnedExpression.ResolveReferences (context);
-            }
         }
     }
 }

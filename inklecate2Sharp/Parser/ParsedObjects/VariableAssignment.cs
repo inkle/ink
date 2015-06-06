@@ -11,9 +11,8 @@ namespace Inklewriter.Parsed
         public VariableAssignment (string variableName, Expression assignedExpression, bool isNewDeclaration)
         {
             this.variableName = variableName;
-            this.expression = assignedExpression;
+            this.expression = AddContent(assignedExpression);
             this.isNewDeclaration = isNewDeclaration;
-            assignedExpression.parent = this;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -30,7 +29,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            expression.ResolveReferences (context);
+            base.ResolveReferences (context);
 
             if (!this.isNewDeclaration) {
                 if (!context.HasVariableWithName (this.variableName, allowReadCounts:false)) {
