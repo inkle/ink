@@ -24,15 +24,13 @@ namespace Inklewriter.Parsed
 
             PreProcessTopLevelObjects (topLevelObjects);
 
-			this.content = topLevelObjects;
+            AddContent(topLevelObjects);
 
             this.parameterNames = parameterNames;
 
             variableDeclarations = new Dictionary<string, VariableAssignment> ();
 
 			foreach (var child in this.content) {
-				child.parent = this;
-
                 var varDecl = child as VariableAssignment;
                 if (varDecl != null && varDecl.isNewDeclaration) {
                     TryAddNewVariableDeclaration (varDecl);
@@ -301,9 +299,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
 		{
-			foreach (Parsed.Object obj in content) {
-				obj.ResolveReferences (context); 
-			}
+            base.ResolveReferences (context);
 
             if (_allGatheredLooseEnds != null) {
                 foreach(GatheredLooseEnd looseEnd in _allGatheredLooseEnds) {

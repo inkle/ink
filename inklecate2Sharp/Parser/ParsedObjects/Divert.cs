@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Inklewriter.Parsed
 {
@@ -15,13 +16,9 @@ namespace Inklewriter.Parsed
         public Divert (Parsed.Path target, List<Expression> arguments = null)
 		{
 			this.target = target;
-
-            if (arguments != null) {
-                foreach (var expr in arguments) {
-                    expr.parent = this;
-                }
-            }
             this.arguments = arguments;
+
+            AddContent (arguments.Cast<Parsed.Object> ().ToList ());
 		}
 
         public Divert (Parsed.Object targetContent)
@@ -130,11 +127,8 @@ namespace Inklewriter.Parsed
                     
             }
 
-            if (arguments != null) {
-                foreach(var arg in arguments) {
-                    arg.ResolveReferences (context);
-                }
-            }
+            // Resolve children (arguments)
+            base.ResolveReferences (context);
 
 			if (targetContent != null) {
                 

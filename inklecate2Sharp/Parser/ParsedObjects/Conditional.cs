@@ -8,20 +8,20 @@ namespace Inklewriter.Parsed
     public class Conditional : Parsed.Object
     {
         public Expression initialCondition { get; }
-        public List<ConditionalSingleBranch> branches { 
-            get { 
-                return this.content.Cast<ConditionalSingleBranch> ().ToList (); 
-            }
-        }
+        public List<ConditionalSingleBranch> branches { get; }
         
         public Conditional (Expression condition, List<ConditionalSingleBranch> branches)
         {
             this.initialCondition = condition;
             if (this.initialCondition != null) {
-                this.initialCondition.parent = this;
+                AddContent (condition);
             }
 
-            AddContent (branches.Cast<Parsed.Object>().ToList());
+            this.branches = branches;
+            if (this.branches != null) {
+                AddContent (this.branches.Cast<Parsed.Object> ().ToList ());
+            }
+
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -34,8 +34,7 @@ namespace Inklewriter.Parsed
             }
 
             // Individual branches
-            foreach (var obj in content) {
-                var branch = (ConditionalSingleBranch)obj;
+            foreach (var branch in branches) {
                 var branchContainer = (Container) branch.runtimeObject;
                 container.AddContent (branchContainer);
             }
@@ -53,13 +52,9 @@ namespace Inklewriter.Parsed
 
             var pathToReJoin = _reJoinTarget.path;
 
-            foreach (var obj in content) {
-                var branch = (ConditionalSingleBranch)obj;
+            foreach (var branch in branches) {
                 branch.returnDivert.targetPath = pathToReJoin;
             }
-
-            if( initialCondition != null) 
-                initialCondition.ResolveReferences (context);
 
             base.ResolveReferences (context);
         }

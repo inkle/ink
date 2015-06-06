@@ -8,8 +8,7 @@ namespace Inklewriter.Parsed
 
         public DivertTarget (Divert divert)
         {
-            this.divert = divert;
-            this.divert.parent = this;
+            this.divert = AddContent(divert);
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
@@ -30,7 +29,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            divert.ResolveReferences (context);
+            base.ResolveReferences (context);
 
             _runtimeLiteralDivertTarget.divert = _runtimeDivert;
         }
