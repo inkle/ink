@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Inklewriter.Runtime;
 
 namespace Inklewriter.Parsed
@@ -7,7 +8,11 @@ namespace Inklewriter.Parsed
     public class Conditional : Parsed.Object
     {
         public Expression initialCondition { get; }
-        public List<ConditionalSingleBranch> branches { get; }
+        public List<ConditionalSingleBranch> branches { 
+            get { 
+                return this.content.Cast<ConditionalSingleBranch> ().ToList (); 
+            }
+        }
         
         public Conditional (Expression condition, List<ConditionalSingleBranch> branches)
         {
@@ -16,13 +21,7 @@ namespace Inklewriter.Parsed
                 this.initialCondition.parent = this;
             }
 
-            this.branches = branches;
-            if (this.branches != null) {
-                foreach (var branch in this.branches) {
-                    branch.parent = this;
-                }
-            }
-
+            AddContent (branches.Cast<Parsed.Object>().ToList());
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -35,7 +34,8 @@ namespace Inklewriter.Parsed
             }
 
             // Individual branches
-            foreach (var branch in branches) {
+            foreach (var obj in content) {
+                var branch = (ConditionalSingleBranch)obj;
                 var branchContainer = (Container) branch.runtimeObject;
                 container.AddContent (branchContainer);
             }
@@ -53,13 +53,15 @@ namespace Inklewriter.Parsed
 
             var pathToReJoin = _reJoinTarget.path;
 
-            foreach (var branch in branches) {
+            foreach (var obj in content) {
+                var branch = (ConditionalSingleBranch)obj;
                 branch.returnDivert.targetPath = pathToReJoin;
-                branch.ResolveReferences (context);
             }
 
             if( initialCondition != null) 
                 initialCondition.ResolveReferences (context);
+
+            base.ResolveReferences (context);
         }
             
         Runtime.ControlCommand _reJoinTarget;

@@ -176,11 +176,7 @@ namespace Inklewriter.Parsed
                 ResolveExplicitPathIfNecessary ();
             }
 
-            if (content != null) {
-                foreach (var obj in content) {
-                    obj.ResolveReferences (context);
-                }
-            }
+            base.ResolveReferences (context);
 		}
             
         Runtime.Choice _runtimeChoice;

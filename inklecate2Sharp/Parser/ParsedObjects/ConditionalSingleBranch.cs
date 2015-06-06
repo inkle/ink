@@ -15,10 +15,6 @@ namespace Inklewriter.Parsed
         public ConditionalSingleBranch (List<Parsed.Object> content)
         {
             AddContent (content);
-            this.content = content;
-            foreach (var c in this.content) {
-                c.parent = this;
-            }
         }
 
         // Runtime content can be summarised as follows:
@@ -106,11 +102,9 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            foreach (var c in this.content) {
-                c.ResolveReferences (context);
-            }
-
             _divertOnBranch.targetPath = _contentContainer.path;
+
+            base.ResolveReferences (context);
         }
 
         Runtime.Container _contentContainer;
