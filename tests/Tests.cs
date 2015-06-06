@@ -117,8 +117,7 @@ namespace Tests
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            // TODO: Fix whitespace!
-            Assert.AreEqual (story.currentText, "true\ntrue\n\ntrue\n\ntrue\n\n\ntrue\n\n");
+            Assert.AreEqual (story.currentText, "true\ntrue\ntrue\ntrue\ntrue\n");
         }
 
 		//------------------------------------------------------------------------
