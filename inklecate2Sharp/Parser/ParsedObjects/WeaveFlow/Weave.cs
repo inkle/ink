@@ -6,14 +6,23 @@ namespace Inklewriter.Parsed
 {
     // Used by the FlowBase when constructing the weave flow from
     // a flat list of content objects.
-    public class Weave
+    public class Weave : Parsed.Object
     {
         // Containers can be chained as multiple gather points
         // get created as the same indentation level.
         // rootContainer is always the first in the chain, while
         // currentContainer is the latest.
-        public Runtime.Container rootContainer { get; }
+        public Runtime.Container rootContainer { 
+            get {
+                if (_rootContainer == null) {
+                    GenerateRuntimeObject ();
+                }
+
+                return _rootContainer;
+            }
+        }
         public Runtime.Container currentContainer { get; private set; }
+        public int baseIndentIndex { get; }
 
         public List<IWeavePoint> looseEnds;
 
@@ -23,14 +32,69 @@ namespace Inklewriter.Parsed
             public Runtime.Divert divert;
             public Gather targetGather;
         }
-
-        // Given a list of content and a starting point, 
-        // Initially called from FlowBase's main GenerateRuntimeObject
-        // Generate a container of content for a particular indent level.
-        // Recursive for further indentation levels.
-        public Weave(List<Parsed.Object> content, ref int contentIdx, int indentIndex=0) 
+            
+        public Weave(List<Parsed.Object> cont, int indentIndex=0) 
         {
-            rootContainer = currentContainer = new Runtime.Container();
+            baseIndentIndex = indentIndex;
+
+            AddContent (cont);
+
+            ConstructWeaveHierarchyFromIndentation ();
+        }
+
+        void ConstructWeaveHierarchyFromIndentation()
+        {
+            // Find nested indentation and convert to a proper object hierarchy
+            // (i.e. indented content is replaced with a Weave object that contains
+            // that nested content)
+            int contentIdx = 0;
+            while (contentIdx < content.Count) {
+
+                Parsed.Object obj = content [contentIdx];
+
+                // Choice or Gather
+                if (obj is IWeavePoint) {
+                    var weavePoint = (IWeavePoint)obj;
+                    var weaveIndentIdx = weavePoint.indentationDepth - 1;
+
+                    // Inner level indentation - recurse
+                    if (weaveIndentIdx > baseIndentIndex) {
+
+                        // Step through content until indent jumps out again
+                        int innerWeaveStartIdx = contentIdx;
+                        while (contentIdx < content.Count) {
+                            var innerWeaveObj = content [contentIdx] as IWeavePoint;
+                            if (innerWeaveObj != null) {
+                                var innerIndentIdx = innerWeaveObj.indentationDepth - 1;
+                                if (innerIndentIdx <= baseIndentIndex) {
+                                    break;
+                                }
+                            }
+
+                            contentIdx++;
+                        }
+
+                        int weaveContentCount = contentIdx - innerWeaveStartIdx;
+
+                        var weaveContent = content.GetRange (innerWeaveStartIdx, weaveContentCount);
+                        content.RemoveRange (innerWeaveStartIdx, weaveContentCount);
+
+                        var weave = new Weave (weaveContent, weaveIndentIdx);
+                        InsertContent (innerWeaveStartIdx, weave);
+
+                        // contentIdx is already incremented at this point
+                        continue;
+                    }
+
+                } 
+
+                contentIdx++;
+            }
+        }
+
+        public override Runtime.Object GenerateRuntimeObject ()
+        {
+            _rootContainer = currentContainer = new Runtime.Container();
             looseEnds = new List<IWeavePoint> ();
 
             looseEndReferencesToResolve = new List<LooseEndToResolve> ();
@@ -42,46 +106,27 @@ namespace Inklewriter.Parsed
             //  - Normal content is nested under Choices and Gathers
             //  - Blocks that are further indented cause recursion
             //  - Keep track of loose ends so that they can be diverted to Gathers
-            while (contentIdx < content.Count) {
-
-                Parsed.Object obj = content [contentIdx];
-
-                // If we've now found a knot/stitch, we've overstepped,
-                // since it certainly doesn't belong inside a weave block,
-                // since it's a higher level construct
-                if (obj is FlowBase) {
-                    contentIdx--;
-                    return;
-                }
+            foreach(var obj in content) {
 
                 // Choice or Gather
                 if (obj is IWeavePoint) {
-                    var weavePoint = (IWeavePoint)obj;
-                    var weaveIndentIdx = weavePoint.indentationDepth - 1;
-
-                    // Moving to outer level indent - this block is complete
-                    if (weaveIndentIdx < indentIndex) {
-                        return;
-                    }
-
-                    // Inner level indentation - recurse
-                    else if (weaveIndentIdx > indentIndex) {
-                        var nestedResult = new Weave (content, ref contentIdx, weaveIndentIdx);
-                        AddNestedBlock (nestedResult);
-                        looseEndReferencesToResolve.AddRange (nestedResult.looseEndReferencesToResolve);
-                        continue;
-                    } 
-
-                    AddWeavePoint (weavePoint);
+                    AddWeavePoint ((IWeavePoint)obj);
                 } 
+
+                // Nested weave
+                else if (obj is Weave) {
+                    var weave = (Weave)obj;
+                    AddNestedBlock (weave);
+                    looseEndReferencesToResolve.AddRange (weave.looseEndReferencesToResolve);
+                }
 
                 // Normal content
                 else {
-                    AddContent (obj.runtimeObject);
+                    AddRuntimeContent (obj.runtimeObject);
                 }
-
-                contentIdx++;
             }
+
+            return _rootContainer;
         }
 
         // Found gather point:
@@ -179,7 +224,7 @@ namespace Inklewriter.Parsed
         {
             // Add this inner block to current container
             // (i.e. within the main container, or within the last defined Choice/Gather)
-            AddContent (nestedResult.rootContainer);
+            AddRuntimeContent (nestedResult.rootContainer);
 
             // Append the indented block's loose ends to our own
             looseEnds.AddRange (nestedResult.looseEnds);
@@ -194,7 +239,7 @@ namespace Inklewriter.Parsed
 
         // Normal content gets added into the latest Choice or Gather by default,
         // unless there hasn't been one yet.
-        public void AddContent(Runtime.Object content)
+        public void AddRuntimeContent(Runtime.Object content)
         {
             if (addContentToPreviousWeavePoint) {
                 previousWeavePoint.runtimeContainer.AddContent (content);
@@ -203,8 +248,10 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public void ResolveReferences(Story context)
+        public override void ResolveReferences(Story context)
         {
+            base.ResolveReferences (context);
+
             foreach(var looseEnd in looseEndReferencesToResolve) {
                 looseEnd.divert.targetPath = looseEnd.targetGather.runtimePath;
             }
@@ -260,7 +307,7 @@ namespace Inklewriter.Parsed
         int _unnamedGatherCount;
 
 
-
+        Runtime.Container _rootContainer;
     }
 }
 

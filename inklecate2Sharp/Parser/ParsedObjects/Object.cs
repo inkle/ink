@@ -72,6 +72,18 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public T InsertContent<T>(int index, T subContent) where T : Parsed.Object
+        {
+            if (content == null) {
+                content = new List<Parsed.Object> ();
+            }
+
+            subContent.parent = this;
+            content.Insert (index, subContent);
+
+            return subContent;
+        }
+
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
         public virtual void ResolveReferences(Story context)

@@ -13,7 +13,9 @@ namespace Inklewriter.Parsed
             } 
             set { 
                 _ownExpression = value; 
-                AddContent (_ownExpression); 
+                if (_ownExpression != null) {
+                    AddContent (_ownExpression); 
+                }
             }
         }
         public bool shouldMatchEquality { get; set; }
@@ -22,8 +24,8 @@ namespace Inklewriter.Parsed
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
         {
-            _innerContent = content;
-            AddContent (_innerContent);
+            _innerWeave = new Weave (content);
+            AddContent (_innerWeave);
         }
 
         // Runtime content can be summarised as follows:
@@ -89,10 +91,6 @@ namespace Inklewriter.Parsed
 
         Runtime.Container GenerateRuntimeForContent()
         {
-            //var container = new Runtime.Container ();
-
-            int contentIdx = 0;
-            _innerWeave = new Weave (_innerContent, ref contentIdx);
             var container = _innerWeave.rootContainer;
 
             // Small optimisation: If it's just one piece of content that has
@@ -121,7 +119,6 @@ namespace Inklewriter.Parsed
         Runtime.Container _contentContainer;
         Runtime.Divert _divertOnBranch;
         Expression _ownExpression;
-        List<Parsed.Object> _innerContent;
 
         Weave _innerWeave;
     }

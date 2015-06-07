@@ -149,8 +149,6 @@ namespace Inklewriter.Parsed
 
             OnRuntimeGenerationDidStart (container);
 
-            _weaves = new List<Weave> ();
-
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
             //    or any weave content is added to the main content container
@@ -184,10 +182,24 @@ namespace Inklewriter.Parsed
 
                 // Choices and Gathers: Process as blocks of weave-like content
                 else if (obj is IWeavePoint) {
-                    var weave = new Weave (content, ref contentIdx);
-                    container.AddContent (weave.rootContainer);
 
-                    _weaves.Add (weave);
+                    var weaveStartIdx = contentIdx;
+                    while (contentIdx < content.Count) {
+                        if (obj is FlowBase)
+                            break;
+
+                        contentIdx++;
+                    }
+
+                    int weaveContentCount = contentIdx - weaveStartIdx;
+
+                    var weaveContent = content.GetRange (weaveStartIdx, weaveContentCount);
+                    content.RemoveRange (weaveStartIdx, weaveContentCount);
+
+                    var weave = new Weave (weaveContent);
+                    content.Insert (weaveStartIdx, weave);
+
+                    container.AddContent (weave.rootContainer);
                 } 
 
                 // Normal content (defined at start)
@@ -241,15 +253,6 @@ namespace Inklewriter.Parsed
 
             container.AddContent (Runtime.ControlCommand.EvalEnd());
         }
-
-        public override void ResolveReferences (Story context)
-		{
-            base.ResolveReferences (context);
-
-            foreach (var weave in _weaves) {
-                weave.ResolveReferences (context);
-            }
-        }
             
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
         {
@@ -291,7 +294,7 @@ namespace Inklewriter.Parsed
             return null;
         }
             
-        List<Weave> _weaves;
+       // List<Weave> _weaves;
 	}
 }
 
