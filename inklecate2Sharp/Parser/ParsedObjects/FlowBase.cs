@@ -149,9 +149,7 @@ namespace Inklewriter.Parsed
 
             OnRuntimeGenerationDidStart (container);
 
-            // Maintain a list of gathered loose ends so that we can resolve
-            // their divert paths in ResolveReferences
-            this._allGatheredLooseEnds = new List<GatheredLooseEnd> ();
+            _looseEndsToResolve = new List<Weave.LooseEndToResolve> ();
 
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
@@ -186,8 +184,10 @@ namespace Inklewriter.Parsed
 
                 // Choices and Gathers: Process as blocks of weave-like content
                 else if (obj is IWeavePoint) {
-                    var result = GenerateWeaveBlockRuntime (ref contentIdx, indentIndex: 0);
-                    container.AddContent (result.rootContainer);
+                    var weave = new Weave (content, ref contentIdx);
+                    container.AddContent (weave.rootContainer);
+
+                    _looseEndsToResolve.AddRange (weave.looseEndReferencesToResolve);
                 } 
 
                 // Normal content (defined at start)
@@ -206,61 +206,6 @@ namespace Inklewriter.Parsed
             GenerateArgumentVariableAssignments (container);
 
             GenerateReadCountUpdate (container);
-        }
-
-        // Initially called from main GenerateRuntimeObject
-        // Generate a container of content for a particular indent level.
-        // Recursive for further indentation levels.
-        WeaveBlockRuntimeResult GenerateWeaveBlockRuntime(ref int contentIdx, int indentIndex)
-        {
-            var result = new WeaveBlockRuntimeResult ();
-            result.gatheredLooseEndDelegate = OnLooseEndGathered;
-
-            // Iterate through content for the block at this level of indentation
-            //  - Normal content is nested under Choices and Gathers
-            //  - Blocks that are further indented cause recursion
-            //  - Keep track of loose ends so that they can be diverted to Gathers
-            while (contentIdx < content.Count) {
-                
-                Parsed.Object obj = content [contentIdx];
-
-                // If we've now found a knot/stitch, we've overstepped,
-                // since it certainly doesn't belong inside a weave block,
-                // since it's a higher level construct
-                if (obj is FlowBase) {
-                    contentIdx--;
-                    return result;
-                }
-
-                // Choice or Gather
-                if (obj is IWeavePoint) {
-                    var weavePoint = (IWeavePoint)obj;
-                    var weaveIndentIdx = weavePoint.indentationDepth - 1;
-
-                    // Moving to outer level indent - this block is complete
-                    if (weaveIndentIdx < indentIndex) {
-                        return result;
-                    }
-
-                    // Inner level indentation - recurse
-                    else if (weaveIndentIdx > indentIndex) {
-                        var nestedResult = GenerateWeaveBlockRuntime (ref contentIdx, weaveIndentIdx);
-                        result.AddNestedBlock (nestedResult);
-                        continue;
-                    } 
-
-                    result.AddWeavePoint (weavePoint);
-                } 
-
-                // Normal content
-                else {
-                    result.AddContent (obj.runtimeObject);
-                }
-
-                contentIdx++;
-            }
-
-            return result;
         }
 
         void GenerateArgumentVariableAssignments(Runtime.Container container)
@@ -301,8 +246,8 @@ namespace Inklewriter.Parsed
 		{
             base.ResolveReferences (context);
 
-            if (_allGatheredLooseEnds != null) {
-                foreach(GatheredLooseEnd looseEnd in _allGatheredLooseEnds) {
+            if (_looseEndsToResolve != null) {
+                foreach(var looseEnd in _looseEndsToResolve) {
                     looseEnd.divert.targetPath = looseEnd.targetGather.runtimePath;
                 }
             }
@@ -349,19 +294,7 @@ namespace Inklewriter.Parsed
             return null;
         }
             
-            
-        void OnLooseEndGathered (Runtime.Divert divert, Gather gather)
-        {
-            _allGatheredLooseEnds.Add (new GatheredLooseEnd{ divert = divert, targetGather = gather });
-        }
-
-        class GatheredLooseEnd
-        {
-            public Runtime.Divert divert;
-            public Gather targetGather;
-        }
-
-        List<GatheredLooseEnd> _allGatheredLooseEnds;
+        List<Weave.LooseEndToResolve> _looseEndsToResolve;
 	}
 }
 

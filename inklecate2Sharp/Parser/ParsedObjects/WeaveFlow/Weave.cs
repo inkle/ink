@@ -4,10 +4,9 @@ using System.Linq;
 
 namespace Inklewriter.Parsed
 {
-    // Used exclusively by the FlowBase when constructing the weave flow from
+    // Used by the FlowBase when constructing the weave flow from
     // a flat list of content objects.
-    // "Result" isn't quite accurate - it contains most of the logic!
-    public class WeaveBlockRuntimeResult
+    public class Weave
     {
         // Containers can be chained as multiple gather points
         // get created as the same indentation level.
@@ -18,12 +17,72 @@ namespace Inklewriter.Parsed
 
         public List<IWeavePoint> looseEnds { get; }
 
-        public delegate void LooseEndDelegate (Runtime.Divert divert, Gather gather);
-        public LooseEndDelegate gatheredLooseEndDelegate { get; set; }
+        public class LooseEndToResolve
+        {
+            public Runtime.Divert divert;
+            public Gather targetGather;
+        }
 
-        public WeaveBlockRuntimeResult() {
+        public List<LooseEndToResolve> looseEndReferencesToResolve;
+
+        // Given a list of content and a starting point, 
+        // Initially called from FlowBase's main GenerateRuntimeObject
+        // Generate a container of content for a particular indent level.
+        // Recursive for further indentation levels.
+        public Weave(List<Parsed.Object> content, ref int contentIdx, int indentIndex=0) 
+        {
             rootContainer = currentContainer = new Runtime.Container();
             looseEnds = new List<IWeavePoint> ();
+
+            looseEndReferencesToResolve = new List<LooseEndToResolve> ();
+
+            // TODO: Gather loose ends
+            //result.gatheredLooseEndDelegate = OnLooseEndGathered;
+
+            // Iterate through content for the block at this level of indentation
+            //  - Normal content is nested under Choices and Gathers
+            //  - Blocks that are further indented cause recursion
+            //  - Keep track of loose ends so that they can be diverted to Gathers
+            while (contentIdx < content.Count) {
+
+                Parsed.Object obj = content [contentIdx];
+
+                // If we've now found a knot/stitch, we've overstepped,
+                // since it certainly doesn't belong inside a weave block,
+                // since it's a higher level construct
+                if (obj is FlowBase) {
+                    contentIdx--;
+                    return;
+                }
+
+                // Choice or Gather
+                if (obj is IWeavePoint) {
+                    var weavePoint = (IWeavePoint)obj;
+                    var weaveIndentIdx = weavePoint.indentationDepth - 1;
+
+                    // Moving to outer level indent - this block is complete
+                    if (weaveIndentIdx < indentIndex) {
+                        return;
+                    }
+
+                    // Inner level indentation - recurse
+                    else if (weaveIndentIdx > indentIndex) {
+                        var nestedResult = new Weave (content, ref contentIdx, weaveIndentIdx);
+                        AddNestedBlock (nestedResult);
+                        looseEndReferencesToResolve.AddRange (nestedResult.looseEndReferencesToResolve);
+                        continue;
+                    } 
+
+                    AddWeavePoint (weavePoint);
+                } 
+
+                // Normal content
+                else {
+                    AddContent (obj.runtimeObject);
+                }
+
+                contentIdx++;
+            }
         }
 
         // Found gather point:
@@ -58,7 +117,7 @@ namespace Inklewriter.Parsed
                 // Pass back knowledge of this loose end being diverted
                 // to the FlowBase so that it can maintain a list of them,
                 // and resolve the divert references later
-                gatheredLooseEndDelegate (divert, gather);
+                looseEndReferencesToResolve.Add (new LooseEndToResolve{ divert = divert, targetGather = gather });
             }
             looseEnds.RemoveRange (0, looseEnds.Count);
 
@@ -81,7 +140,7 @@ namespace Inklewriter.Parsed
             currentContainer.AddContent (new Runtime.Branch (autoEnterDivert));
 
             // Ensure that the divert and gather have their references resolved
-            gatheredLooseEndDelegate (autoEnterDivert, gather);
+            looseEndReferencesToResolve.Add (new LooseEndToResolve{ divert = autoEnterDivert, targetGather = gather });
 
             // Gather content itself is accessible by name only
             currentContainer.AddToNamedContentOnly (gatherContainer);
@@ -117,7 +176,7 @@ namespace Inklewriter.Parsed
         }
 
         // Add nested block at a greater indentation level
-        public void AddNestedBlock(WeaveBlockRuntimeResult nestedResult)
+        public void AddNestedBlock(Weave nestedResult)
         {
             // Add this inner block to current container
             // (i.e. within the main container, or within the last defined Choice/Gather)

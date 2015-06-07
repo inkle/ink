@@ -87,7 +87,6 @@
     <Compile Include="Parser\ParsedObjects\Gather.cs" />
     <Compile Include="Runtime\ControlCommand.cs" />
     <Compile Include="Parser\ParsedObjects\WeaveFlow\IWeavePoint.cs" />
-    <Compile Include="Parser\ParsedObjects\WeaveFlow\WeaveBlockRuntimeResult.cs" />
     <Compile Include="Parser\ParsedObjects\FlowLevel.cs" />
     <Compile Include="Parser\ParsedObjects\INamedContent.cs" />
     <Compile Include="Parser\ParsedObjects\Conditional.cs" />
@@ -101,6 +100,7 @@
     <Compile Include="Parser\InkParser_Conditional.cs" />
     <Compile Include="Parser\ParsedObjects\ConditionalSingleBranch.cs" />
     <Compile Include="Runtime\Glue.cs" />
+    <Compile Include="Parser\ParsedObjects\WeaveFlow\Weave.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
