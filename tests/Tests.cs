@@ -174,6 +174,25 @@ namespace Tests
             Assert.AreEqual (story.currentChoices.Count, 0);
         }
 
+        [Test ()]
+        public void TestVariableDeclarationInConditional()
+        {
+            var storyStr =
+                @"
+{true:
+    - ~ var x = 5
+}
+{x}
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            // Extra newline is because there's a choice object sandwiched there,
+            // so it can't be absorbed :-/
+            Assert.AreEqual (story.currentText, "\n5\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
