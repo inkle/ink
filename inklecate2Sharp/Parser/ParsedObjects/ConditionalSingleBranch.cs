@@ -111,7 +111,6 @@ namespace Inklewriter.Parsed
         {
             _divertOnBranch.targetPath = _contentContainer.path;
 
-            _innerWeave.ResolveReferences (context);
 
             base.ResolveReferences (context);
         }
