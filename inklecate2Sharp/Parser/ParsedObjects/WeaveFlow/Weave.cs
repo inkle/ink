@@ -15,15 +15,14 @@ namespace Inklewriter.Parsed
         public Runtime.Container rootContainer { get; }
         public Runtime.Container currentContainer { get; private set; }
 
-        public List<IWeavePoint> looseEnds { get; }
+        public List<IWeavePoint> looseEnds;
 
+        public List<LooseEndToResolve> looseEndReferencesToResolve;
         public class LooseEndToResolve
         {
             public Runtime.Divert divert;
             public Gather targetGather;
         }
-
-        public List<LooseEndToResolve> looseEndReferencesToResolve;
 
         // Given a list of content and a starting point, 
         // Initially called from FlowBase's main GenerateRuntimeObject
@@ -203,6 +202,13 @@ namespace Inklewriter.Parsed
                 currentContainer.AddContent (content);
             }
         }
+
+        public void ResolveReferences(Story context)
+        {
+            foreach(var looseEnd in looseEndReferencesToResolve) {
+                looseEnd.divert.targetPath = looseEnd.targetGather.runtimePath;
+            }
+        }
             
         bool WeavePointHasLooseEnd(IWeavePoint weavePoint)
         {
@@ -240,6 +246,8 @@ namespace Inklewriter.Parsed
             }
         }
 
+
+
         // Keep track of previous weave point (Choice or Gather)
         // at the current indentation level:
         //  - to add ordinary content to be nested under it
@@ -250,6 +258,9 @@ namespace Inklewriter.Parsed
         bool addContentToPreviousWeavePoint = false;
 
         int _unnamedGatherCount;
+
+
+
     }
 }
 

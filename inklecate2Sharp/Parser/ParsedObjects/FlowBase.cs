@@ -149,7 +149,7 @@ namespace Inklewriter.Parsed
 
             OnRuntimeGenerationDidStart (container);
 
-            _looseEndsToResolve = new List<Weave.LooseEndToResolve> ();
+            _weaves = new List<Weave> ();
 
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
@@ -187,7 +187,7 @@ namespace Inklewriter.Parsed
                     var weave = new Weave (content, ref contentIdx);
                     container.AddContent (weave.rootContainer);
 
-                    _looseEndsToResolve.AddRange (weave.looseEndReferencesToResolve);
+                    _weaves.Add (weave);
                 } 
 
                 // Normal content (defined at start)
@@ -246,12 +246,9 @@ namespace Inklewriter.Parsed
 		{
             base.ResolveReferences (context);
 
-            if (_looseEndsToResolve != null) {
-                foreach(var looseEnd in _looseEndsToResolve) {
-                    looseEnd.divert.targetPath = looseEnd.targetGather.runtimePath;
-                }
+            foreach (var weave in _weaves) {
+                weave.ResolveReferences (context);
             }
-
         }
             
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
@@ -294,7 +291,7 @@ namespace Inklewriter.Parsed
             return null;
         }
             
-        List<Weave.LooseEndToResolve> _looseEndsToResolve;
+        List<Weave> _weaves;
 	}
 }
 
