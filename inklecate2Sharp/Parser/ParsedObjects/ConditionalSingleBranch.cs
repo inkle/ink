@@ -7,14 +7,23 @@ namespace Inklewriter.Parsed
     {
         public bool isBoolCondition { get; set; }
         public bool boolRequired { get; set; }
-        public Expression ownExpression { get; set; }
+        public Expression ownExpression { 
+            get { 
+                return _ownExpression; 
+            } 
+            set { 
+                _ownExpression = value; 
+                AddContent (_ownExpression); 
+            }
+        }
         public bool shouldMatchEquality { get; set; }
         public bool alwaysMatch { get; set; } // used for else clause
         public Runtime.Divert returnDivert { get; protected set; }
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
         {
-            AddContent (content);
+            _innerContent = content;
+            AddContent (_innerContent);
         }
 
         // Runtime content can be summarised as follows:
@@ -80,11 +89,11 @@ namespace Inklewriter.Parsed
 
         Runtime.Container GenerateRuntimeForContent()
         {
-            var container = new Runtime.Container ();
+            //var container = new Runtime.Container ();
 
-            foreach (var parsedObj in content) {
-                container.AddContent (parsedObj.runtimeObject);
-            }
+            int contentIdx = 0;
+            _innerWeave = new Weave (_innerContent, ref contentIdx);
+            var container = _innerWeave.rootContainer;
 
             // Small optimisation: If it's just one piece of content that has
             // its own container already (without an explicit name), then just
@@ -104,11 +113,17 @@ namespace Inklewriter.Parsed
         {
             _divertOnBranch.targetPath = _contentContainer.path;
 
+            _innerWeave.ResolveReferences (context);
+
             base.ResolveReferences (context);
         }
 
         Runtime.Container _contentContainer;
         Runtime.Divert _divertOnBranch;
+        Expression _ownExpression;
+        List<Parsed.Object> _innerContent;
+
+        Weave _innerWeave;
     }
 }
 
