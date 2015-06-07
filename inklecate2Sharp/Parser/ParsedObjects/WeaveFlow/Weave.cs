@@ -30,7 +30,7 @@ namespace Inklewriter.Parsed
         public class GatherPointToResolve
         {
             public Runtime.Divert divert;
-            public Gather targetGather;
+            public Runtime.Object targetRuntimeObj;
         }
             
         public Weave(List<Parsed.Object> cont, int indentIndex=-1) 
@@ -164,6 +164,31 @@ namespace Inklewriter.Parsed
                 _unnamedGatherCount++;
             }
 
+            // Add this gather to the main content, but only accessible
+            // by name so that it isn't stepped into automatically, but only via
+            // a divert from a loose end.
+            // However, at runtime, we detect whether there are no choices that
+            // have been generated at this point, and if so, divert straight
+            // into the gather.
+
+            // (num choices == 0)?
+            var gatherAutoDivertEvalStart = Runtime.ControlCommand.EvalStart();
+            currentContainer.AddContent(gatherAutoDivertEvalStart);
+            currentContainer.AddContent(Runtime.ControlCommand.ChoiceCount());
+            currentContainer.AddContent (new Runtime.LiteralInt (0));
+            currentContainer.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
+            currentContainer.AddContent(Runtime.ControlCommand.EvalEnd());
+
+            // Branch into gather if true
+            var autoEnterDivert = new Runtime.Divert ();
+            currentContainer.AddContent (new Runtime.Branch (autoEnterDivert));
+
+            // Ensure that the divert and gather have their references resolved
+            gatherPointsToResolve.Add (new GatherPointToResolve{ divert = autoEnterDivert, targetRuntimeObj = gatherContainer });
+
+            // Gather content itself is accessible by name only
+            currentContainer.AddToNamedContentOnly (gatherContainer);
+
             // Consume loose ends: divert them to this gather
             foreach (IWeavePoint looseEnd in looseEnds) {
 
@@ -183,33 +208,9 @@ namespace Inklewriter.Parsed
                 // Pass back knowledge of this loose end being diverted
                 // to the FlowBase so that it can maintain a list of them,
                 // and resolve the divert references later
-                gatherPointsToResolve.Add (new GatherPointToResolve{ divert = divert, targetGather = gather });
+                gatherPointsToResolve.Add (new GatherPointToResolve{ divert = divert, targetRuntimeObj = gatherAutoDivertEvalStart });
             }
             looseEnds.RemoveRange (0, looseEnds.Count);
-
-            // Finally, add this gather to the main content, but only accessible
-            // by name so that it isn't stepped into automatically, but only via
-            // a divert from a loose end.
-            // However, at runtime, we detect whether there are no choices that
-            // have been generated at this point, and if so, divert straight
-            // into the gather.
-
-            // (num choices == 0)?
-            currentContainer.AddContent(Runtime.ControlCommand.EvalStart());
-            currentContainer.AddContent(Runtime.ControlCommand.ChoiceCount());
-            currentContainer.AddContent (new Runtime.LiteralInt (0));
-            currentContainer.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
-            currentContainer.AddContent(Runtime.ControlCommand.EvalEnd());
-
-            // Branch into gather if true
-            var autoEnterDivert = new Runtime.Divert ();
-            currentContainer.AddContent (new Runtime.Branch (autoEnterDivert));
-
-            // Ensure that the divert and gather have their references resolved
-            gatherPointsToResolve.Add (new GatherPointToResolve{ divert = autoEnterDivert, targetGather = gather });
-
-            // Gather content itself is accessible by name only
-            currentContainer.AddToNamedContentOnly (gatherContainer);
 
             // Replace the current container itself
             currentContainer = gatherContainer;
@@ -294,15 +295,7 @@ namespace Inklewriter.Parsed
             base.ResolveReferences (context);
 
             foreach(var gatherPoint in gatherPointsToResolve) {
-                gatherPoint.divert.targetPath = gatherPoint.targetGather.runtimePath;
-            }
-
-            // Ensure that this weave hasn't been nested within a weave of the same base indent level
-            var ancestorWeave = closestWeaveAncestor;
-            if (ancestorWeave != null) {
-                if ( this.baseIndentIndex <= ancestorWeave.baseIndentIndex ) {
-                    Error ("choices have been nested with the wrong indentation level - do you need to add an extra '*' to them? Or perhaps this content is accidentally being fallen into from the previous choice?");
-                }
+                gatherPoint.divert.targetPath = gatherPoint.targetRuntimeObj.path;
             }
         }
 
