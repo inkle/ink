@@ -22,7 +22,10 @@ namespace Inklewriter.Parsed
 				topLevelObjects = new List<Parsed.Object> ();
 			}
 
+            // Used by story to add includes
             PreProcessTopLevelObjects (topLevelObjects);
+
+            topLevelObjects = SplitWeaveAndSubFlowContent (topLevelObjects);
 
             AddContent(topLevelObjects);
 
@@ -37,6 +40,31 @@ namespace Inklewriter.Parsed
                 }
 			}
 		}
+
+        List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs)
+        {
+            var weaveObjs = new List<Parsed.Object> ();
+            var subFlowObjs = new List<Parsed.Object> ();
+
+            foreach (var obj in contentObjs) {
+                if (obj is FlowBase) {
+                    subFlowObjs.Add (obj);
+                } else {
+                    weaveObjs.Add (obj);
+                }
+            }
+
+            var finalContent = new List<Parsed.Object> ();
+            if (weaveObjs.Count > 0) {
+                var weave = new Weave (weaveObjs);
+                finalContent.Add (weave);
+            }
+            if (subFlowObjs.Count > 0) {
+                finalContent.AddRange (subFlowObjs);
+            }
+
+            return finalContent;
+        }
 
         public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
         {
@@ -180,29 +208,7 @@ namespace Inklewriter.Parsed
                     }
                 }
 
-                // Choices and Gathers: Process as blocks of weave-like content
-                else if (obj is IWeavePoint) {
-
-                    var weaveStartIdx = contentIdx;
-                    while (contentIdx < content.Count) {
-                        if (obj is FlowBase)
-                            break;
-
-                        contentIdx++;
-                    }
-
-                    int weaveContentCount = contentIdx - weaveStartIdx;
-
-                    var weaveContent = content.GetRange (weaveStartIdx, weaveContentCount);
-                    content.RemoveRange (weaveStartIdx, weaveContentCount);
-
-                    var weave = new Weave (weaveContent);
-                    content.Insert (weaveStartIdx, weave);
-
-                    container.AddContent (weave.rootContainer);
-                } 
-
-                // Normal content (defined at start)
+                // Other content (including entire Weaves that were grouped in the constructor)
                 else {
                     container.AddContent (obj.runtimeObject);
                 }

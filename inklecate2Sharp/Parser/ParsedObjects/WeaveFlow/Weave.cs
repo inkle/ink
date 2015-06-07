@@ -126,13 +126,16 @@ namespace Inklewriter.Parsed
                 }
             }
 
+            // Pass any loose ends up the hierarhcy
+            PassLooseEndsToAncestors();
+
             return _rootContainer;
         }
 
         // Found gather point:
         //  - gather any loose ends
         //  - set the gather as the main container to dump new content in
-        public void AddRuntimeForGather(Gather gather)
+        void AddRuntimeForGather(Gather gather)
         {
             var gatherContainer = gather.runtimeContainer;
 
@@ -193,7 +196,7 @@ namespace Inklewriter.Parsed
             currentContainer = gatherContainer;
         }
 
-        public void AddRuntimeForWeavePoint(IWeavePoint weavePoint)
+        void AddRuntimeForWeavePoint(IWeavePoint weavePoint)
         {
             // Current level Gather
             if (weavePoint is Gather) {
@@ -226,9 +229,6 @@ namespace Inklewriter.Parsed
             // (i.e. within the main container, or within the last defined Choice/Gather)
             AddGeneralRuntimeContent (nestedResult.rootContainer);
 
-            // Append the indented block's loose ends to our own
-            looseEnds.AddRange (nestedResult.looseEnds);
-
             // Now there's a deeper indentation level, the previous weave point doesn't
             // count as a loose end (since it will have content to go to)
             if (previousWeavePoint != null) {
@@ -239,13 +239,39 @@ namespace Inklewriter.Parsed
 
         // Normal content gets added into the latest Choice or Gather by default,
         // unless there hasn't been one yet.
-        public void AddGeneralRuntimeContent(Runtime.Object content)
+        void AddGeneralRuntimeContent(Runtime.Object content)
         {
             if (addContentToPreviousWeavePoint) {
                 previousWeavePoint.runtimeContainer.AddContent (content);
             } else {
                 currentContainer.AddContent (content);
             }
+        }
+
+        void PassLooseEndsToAncestors()
+        {
+            if (looseEnds.Count > 0) {
+                var ancestor = this.parent;
+                while (ancestor != null && !(ancestor is Weave)) {
+                    ancestor = ancestor.parent;
+                }
+
+                if (ancestor != null) {
+                    var nextWeaveAncestor = (Weave) ancestor;
+                    nextWeaveAncestor.ReceiveLooseEnds (looseEnds);
+                    looseEnds = null;
+                }
+            }
+
+            if (looseEnds != null && looseEnds.Count > 0) {
+                // TODO: When we *require* a return statement, show this error
+                //Error ("unresolved loose ends");
+            }
+        }
+
+        public void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
+        {
+            looseEnds.AddRange (childWeaveLooseEnds);
         }
 
         public override void ResolveReferences(Story context)
