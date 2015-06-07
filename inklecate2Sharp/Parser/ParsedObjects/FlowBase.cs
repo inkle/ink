@@ -33,13 +33,35 @@ namespace Inklewriter.Parsed
 
             variableDeclarations = new Dictionary<string, VariableAssignment> ();
 
-			foreach (var child in this.content) {
-                var varDecl = child as VariableAssignment;
-                if (varDecl != null && varDecl.isNewDeclaration) {
-                    TryAddNewVariableDeclaration (varDecl);
-                }
-			}
+            TryAddNewVariableDeclarationsFrom (this);
 		}
+
+        void TryAddNewVariableDeclarationsFrom(Parsed.Object inObject)
+        {
+            if (inObject.content == null)
+                return;
+
+            foreach (var obj in inObject.content) {
+
+                if (obj is VariableAssignment) {
+                    var varDecl = (VariableAssignment)obj;
+                    if (varDecl != null && varDecl.isNewDeclaration) {
+                        TryAddNewVariableDeclaration (varDecl);
+                    }
+                } 
+
+                // Other FlowBases handle their own declarations
+                else if (obj is FlowBase) {
+                    continue;
+                } 
+
+                // Recursive search into other objects (weaves, conditionals, etc)
+                else {
+                    TryAddNewVariableDeclarationsFrom (obj);
+                }
+            }
+        }
+
 
         List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs)
         {
@@ -134,6 +156,7 @@ namespace Inklewriter.Parsed
                         }
                     }
 
+
                 }
 
                 ancestor = ancestor.parent;
@@ -147,6 +170,7 @@ namespace Inklewriter.Parsed
                 }
                 string.Join (", ", searchedLocationsForErrorReport);
                 Error ("variable '" + varName + "' not found"+locationsStr, fromNode);
+                //ResolveVariableWithName (varName, out foundFlow, fromNode, allowReadCounts, reportErrors);
             }
 
             return false;
