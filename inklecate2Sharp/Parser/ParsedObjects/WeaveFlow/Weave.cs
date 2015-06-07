@@ -33,9 +33,13 @@ namespace Inklewriter.Parsed
             public Gather targetGather;
         }
             
-        public Weave(List<Parsed.Object> cont, int indentIndex=0) 
+        public Weave(List<Parsed.Object> cont, int indentIndex=-1) 
         {
-            baseIndentIndex = indentIndex;
+            if (indentIndex == -1) {
+                baseIndentIndex = DetermineBaseIndentationFromContent (cont);
+            } else {
+                baseIndentIndex = indentIndex;
+            }
 
             AddContent (cont);
 
@@ -90,6 +94,21 @@ namespace Inklewriter.Parsed
 
                 contentIdx++;
             }
+        }
+
+        // When the indentation wasn't told to us at construction time using
+        // a choice point with a known indentation level, we may be told to
+        // determine the indentation level by incrementing from our closest ancestor.
+        public int DetermineBaseIndentationFromContent(List<Parsed.Object> contentList)
+        {
+            foreach (var obj in contentList) {
+                if (obj is IWeavePoint) {
+                    return ((IWeavePoint)obj).indentationDepth - 1;
+                }
+            }
+
+            // No weave points, so it doesn't matter
+            return 0;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -251,14 +270,10 @@ namespace Inklewriter.Parsed
         void PassLooseEndsToAncestors()
         {
             if (looseEnds.Count > 0) {
-                var ancestor = this.parent;
-                while (ancestor != null && !(ancestor is Weave)) {
-                    ancestor = ancestor.parent;
-                }
 
-                if (ancestor != null) {
-                    var nextWeaveAncestor = (Weave) ancestor;
-                    nextWeaveAncestor.ReceiveLooseEnds (looseEnds);
+                var weaveAncestor = closestWeaveAncestor;
+                if (weaveAncestor != null) {
+                    weaveAncestor.ReceiveLooseEnds (looseEnds);
                     looseEnds = null;
                 }
             }
@@ -280,6 +295,24 @@ namespace Inklewriter.Parsed
 
             foreach(var gatherPoint in gatherPointsToResolve) {
                 gatherPoint.divert.targetPath = gatherPoint.targetGather.runtimePath;
+            }
+
+            // Ensure that this weave hasn't been nested within a weave of the same base indent level
+            var ancestorWeave = closestWeaveAncestor;
+            if (ancestorWeave != null) {
+                if ( this.baseIndentIndex <= ancestorWeave.baseIndentIndex ) {
+                    Error ("choices have been nested with the wrong indentation level - do you need to add an extra '*' to them? Or perhaps this content is accidentally being fallen into from the previous choice?");
+                }
+            }
+        }
+
+        Weave closestWeaveAncestor {
+            get {
+                var ancestor = this.parent;
+                while (ancestor != null && !(ancestor is Weave)) {
+                    ancestor = ancestor.parent;
+                }
+                return (Weave)ancestor;
             }
         }
             

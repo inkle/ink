@@ -56,7 +56,7 @@ namespace Inklewriter.Parsed
 
             var finalContent = new List<Parsed.Object> ();
             if (weaveObjs.Count > 0) {
-                var weave = new Weave (weaveObjs);
+                var weave = new Weave (weaveObjs, 0);
                 finalContent.Add (weave);
             }
             if (subFlowObjs.Count > 0) {
