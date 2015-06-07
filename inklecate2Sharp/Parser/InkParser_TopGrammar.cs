@@ -95,7 +95,7 @@ namespace Inklewriter
 
             // Break current knot with a new knot
             if (level <= StatementLevel.Knot) {
-                breakingRules.Add (KnotTitleEquals);
+                breakingRules.Add (KnotDeclaration);
             }
 
             // Break current stitch with a new stitch

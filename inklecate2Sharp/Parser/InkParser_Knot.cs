@@ -6,28 +6,19 @@ namespace Inklewriter
 {
 	public partial class InkParser
 	{
+        protected class KnotDecl
+        {
+            public string name;
+            public List<string> parameters;
+        }
+
 		protected Knot KnotDefinition()
 		{
 			BeginRule ();
 
-			Whitespace ();
-
-            if (KnotTitleEquals () == null) {
+            var knotDecl = KnotDeclaration ();
+            if (knotDecl == null)
                 return (Knot) FailRule ();
-            }
-	
-			Whitespace ();
-
-			string knotName = Expect(Identifier, "knot name") as string;
-
-            Whitespace ();
-
-            List<string> parameterNames = BracketedParameterNames ();
-
-            Whitespace ();
-
-            // Optional equals after name
-            KnotTitleEquals ();
 
 			Expect(EndOfLine, "end of line after knot name definition", recoveryRule: SkipToNextLine);
 
@@ -35,10 +26,40 @@ namespace Inklewriter
 
 			var content = Expect(innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 			 
-            Knot knot = new Knot (knotName, content, parameterNames);
+            Knot knot = new Knot (knotDecl.name, content, knotDecl.parameters);
 
             return (Knot) SucceedRule (knot);
 		}
+
+        protected KnotDecl KnotDeclaration()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            if (KnotTitleEquals () == null) {
+                return (KnotDecl) FailRule ();
+            }
+
+            Whitespace ();
+
+            string knotName = Identifier();
+            if (knotName == null)
+                return (KnotDecl) FailRule ();
+
+            Whitespace ();
+
+            List<string> parameterNames = BracketedParameterNames ();
+
+            Whitespace ();
+
+
+            // Optional equals after name
+            KnotTitleEquals ();
+
+            var decl = new KnotDecl () { name = knotName, parameters = parameterNames };
+            return (KnotDecl) SucceedRule (decl);
+        }
 
         protected string KnotTitleEquals()
         {

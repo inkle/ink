@@ -18,7 +18,9 @@ namespace Inklewriter.Parsed
 			this.target = target;
             this.arguments = arguments;
 
-            AddContent (arguments.Cast<Parsed.Object> ().ToList ());
+            if (arguments != null) {
+                AddContent (arguments.Cast<Parsed.Object> ().ToList ());
+            }
 		}
 
         public Divert (Parsed.Object targetContent)
