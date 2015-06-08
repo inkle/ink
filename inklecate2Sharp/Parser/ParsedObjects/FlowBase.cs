@@ -76,8 +76,11 @@ namespace Inklewriter.Parsed
                 }
             }
 
+            // Will step into the own content of
+            bool willStepStraightIntoSubFlow = subFlowObjs.Count > 0 && weaveObjs.Count == 0;
+
             // Add error if runtime gets to the end of content without a divert/return etc
-            if (!(this is Story)) {
+            if (!(this is Story) && !willStepStraightIntoSubFlow) {
                 var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ done'?");
                 runtimeError.useEndLineNumber = true;
                 weaveObjs.Add (new Parsed.Wrap<Runtime.Error>(runtimeError));

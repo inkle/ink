@@ -553,6 +553,7 @@ namespace Inklewriter.Runtime
 
         void Error(string message, bool useEndLineNum = false)
         {
+            
             var dm = currentDebugMetadata;
 
             if (dm != null) {

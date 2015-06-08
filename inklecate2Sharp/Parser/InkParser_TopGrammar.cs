@@ -100,7 +100,7 @@ namespace Inklewriter
 
             // Break current stitch with a new stitch
             if (level <= StatementLevel.Stitch) {
-                breakingRules.Add (String("="));
+                breakingRules.Add (StitchDeclaration);
             }
 
             // Breaking an inner block (like a multi-line condition statement)

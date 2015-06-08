@@ -6,7 +6,7 @@ namespace Inklewriter
 {
 	public partial class InkParser
 	{
-        protected class KnotDecl
+        protected class FlowDecl
         {
             public string name;
             public List<string> parameters;
@@ -31,21 +31,21 @@ namespace Inklewriter
             return (Knot) SucceedRule (knot);
 		}
 
-        protected KnotDecl KnotDeclaration()
+        protected FlowDecl KnotDeclaration()
         {
             BeginRule ();
 
             Whitespace ();
 
             if (KnotTitleEquals () == null) {
-                return (KnotDecl) FailRule ();
+                return (FlowDecl) FailRule ();
             }
 
             Whitespace ();
 
             string knotName = Identifier();
             if (knotName == null)
-                return (KnotDecl) FailRule ();
+                return (FlowDecl) FailRule ();
 
             Whitespace ();
 
@@ -57,8 +57,8 @@ namespace Inklewriter
             // Optional equals after name
             KnotTitleEquals ();
 
-            var decl = new KnotDecl () { name = knotName, parameters = parameterNames };
-            return (KnotDecl) SucceedRule (decl);
+            var decl = new FlowDecl () { name = knotName, parameters = parameterNames };
+            return (FlowDecl) SucceedRule (decl);
         }
 
         protected string KnotTitleEquals()
@@ -76,27 +76,10 @@ namespace Inklewriter
 		{
 			BeginRule ();
 
-			Whitespace ();
-
-            // Single "=" to define a stitch
-            if (ParseString ("=") == null) {
+            var decl = StitchDeclaration ();
+            if (decl == null) {
                 return FailRule ();
             }
-
-            // If there's more than one "=", that's actually a knot definition, so this rule should fail
-            if (ParseString ("=") != null) {
-                return FailRule ();
-            }
-
-			Whitespace ();
-
-			string stitchName = Expect (Identifier, "stitch name") as string;
-
-            Whitespace ();
-
-            List<string> parameterNames = BracketedParameterNames ();
-
-            Whitespace ();
 
 			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
 
@@ -104,10 +87,40 @@ namespace Inklewriter
 
 			var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
-            Stitch stitch = new Stitch (stitchName, content, parameterNames);
+            Stitch stitch = new Stitch (decl.name, content, decl.parameters);
 
 			return SucceedRule (stitch);
 		}
+
+        protected FlowDecl StitchDeclaration()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            // Single "=" to define a stitch
+            if (ParseString ("=") == null)
+                return (FlowDecl) FailRule ();
+
+            // If there's more than one "=", that's actually a knot definition (or divert), so this rule should fail
+            if (ParseString ("=") != null)
+                return (FlowDecl) FailRule ();
+
+            Whitespace ();
+
+            string stitchName = Identifier ();
+            if (stitchName == null)
+                return (FlowDecl)FailRule ();
+
+            Whitespace ();
+
+            List<string> parameterNames = BracketedParameterNames ();
+
+            Whitespace ();
+
+            var decl = new FlowDecl () { name = stitchName, parameters = parameterNames };
+            return (FlowDecl) SucceedRule (decl);
+        }
 
 
 		protected object KnotStitchNoContentRecoveryRule()
