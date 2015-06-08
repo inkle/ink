@@ -4,7 +4,8 @@ namespace Inklewriter.Runtime
 {
 	public class DebugMetadata
 	{
-		public int lineNumber;
+		public int startLineNumber;
+        public int endLineNumber;
 		public string fileName;
 
 		public DebugMetadata ()
@@ -14,9 +15,9 @@ namespace Inklewriter.Runtime
         public override string ToString ()
         {
             if (fileName != null) {
-                return string.Format ("line {0} of {1}", lineNumber, fileName);
+                return string.Format ("line {0} of {1}", startLineNumber, fileName);
             } else {
-                return "line " + lineNumber;
+                return "line " + startLineNumber;
             }
 
         }

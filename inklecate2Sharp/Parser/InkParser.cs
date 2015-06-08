@@ -19,14 +19,15 @@ namespace Inklewriter
             return inputWithCommentsRemoved;
         }
 
-        protected override void RuleDidSucceed(object result, StringParserState.Element state)
+        protected override void RuleDidSucceed(object result, StringParserState.Element stateAtStart, StringParserState.Element stateAtEnd)
         {
             // Apply DebugMetadata based on the state at the start of the rule
             // (i.e. use line number as it was at the start of the rule)
             var parsedObj = result as Parsed.Object;
             if ( parsedObj != null) {
                 var md = new Runtime.DebugMetadata ();
-                md.lineNumber = state.lineIndex + 1;
+                md.startLineNumber = stateAtStart.lineIndex + 1;
+                md.endLineNumber = stateAtEnd.lineIndex + 1;
                 md.fileName = _filename;
                 parsedObj.debugMetadata = md;
             }

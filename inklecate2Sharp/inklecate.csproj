@@ -101,6 +101,8 @@
     <Compile Include="Parser\ParsedObjects\ConditionalSingleBranch.cs" />
     <Compile Include="Runtime\Glue.cs" />
     <Compile Include="Parser\ParsedObjects\WeaveFlow\Weave.cs" />
+    <Compile Include="Runtime\Error.cs" />
+    <Compile Include="Parser\ParsedObjects\Wrap.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

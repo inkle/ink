@@ -80,10 +80,12 @@ namespace Inklewriter
         protected object SucceedRule(object result = null)
         {
             // Get state at point where this rule stared evaluating
+            var stateAtSucceedRule = state.Peek();
             var stateAtBeginRule = state.PeekPenultimate ();
 
+
             // Allow subclass to receive callback
-            RuleDidSucceed (result, stateAtBeginRule);
+            RuleDidSucceed (result, stateAtBeginRule, stateAtSucceedRule);
 
             // Flatten state stack so that we maintain the same values,
             // but remove one level in the stack.
@@ -96,7 +98,7 @@ namespace Inklewriter
             return result;
         }
 
-        protected virtual void RuleDidSucceed(object result, StringParserState.Element state)
+        protected virtual void RuleDidSucceed(object result, StringParserState.Element startState, StringParserState.Element endState)
         {
 
         }

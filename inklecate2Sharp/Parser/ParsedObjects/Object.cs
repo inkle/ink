@@ -119,13 +119,5 @@ namespace Inklewriter.Parsed
 			}
 		}
 	}
-
-    public class Object<T> : Object where T : Runtime.Object, new()
-    {
-        public override Runtime.Object GenerateRuntimeObject ()
-        {
-            return new T ();
-        }
-    }
 }
 

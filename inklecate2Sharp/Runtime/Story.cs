@@ -81,7 +81,13 @@ namespace Inklewriter.Runtime
                     // Is the current content object:
                     //  - Normal content
                     //  - Or a logic/flow statement - if so, do it
-                    bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj);
+                    bool stopFlow;
+                    bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj, out stopFlow);
+                    if( stopFlow ) {
+                        currentContentObj = null;
+                        currentPath = null;
+                        break;
+                    }
 
                     // Choice with condition?
                     bool shouldAddObject = true;
@@ -89,6 +95,13 @@ namespace Inklewriter.Runtime
                     if( choice != null && choice.hasCondition ) {
                         var conditionValue = PopEvaluationStack();
                         shouldAddObject = IsTruthy(conditionValue);
+                    }
+
+                    // Error?
+                    if( currentContentObj is Error ) {
+                        var err = (Error)currentContentObj;
+                        Error(err.message, err.useEndLineNumber);
+                        return;
                     }
 
                     // Content to add to evaluation stack or the output stream
@@ -138,8 +151,10 @@ namespace Inklewriter.Runtime
         /// </summary>
         /// <returns><c>true</c> if object was logic or flow control, <c>false</c> if it's normal content.</returns>
         /// <param name="contentObj">Content object.</param>
-        private bool PerformLogicAndFlowControl(Runtime.Object contentObj)
+        private bool PerformLogicAndFlowControl(Runtime.Object contentObj, out bool stopFlow)
         {
+            stopFlow = false;
+
             if( contentObj == null ) {
                 return false;
             }
@@ -225,8 +240,11 @@ namespace Inklewriter.Runtime
                     break;
 
                 case ControlCommand.CommandType.StackPop:
-                    Assert (_callStack.canPop, "Popped off the stack when we shouldn't");
-                    _callStack.Pop ();
+                    if (_callStack.canPop) {
+                        _callStack.Pop ();
+                    } else {
+                        stopFlow = true;
+                    }
                     break;
 
                 case ControlCommand.CommandType.NoOp:
@@ -533,15 +551,15 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        void Error(string message, params object[] formatParams)
+        void Error(string message, bool useEndLineNum = false)
         {
-            var formattedMsg = string.Format (message, formatParams);
             var dm = currentDebugMetadata;
 
             if (dm != null) {
-                message = string.Format ("Runtime error in {0} line {1}: {2}", dm.fileName, dm.lineNumber, formattedMsg);
+                int lineNum = useEndLineNum ? dm.endLineNumber : dm.startLineNumber;
+                message = string.Format ("Runtime error in {0} line {1}: {2}", dm.fileName, lineNum, message);
             } else {
-                message = "Runtime error: "+formattedMsg;
+                message = "Runtime error: "+message;
             }
 
             throw new System.Exception (message);
@@ -554,7 +572,11 @@ namespace Inklewriter.Runtime
                 if (message == null) {
                     message = "Story assert";
                 }
-                Error (message, formatParams);
+                if (formatParams != null && formatParams.Count() > 0) {
+                    message = string.Format (message, formatParams);
+                }
+
+                Error (message);
             }
         }
 

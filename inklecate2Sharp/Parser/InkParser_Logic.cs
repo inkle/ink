@@ -129,13 +129,14 @@ namespace Inklewriter
             return (Parsed.Object) OneOf (InlineLogic, Glue);
         }
 
-        protected Parsed.Object<Runtime.Glue> Glue()
+        protected Parsed.Wrap<Runtime.Glue> Glue()
         {
             // Don't want to parse whitespace, since it might be important
             // surrounding the glue.
             var glueStr = ParseString("::");
             if (glueStr != null) {
-                return new Parsed.Object<Runtime.Glue> ();
+                var glue = new Runtime.Glue ();
+                return new Parsed.Wrap<Runtime.Glue> (glue);
             } else {
                 return null;
             }

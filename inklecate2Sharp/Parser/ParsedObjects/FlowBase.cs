@@ -76,6 +76,13 @@ namespace Inklewriter.Parsed
                 }
             }
 
+            // Add error if runtime gets to the end of content without a divert/return etc
+            if (!(this is Story)) {
+                var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ done'?");
+                runtimeError.useEndLineNumber = true;
+                weaveObjs.Add (new Parsed.Wrap<Runtime.Error>(runtimeError));
+            }
+
             var finalContent = new List<Parsed.Object> ();
             if (weaveObjs.Count > 0) {
                 var weave = new Weave (weaveObjs, 0);

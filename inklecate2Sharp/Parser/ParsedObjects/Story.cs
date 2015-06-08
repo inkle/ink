@@ -155,7 +155,7 @@ namespace Inklewriter.Parsed
             var sb = new StringBuilder ();
             sb.Append ("ERROR: ");
             sb.Append (message);
-            if (source != null && source.debugMetadata != null && source.debugMetadata.lineNumber >= 1 ) {
+            if (source != null && source.debugMetadata != null && source.debugMetadata.startLineNumber >= 1 ) {
                 sb.Append (" on "+source.debugMetadata.ToString());
             }
             Console.WriteLine (sb.ToString());
