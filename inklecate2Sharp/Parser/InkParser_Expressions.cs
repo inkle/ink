@@ -95,8 +95,10 @@ namespace Inklewriter
 
             Whitespace ();
 
-            if (ParseString ("return") == null)
+            var returnOrDone = Identifier ();
+            if (returnOrDone != "return" && returnOrDone != "done") {
                 return (Parsed.Object)FailRule ();
+            }
 
             Whitespace ();
 
