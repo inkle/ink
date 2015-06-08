@@ -115,12 +115,16 @@ namespace Tests
    - 1+1+1+3: true
    - 9-3: also true but not printed
 }
+{ true:
+    great
+    right?
+}
                 ";
 
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "true\ntrue\ntrue\ntrue\ntrue\n");
+            Assert.AreEqual (story.currentText, "true\ntrue\ntrue\ntrue\ntrue\ngreat\nright?\n");
         }
 
         [Test ()]

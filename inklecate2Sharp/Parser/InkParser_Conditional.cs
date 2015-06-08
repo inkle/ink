@@ -31,7 +31,24 @@ namespace Inklewriter
             else {
                 alternatives = MultilineConditionalBranches ();
                 if (alternatives == null) {
-                    return (Conditional) FailRule ();
+
+                    // Allow single piece of content within multi-line expression, e.g.:
+                    // { true: 
+                    //    Some content that isn't preceded by '-'
+                    // }
+                    if (initialQueryExpression != null) {
+                        List<Parsed.Object> soleContent = StatementsAtLevel (StatementLevel.InnerBlock);
+                        if (soleContent != null) {
+                            var soleBranch = new ConditionalSingleBranch (soleContent);
+                            alternatives = new List<ConditionalSingleBranch> ();
+                            alternatives.Add (soleBranch);
+                        }
+                    }
+
+                    // Still null?
+                    if (alternatives == null) {
+                        return (Conditional) FailRule ();
+                    }
                 }
 
                 if (initialQueryExpression != null) {
