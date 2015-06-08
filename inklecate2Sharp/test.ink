@@ -6,7 +6,7 @@
     - multiline works
 }
 
-{5:
+{5:...
     - 5: equality works
     - 3: equality doesn't work
 }
@@ -18,7 +18,7 @@
 }
 
 
-{5+3:
+{5+3:...
     - 5: equality doesn't work
     - 8: equality works
     - 3: equality doesn't work
@@ -53,6 +53,7 @@
 
 ~ testX()
 
+
 == testX ==
 
 {x:
@@ -71,5 +72,7 @@
         - lots
     }
 }
+
+~ done
 
 

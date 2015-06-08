@@ -94,7 +94,7 @@ namespace Inklewriter
                 trueBranch.isBoolCondition = true;
                 result.Add (trueBranch);
 
-                if (listOfLists.Count > 0) {
+                if (listOfLists.Count > 1) {
                     var falseBranch = new ConditionalSingleBranch (listOfLists[1]);
                     falseBranch.boolRequired = false;
                     falseBranch.isBoolCondition = true;
@@ -152,6 +152,10 @@ namespace Inklewriter
             if (ParseString (":") == null) {
                 return (Expression) FailRule ();
             }
+
+            // Optional "..."
+            Whitespace();
+            ParseCharactersFromString (".");
 
             return (Expression) SucceedRule (expr);
         }
