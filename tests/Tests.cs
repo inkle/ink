@@ -36,6 +36,7 @@ namespace Tests
 
 === anotherKnot
     World.
+    ~ done
 ";
             
             Story story = CompileString (storyStr);
@@ -50,6 +51,7 @@ namespace Tests
                 @"
                 === eight
                    { six() + two() }
+                    ~ done
 
                 === six
                     ~ return four() + two()
@@ -73,6 +75,7 @@ namespace Tests
                 @"
                     === test
                         * Hello[.], world.
+                        ~ done
                 ";
 
 
@@ -131,9 +134,11 @@ namespace Tests
     - true: * go to a stitch => a_stitch
  }
 - gather shouldn't be seen
+~ done
 
 = a_stitch
     result
+    ~ done
                 ";
 
             Story story = CompileString (storyStr);
@@ -160,9 +165,11 @@ namespace Tests
     - false: * go to a stitch => a_stitch
  }
 - gather should be seen
+~ done
 
 = a_stitch
     result
+    ~ done
                 ";
 
             Story story = CompileString (storyStr);
