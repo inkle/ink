@@ -209,6 +209,39 @@ namespace Tests
             Assert.AreEqual (story.currentText, "\n5\n");
         }
 
+        [Test ()]
+        public void TestDivertToWeavePoints()
+        {
+            var storyStr =
+                @"
+==> knot => stitch -> gather
+
+== knot ==
+= stitch
+- hello
+    * (choice) test
+        choice content
+- (gather)
+  gather
+
+  {stopping:
+    - ==> knot => stitch -> choice
+    - second time round
+  }
+
+~ done
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            // Unfortunate leading newline...
+            Assert.AreEqual (story.currentText, "\ngather\nchoice content\ngather\nsecond time round\n");
+        }
+
+
+
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

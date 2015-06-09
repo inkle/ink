@@ -83,9 +83,10 @@ namespace Inklewriter.Parsed
 
             container.AddContent (Runtime.ControlCommand.EvalEnd ());
 
-            // Will append the increment at the end, we're just generating it for now,
-            // since we'll use it as a divert point to return to.
-            var postSequenceIncrement = Runtime.ControlCommand.SequenceIncrement ();
+            container.AddContent (Runtime.ControlCommand.SequenceIncrement ());
+
+            // Create point to return to when sequence is complete
+            var postSequenceNoOp = Runtime.ControlCommand.NoOp ();
 
             var elIndex = 0;
             foreach (var el in sequenceElements) {
@@ -114,12 +115,12 @@ namespace Inklewriter.Parsed
 
                 // Save the diverts for reference resolution later (in ResolveReferences)
                 AddDivertToResolve (sequenceDivert, contentContainerForSequenceBranch);
-                AddDivertToResolve (seqBranchCompleteDivert, postSequenceIncrement);
+                AddDivertToResolve (seqBranchCompleteDivert, postSequenceNoOp);
 
                 elIndex++;
             }
 
-            container.AddContent (postSequenceIncrement);
+            container.AddContent (postSequenceNoOp);
 
             return container;
         }
