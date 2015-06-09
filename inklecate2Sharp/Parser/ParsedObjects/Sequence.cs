@@ -51,9 +51,22 @@ namespace Inklewriter.Parsed
             container.AddContent (Runtime.ControlCommand.SequenceCount ());
 
             // Chosen sequence index:
-            // Stopping: take the MIN(read count, num elements - 1)
-            container.AddContent (new Runtime.LiteralInt (sequenceElements.Count-1));
-            container.AddContent (Runtime.NativeFunctionCall.CallWithName ("MIN"));
+            //  - Stopping: take the MIN(read count, num elements - 1)
+            if (sequenceType == SequenceType.Stopping) {
+                container.AddContent (new Runtime.LiteralInt (sequenceElements.Count - 1));
+                container.AddContent (Runtime.NativeFunctionCall.CallWithName ("MIN"));
+            } 
+
+            // - Cycle: take (read count % num elements)
+            else if (sequenceType == SequenceType.Cycle) {
+                container.AddContent (new Runtime.LiteralInt (sequenceElements.Count));
+                container.AddContent (Runtime.NativeFunctionCall.CallWithName ("%"));
+            } 
+
+            // Not implemented
+            else {
+                throw new System.NotImplementedException ();
+            }
 
             container.AddContent (Runtime.ControlCommand.EvalEnd ());
 

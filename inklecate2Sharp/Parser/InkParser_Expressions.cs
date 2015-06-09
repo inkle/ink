@@ -426,6 +426,8 @@ namespace Inklewriter
 			RegisterBinaryOperator ("-", precedence:4);
 			RegisterBinaryOperator ("*", precedence:5);
 			RegisterBinaryOperator ("/", precedence:6);
+
+            RegisterBinaryOperator ("%", precedence:7);
 		}
 
         void RegisterBinaryOperator(string op, int precedence, bool requireWhitespace = false)

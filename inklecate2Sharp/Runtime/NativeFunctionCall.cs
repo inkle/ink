@@ -10,6 +10,7 @@ namespace Inklewriter.Runtime
         public const string Subtract = "-";
         public const string Divide   = "/";
         public const string Multiply = "*";
+        public const string Mod      = "%";
         public const string Negate   = "~";
 
         public const string Equal    = "==";
@@ -129,6 +130,7 @@ namespace Inklewriter.Runtime
                 AddIntBinaryOp(Subtract, (x, y) => x - y);
                 AddIntBinaryOp(Multiply, (x, y) => x * y);
                 AddIntBinaryOp(Divide,   (x, y) => x / y);
+                AddIntBinaryOp(Mod,      (x, y) => x % y); 
                 AddIntUnaryOp (Negate,   x => -x); 
 
                 AddIntBinaryOp(Equal,    (x, y) => x == y ? 1 : 0);
@@ -150,6 +152,7 @@ namespace Inklewriter.Runtime
                 AddFloatBinaryOp(Subtract, (x, y) => x - y);
                 AddFloatBinaryOp(Multiply, (x, y) => x * y);
                 AddFloatBinaryOp(Divide,   (x, y) => x / y);
+                AddFloatBinaryOp(Mod,      (x, y) => x % y); // TODO: Is this the operation we want for floats?
                 AddFloatUnaryOp (Negate,   x => -x); 
 
                 AddFloatBinaryOp(Equal,    (x, y) => x == y ? (int)1 : (int)0);
