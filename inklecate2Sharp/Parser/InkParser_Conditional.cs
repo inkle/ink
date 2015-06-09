@@ -10,8 +10,17 @@ namespace Inklewriter
         protected Conditional InnerConditionalContent()
         {
             BeginRule ();
-
             var initialQueryExpression = ConditionExpression ();
+            var conditional = InnerConditionalContent (initialQueryExpression);
+            if (conditional == null)
+                return (Conditional) FailRule ();
+
+            return (Conditional) SucceedRule (conditional);
+        }
+
+        protected Conditional InnerConditionalContent(Expression initialQueryExpression)
+        {
+            BeginRule ();
 
             List<ConditionalSingleBranch> alternatives;
 
@@ -78,10 +87,9 @@ namespace Inklewriter
                     if (alternatives.Count == 1 && alternatives [0].ownExpression == null) {
                         Error ("condition block with no actual conditions");
                     }
-                    
+
                 }
             }
-
 
             // TODO: Come up with water-tight error conditions... it's quite a flexible system!
             // e.g.

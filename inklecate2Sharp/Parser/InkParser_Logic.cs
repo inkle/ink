@@ -175,12 +175,39 @@ namespace Inklewriter
 
         protected Parsed.Object InnerLogic()
         {
-            // Expression first for:
-            //    {x}  -- if it's a valid variable 
-            //            don't confuse with {hello world} 
-            //            single element sequence
-            // sequence next for:
-            //    {stopping:blah|blah2} -- avoid confusion with conditional
+            BeginRule ();
+
+            Whitespace ();
+
+            // Explicitly try the combinations of inner logic
+            // that could potentially have conflicts first.
+            // e.g.:
+            //   {myBool:blah} v.s. {cycle:blah|blah2}
+            //   {myVar} v.s. {my beautiful horse} -- (latter is single element cycle... perhaps an error?)
+            //
+            //   {                        {
+            //      - cycle 1     v.s.       - x: condition 1
+            //      - cycle 2                - y: condition 2
+            //   }                        {
+
+            // Explicit sequence annotation?
+            SequenceType? explicitSeqType = SequenceTypeAnnotation ();
+            if (explicitSeqType != null) {
+                var contentLists = (List<ContentList>) Expect(InnerSequenceObjects, "sequence elements (for cycle/stoping etc)");
+                var seq = new Sequence (contentLists, (SequenceType) explicitSeqType);
+                return (Parsed.Object) SucceedRule (seq);
+            }
+
+            // Conditional with expression?
+            var initialQueryExpression = ConditionExpression ();
+            if (initialQueryExpression != null) {
+                var conditional = InnerConditionalContent (initialQueryExpression);
+                if (conditional != null) {
+                    return (Parsed.Object)conditional;
+                }
+            }
+
+            // Now try to evaluate each of the "full" rules in turn
             ParseRule[] rules = {
                 InnerExpression,
                 InnerSequence,
@@ -227,7 +254,6 @@ namespace Inklewriter
         protected Sequence InnerSequence()
         {
             BeginRule ();
-
 
             Whitespace ();
 
@@ -307,7 +333,8 @@ namespace Inklewriter
 
             Whitespace ();
 
-            Expect (String (":"), "colon ':' after sequence type name '" + word + "'");
+            if (ParseString (":") == null)
+                return (SequenceType?) FailRule ();
 
             return (SequenceType?) SucceedRule (seqType);
         }
