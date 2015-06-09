@@ -152,12 +152,11 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var logic = Expect(InnerLogic, "inner logic within '{' and '}' braces");
+            var logic = InnerLogic ();
             if (logic == null) {
                 return (Parsed.Object) FailRule ();
             }
-
-
+                
             Whitespace ();
 
             Expect (String("}"), "closing brace '}' for inline logic");
@@ -165,9 +164,51 @@ namespace Inklewriter
             return SucceedRule(logic) as Parsed.Object;
         }
 
+        protected Parsed.Object ExpectedInnerLogic()
+        {
+            var innerLogicObj = Expect(() => OneOf (
+                InnerConditionalContent, 
+                InnerSequence,
+                InnerExpression), 
+                "inner logic or sequence between '{' and '}' braces");
+
+            return (Parsed.Object) innerLogicObj;
+        }
+
         protected Parsed.Object InnerLogic()
         {
-            return (Parsed.Object) OneOf (InnerConditionalContent, InnerExpression);
+            ParseRule[] rules = {
+                InnerConditionalContent, 
+                InnerExpression,
+                InnerSequence
+            };
+
+            // Adapted from "OneOf" structuring rule except that in 
+            // order for the rule to succeed, it has to maximally 
+            // cover the entire string within the { }. Used to
+            // differentiate between:
+            //  {myVar}                 -- Expression (try first)
+            //  {my content is jolly}   -- sequence with single element
+            foreach (ParseRule rule in rules) {
+                BeginRule ();
+
+                Parsed.Object result = rule () as Parsed.Object;
+                if (result != null) {
+
+                    // Not yet at end?
+                    if (Peek (Spaced (String ("}"))) == null)
+                        FailRule ();
+
+                    // Full parse of content within braces
+                    else
+                        return (Parsed.Object) SucceedRule (result);
+                    
+                } else {
+                    FailRule ();
+                }
+            }
+
+            return null;
         }
 
         protected Parsed.Object InnerExpression()
@@ -179,6 +220,16 @@ namespace Inklewriter
             return expr;
         }
 
+        protected Sequence InnerSequence()
+        {
+            var listOfLists = Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
+            if (listOfLists == null) {
+                return (Sequence) FailRule ();
+            }
+
+            var seq = new Sequence (listOfLists);
+            return (Sequence) SucceedRule (seq);
+        }
     }
 }
 

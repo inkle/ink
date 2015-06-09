@@ -103,6 +103,7 @@
     <Compile Include="Parser\ParsedObjects\WeaveFlow\Weave.cs" />
     <Compile Include="Runtime\Error.cs" />
     <Compile Include="Parser\ParsedObjects\Wrap.cs" />
+    <Compile Include="Parser\ParsedObjects\Sequence.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
