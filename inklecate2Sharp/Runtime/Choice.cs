@@ -15,7 +15,14 @@ namespace Inklewriter.Runtime
 
         public override string ToString ()
         {
-            return "Choice: '" + choiceText + "' -> " + pathOnChoice;
+            int? targetLineNum = DebugLineNumberOfPath (pathOnChoice);
+            string targetString = pathOnChoice.ToString ();
+
+            if (targetLineNum != null) {
+                targetString = " line " + targetLineNum;
+            } 
+
+            return "Choice: '" + choiceText + "' -> " + targetString;
         }
 	}
 }

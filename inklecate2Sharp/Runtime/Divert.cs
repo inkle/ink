@@ -21,7 +21,13 @@ namespace Inklewriter.Runtime
             else if (targetPath == null) {
                 return "Divert(null)";
             } else {
-                return "Divert(" + targetPath.ToString () + ")";
+                string targetStr = targetPath.ToString ();
+                int? targetLineNum = DebugLineNumberOfPath (targetPath);
+                if (targetLineNum != null) {
+                    targetStr = " line " + targetLineNum;
+                }
+
+                return "Divert(" + targetStr + ")";
             }
         }
 	}

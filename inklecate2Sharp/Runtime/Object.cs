@@ -26,6 +26,26 @@ namespace Inklewriter.Runtime
         // to have debug metadata on the object itself?!
         DebugMetadata _debugMetadata;
 
+        public int? DebugLineNumberOfPath(Path path)
+        {
+            if (path == null)
+                return null;
+            
+            // Try to get a line number from debug metadata
+            var root = this.rootContainer;
+            if (root != null) {
+                var targetContent = root.ContentAtPath (path);
+                if (targetContent != null) {
+                    var dm = targetContent.debugMetadata;
+                    if (dm != null) {
+                        return dm.startLineNumber;
+                    }
+                }
+            }
+
+            return null;
+        }
+
 		public Path path 
 		{ 
 			get 
@@ -37,6 +57,18 @@ namespace Inklewriter.Runtime
 				}
 			}
 		}
+
+        public Container rootContainer
+        {
+            get 
+            {
+                Runtime.Object ancestor = this;
+                while (ancestor.parent != null) {
+                    ancestor = ancestor.parent;
+                }
+                return ancestor as Container;
+            }
+        }
 
 		public virtual Path PathToChild(Runtime.Object child)
 		{

@@ -720,6 +720,17 @@ namespace Inklewriter.Runtime
             }
         }
 
+        int currentLineNumber 
+        {
+            get {
+                var dm = currentDebugMetadata;
+                if (dm != null) {
+                    return dm.startLineNumber;
+                }
+                return 0;
+            }
+        }
+
         DebugMetadata DebugMetadataAtPath(Path path)
         {
             if (path != null) {

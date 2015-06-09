@@ -12,6 +12,13 @@ namespace Inklewriter.Runtime
         {
             this.trueDivert = trueDivert;
             this.falseDivert = falseDivert;
+
+            if (trueDivert != null) {
+                trueDivert.parent = this;
+            }
+            if (falseDivert != null) {
+                falseDivert.parent = this;
+            }
         }
 
         public override string ToString ()
