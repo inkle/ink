@@ -84,6 +84,26 @@ namespace Inklewriter.Parsed
             return subContent;
         }
 
+        public delegate bool FindQueryFunc<T>(T obj);
+        public T Find<T>(FindQueryFunc<T> queryFunc) where T : class
+        {
+            if (content == null)
+                return null;
+            
+            foreach (var obj in content) {
+                var tObj = obj as T;
+                if (tObj != null && queryFunc (tObj) == true) {
+                    return tObj;
+                }
+
+                var nestedResult = obj.Find (queryFunc);
+                if (nestedResult != null)
+                    return nestedResult;
+            }
+
+            return null;
+        }
+
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
         public virtual void ResolveReferences(Story context)

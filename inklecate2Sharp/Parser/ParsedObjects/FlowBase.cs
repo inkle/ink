@@ -296,6 +296,10 @@ namespace Inklewriter.Parsed
             
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
         {
+            if (levelType == FlowLevel.WeavePoint) {
+                return (Parsed.Object) this.Find<IWeavePoint> (w => w.name == name);
+            }
+
             foreach(var obj in content) {
 
                 var namedContent = obj as INamedContent;
@@ -312,20 +316,6 @@ namespace Inklewriter.Parsed
                         if (flowContent.flowLevel == levelType) {
                             return obj;
                         }
-                    } 
-
-                    // Searching for Choice/Gather
-                    // WEIRD: FOR SOME REASON THIS DOESN'T WORK, BUT THE ELSE BELOW DOES
-//                    else if ( (levelType == FlowLevel.WeavePoint) && (obj is IWeavePoint) ) {
-//                        Console.WriteLine ("woo");
-//                        return obj;
-//                    }
-              
-                    else {
-                        bool weaveLevelRequested = levelType == FlowLevel.WeavePoint;
-                        bool isWeavePoint = obj is IWeavePoint;
-                        if( weaveLevelRequested && isWeavePoint ) 
-                            return obj;
                     }
 
                 }
@@ -334,7 +324,6 @@ namespace Inklewriter.Parsed
             return null;
         }
             
-       // List<Weave> _weaves;
 	}
 }
 

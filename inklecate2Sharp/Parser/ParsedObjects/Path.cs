@@ -165,8 +165,9 @@ namespace Inklewriter.Parsed
                         // this content that we just found
                         if( content is FlowBase ) {
                             flowContext = (FlowBase)content;
+                        } else {
+                            break;
                         }
-                        break;
                     }
                         
                 } while(flowContext != null && flowContext.flowLevel < pathComponentLevel);

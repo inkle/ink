@@ -8,6 +8,7 @@ namespace Inklewriter.Parsed
         int indentationDepth { get; }
         Runtime.Container runtimeContainer { get; }
         List<Parsed.Object> content { get; }
+        string name { get; }
 
         void AddContent(Parsed.Object obj);
     }
