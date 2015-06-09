@@ -13,7 +13,9 @@ namespace Inklewriter.Runtime
             StackPop,
             Duplicate,
             NoOp,
-            ChoiceCount
+            ChoiceCount,
+            SequenceCount,
+            SequenceIncrement
         }
 
         public CommandType commandType { get; protected set; }
@@ -53,6 +55,14 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand ChoiceCount() {
             return new ControlCommand(CommandType.ChoiceCount);
+        }
+
+        public static ControlCommand SequenceCount() {
+            return new ControlCommand(CommandType.SequenceCount);
+        }
+
+        public static ControlCommand SequenceIncrement() {
+            return new ControlCommand(CommandType.SequenceIncrement);
         }
 
         public override string ToString ()

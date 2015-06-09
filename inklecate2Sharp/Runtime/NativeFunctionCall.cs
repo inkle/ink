@@ -23,6 +23,9 @@ namespace Inklewriter.Runtime
         public const string And      = "&&";
         public const string Or       = "||";
 
+        public const string Min      = "MIN";
+        public const string Max      = "MAX";
+
         public static NativeFunctionCall CallWithName(string functionName)
         {
             GenerateNativeFunctionsIfNecessary ();
@@ -139,6 +142,9 @@ namespace Inklewriter.Runtime
                 AddIntBinaryOp(And,      (x, y) => x != 0 && y != 0 ? 1 : 0);
                 AddIntBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
 
+                AddIntBinaryOp(Max,      (x, y) => Math.Max(x, y));
+                AddIntBinaryOp(Min,      (x, y) => Math.Min(x, y));
+
                 // Float operations
                 AddFloatBinaryOp(Add,      (x, y) => x + y);
                 AddFloatBinaryOp(Subtract, (x, y) => x - y);
@@ -156,6 +162,9 @@ namespace Inklewriter.Runtime
 
                 AddFloatBinaryOp(And,      (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
                 AddFloatBinaryOp(Or,       (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
+
+                AddFloatBinaryOp(Max,      (x, y) => Math.Max(x, y));
+                AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
             }
         }

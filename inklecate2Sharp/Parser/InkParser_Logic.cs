@@ -227,7 +227,7 @@ namespace Inklewriter
                 return (Sequence) FailRule ();
             }
 
-            var seq = new Sequence (listOfLists);
+            var seq = new Sequence (listOfLists, SequenceType.Stopping);
             return (Sequence) SucceedRule (seq);
         }
     }

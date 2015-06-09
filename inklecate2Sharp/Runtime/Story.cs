@@ -50,6 +50,8 @@ namespace Inklewriter.Runtime
             _evaluationStack = new List<Runtime.Object> ();
 
             _callStack = new CallStack ();
+
+            _sequenceCounts = new Dictionary<string, int> ();
 		}
 
 		public Runtime.Object ContentAtPath(Path path)
@@ -257,6 +259,19 @@ namespace Inklewriter.Runtime
                 case ControlCommand.CommandType.ChoiceCount:
                     var choiceCount = currentChoices.Count;
                     PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
+                    break;
+
+                case ControlCommand.CommandType.SequenceCount:
+                    var count = currentSequenceCount;
+                    PushEvaluationStack (new LiteralInt (count));
+                    break;
+
+                case ControlCommand.CommandType.SequenceIncrement:
+                    currentSequenceCount++;
+                    break;
+
+                default:
+                    Error ("unhandled ControlCommand: " + evalCommand);
                     break;
                 }
 
@@ -551,6 +566,30 @@ namespace Inklewriter.Runtime
 			}
 		}
 
+        int currentSequenceCount {
+            get {
+                Runtime.Container closestContainer = ClosestContainerAtPath (currentPath);
+                var sequencePathStr = closestContainer.path.ToString();
+                int count = 0;
+                _sequenceCounts.TryGetValue (sequencePathStr, out count);
+                return count;
+            }
+            set {
+                Runtime.Container closestContainer = ClosestContainerAtPath (currentPath);
+                var sequencePathStr = closestContainer.path.ToString();
+                _sequenceCounts [sequencePathStr] = value;
+            }
+        }
+
+        Runtime.Container ClosestContainerAtPath(Path path)
+        {
+            var content = ContentAtPath (path);
+            while (content != null && !(content is Container)) {
+                content = content.parent;
+            }
+            return (Runtime.Container) content;
+        }
+
         void Error(string message, bool useEndLineNum = false)
         {
             
@@ -560,7 +599,8 @@ namespace Inklewriter.Runtime
                 int lineNum = useEndLineNum ? dm.endLineNumber : dm.startLineNumber;
                 message = string.Format ("Runtime error in {0} line {1}: {2}", dm.fileName, lineNum, message);
             } else {
-                message = "Runtime error: "+message;
+                message = "Runtime error" +
+                    ": "+message;
             }
 
             throw new System.Exception (message);
@@ -652,6 +692,8 @@ namespace Inklewriter.Runtime
         private Path _divertedPath;
             
         private CallStack _callStack;
+
+        private Dictionary<string, int> _sequenceCounts;
 
         private List<Runtime.Object> _evaluationStack;
 
