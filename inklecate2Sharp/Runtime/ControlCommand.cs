@@ -15,7 +15,8 @@ namespace Inklewriter.Runtime
             NoOp,
             ChoiceCount,
             SequenceCount,
-            SequenceIncrement
+            SequenceIncrement,
+            SequenceShuffleIndex
         }
 
         public CommandType commandType { get; protected set; }
@@ -63,6 +64,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand SequenceIncrement() {
             return new ControlCommand(CommandType.SequenceIncrement);
+        }
+
+        public static ControlCommand SequenceShuffleIndex() {
+            return new ControlCommand(CommandType.SequenceShuffleIndex);
         }
 
         public override string ToString ()

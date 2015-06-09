@@ -270,6 +270,11 @@ namespace Inklewriter.Runtime
                     currentSequenceCount++;
                     break;
 
+                case ControlCommand.CommandType.SequenceShuffleIndex:
+                    var shuffleIndex = NextSequenceShuffleIndex ();
+                    PushEvaluationStack (new LiteralInt (shuffleIndex));
+                    break;
+
                 default:
                     Error ("unhandled ControlCommand: " + evalCommand);
                     break;
@@ -579,6 +584,55 @@ namespace Inklewriter.Runtime
                 var sequencePathStr = closestContainer.path.ToString();
                 _sequenceCounts [sequencePathStr] = value;
             }
+        }
+
+        // Note that this is O(n), since it re-evaluates the shuffle indices
+        // from a consistent seed each time.
+        // TODO: Is this the best algorithm it can be?
+        int NextSequenceShuffleIndex()
+        {
+            var numElementsLiteral = PopEvaluationStack () as LiteralInt;
+            if (numElementsLiteral == null) {
+                Error ("expected number of elements in sequence for shuffle index");
+                return 0;
+            }
+
+            var seqContainer = ClosestContainerAtPath (currentPath);
+
+            int numElements = numElementsLiteral.value;
+
+            var seqCount = currentSequenceCount;
+            var loopIndex = seqCount / numElements;
+            var iterationIndex = seqCount % numElements;
+
+            // Generate the same shuffle based on:
+            //  - The hash of this container, to make sure it's consistent
+            //    each time the runtime returns to the sequence
+            //  - How many times the runtime has looped around this full shuffle
+            var seqPathStr = seqContainer.path.ToString();
+            int sequenceHash = 0;
+            foreach (char c in seqPathStr) {
+                sequenceHash += c;
+            }
+            var randomSeed = sequenceHash + loopIndex;
+            var random = new Random (randomSeed);
+
+            var unpickedIndices = new List<int> ();
+            for (int i = 0; i < numElements; ++i) {
+                unpickedIndices.Add (i);
+            }
+
+            for (int i = 0; i <= iterationIndex; ++i) {
+                var chosen = random.Next () % unpickedIndices.Count;
+                var chosenIndex = unpickedIndices [chosen];
+                unpickedIndices.RemoveAt (chosen);
+
+                if (i == iterationIndex) {
+                    return chosenIndex;
+                }
+            }
+
+            throw new System.Exception ("Should never reach here");
         }
 
         Runtime.Container ClosestContainerAtPath(Path path)
