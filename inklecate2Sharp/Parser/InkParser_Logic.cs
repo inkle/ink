@@ -166,10 +166,8 @@ namespace Inklewriter
 
         protected Parsed.Object ExpectedInnerLogic()
         {
-            var innerLogicObj = Expect(() => OneOf (
-                InnerConditionalContent, 
-                InnerSequence,
-                InnerExpression), 
+
+            var innerLogicObj = Expect(InnerLogic, 
                 "inner logic or sequence between '{' and '}' braces");
 
             return (Parsed.Object) innerLogicObj;
@@ -177,10 +175,16 @@ namespace Inklewriter
 
         protected Parsed.Object InnerLogic()
         {
+            // Expression first for:
+            //    {x}  -- if it's a valid variable 
+            //            don't confuse with {hello world} 
+            //            single element sequence
+            // sequence next for:
+            //    {stopping:blah|blah2} -- avoid confusion with conditional
             ParseRule[] rules = {
-                InnerConditionalContent, 
                 InnerExpression,
-                InnerSequence
+                InnerSequence,
+                InnerConditionalContent
             };
 
             // Adapted from "OneOf" structuring rule except that in 
@@ -222,13 +226,95 @@ namespace Inklewriter
 
         protected Sequence InnerSequence()
         {
-            var listOfLists = Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
+            BeginRule ();
+
+
+            Whitespace ();
+
+            // Default sequence type
+            SequenceType seqType = SequenceType.Stopping;
+
+            // Optional explicit sequence type
+            SequenceType? parsedSeqType = SequenceTypeAnnotation ();
+            if (parsedSeqType != null)
+                seqType = (SequenceType) parsedSeqType;
+
+            var listOfLists = InnerInlineSequenceObjects ();
             if (listOfLists == null) {
                 return (Sequence) FailRule ();
             }
 
-            var seq = new Sequence (listOfLists, SequenceType.Stopping);
+            var seq = new Sequence (listOfLists, seqType);
             return (Sequence) SucceedRule (seq);
+        }
+
+        protected SequenceType? SequenceTypeAnnotation()
+        {
+            var symbolAnnotation = SequenceTypeSymbolAnnotation ();
+            if (symbolAnnotation != null)
+                return symbolAnnotation;
+
+            var wordAnnotation = SequenceTypeWordAnnotation ();
+            if (wordAnnotation != null)
+                return wordAnnotation;
+
+            return null;
+        }
+
+        protected SequenceType? SequenceTypeSymbolAnnotation()
+        {
+            var symbol = ParseCharactersFromString ("!&~$", 1);
+            if (symbol != null) {
+                switch (symbol) {
+                case "!":
+                    return SequenceType.Once;
+                case "&":
+                    return SequenceType.Cycle;
+                case "~":
+                    return SequenceType.Shuffle;
+                case "$":
+                    return SequenceType.Stopping;
+                }
+            }
+
+            return null;
+        }
+
+        protected SequenceType? SequenceTypeWordAnnotation()
+        {
+            BeginRule ();
+
+            SequenceType? seqType = null;
+
+            var word = Identifier ();
+            switch (word) {
+            case "once":
+                seqType = SequenceType.Once;
+                break;
+            case "cycle":
+                seqType = SequenceType.Cycle;
+                break;
+            case "shuffle":
+                seqType = SequenceType.Shuffle;
+                break;
+            case "stopping":
+                seqType = SequenceType.Stopping;
+                break;
+            }
+
+            if (seqType == null)
+                return (SequenceType?) FailRule ();
+
+            Whitespace ();
+
+            Expect (String (":"), "colon ':' after sequence type name '" + word + "'");
+
+            return (SequenceType?) SucceedRule (seqType);
+        }
+
+        protected List<List<Parsed.Object>> InnerInlineSequenceObjects()
+        {
+            return Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
         }
     }
 }

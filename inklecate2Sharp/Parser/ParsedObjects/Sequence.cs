@@ -7,7 +7,7 @@ namespace Inklewriter.Parsed
     {
         Stopping, // default
         Cycle,
-        Random,
+        Shuffle,
         Once
     }
 
