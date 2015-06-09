@@ -150,6 +150,11 @@ namespace Inklewriter
 					var expectationMessage = string.Format("right side of '{0}' expression", infixOp.type);
 					var multiaryExpr = Expect (() => ExpressionInfixRight (left: expr, op: infixOp), expectationMessage);
                     if (multiaryExpr == null) {
+
+                        // Fail for operator and right-hand side of multiary expression
+                        FailRule ();
+
+                        // Fail for expression as a whole
                         return (Expression) FailRule ();
                     }
 

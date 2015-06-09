@@ -522,8 +522,6 @@ namespace Inklewriter
         {
             int oldIndex = index;
 
-            BeginRule ();
-
             int? leadingInt = ParseInt ();
             if (leadingInt != null) {
 

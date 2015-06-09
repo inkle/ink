@@ -12,7 +12,12 @@ namespace Tests
 		protected Story CompileString(string str)
 		{
 			InkParser parser = new InkParser(str);
+            parser.errorHandler += (string message, int index, int lineIndex) => {
+                Assert.Fail(message + " on line " + lineIndex);
+            };
 			var parsedStory = parser.Parse();
+            Assert.IsFalse (parsedStory.hadError);
+                
 			Story story = parsedStory.ExportRuntime ();
 			return story;
 		}
