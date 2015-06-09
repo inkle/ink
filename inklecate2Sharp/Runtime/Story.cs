@@ -52,6 +52,10 @@ namespace Inklewriter.Runtime
             _callStack = new CallStack ();
 
             _sequenceCounts = new Dictionary<string, int> ();
+
+            // Seed the shuffle random numbers
+            int timeSeed = DateTime.Now.Millisecond;
+            _storySeed = (new Random (timeSeed)).Next () % 100;
 		}
 
 		public Runtime.Object ContentAtPath(Path path)
@@ -614,7 +618,7 @@ namespace Inklewriter.Runtime
             foreach (char c in seqPathStr) {
                 sequenceHash += c;
             }
-            var randomSeed = sequenceHash + loopIndex;
+            var randomSeed = sequenceHash + loopIndex + _storySeed;
             var random = new Random (randomSeed);
 
             var unpickedIndices = new List<int> ();
@@ -748,6 +752,7 @@ namespace Inklewriter.Runtime
         private CallStack _callStack;
 
         private Dictionary<string, int> _sequenceCounts;
+        private int _storySeed;
 
         private List<Runtime.Object> _evaluationStack;
 
