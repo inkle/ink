@@ -181,14 +181,7 @@ namespace Inklewriter
 
             // Explicitly try the combinations of inner logic
             // that could potentially have conflicts first.
-            // e.g.:
-            //   {myBool:blah} v.s. {cycle:blah|blah2}
-            //   {myVar} v.s. {my beautiful horse} -- (latter is single element cycle... perhaps an error?)
-            //
-            //   {                        {
-            //      - cycle 1     v.s.       - x: condition 1
-            //      - cycle 2                - y: condition 2
-            //   }                        {
+
 
             // Explicit sequence annotation?
             SequenceType? explicitSeqType = SequenceTypeAnnotation ();
@@ -209,9 +202,9 @@ namespace Inklewriter
 
             // Now try to evaluate each of the "full" rules in turn
             ParseRule[] rules = {
-                InnerExpression,
+                InnerConditionalContent,
                 InnerSequence,
-                InnerConditionalContent
+                InnerExpression,
             };
 
             // Adapted from "OneOf" structuring rule except that in 
@@ -266,7 +259,7 @@ namespace Inklewriter
                 seqType = (SequenceType) parsedSeqType;
 
             var contentLists = InnerSequenceObjects ();
-            if (contentLists == null) {
+            if (contentLists == null || contentLists.Count <= 1) {
                 return (Sequence) FailRule ();
             }
 
