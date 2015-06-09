@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Inklewriter.Runtime
 {
@@ -11,6 +12,19 @@ namespace Inklewriter.Runtime
         {
             this.trueDivert = trueDivert;
             this.falseDivert = falseDivert;
+        }
+
+        public override string ToString ()
+        {
+            var sb = new StringBuilder ();
+            sb.Append ("Branch: ");
+            if (trueDivert != null) {
+                sb.AppendFormat ("(true: {0})", trueDivert);
+            }
+            if (falseDivert != null) {
+                sb.AppendFormat ("(false: {0})", falseDivert);
+            }
+            return sb.ToString ();
         }
     }
 }

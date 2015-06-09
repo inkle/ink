@@ -239,12 +239,12 @@ namespace Inklewriter
             if (parsedSeqType != null)
                 seqType = (SequenceType) parsedSeqType;
 
-            var listOfLists = InnerInlineSequenceObjects ();
-            if (listOfLists == null) {
+            var contentLists = InnerSequenceObjects ();
+            if (contentLists == null) {
                 return (Sequence) FailRule ();
             }
 
-            var seq = new Sequence (listOfLists, seqType);
+            var seq = new Sequence (contentLists, seqType);
             return (Sequence) SucceedRule (seq);
         }
 
@@ -312,9 +312,63 @@ namespace Inklewriter
             return (SequenceType?) SucceedRule (seqType);
         }
 
-        protected List<List<Parsed.Object>> InnerInlineSequenceObjects()
+        protected List<ContentList> InnerSequenceObjects()
         {
-            return Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
+            BeginRule ();
+
+            var multiline = Newline () != null;
+
+            List<ContentList> result = null;
+            if (multiline) {
+                result = InnerMultilineSequenceObjects ();
+            } else {
+                result = InnerInlineSequenceObjects ();
+            }
+
+            if (result == null)
+                return (List<ContentList>) FailRule ();
+
+            return (List<ContentList>) SucceedRule (result);
+
+        }
+
+        protected List<ContentList> InnerInlineSequenceObjects()
+        {
+            var listOfLists = Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
+            if (listOfLists == null)
+                return null;
+
+            var result = new List<ContentList> ();
+            foreach (var list in listOfLists) {
+                result.Add (new ContentList (list));
+            }
+
+            return result;
+        }
+
+        protected List<ContentList> InnerMultilineSequenceObjects()
+        {
+            return OneOrMore (SingleMultilineSequenceElement).Cast<ContentList>().ToList();
+        }
+
+        protected ContentList SingleMultilineSequenceElement()
+        {
+            BeginRule ();
+
+            Whitespace ();
+
+            if (ParseString ("-") == null)
+                return (ContentList) FailRule ();
+
+            Whitespace ();
+
+            List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
+            if (content == null) {
+                Error ("expected content for the sequence element following '-'");
+            }
+
+            var contentList = new ContentList (content);
+            return (ContentList) SucceedRule (contentList);
         }
     }
 }

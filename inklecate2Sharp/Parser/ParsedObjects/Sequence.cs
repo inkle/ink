@@ -14,10 +14,10 @@ namespace Inklewriter.Parsed
     public class Sequence : Parsed.Object
     {
 
-        public List<List<Parsed.Object>> sequenceElements;
+        public List<ContentList> sequenceElements;
         public SequenceType sequenceType;
 
-        public Sequence (List<List<Parsed.Object>> sequenceElements, SequenceType sequenceType)
+        public Sequence (List<ContentList> sequenceElements, SequenceType sequenceType)
         {
             this.sequenceType = sequenceType;
             this.sequenceElements = sequenceElements;
@@ -78,7 +78,7 @@ namespace Inklewriter.Parsed
                 container.AddContent (new Runtime.Branch (sequenceDivert));
 
                 // Generate content for this sequence element
-                var contentContainerForSequenceBranch = RuntimeContainerForSequenceBranch (elIndex);
+                var contentContainerForSequenceBranch = (Runtime.Container) el.runtimeObject;
                 contentContainerForSequenceBranch.name = "s" + elIndex;
 
                 // When sequence element is complete, divert back to end of sequence
@@ -98,18 +98,6 @@ namespace Inklewriter.Parsed
             return container;
         }
 
-        Runtime.Container RuntimeContainerForSequenceBranch(int index)
-        {
-            var container = new Runtime.Container ();
-
-            List<Parsed.Object> branchContent = sequenceElements [index];
-            foreach (var obj in branchContent) {
-                container.AddContent (obj.runtimeObject);
-            }
-
-            return container;
-        }
-
         void AddDivertToResolve(Runtime.Divert divert, Runtime.Object targetContent)
         {
             _sequenceDivertsToResove.Add( new SequenceDivertToResolve() { 
@@ -120,6 +108,8 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences(Story context)
         {
+            base.ResolveReferences (context);
+
             foreach (var toResolve in _sequenceDivertsToResove) {
                 toResolve.divert.targetPath = toResolve.targetContent.path;
             }

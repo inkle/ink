@@ -104,6 +104,7 @@
     <Compile Include="Runtime\Error.cs" />
     <Compile Include="Parser\ParsedObjects\Wrap.cs" />
     <Compile Include="Parser\ParsedObjects\Sequence.cs" />
+    <Compile Include="Parser\ParsedObjects\ContentList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
