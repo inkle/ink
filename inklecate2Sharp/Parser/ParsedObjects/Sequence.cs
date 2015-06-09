@@ -61,7 +61,13 @@ namespace Inklewriter.Parsed
             else if (sequenceType == SequenceType.Cycle) {
                 container.AddContent (new Runtime.LiteralInt (sequenceElements.Count));
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName ("%"));
-            } 
+            }
+
+            // Once: allow sequence count to be unbounded
+            else if (sequenceType == SequenceType.Once) {
+                // Do nothing - the sequence count will simply prevent
+                // any content being referenced when it goes out of bounds
+            }
 
             // Not implemented
             else {
