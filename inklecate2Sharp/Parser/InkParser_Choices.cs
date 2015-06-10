@@ -10,9 +10,16 @@ namespace Inklewriter
 		{
 			BeginRule ();
 
+            bool onceOnlyChoice = true;
             var bullets = Interleave <string>(OptionalExclude(Whitespace), String("*") );
             if (bullets == null) {
-                return (Choice) FailRule ();
+
+                bullets = Interleave <string>(OptionalExclude(Whitespace), String("+") );
+                if (bullets == null) {
+                    return (Choice) FailRule ();
+                }
+
+                onceOnlyChoice = false;
             }
 
             // Optional name for the gather
@@ -63,6 +70,7 @@ namespace Inklewriter
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
             choice.condition = conditionExpr;
+            choice.onceOnly = onceOnlyChoice;
 
             return SucceedRule(choice) as Choice;
 
