@@ -71,6 +71,8 @@ namespace Inklewriter.Runtime
 
 		public void Continue()
 		{
+            HashSet<Container> previouslyOpenContainers = null;
+
 			Runtime.Object currentContentObj = null;
 			do {
 
@@ -83,6 +85,8 @@ namespace Inklewriter.Runtime
 						currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
 						currentContentObj = ContentAtPath(currentPath);
 					}
+
+                    IncrementVisitCountForActiveContainers (currentContentObj, ref previouslyOpenContainers);
 
                     // Is the current content object:
                     //  - Normal content
@@ -98,9 +102,19 @@ namespace Inklewriter.Runtime
                     // Choice with condition?
                     bool shouldAddObject = true;
                     var choice = currentContentObj as Choice;
-                    if( choice != null && choice.hasCondition ) {
-                        var conditionValue = PopEvaluationStack();
-                        shouldAddObject = IsTruthy(conditionValue);
+                    if( choice != null ) {
+
+                        if( choice.hasCondition ) {
+                            var conditionValue = PopEvaluationStack();
+                            shouldAddObject = IsTruthy(conditionValue);
+                        }
+
+                        if( choice.onceOnly && shouldAddObject ) {
+                            var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
+                            var visitCount = VisitCountForContainer(choiceTargetContainer);
+                            shouldAddObject = visitCount == 0;
+                        }
+
                     }
 
                     // Error?
@@ -265,13 +279,10 @@ namespace Inklewriter.Runtime
                     PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
                     break;
 
-                case ControlCommand.CommandType.VisitCount:
-                    var count = visitCountOfClosestContainer;
+                case ControlCommand.CommandType.VisitIndex:
+                    var currentContainer = ClosestContainerAtPath (currentPath);
+                    var count = VisitCountForContainer(currentContainer) - 1; // index not count
                     PushEvaluationStack (new LiteralInt (count));
-                    break;
-
-                case ControlCommand.CommandType.VisitCountIncrement:
-                    visitCountOfClosestContainer++;
                     break;
 
                 case ControlCommand.CommandType.SequenceShuffleIndex:
@@ -649,19 +660,42 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        int visitCountOfClosestContainer {
-            get {
-                Runtime.Container closestContainer = ClosestContainerAtPath (currentPath);
-                var containerPathStr = closestContainer.path.ToString();
-                int count = 0;
-                _visitCounts.TryGetValue (containerPathStr, out count);
-                return count;
+        void IncrementVisitCountForActiveContainers (Object currentContentObj, ref HashSet<Container> previouslyOpenContainers)
+        {
+            var openContainers = new HashSet<Container> ();
+            var ancestor = currentContentObj;
+            while (ancestor != null) {
+                if (ancestor is Container)
+                    openContainers.Add ((Container)ancestor);
+                ancestor = ancestor.parent;
             }
-            set {
-                Runtime.Container closestContainer = ClosestContainerAtPath (currentPath);
-                var containerPathStr = closestContainer.path.ToString();
-                _visitCounts [containerPathStr] = value;
+            var newlyOpenContainers = new HashSet<Container> (openContainers);
+            if (previouslyOpenContainers != null) {
+                foreach (var c in previouslyOpenContainers) {
+                    newlyOpenContainers.Remove (c);
+                }
             }
+            foreach (var c in newlyOpenContainers) {
+                IncrementVisitCountForContainer (c);
+            }
+            previouslyOpenContainers = openContainers;
+        }
+
+        int VisitCountForContainer(Container container)
+        {
+            int count = 0;
+            var containerPathStr = container.path.ToString();
+            _visitCounts.TryGetValue (containerPathStr, out count);
+            return count;
+        }
+
+        void IncrementVisitCountForContainer(Container container)
+        {
+            int count = 0;
+            var containerPathStr = container.path.ToString();
+            _visitCounts.TryGetValue (containerPathStr, out count);
+            count++;
+            _visitCounts [containerPathStr] = count;
         }
 
         // Note that this is O(n), since it re-evaluates the shuffle indices
@@ -679,7 +713,7 @@ namespace Inklewriter.Runtime
 
             int numElements = numElementsLiteral.value;
 
-            var seqCount = visitCountOfClosestContainer;
+            var seqCount = VisitCountForContainer (seqContainer);
             var loopIndex = seqCount / numElements;
             var iterationIndex = seqCount % numElements;
 

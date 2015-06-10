@@ -11,6 +11,7 @@ namespace Inklewriter.Runtime
 		public string name { get; set; }
 		public List<Runtime.Object> content { get; protected set; }
 		public Dictionary<string, INamedContent> namedContent { get; protected set; }
+        public bool visitsShouldBeCounted { get; set; }
 
 		public bool hasValidName 
 		{

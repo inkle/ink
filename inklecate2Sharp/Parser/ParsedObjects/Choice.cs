@@ -12,6 +12,7 @@ namespace Inklewriter.Parsed
 
         public string name { get; set; }
         public Expression condition { get; set; }
+        public bool onceOnly { get; set; }
 
 		public Path   explicitPath { get; }
         public bool   explicitGather { get; }
@@ -47,6 +48,7 @@ namespace Inklewriter.Parsed
             this.startText = startText;
             this.choiceOnlyText = choiceOnlyText;
             this.contentOnlyText = contentOnlyText;
+            this.onceOnly = true; // default
 
             if (divert != null) {
                 if (divert.isToGather) {
@@ -85,7 +87,7 @@ namespace Inklewriter.Parsed
             }
 
             // Build choice itself
-            _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString());
+            _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString(), onceOnly);
 
             // Nested content like this:
             // [
@@ -109,8 +111,10 @@ namespace Inklewriter.Parsed
                 if( hasOwnContent ) {
 
                     _weaveContentContainer = new Runtime.Container ();
-                    _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));
                     _weaveContentContainer.name = "c";
+                    _weaveContentContainer.visitsShouldBeCounted = true;
+                    _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));
+
 
                     if (this.explicitPath != null) {
                         _weaveContentEndDivert = new Runtime.Divert ();
@@ -156,6 +160,11 @@ namespace Inklewriter.Parsed
             }
 
             _resolvedExplicitPath = obj.runtimePath;
+
+            if (!hasOwnContent && onceOnly) {
+                var targetObjContainer = obj.runtimeObject as Runtime.Container;
+                targetObjContainer.visitsShouldBeCounted = true;
+            }
 
             if (_weaveContentEndDivert != null) {
                 _weaveContentEndDivert.targetPath = _resolvedExplicitPath;

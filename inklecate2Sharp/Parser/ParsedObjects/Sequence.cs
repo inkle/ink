@@ -43,12 +43,13 @@ namespace Inklewriter.Parsed
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();
+            container.visitsShouldBeCounted = true;
 
             _sequenceDivertsToResove = new List<SequenceDivertToResolve> ();
 
             // Get sequence read count
             container.AddContent (Runtime.ControlCommand.EvalStart ());
-            container.AddContent (Runtime.ControlCommand.VisitCount ());
+            container.AddContent (Runtime.ControlCommand.VisitIndex ());
 
             // Chosen sequence index:
             //  - Stopping: take the MIN(read count, num elements - 1)
@@ -82,8 +83,6 @@ namespace Inklewriter.Parsed
             }
 
             container.AddContent (Runtime.ControlCommand.EvalEnd ());
-
-            container.AddContent (Runtime.ControlCommand.VisitCountIncrement ());
 
             // Create point to return to when sequence is complete
             var postSequenceNoOp = Runtime.ControlCommand.NoOp ();

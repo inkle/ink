@@ -7,10 +7,12 @@ namespace Inklewriter.Runtime
 		public Path pathOnChoice { get; set; }
 		public string choiceText { get; set; }
         public bool hasCondition { get; set; }
+        public bool onceOnly { get; set; }
 
-		public Choice (string choiceText)
+        public Choice (string choiceText, bool onceOnly)
 		{
 			this.choiceText = choiceText;
+            this.onceOnly = onceOnly;
 		}
 
         public override string ToString ()
