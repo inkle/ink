@@ -41,9 +41,9 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-		public Story (Container rootContainer)
+		public Story (Container contentContainer)
 		{
-			_rootContainer = rootContainer;
+			_mainContentContainer = contentContainer;
 
             outputStream = new List<Runtime.Object> ();
 
@@ -60,7 +60,7 @@ namespace Inklewriter.Runtime
 
 		public Runtime.Object ContentAtPath(Path path)
 		{
-			return rootContainer.ContentAtPath (path);
+			return mainContentContainer.ContentAtPath (path);
 		}
 
 		public void Begin()
@@ -479,7 +479,6 @@ namespace Inklewriter.Runtime
                 if( outputObj is Text ) {
 
                     var text = (Text)outputObj;
-                    int earliestNewlineFromEnd = -1;
 
                     for(int ci = text.text.Length-1; ci>=0; --ci) {
                         var c = text.text [ci];
@@ -600,7 +599,7 @@ namespace Inklewriter.Runtime
             if (currentPath != null) {
                 currentObj = ContentAtPath (currentPath);
             }
-            rootContainer.BuildStringOfHierarchy (sb, 0, currentObj);
+            mainContentContainer.BuildStringOfHierarchy (sb, 0, currentObj);
 
             return sb.ToString ();
         }
@@ -626,7 +625,7 @@ namespace Inklewriter.Runtime
 			}
 
 			// Can we increment successfully?
-			currentPath = rootContainer.IncrementPath (currentPath);
+			currentPath = mainContentContainer.IncrementPath (currentPath);
 			if (currentPath == null) {
 
 				// Failed to increment, so we've run out of content
@@ -821,17 +820,17 @@ namespace Inklewriter.Runtime
             return null;
         }
 
-        Container rootContainer {
+        Container mainContentContainer {
             get {
                 if (_temporaryEvaluationContainer != null) {
                     return _temporaryEvaluationContainer;
                 } else {
-                    return _rootContainer;
+                    return _mainContentContainer;
                 }
             }
         }
 
-        private Container _rootContainer;
+        private Container _mainContentContainer;
         private Container _temporaryEvaluationContainer;
         private Path _divertedPath;
             
