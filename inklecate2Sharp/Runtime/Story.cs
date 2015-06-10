@@ -51,7 +51,7 @@ namespace Inklewriter.Runtime
 
             _callStack = new CallStack ();
 
-            _sequenceCounts = new Dictionary<string, int> ();
+            _visitCounts = new Dictionary<string, int> ();
 
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
@@ -265,13 +265,13 @@ namespace Inklewriter.Runtime
                     PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
                     break;
 
-                case ControlCommand.CommandType.SequenceCount:
-                    var count = currentSequenceCount;
+                case ControlCommand.CommandType.VisitCount:
+                    var count = visitCountOfClosestContainer;
                     PushEvaluationStack (new LiteralInt (count));
                     break;
 
-                case ControlCommand.CommandType.SequenceIncrement:
-                    currentSequenceCount++;
+                case ControlCommand.CommandType.VisitCountIncrement:
+                    visitCountOfClosestContainer++;
                     break;
 
                 case ControlCommand.CommandType.SequenceShuffleIndex:
@@ -649,18 +649,18 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        int currentSequenceCount {
+        int visitCountOfClosestContainer {
             get {
                 Runtime.Container closestContainer = ClosestContainerAtPath (currentPath);
-                var sequencePathStr = closestContainer.path.ToString();
+                var containerPathStr = closestContainer.path.ToString();
                 int count = 0;
-                _sequenceCounts.TryGetValue (sequencePathStr, out count);
+                _visitCounts.TryGetValue (containerPathStr, out count);
                 return count;
             }
             set {
                 Runtime.Container closestContainer = ClosestContainerAtPath (currentPath);
-                var sequencePathStr = closestContainer.path.ToString();
-                _sequenceCounts [sequencePathStr] = value;
+                var containerPathStr = closestContainer.path.ToString();
+                _visitCounts [containerPathStr] = value;
             }
         }
 
@@ -679,7 +679,7 @@ namespace Inklewriter.Runtime
 
             int numElements = numElementsLiteral.value;
 
-            var seqCount = currentSequenceCount;
+            var seqCount = visitCountOfClosestContainer;
             var loopIndex = seqCount / numElements;
             var iterationIndex = seqCount % numElements;
 
@@ -836,7 +836,7 @@ namespace Inklewriter.Runtime
             
         private CallStack _callStack;
 
-        private Dictionary<string, int> _sequenceCounts;
+        private Dictionary<string, int> _visitCounts;
         private int _storySeed;
 
         private List<Runtime.Object> _evaluationStack;

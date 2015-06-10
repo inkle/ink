@@ -14,8 +14,8 @@ namespace Inklewriter.Runtime
             Duplicate,
             NoOp,
             ChoiceCount,
-            SequenceCount,
-            SequenceIncrement,
+            VisitCount,
+            VisitCountIncrement,
             SequenceShuffleIndex
         }
 
@@ -58,12 +58,12 @@ namespace Inklewriter.Runtime
             return new ControlCommand(CommandType.ChoiceCount);
         }
 
-        public static ControlCommand SequenceCount() {
-            return new ControlCommand(CommandType.SequenceCount);
+        public static ControlCommand VisitCount() {
+            return new ControlCommand(CommandType.VisitCount);
         }
 
-        public static ControlCommand SequenceIncrement() {
-            return new ControlCommand(CommandType.SequenceIncrement);
+        public static ControlCommand VisitCountIncrement() {
+            return new ControlCommand(CommandType.VisitCountIncrement);
         }
 
         public static ControlCommand SequenceShuffleIndex() {

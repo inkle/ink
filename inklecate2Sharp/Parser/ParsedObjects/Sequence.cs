@@ -48,7 +48,7 @@ namespace Inklewriter.Parsed
 
             // Get sequence read count
             container.AddContent (Runtime.ControlCommand.EvalStart ());
-            container.AddContent (Runtime.ControlCommand.SequenceCount ());
+            container.AddContent (Runtime.ControlCommand.VisitCount ());
 
             // Chosen sequence index:
             //  - Stopping: take the MIN(read count, num elements - 1)
@@ -83,7 +83,7 @@ namespace Inklewriter.Parsed
 
             container.AddContent (Runtime.ControlCommand.EvalEnd ());
 
-            container.AddContent (Runtime.ControlCommand.SequenceIncrement ());
+            container.AddContent (Runtime.ControlCommand.VisitCountIncrement ());
 
             // Create point to return to when sequence is complete
             var postSequenceNoOp = Runtime.ControlCommand.NoOp ();
