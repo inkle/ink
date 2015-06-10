@@ -156,6 +156,10 @@ namespace Inklewriter
             List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
             if (expr == null && content == null) {
                 Error ("expected content for the conditional branch following '-'");
+
+                // Recover
+                content = new List<Inklewriter.Parsed.Object> ();
+                content.Add (new Text (""));
             }
 
             var branch = new ConditionalSingleBranch (content);

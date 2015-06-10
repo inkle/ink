@@ -390,13 +390,16 @@ namespace Inklewriter.Runtime
 
         }
 
+
         protected void PushToOutputStream(Runtime.Object obj)
         {
             // Glue: absorbs newlines both before and after it,
             // causing two piece of inline text to stay on the same line.
             bool outputStreamEndsInGlue = false;
+            int glueIdx = -1;
             if (outputStream.Count > 0) {
                 outputStreamEndsInGlue = outputStream.Last () is Glue;
+                glueIdx = outputStream.Count - 1;
             }
 
             if (obj is Text) {
@@ -443,17 +446,89 @@ namespace Inklewriter.Runtime
 
             // New glue: remove any existing trailing newline from output stream
             else if (obj is Glue) {
-                if (outputStreamEndsInNewline) {
-                    outputStream.RemoveAt (outputStream.Count - 1);
-                }
+                TrimNewlinesFromOutputStreamEnd ();
             }
 
             // Only remove an existing glue if we're definitely now
             // adding something new on top, since it's served its purpose.
             if( outputStreamEndsInGlue ) 
-                outputStream.RemoveAt (outputStream.Count - 1);
+                outputStream.RemoveAt (glueIdx);
             
             outputStream.Add(obj);
+        }
+
+        // Called when Glue is appended
+        // Cut through ' ' and '\t' to reach newlines
+        //  - When earliest newline from the end is found, trim all 
+        //    whitespace from the end up to and including that newline.
+        //  - If no newline is found, don't remove anything
+        // Bear in mind that text may be split across multiple text objects.
+        // e.g.:
+        //   "hello world  \n  \n    "
+        //                 ^ trim from here to the end
+        void TrimNewlinesFromOutputStreamEnd()
+        {
+            bool foundNonWhitespace = false;
+            int lastNewlineObjIdx = -1;
+            int lastNewlineCharIdx = -1;
+
+            // Find last newline
+            for (int i = outputStream.Count - 1; i >= 0; --i) {
+
+                var outputObj = outputStream [i];
+                if( outputObj is Text ) {
+
+                    var text = (Text)outputObj;
+                    int earliestNewlineFromEnd = -1;
+
+                    for(int ci = text.text.Length-1; ci>=0; --ci) {
+                        var c = text.text [ci];
+                        if (c == ' ' || c == '\t') {
+                            continue;
+                        } 
+
+                        else if (c == '\n') {
+                            lastNewlineObjIdx = i;
+                            lastNewlineCharIdx = ci;
+                        }
+
+                        // Non-whitespace
+                        else {
+                            foundNonWhitespace = true;
+                            break;
+                        }
+                    }
+
+                    if (foundNonWhitespace) {
+                        break;
+                    }
+
+                }
+
+                // Non-text
+                else {
+                    break;
+                }
+            }
+
+            if (lastNewlineObjIdx >= 0) {
+                int firstEntireObjToRemove = lastNewlineObjIdx + 1;
+                if (lastNewlineCharIdx == 0) {
+                    firstEntireObjToRemove = lastNewlineObjIdx;
+                }
+
+                int entireObjCountToRemove = outputStream.Count - firstEntireObjToRemove;
+                if (entireObjCountToRemove > 0) {
+                    outputStream.RemoveRange (firstEntireObjToRemove, entireObjCountToRemove);
+                }
+
+                if (lastNewlineCharIdx > 0) {
+                    Text textToTrim = (Text)outputStream [lastNewlineObjIdx];
+                    textToTrim.text = textToTrim.text.Substring (0, lastNewlineCharIdx);
+                }
+            }
+
+
         }
 
         bool outputStreamEndsInNewline {
