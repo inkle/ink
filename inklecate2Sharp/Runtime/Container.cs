@@ -52,6 +52,10 @@ namespace Inklewriter.Runtime
 		{
 			content.Add (contentObj);
 
+            if (contentObj.parent != null) {
+                throw new System.Exception ("content is already in " + contentObj.parent);
+            }
+
 			contentObj.parent = this;
 
 			TryAddNamedContent (contentObj);

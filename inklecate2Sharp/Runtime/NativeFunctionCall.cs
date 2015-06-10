@@ -31,14 +31,31 @@ namespace Inklewriter.Runtime
         {
             GenerateNativeFunctionsIfNecessary ();
 
-            return _nativeFunctions [functionName];
+            return new NativeFunctionCall (functionName);
         }
 
         public string name { get; protected set; }
-        public int numberOfParameters { get; protected set; }
+        public int numberOfParameters { 
+            get {
+                if (_prototype != null) {
+                    return _prototype.numberOfParameters;
+                } else {
+                    return _numberOfParameters;
+                }
+            }
+            protected set {
+                _numberOfParameters = value;
+            }
+        }
+
+        int _numberOfParameters;
 
         public Runtime.Object Call(List<Runtime.Object> parameters)
         {
+            if (_prototype != null) {
+                return _prototype.Call(parameters);
+            }
+
             if (numberOfParameters != parameters.Count) {
                 throw new System.Exception ("Unexpected number of parameters");
             }
@@ -112,6 +129,12 @@ namespace Inklewriter.Runtime
             }
 
             return parametersOut;
+        }
+
+        public NativeFunctionCall(string name)
+        {
+            this.name = name;
+            _prototype = _nativeFunctions [name];
         }
 
         NativeFunctionCall (string name, int numberOfParamters)
@@ -219,6 +242,8 @@ namespace Inklewriter.Runtime
 
         delegate object BinaryOp<T>(T left, T right);
         delegate object UnaryOp<T>(T val);
+
+        NativeFunctionCall _prototype;
 
         // Operations for each data type, for a single operation (e.g. "+")
         Dictionary<LiteralType, object> _operationFuncs;
