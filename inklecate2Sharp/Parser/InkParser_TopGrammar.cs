@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Inklewriter.Parsed;
 
 namespace Inklewriter
@@ -245,10 +246,53 @@ namespace Inklewriter
 		private CharacterSet _identifierCharSet;
 
 
+        protected Parsed.Text ContentText()
+        {
+            return ContentTextAllowingEcapeChar ();
+        }
+
+        protected Parsed.Text ContentTextAllowingEcapeChar()
+        {
+            BeginRule ();
+
+            StringBuilder sb = null;
+
+            do {
+                var str = ContentTextNoEscape();
+                bool gotEscapeChar = ParseString(@"\") != null;
+
+                if( gotEscapeChar || str != null ) {
+                    if( sb == null ) {
+                        sb = new StringBuilder();
+                    }
+
+                    if( str != null ) {
+                        sb.Append(str);
+                    }
+
+                    if( gotEscapeChar ) {
+                        char c = ParseSingleCharacter();
+                        sb.Append(c);
+                    }
+
+                } else {
+                    break;
+                }
+
+            } while(true);
+
+            if (sb != null ) {
+                return (Parsed.Text) SucceedRule( new Parsed.Text (sb.ToString()) );
+
+            } else {
+                return (Parsed.Text) FailRule();
+            }
+        }
+
 		// Content text is an unusual parse rule compared with most since it's
 		// less about saying "this is is the small selection of stuff that we parse"
 		// and more "we parse ANYTHING except this small selection of stuff".
-		protected Parsed.Text ContentText()
+		protected string ContentTextNoEscape()
 		{
             BeginRule ();
 
@@ -263,7 +307,7 @@ namespace Inklewriter
             // "{" for start of logic
             // "=" for start of divert or new stitch
 			if (_nonTextEndCharacters == null) {
-                _nonTextEndCharacters = new CharacterSet ("={}|\n\r");
+                _nonTextEndCharacters = new CharacterSet ("={}|\n\r\\");
 			}
 
 			// When the ParseUntil pauses, check these rules in case they evaluate successfully
@@ -271,10 +315,10 @@ namespace Inklewriter
 			
 			string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
 			if (pureTextContent != null ) {
-                return (Parsed.Text) SucceedRule( new Parsed.Text (pureTextContent) );
+                return (string) SucceedRule( pureTextContent );
 
 			} else {
-                return (Parsed.Text) FailRule();
+                return (string) FailRule();
 			}
 
 		}

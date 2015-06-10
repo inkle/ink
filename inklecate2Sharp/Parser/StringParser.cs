@@ -380,6 +380,20 @@ namespace Inklewriter
 			}
 		}
 
+        public char ParseSingleCharacter()
+        {
+            if (remainingLength > 0) {
+                char c = _chars [index];
+                if (c == '\n') {
+                    lineIndex++;
+                }
+                index++;
+                return c;
+            } else {
+                return (char)0;
+            }
+        }
+
 		public string ParseUntilCharactersFromString(string str, int maxCount = -1)
 		{
 			return ParseCharactersFromString(str, false, maxCount);

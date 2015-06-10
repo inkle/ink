@@ -238,9 +238,18 @@ namespace Tests
             // Unfortunate leading newline...
             Assert.AreEqual (story.currentText, "\ngather\nchoice content\ngather\nsecond time round\n");
         }
+            
+        [Test ()]
+        public void TestEscapeCharacter()
+        {
+            var storyStr =  @"{true:this is a '\|' character|this isn't}";
 
+            Story story = CompileString (storyStr);
+            story.Begin ();
 
-
+            // Unfortunate leading newline...
+            Assert.AreEqual (story.currentText, "this is a '|' character\n");
+        }
 
 		//------------------------------------------------------------------------
 

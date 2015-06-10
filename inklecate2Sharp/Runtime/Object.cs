@@ -32,7 +32,7 @@ namespace Inklewriter.Runtime
                 return null;
             
             // Try to get a line number from debug metadata
-            var root = this.mainContentContainer;
+            var root = this.rootContentContainer;
             if (root != null) {
                 var targetContent = root.ContentAtPath (path);
                 if (targetContent != null) {
@@ -58,7 +58,7 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        public Container mainContentContainer
+        public Container rootContentContainer
         {
             get 
             {
