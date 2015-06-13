@@ -14,51 +14,42 @@ namespace Inklewriter
 
 		protected Knot KnotDefinition()
 		{
-			BeginRule ();
-
-            var knotDecl = KnotDeclaration ();
+            var knotDecl = Parse(KnotDeclaration);
             if (knotDecl == null)
-                return (Knot) FailRule ();
+                return null;
 
 			Expect(EndOfLine, "end of line after knot name definition", recoveryRule: SkipToNextLine);
 
 			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
 
-			var content = Expect(innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
+            var content = Expect (innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 			 
-            Knot knot = new Knot (knotDecl.name, content, knotDecl.parameters);
-
-            return (Knot) SucceedRule (knot);
+            return new Knot (knotDecl.name, content, knotDecl.parameters);
 		}
 
         protected FlowDecl KnotDeclaration()
         {
-            BeginRule ();
+            Whitespace ();
+
+            if (KnotTitleEquals () == null)
+                return null;
 
             Whitespace ();
 
-            if (KnotTitleEquals () == null) {
-                return (FlowDecl) FailRule ();
-            }
-
-            Whitespace ();
-
-            string knotName = Identifier();
+            string knotName = Parse(Identifier);
             if (knotName == null)
-                return (FlowDecl) FailRule ();
+                return null;
 
             Whitespace ();
 
-            List<string> parameterNames = BracketedParameterNames ();
+            List<string> parameterNames = Parse (BracketedParameterNames);
 
             Whitespace ();
-
 
             // Optional equals after name
-            KnotTitleEquals ();
+            Parse(KnotTitleEquals);
 
-            var decl = new FlowDecl () { name = knotName, parameters = parameterNames };
-            return (FlowDecl) SucceedRule (decl);
+            return new FlowDecl () { name = knotName, parameters = parameterNames };
         }
 
         protected string KnotTitleEquals()
@@ -74,52 +65,44 @@ namespace Inklewriter
 
 		protected object StitchDefinition()
 		{
-			BeginRule ();
-
-            var decl = StitchDeclaration ();
-            if (decl == null) {
-                return FailRule ();
-            }
+            var decl = Parse(StitchDeclaration);
+            if (decl == null)
+                return null;
 
 			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
 
 			ParseRule innerStitchStatements = () => StatementsAtLevel (StatementLevel.Stitch);
 
-			var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
+            var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
-            Stitch stitch = new Stitch (decl.name, content, decl.parameters);
-
-			return SucceedRule (stitch);
+            return new Stitch (decl.name, content, decl.parameters);
 		}
 
         protected FlowDecl StitchDeclaration()
         {
-            BeginRule ();
-
             Whitespace ();
 
             // Single "=" to define a stitch
             if (ParseString ("=") == null)
-                return (FlowDecl) FailRule ();
+                return null;
 
             // If there's more than one "=", that's actually a knot definition (or divert), so this rule should fail
             if (ParseString ("=") != null)
-                return (FlowDecl) FailRule ();
+                return null;
 
             Whitespace ();
 
-            string stitchName = Identifier ();
+            string stitchName = Parse(Identifier);
             if (stitchName == null)
-                return (FlowDecl)FailRule ();
+                return null;
 
             Whitespace ();
 
-            List<string> parameterNames = BracketedParameterNames ();
+            List<string> parameterNames = Parse(BracketedParameterNames);
 
             Whitespace ();
 
-            var decl = new FlowDecl () { name = stitchName, parameters = parameterNames };
-            return (FlowDecl) SucceedRule (decl);
+            return new FlowDecl () { name = stitchName, parameters = parameterNames };
         }
 
 
@@ -132,10 +115,8 @@ namespace Inklewriter
 
         protected List<string> BracketedParameterNames()
         {
-            BeginRule ();
-
             if (ParseString ("(") == null)
-                return (List<string>) FailRule ();
+                return null;
 
             var parameterNames = Interleave<string>(Spaced(Identifier), Exclude (String(",")));
 
@@ -147,7 +128,7 @@ namespace Inklewriter
                 parameterNames = new List<string> ();
             }
 
-            return (List<string>) SucceedRule (parameterNames);
+            return parameterNames;
         }
 
 	}

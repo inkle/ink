@@ -16,9 +16,8 @@ namespace Inklewriter
             if (hadError) {
                 return null;
             }
-
-			Parsed.Story story = new Parsed.Story (topLevelContent);
-			return story;
+                
+            return new Parsed.Story (topLevelContent);
 		}
 
 		protected enum StatementLevel
@@ -88,8 +87,6 @@ namespace Inklewriter
 
         protected object StatementsBreakForLevel(StatementLevel level)
         {
-            BeginRule ();
-
             Whitespace ();
 
             var breakingRules = new List<ParseRule> ();
@@ -111,11 +108,10 @@ namespace Inklewriter
             }
 
             var breakRuleResult = OneOf (breakingRules.ToArray ());
-            if (breakRuleResult == null) {
-                return FailRule ();
-            }
+            if (breakRuleResult == null)
+                return null;
 
-            return SucceedRule (breakRuleResult);
+            return breakRuleResult;
         }
 
 		protected object SkipToNextLine()
@@ -131,7 +127,7 @@ namespace Inklewriter
 		protected ParseRule Line(ParseRule inlineRule)
 		{
 			return () => {
-				var result = inlineRule();
+				var result = ParseObject(inlineRule);
 				if( result == null ) {
 					return null;
 				}
@@ -149,43 +145,39 @@ namespace Inklewriter
 
 		protected Divert Divert()
 		{
-			BeginRule ();
-
 			Whitespace ();
 
-            var knotName = DivertTargetWithArrow (knotDivertArrow);
-            var stitchName = DivertTargetWithArrow (stitchDivertArrow);
-            var weavePointName = DivertTargetWithArrow (weavePointDivertArrow);
+            var knotName = ParseDivertTargetWithArrow (knotDivertArrow);
+            var stitchName = ParseDivertTargetWithArrow (stitchDivertArrow);
+            var weavePointName = ParseDivertTargetWithArrow (weavePointDivertArrow);
             if (knotName == null && stitchName == null && weavePointName == null) {
-                return (Divert)FailRule ();
+                return null;
             }
 
             Whitespace ();
 
-            var optionalArguments = ExpressionFunctionCallArguments ();
+            var optionalArguments = Parse(ExpressionFunctionCallArguments);
 
             // Weave point explicit gather
             if (weavePointName == weavePointExplicitGather) {
                 var gatherDivert = new Divert (null);
                 gatherDivert.isToGather = true;
-                return (Divert) SucceedRule (gatherDivert);
+                return gatherDivert;
             }
 
             // Normal divert
             else {
                 Path targetPath = Path.To(knotName, stitchName, weavePointName);
-                return (Divert) SucceedRule( new Divert(targetPath, optionalArguments) );
+                return new Divert (targetPath, optionalArguments);
             }
 		}
 
-        string DivertTargetWithArrow(string arrowStr)
+        string ParseDivertTargetWithArrow(string arrowStr)
         {
-            BeginRule ();
-
             Whitespace ();
 
             if (ParseString (arrowStr) == null)
-                return (string)FailRule ();
+                return null;
 
             Whitespace ();
 
@@ -201,7 +193,7 @@ namespace Inklewriter
                 targetName = (string) Expect(Identifier, "name of target to divert to");
             }
                 
-            return (string) SucceedRule (targetName);
+            return targetName;
         }
 
 		protected string DivertArrow()
@@ -216,7 +208,6 @@ namespace Inklewriter
                 _identifierFirstCharSet = new CharacterSet ();
                 _identifierFirstCharSet.AddRange ('A', 'Z');
                 _identifierFirstCharSet.AddRange ('a', 'z');
-                _identifierFirstCharSet.AddRange ('0', '9');
                 _identifierFirstCharSet.Add ('_');
 
                 // TEMP: Allow read counts like "myKnot.myStitch" to be parsed
@@ -225,13 +216,11 @@ namespace Inklewriter
                 _identifierCharSet = new CharacterSet(_identifierFirstCharSet);
 				_identifierCharSet.AddRange ('0', '9');
 			}
-
-            BeginRule ();
-
+                
             // Parse single character first
             var name = ParseCharactersFromCharSet (_identifierFirstCharSet, true, 1);
             if (name == null) {
-                return (string) FailRule ();
+                return null;
             }
 
             // Parse remaining characters (if any)
@@ -240,7 +229,7 @@ namespace Inklewriter
                 name = name + tailChars;
             }
 
-            return (string) SucceedRule(name);
+            return name;
 		}
         private CharacterSet _identifierFirstCharSet;
 		private CharacterSet _identifierCharSet;
@@ -253,12 +242,10 @@ namespace Inklewriter
 
         protected Parsed.Text ContentTextAllowingEcapeChar()
         {
-            BeginRule ();
-
             StringBuilder sb = null;
 
             do {
-                var str = ContentTextNoEscape();
+                var str = Parse(ContentTextNoEscape);
                 bool gotEscapeChar = ParseString(@"\") != null;
 
                 if( gotEscapeChar || str != null ) {
@@ -282,10 +269,10 @@ namespace Inklewriter
             } while(true);
 
             if (sb != null ) {
-                return (Parsed.Text) SucceedRule( new Parsed.Text (sb.ToString()) );
+                return new Parsed.Text (sb.ToString ());
 
             } else {
-                return (Parsed.Text) FailRule();
+                return null;
             }
         }
 
@@ -294,8 +281,6 @@ namespace Inklewriter
 		// and more "we parse ANYTHING except this small selection of stuff".
 		protected string ContentTextNoEscape()
 		{
-            BeginRule ();
-
 			// Eat through text, pausing at the following characters, and
 			// attempt to parse the nonTextRule.
 			// "-": possible start of divert or start of gather
@@ -315,10 +300,10 @@ namespace Inklewriter
 			
 			string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
 			if (pureTextContent != null ) {
-                return (string) SucceedRule( pureTextContent );
+                return pureTextContent;
 
 			} else {
-                return (string) FailRule();
+                return null;
 			}
 
 		}

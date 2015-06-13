@@ -10,6 +10,8 @@ namespace Inklewriter
 	{
 		public delegate object ParseRule();
 
+        public delegate T SpecificParseRule<T>() where T : class;
+
         public delegate void ErrorHandler(string message, int index, int lineIndex);
 		
 		public StringParser (string str)
@@ -61,26 +63,26 @@ namespace Inklewriter
 		// Parse state
 		//--------------------------------
 
-        protected void BeginRule()
+        protected int BeginRule()
         {
-            state.Push ();
+            return state.Push ();
         }
 
-        protected object FailRule()
+        protected object FailRule(int expectedRuleId)
         {
-            state.Pop ();
+            state.Pop (expectedRuleId);
             return null;
         }
 
-        protected void CancelRule()
+        protected void CancelRule(int expectedRuleId)
         {
-            state.Pop ();
+            state.Pop (expectedRuleId);
         }
 
-        protected object SucceedRule(object result = null)
+        protected object SucceedRule(int expectedRuleId, object result = null)
         {
             // Get state at point where this rule stared evaluating
-            var stateAtSucceedRule = state.Peek();
+            var stateAtSucceedRule = state.Peek(expectedRuleId);
             var stateAtBeginRule = state.PeekPenultimate ();
 
 
@@ -103,9 +105,9 @@ namespace Inklewriter
 
         }
             
-		protected object Expect(ParseRule rule, string message = null, ParseRule recoveryRule = null)
+        protected object Expect(ParseRule rule, string message = null, ParseRule recoveryRule = null)
 		{
-			object result = rule ();
+            object result = ParseObject(rule);
 			if (result == null) {
 				if (message == null) {
 					message = rule.GetMethodInfo ().Name;
@@ -200,17 +202,55 @@ namespace Inklewriter
 		// Structuring
 		//--------------------------------
 
+        public object ParseObject(ParseRule rule)
+        {
+            int ruleId = BeginRule ();
+
+            var stackHeightBefore = state.stackHeight;
+
+            var result = rule ();
+
+            if (stackHeightBefore != state.stackHeight) {
+                throw new System.Exception ("Mismatched Begin/Fail/Succeed rules");
+            }
+
+            if (result == null)
+                return FailRule (ruleId);
+
+            SucceedRule (ruleId);
+            return result;
+        }
+
+        public T Parse<T>(SpecificParseRule<T> rule) where T : class
+        {
+            int ruleId = BeginRule ();
+
+            var result = rule () as T;
+            if (result == null) {
+                FailRule (ruleId);
+                return null;
+            }
+
+            SucceedRule (ruleId);
+            return result;
+        }
+
 		public object OneOf(params ParseRule[] array)
 		{
+            int i = 0;
 			foreach (ParseRule rule in array) {
-				BeginRule ();
 
-				object result = rule ();
+                // TODO: REMOVE EXTRA LEVELS OF BEGIN/FAIL/SUCCEED
+				int ruleId = BeginRule ();
+
+                object result = ParseObject(rule);
 				if (result != null) {
-					return SucceedRule (result);
+                    return SucceedRule (ruleId, result);
 				} else {
-					FailRule ();
+                    FailRule (ruleId);
 				}
+
+                i++;
 			}
 
 			return null;
@@ -222,7 +262,7 @@ namespace Inklewriter
 
 			object result = null;
 			do {
-				result = rule();
+                result = ParseObject(rule);
 				if( result != null ) {
 					results.Add(result);
 				}
@@ -238,7 +278,7 @@ namespace Inklewriter
 		public ParseRule Optional(ParseRule rule)
 		{
 			return () => {
-				object result = rule ();
+                object result = ParseObject(rule);
 				if( result == null ) {
 					result = ParseSuccess;
 				}
@@ -251,7 +291,7 @@ namespace Inklewriter
         public ParseRule Exclude(ParseRule rule)
         {
             return () => {
-                object result = rule ();
+                object result = ParseObject(rule);
                 if( result == null ) {
                     return null;
                 }
@@ -263,7 +303,7 @@ namespace Inklewriter
         public ParseRule OptionalExclude(ParseRule rule)
         {
             return () => {
-                rule ();
+                ParseObject(rule);
                 return ParseSuccess;
             };
         }
@@ -300,12 +340,14 @@ namespace Inklewriter
 
 		public List<T> Interleave<T>(ParseRule ruleA, ParseRule ruleB, ParseRule untilTerminator = null, bool flatten = true)
 		{
+            int ruleId = BeginRule ();
+
 			var results = new List<T> ();
 
 			// First outer padding
-			var firstA = ruleA();
+            var firstA = ParseObject(ruleA);
 			if (firstA == null) {
-				return null;
+                return (List<T>) FailRule(ruleId);
 			} else {
 				TryAddResultToList(firstA, results, flatten);
 			}
@@ -319,7 +361,7 @@ namespace Inklewriter
 				}
 
 				// Main inner
-				lastMainResult = ruleB();
+                lastMainResult = ParseObject(ruleB);
 				if( lastMainResult == null ) {
 					break;
 				} else {
@@ -329,7 +371,7 @@ namespace Inklewriter
 				// Outer result (i.e. last A in ABA)
 				outerResult = null;
 				if( lastMainResult != null ) {
-					outerResult = ruleA();
+                    outerResult = ParseObject(ruleA);
 					if (outerResult == null) {
 						break;
 					} else {
@@ -342,10 +384,10 @@ namespace Inklewriter
 				 && !(lastMainResult == ParseSuccess && outerResult == ParseSuccess) && remainingLength > 0);
 
 			if (results.Count == 0) {
-				return null;
+                return (List<T>) FailRule(ruleId);
 			}
 
-			return results;
+            return (List<T>) SucceedRule(ruleId, results);
 		}
 
 		//--------------------------------
@@ -358,7 +400,7 @@ namespace Inklewriter
 				return null;
 			}
 
-            BeginRule ();
+            int ruleId = BeginRule ();
 
 			bool success = true;
 			foreach (char c in str) {
@@ -373,10 +415,10 @@ namespace Inklewriter
 			}
 
 			if (success) {
-                return (string) SucceedRule(str);
+                return (string) SucceedRule(ruleId, str);
 			}
 			else {
-                return (string) FailRule ();
+                return (string) FailRule (ruleId);
 			}
 		}
 
@@ -441,15 +483,15 @@ namespace Inklewriter
 
 		public object Peek(ParseRule rule)
 		{
-			BeginRule ();
+			int ruleId = BeginRule ();
 			object result = rule ();
-			CancelRule ();
+            CancelRule (ruleId);
 			return result;
 		}
 
 		public string ParseUntil(ParseRule stopRule, CharacterSet pauseCharacters = null, CharacterSet endCharacters = null)
 		{
-			BeginRule ();
+			int ruleId = BeginRule ();
 
 			
 			CharacterSet pauseAndEnd = new CharacterSet ();
@@ -503,9 +545,9 @@ namespace Inklewriter
 			} while(true);
 
 			if (parsedString.Length > 0) {
-				return SucceedRule (parsedString.ToString ()) as string;
+                return (string) SucceedRule (ruleId, parsedString.ToString ());
 			} else {
-				return FailRule () as string;
+                return (string) FailRule (ruleId);
 			}
 
 		}
@@ -554,7 +596,7 @@ namespace Inklewriter
         // You probably want "endOfLine", since it handles endOfFile too.
         protected string ParseNewline()
         {
-            BeginRule();
+            int ruleId = BeginRule();
 
             // Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
             var r = ParseString ("\r");
@@ -565,9 +607,9 @@ namespace Inklewriter
             }
 
             if( n == null ) {
-                return (string) FailRule();
+                return (string) FailRule(ruleId);
             } else {
-                return (string) SucceedRule(n);
+                return (string) SucceedRule(ruleId, n);
             }
         }
 

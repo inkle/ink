@@ -26,22 +26,21 @@ namespace Inklewriter
 
         protected Parsed.Object VariableDeclarationOrAssignment()
         {
-            BeginRule ();
-
             Whitespace ();
 
-            // VarKeyword includes trailing whitespace
-            bool isNewDeclaration = VarKeyword ();
+            bool isNewDeclaration = ParseVarKeyword();
+
+            Whitespace ();
 
             string varName = null;
             if (isNewDeclaration) {
                 varName = (string)Expect (Identifier, "variable name");
             } else {
-                varName = Identifier();
+                varName = Parse(Identifier);
             }
 
             if (varName == null) {
-                return (Parsed.Object) FailRule ();
+                return null;
             }
 
             Whitespace();
@@ -55,7 +54,7 @@ namespace Inklewriter
             // If it's neither an assignment nor a new declaration,
             // it's got nothing to do with this rule (e.g. it's actually just "~ myExpr" or even "~ myFunc()"
             else if (!isNewDeclaration) {
-                return (Parsed.Object) FailRule ();
+                return null;
             }
 
             // Default zero assignment
@@ -64,49 +63,38 @@ namespace Inklewriter
             }
 
             var result = new VariableAssignment (varName, assignedExpression, isNewDeclaration);
-
-            return (Parsed.Object) SucceedRule(result);
+            return result;
         }
 
 
-        protected bool VarKeyword()
+        protected bool ParseVarKeyword()
         {
-            BeginRule ();
+            var ruleId = BeginRule ();
 
-            if( ParseString ("var") == null ) {
-                FailRule ();
+            if (Parse (Identifier) == "var") {
+                SucceedRule (ruleId);
+                return true;
+            } else {
+                FailRule (ruleId);
                 return false;
             }
-
-            // Require whitespace now, since statement could be e.g. ~ variableThing = 5
-            if (Whitespace() == null) {
-                FailRule ();
-                return false;
-            }
-
-            SucceedRule ();
-
-            return true;
         }
 
         protected Parsed.Object ReturnStatement()
         {
-            BeginRule ();
-
             Whitespace ();
 
-            var returnOrDone = Identifier ();
+            var returnOrDone = Parse(Identifier);
             if (returnOrDone != "return" && returnOrDone != "done") {
-                return (Parsed.Object)FailRule ();
+                return null;
             }
 
             Whitespace ();
 
-            var expr = Expression ();
+            var expr = Parse(Expression);
 
             var returnObj = new Return (expr);
-
-            return (Parsed.Object) SucceedRule (returnObj);
+            return returnObj;
         }
 
 		protected Expression Expression() {
@@ -126,21 +114,19 @@ namespace Inklewriter
 		// (see link for advice on how to extend for postfix and mixfix operators)
 		protected Expression Expression(int minimumPrecedence)
 		{
-			BeginRule ();
-
 			Whitespace ();
 
 			// First parse a unary expression e.g. "-a" or parethensised "(1 + 2)"
 			var expr = ExpressionUnary ();
 			if (expr == null) {
-				return FailRule () as Expression;
+                return null;
 			}
 
 			Whitespace ();
 
 			// Attempt to parse (possibly multiple) continuing infix expressions (e.g. 1 + 2 + 3)
 			while(true) {
-				BeginRule ();
+				var ruleId = BeginRule ();
 
 				// Operator
 				var infixOp = ParseInfixOperator ();
@@ -152,30 +138,27 @@ namespace Inklewriter
                     if (multiaryExpr == null) {
 
                         // Fail for operator and right-hand side of multiary expression
-                        FailRule ();
+                        FailRule (ruleId);
 
-                        // Fail for expression as a whole
-                        return (Expression) FailRule ();
+                        return null;
                     }
 
-					expr = SucceedRule(multiaryExpr) as Parsed.Expression;
+                    expr = SucceedRule(ruleId, multiaryExpr) as Parsed.Expression;
 
 					continue;
 				}
 
-				FailRule ();
+                FailRule (ruleId);
 				break;
 			}
 
             Whitespace ();
 
-			return SucceedRule(expr) as Expression;
+            return expr;
 		}
 
 		protected Expression ExpressionUnary()
 		{
-			BeginRule ();
-
             var prefixOp = (string) OneOf (String ("-"), String ("!"));
 
             // Don't parse like the string rules above, in case its actually 
@@ -183,7 +166,7 @@ namespace Inklewriter
             // This rule uses the Identifer rule, which will scan as much text
             // as possible before returning.
             if (prefixOp == null) {
-                prefixOp = ExpressionNot ();
+                prefixOp = Parse(ExpressionNot);
             }
 
 			Whitespace ();
@@ -195,9 +178,8 @@ namespace Inklewriter
                 expr = ExpressionUnary ();
             }
 
-			if (expr == null) {
-				return FailRule () as Expression;
-			}
+			if (expr == null)
+                return null;
 
             if (prefixOp != null) {
                 expr = new UnaryExpression (expr, prefixOp);
@@ -220,19 +202,17 @@ namespace Inklewriter
 
             }
 
-			return SucceedRule (expr) as Expression;
+            return expr;
 		}
 
         protected string ExpressionNot()
         {
-            BeginRule ();
-
             var id = Identifier ();
             if (id == "not") {
-                return (string) SucceedRule (id);
+                return id;
             }
 
-            return (string) FailRule ();
+            return null;
         }
 
 		protected Expression ExpressionLiteral()
@@ -242,20 +222,15 @@ namespace Inklewriter
 
         protected Expression ExpressionDivertTarget()
         {
-            BeginRule ();
+            Whitespace ();
+
+            var divert = Parse(Divert);
+            if (divert == null)
+                return null;
 
             Whitespace ();
 
-            var divert = Divert ();
-            if (divert == null) {
-                return (Expression) FailRule ();
-            }
-
-            Whitespace ();
-
-            var divTargetExpr = new DivertTarget (divert);
-
-            return (Expression) SucceedRule (divTargetExpr);             
+            return new DivertTarget (divert);
         }
 
         protected Number ExpressionInt()
@@ -280,45 +255,39 @@ namespace Inklewriter
 
         protected Number ExpressionBool()
         {
-            BeginRule ();
-
-            var id = Identifier ();
+            var id = Parse(Identifier);
             if (id == "true" || id == "yes" || id == "on") {
-                return (Number) SucceedRule(new Number (1));
+                return new Number (1);
             } else if (id == "false" || id == "no" || id == "off") {
-                return (Number) SucceedRule(new Number (0));
+                return new Number (0);
             }
 
-            return (Number) FailRule ();
+            return null;
         }
 
         protected Expression ExpressionFunctionCall()
         {
-            BeginRule ();
-
-            var iden = Identifier ();
-            if (iden == null) 
-                return (Expression) FailRule();
+            var iden = Parse(Identifier);
+            if (iden == null)
+                return null;
 
             Whitespace ();
 
-            var arguments = ExpressionFunctionCallArguments ();
+            var arguments = Parse(ExpressionFunctionCallArguments);
             if (arguments == null) {
-                return (Expression) FailRule ();
+                return null;
             }
 
             // TODO: Build function call object
             var f = new FunctionCall(iden, arguments);
 
-            return (FunctionCall) SucceedRule (f);
+            return f;
         }
 
         protected List<Expression> ExpressionFunctionCallArguments()
         {
-            BeginRule ();
-
             if (ParseString ("(") == null)
-                return (List<Expression>)FailRule ();
+                return null;
 
             // "Exclude" requires the rule to succeed, but causes actual comma string to be excluded from the list of results
             ParseRule commas = Exclude (String (","));
@@ -331,12 +300,12 @@ namespace Inklewriter
 
             Expect (String (")"), "closing ')' for function call");
 
-            return (List<Expression>) SucceedRule (arguments);
+            return arguments;
         }
 
         protected Expression ExpressionVariableName()
         {
-            var iden = Identifier ();
+            var iden = Parse (Identifier);
             if (iden == null) {
                 return null;
             } else {
@@ -346,40 +315,34 @@ namespace Inklewriter
 
 		protected Expression ExpressionParen()
 		{
-			BeginRule ();
+			if (ParseString ("(") == null)
+                return null;
 
-			if (ParseString ("(") == null) {
-				return FailRule () as Expression;
-			}
-
-			var innerExpr = Expression ();
-			if (innerExpr == null) {
-				return FailRule () as Expression;
-			}
+            var innerExpr = Parse(Expression);
+			if (innerExpr == null)
+                return null;
 
 			Whitespace ();
 
             Expect (String(")"), "closing parenthesis ')' for expression");
 
-			return SucceedRule (innerExpr) as Expression;
+            return innerExpr;
 		}
 
 		protected Expression ExpressionInfixRight(Parsed.Expression left, InfixOperator op)
 		{
-			BeginRule ();
-
 			Whitespace ();
 
-			var right = Expression (op.precedence);
+            var right = Parse(() => Expression (op.precedence));
 			if (right != null) {
 
 				// We assume that the character we use for the operator's type is the same
 				// as that used internally by e.g. Runtime.Expression.Add, Runtime.Expression.Multiply etc
 				var expr = new BinaryExpression (left, right, op.type);
-				return SucceedRule (expr) as Expression;
+                return expr;
 			}
 
-			return FailRule () as Expression;
+            return null;
 
 		}
 
@@ -387,21 +350,21 @@ namespace Inklewriter
 		{
             foreach (var op in _binaryOperators) {
 
-                BeginRule ();
+                int ruleId = BeginRule ();
 
                 if (ParseString (op.type) != null) {
 
                     if (op.requireWhitespace) {
                         if (Whitespace () == null) {
-                            FailRule ();
+                            FailRule (ruleId);
                             continue;
                         }
                     }
 
-                    return (InfixOperator) SucceedRule(op);
+                    return (InfixOperator) SucceedRule(ruleId, op);
                 }
 
-                FailRule ();
+                FailRule (ruleId);
             }
 
             return null;

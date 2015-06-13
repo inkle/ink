@@ -8,21 +8,12 @@ namespace Inklewriter
 		// Handles both newline and endOfFile
 		protected object EndOfLine()
 		{
-			BeginRule();
-
-            object newlineOrEndOfFile = OneOf(Newline, EndOfFile);
-			if( newlineOrEndOfFile == null ) {
-				return FailRule();
-			} else {
-				return SucceedRule(newlineOrEndOfFile);
-			}
+            return OneOf(Newline, EndOfFile);
 		}
 
         // Allow whitespace before the actual newline
         protected object Newline()
         {
-            BeginRule();
-
             Whitespace();
 
             bool gotNewline = ParseNewline () != null;
@@ -30,45 +21,38 @@ namespace Inklewriter
             // Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
 
             if( !gotNewline ) {
-                return FailRule();
+                return null;
             } else {
-                return SucceedRule(ParseSuccess);
+                return ParseSuccess;
             }
         }
 
 		protected object EndOfFile()
 		{
-			BeginRule();
-
 			Whitespace();
 
-			if( endOfInput ) {
-				return SucceedRule();
-			} else {
-				return FailRule();
-			}
+            if (!endOfInput)
+                return null;
+
+            return ParseSuccess;
 		}
 
 
 		// General purpose space, returns N-count newlines (fails if no newlines)
 		protected object MultilineWhitespace()
 		{
-			BeginRule();
-
             List<object> newlines = OneOrMore(Newline);
-			if( newlines == null ) {
-				return FailRule();
-			}
+            if (newlines == null)
+                return null;
 
 			// Use content field of Token to say how many newlines there were
 			// (in most circumstances it's unimportant)
 			int numNewlines = newlines.Count;
 			if (numNewlines >= 1) {
-				return SucceedRule ();
+                return ParseSuccess;
 			} else {
-				return FailRule ();
+                return null;
 			}
-
 		}
 
 		protected object Whitespace()
@@ -83,18 +67,17 @@ namespace Inklewriter
         protected ParseRule Spaced(ParseRule rule)
         {
             return () => {
-                BeginRule ();
 
                 Whitespace ();
 
-                var result = rule ();
+                var result = ParseObject(rule);
                 if (result == null) {
-                    return FailRule ();
+                    return null;
                 }
 
                 Whitespace ();
 
-                return SucceedRule (result);
+                return result;
             };
         }
 

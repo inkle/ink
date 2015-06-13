@@ -17,22 +17,20 @@ namespace Inklewriter
 
         object UserChoiceNumber()
         {
-            BeginRule ();
-
             Whitespace ();
 
             int? number = ParseInt ();
             if (number == null) {
-                return FailRule ();
+                return null;
             }
 
             Whitespace ();
 
-            if (EndOfLine () == null) {
-                return FailRule ();
+            if (Parse(EndOfLine) == null) {
+                return null;
             }
 
-            return SucceedRule(number);
+            return number;
         }
 
         object UserImmediateModeStatement()

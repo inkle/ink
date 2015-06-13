@@ -9,26 +9,23 @@ namespace Inklewriter
     {
         protected Conditional InnerConditionalContent()
         {
-            BeginRule ();
-            var initialQueryExpression = ConditionExpression ();
-            var conditional = InnerConditionalContent (initialQueryExpression);
+            var initialQueryExpression = Parse(ConditionExpression);
+            var conditional = Parse(() => InnerConditionalContent (initialQueryExpression));
             if (conditional == null)
-                return (Conditional) FailRule ();
+                return null;
 
-            return (Conditional) SucceedRule (conditional);
+            return conditional;
         }
 
         protected Conditional InnerConditionalContent(Expression initialQueryExpression)
         {
-            BeginRule ();
-
             List<ConditionalSingleBranch> alternatives;
 
             bool canBeInline = initialQueryExpression != null;
             bool isInline = Newline () == null;
 
             if (isInline && !canBeInline) {
-                return (Conditional) FailRule ();
+                return null;
             }
 
             // Inline innards
@@ -56,7 +53,7 @@ namespace Inklewriter
 
                     // Still null?
                     if (alternatives == null) {
-                        return (Conditional) FailRule ();
+                        return null;
                     }
                 }
 
@@ -97,15 +94,14 @@ namespace Inklewriter
             //   - multiline expression shouldn't have mixed existence of branch-conditions?
 
             var cond = new Conditional (initialQueryExpression, alternatives);
-
-            return (Conditional) SucceedRule(cond);
+            return cond;
         }
 
         protected List<ConditionalSingleBranch> InlineConditionalBranches()
         {
             var listOfLists = Interleave<List<Parsed.Object>> (MixedTextAndLogic, Exclude (String ("|")), flatten: false);
             if (listOfLists == null || listOfLists.Count == 0) {
-                return (List<ConditionalSingleBranch>) FailRule ();
+                return null;
             }
 
             var result = new List<ConditionalSingleBranch> ();
@@ -142,16 +138,14 @@ namespace Inklewriter
 
         protected ConditionalSingleBranch SingleMultilineCondition()
         {
-            BeginRule ();
-
             Whitespace ();
 
             if (ParseString ("-") == null)
-                return (ConditionalSingleBranch) FailRule ();
+                return null;
 
             Whitespace ();
 
-            var expr = ConditionExpression ();
+            var expr = Parse(ConditionExpression);
 
             List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
             if (expr == null && content == null) {
@@ -164,29 +158,25 @@ namespace Inklewriter
 
             var branch = new ConditionalSingleBranch (content);
             branch.ownExpression = expr;
-            return (ConditionalSingleBranch) SucceedRule (branch);
+            return branch;
         }
 
         protected Expression ConditionExpression()
         {
-            BeginRule ();
-
-            var expr = Expression ();
-            if (expr == null) {
-                return (Expression)FailRule ();
-            }
+            var expr = Parse(Expression);
+            if (expr == null)
+                return null;
 
             Whitespace ();
 
-            if (ParseString (":") == null) {
-                return (Expression) FailRule ();
-            }
+            if (ParseString (":") == null)
+                return null;
 
             // Optional "..."
-            Whitespace();
+            Parse(Whitespace);
             ParseCharactersFromString (".");
 
-            return (Expression) SucceedRule (expr);
+            return expr;
         }
     }
 }

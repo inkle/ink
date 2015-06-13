@@ -8,26 +8,24 @@ namespace Inklewriter
 	{
 		protected Choice Choice()
 		{
-			BeginRule ();
-
             bool onceOnlyChoice = true;
             var bullets = Interleave <string>(OptionalExclude(Whitespace), String("*") );
             if (bullets == null) {
 
                 bullets = Interleave <string>(OptionalExclude(Whitespace), String("+") );
                 if (bullets == null) {
-                    return (Choice) FailRule ();
+                    return null;
                 }
 
                 onceOnlyChoice = false;
             }
 
             // Optional name for the gather
-            string optionalName = BracketedName();
+            string optionalName = Parse(BracketedName);
 
             Whitespace ();
                 
-            string startText = ChoiceText ();
+            string startText = Parse (ChoiceText);
             string optionOnlyText = null;
             string contentOnlyText = null;
 
@@ -35,11 +33,11 @@ namespace Inklewriter
             //   * "Hello[."]," he said.
             bool hasWeaveStyleInlineBrackets = ParseString("[") != null;
             if (hasWeaveStyleInlineBrackets) {
-                optionOnlyText = ChoiceText ();
+                optionOnlyText = Parse (ChoiceText);
 
                 Expect (String("]"), "closing ']' for weave-style option");
 
-                contentOnlyText = ChoiceText ();
+                contentOnlyText = Parse(ChoiceText);
             }
              
             // Trim
@@ -59,11 +57,11 @@ namespace Inklewriter
                 
 			Whitespace ();
 
-			var divert =  Divert ();
+            var divert =  Parse(Divert);
 
             Whitespace ();
 
-            var conditionExpr = ChoiceCondition ();
+            var conditionExpr = Parse(ChoiceCondition);
 
             var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
             choice.name = optionalName;
@@ -72,7 +70,7 @@ namespace Inklewriter
             choice.condition = conditionExpr;
             choice.onceOnly = onceOnlyChoice;
 
-            return SucceedRule(choice) as Choice;
+            return choice;
 
 		}
 
@@ -93,35 +91,31 @@ namespace Inklewriter
 
         protected Expression ChoiceCondition()
         {
-            BeginRule ();
-
             if (ParseString ("{") == null)
-                return (Expression) FailRule ();
+                return null;
 
-            var condExpr = Expect(Expression, "choice condition inside { }");
+            var condExpr = Expect(Expression, "choice condition inside { }") as Expression;
 
             Expect (String ("}"), "closing '}' for choice condition");
 
-            return (Expression) SucceedRule (condExpr);
+            return condExpr;
         }
 
         protected Gather GatherLine()
         {
-            BeginRule ();
-
             // TODO: Handle multiple dashes
             var dashes = Interleave<string>(OptionalExclude(Whitespace), String("-"));
             if (dashes == null) {
-                return (Gather) FailRule ();
+                return null;
             }
 
             // Optional name for the gather
-            string optionalName = BracketedName();
+            string optionalName = Parse(BracketedName);
 
             Whitespace ();
 
             // Optional content from the rest of the line
-            var content = MixedTextAndLogic ();
+            var content = Parse(MixedTextAndLogic);
             if (content == null) {
                 content = new List<Parsed.Object> ();
             }
@@ -131,27 +125,25 @@ namespace Inklewriter
 
             Gather gather = new Gather (optionalName, content, dashes.Count);
 
-            return (Gather) SucceedRule (gather);
+            return gather;
         }
 
         protected string BracketedName()
         {
-            BeginRule ();
-
             if (ParseString ("(") == null)
-                return (string) FailRule ();
+                return null;
 
             Whitespace ();
 
-            string name = Identifier ();
+            string name = Parse(Identifier);
             if (name == null)
-                return (string)FailRule ();
+                return null;
 
             Whitespace ();
 
             Expect (String (")"), "closing ')' for bracketed name");
 
-            return (string) SucceedRule (name);
+            return name;
         }
 	}
 }

@@ -21,23 +21,37 @@ namespace Inklewriter
                 return currentElement.reportedErrorInScope;
             }
         }
+
+        public int stackHeight {
+            get {
+                return _stack.Count;
+            }
+        }
 					
-		public class Element : ICloneable {
+		public class Element {
 			public int characterIndex;
 			public int lineIndex;
             public bool reportedErrorInScope;
+            public int uniqueId { get { return _uniqueId; } set { _uniqueId = value; } }
 
-			public Element() {}
+			public Element() {
+                _uniqueIdCounter++;
+                _uniqueId = _uniqueIdCounter;
+            }
 
-			public Element(int characterIndex, int lineIndex) {
+            public Element(int characterIndex, int lineIndex) : this() {
 				this.characterIndex = characterIndex;
 				this.lineIndex = lineIndex;
 			}
 
-			public object Clone()
+            public Element Copy()
 			{
 				return new Element (characterIndex, lineIndex);
 			}
+
+            int _uniqueId;
+
+            static int _uniqueIdCounter;
 		}
 
 		public StringParserState ()
@@ -48,24 +62,36 @@ namespace Inklewriter
 			_stack.Add (new Element ());
 		}
 
-		public void Push()
+		public int Push()
 		{
-			_stack.Add (this.currentElement.Clone () as Element);
+            var newEl = this.currentElement.Copy ();
+
+            _stack.Add (newEl);
+
+            return newEl.uniqueId;
 		}
 
-		public void Pop()
+        public void Pop(int expectedRuleId)
 		{
 			if (_stack.Count == 1) {
 				throw new System.Exception ("Attempting to remove final stack element is illegal! Mismatched Begin/Succceed/Fail?");
 			}
 
+            if (_stack.Last ().uniqueId != expectedRuleId)
+                throw new System.Exception ("Mismatched rule IDs - do you have mismatched Begin/Succeed/Fail?");
+
 			// Restore state
 			_stack.RemoveAt (_stack.Count - 1);
 		}
 
-		public Element Peek()
+        public Element Peek(int expectedRuleId)
 		{
-			return _stack.Last ();
+            var lastEl = _stack.Last ();
+
+            if (lastEl.uniqueId != expectedRuleId)
+                throw new System.Exception ("Mismatched rule IDs - do you have mismatched Begin/Succeed/Fail?");
+
+            return lastEl;
 		}
 
         public Element PeekPenultimate()
@@ -84,6 +110,10 @@ namespace Inklewriter
 			if (_stack.Count < 2) {
 				throw new System.Exception ("Attempting to remove final stack element is illegal! Mismatched Begin/Succceed/Fail?");
 			}
+
+            var penultimateEl = _stack [_stack.Count - 2];
+            var penultimateUniqueId = penultimateEl.uniqueId;
+            _stack.Last ().uniqueId = penultimateUniqueId;
 				
 			_stack.RemoveAt (_stack.Count - 2);
 		}

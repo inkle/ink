@@ -10,12 +10,10 @@ namespace Inklewriter
         
         protected Parsed.Object LogicLine()
         {
-            BeginRule ();
-
             Whitespace ();
 
             if (ParseString ("~") == null) {
-                return FailRule () as Parsed.Object;
+                return null;
             }
 
             Whitespace ();
@@ -33,16 +31,13 @@ namespace Inklewriter
             var parsedExpr = (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
 
             // TODO: A piece of logic after a tilda shouldn't have its result printed as text (I don't think?)
-            return SucceedRule (parsedExpr) as Parsed.Object;
+            return parsedExpr;
         }
 
         protected object IncludeStatement()
         {
-            BeginRule ();
-
-            if (ParseString ("include") == null) {
-                return (IncludedFile)FailRule ();
-            }
+            if (ParseString ("include") == null)
+                return null;
 
             Whitespace ();
 
@@ -70,20 +65,16 @@ namespace Inklewriter
                 Error ("Included file not found: " + filename);
             }
 
-            // Succeed even when story failed to parse and we have a null story:
-            //  we don't want to attempt to re-parse the include line as something else
-            var includedFile = new IncludedFile (includedStory);
-            return SucceedRule (includedFile);
+            // Return valid IncludedFile object even when story failed to parse and we have a null story:
+            // we don't want to attempt to re-parse the include line as something else
+            return new IncludedFile (includedStory);
         }
 
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
         {
-            BeginRule ();
-
-            var result = MixedTextAndLogic();
-            if (result == null || result.Count == 0) {
-                return (List<Parsed.Object>) FailRule();
-            }
+            var result = Parse(MixedTextAndLogic);
+            if (result == null || result.Count == 0)
+                return null;
 
             // Trim whitepace from start
             var firstText = result[0] as Text;
@@ -93,9 +84,8 @@ namespace Inklewriter
                     result.RemoveAt (0);
                 }
             }
-            if (result.Count == 0) {
-                return (List<Parsed.Object>) FailRule();
-            }
+            if (result.Count == 0)
+                return null;
 
             // Trim whitespace from end and add a newline
             var lastObj = result.Last ();
@@ -115,7 +105,7 @@ namespace Inklewriter
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 
-            return (List<Parsed.Object>) SucceedRule(result);
+            return result;
         }
 
         protected List<Parsed.Object> MixedTextAndLogic()
@@ -144,24 +134,22 @@ namespace Inklewriter
 
         protected Parsed.Object InlineLogic()
         {
-            BeginRule ();
-
             if ( ParseString ("{") == null) {
-                return FailRule () as Parsed.Object;
+                return null;
             }
 
             Whitespace ();
 
-            var logic = InnerLogic ();
+            var logic = Parse(InnerLogic);
             if (logic == null) {
-                return (Parsed.Object) FailRule ();
+                return null;
             }
                 
             Whitespace ();
 
             Expect (String("}"), "closing brace '}' for inline logic");
 
-            return SucceedRule(logic) as Parsed.Object;
+            return logic;
         }
 
         protected Parsed.Object ExpectedInnerLogic()
@@ -175,29 +163,24 @@ namespace Inklewriter
 
         protected Parsed.Object InnerLogic()
         {
-            BeginRule ();
-
             Whitespace ();
 
             // Explicitly try the combinations of inner logic
             // that could potentially have conflicts first.
 
-
             // Explicit sequence annotation?
-            SequenceType? explicitSeqType = SequenceTypeAnnotation ();
+            SequenceType? explicitSeqType = (SequenceType?) ParseObject(SequenceTypeAnnotation);
             if (explicitSeqType != null) {
                 var contentLists = (List<ContentList>) Expect(InnerSequenceObjects, "sequence elements (for cycle/stoping etc)");
-                var seq = new Sequence (contentLists, (SequenceType) explicitSeqType);
-                return (Parsed.Object) SucceedRule (seq);
+                return new Sequence (contentLists, (SequenceType) explicitSeqType);
             }
 
             // Conditional with expression?
-            var initialQueryExpression = ConditionExpression ();
+            var initialQueryExpression = Parse(ConditionExpression);
             if (initialQueryExpression != null) {
-                var conditional = InnerConditionalContent (initialQueryExpression);
-                if (conditional != null) {
-                    return (Parsed.Object)conditional;
-                }
+                var conditional = Parse(() => InnerConditionalContent (initialQueryExpression));
+                if (conditional != null)
+                    return conditional;
             }
 
             // Now try to evaluate each of the "full" rules in turn
@@ -214,21 +197,21 @@ namespace Inklewriter
             //  {myVar}                 -- Expression (try first)
             //  {my content is jolly}   -- sequence with single element
             foreach (ParseRule rule in rules) {
-                BeginRule ();
+                int ruleId = BeginRule ();
 
-                Parsed.Object result = rule () as Parsed.Object;
+                Parsed.Object result = ParseObject(rule) as Parsed.Object;
                 if (result != null) {
 
                     // Not yet at end?
                     if (Peek (Spaced (String ("}"))) == null)
-                        FailRule ();
+                        FailRule (ruleId);
 
                     // Full parse of content within braces
                     else
-                        return (Parsed.Object) SucceedRule (result);
+                        return (Parsed.Object) SucceedRule (ruleId, result);
                     
                 } else {
-                    FailRule ();
+                    FailRule (ruleId);
                 }
             }
 
@@ -237,7 +220,7 @@ namespace Inklewriter
 
         protected Parsed.Object InnerExpression()
         {
-            var expr = Expression ();
+            var expr = Parse(Expression);
             if (expr != null) {
                 expr.outputWhenComplete = true;
             }
@@ -246,41 +229,38 @@ namespace Inklewriter
 
         protected Sequence InnerSequence()
         {
-            BeginRule ();
-
             Whitespace ();
 
             // Default sequence type
             SequenceType seqType = SequenceType.Stopping;
 
             // Optional explicit sequence type
-            SequenceType? parsedSeqType = SequenceTypeAnnotation ();
+            SequenceType? parsedSeqType = (SequenceType?) Parse(SequenceTypeAnnotation);
             if (parsedSeqType != null)
                 seqType = (SequenceType) parsedSeqType;
 
-            var contentLists = InnerSequenceObjects ();
+            var contentLists = Parse(InnerSequenceObjects);
             if (contentLists == null || contentLists.Count <= 1) {
-                return (Sequence) FailRule ();
+                return null;
             }
 
-            var seq = new Sequence (contentLists, seqType);
-            return (Sequence) SucceedRule (seq);
+            return new Sequence (contentLists, seqType);
         }
 
-        protected SequenceType? SequenceTypeAnnotation()
+        protected object SequenceTypeAnnotation()
         {
-            var symbolAnnotation = SequenceTypeSymbolAnnotation ();
+            var symbolAnnotation = Parse(SequenceTypeSymbolAnnotation);
             if (symbolAnnotation != null)
                 return symbolAnnotation;
 
-            var wordAnnotation = SequenceTypeWordAnnotation ();
+            var wordAnnotation = Parse(SequenceTypeWordAnnotation);
             if (wordAnnotation != null)
                 return wordAnnotation;
 
             return null;
         }
 
-        protected SequenceType? SequenceTypeSymbolAnnotation()
+        protected object SequenceTypeSymbolAnnotation()
         {
             var symbol = ParseCharactersFromString ("!&~$", 1);
             if (symbol != null) {
@@ -299,13 +279,11 @@ namespace Inklewriter
             return null;
         }
 
-        protected SequenceType? SequenceTypeWordAnnotation()
+        protected object SequenceTypeWordAnnotation()
         {
-            BeginRule ();
-
             SequenceType? seqType = null;
 
-            var word = Identifier ();
+            var word = Parse(Identifier);
             switch (word) {
             case "once":
                 seqType = SequenceType.Once;
@@ -322,34 +300,28 @@ namespace Inklewriter
             }
 
             if (seqType == null)
-                return (SequenceType?) FailRule ();
+                return null;
 
             Whitespace ();
 
             if (ParseString (":") == null)
-                return (SequenceType?) FailRule ();
+                return null;
 
-            return (SequenceType?) SucceedRule (seqType);
+            return seqType;
         }
 
         protected List<ContentList> InnerSequenceObjects()
         {
-            BeginRule ();
-
-            var multiline = Newline () != null;
+            var multiline = Parse(Newline) != null;
 
             List<ContentList> result = null;
             if (multiline) {
-                result = InnerMultilineSequenceObjects ();
+                result = Parse(InnerMultilineSequenceObjects);
             } else {
-                result = InnerInlineSequenceObjects ();
+                result = Parse(InnerInlineSequenceObjects);
             }
 
-            if (result == null)
-                return (List<ContentList>) FailRule ();
-
-            return (List<ContentList>) SucceedRule (result);
-
+            return result;
         }
 
         protected List<ContentList> InnerInlineSequenceObjects()
@@ -373,12 +345,10 @@ namespace Inklewriter
 
         protected ContentList SingleMultilineSequenceElement()
         {
-            BeginRule ();
-
             Whitespace ();
 
             if (ParseString ("-") == null)
-                return (ContentList) FailRule ();
+                return null;
 
             Whitespace ();
 
@@ -387,8 +357,7 @@ namespace Inklewriter
                 Error ("expected content for the sequence element following '-'");
             }
 
-            var contentList = new ContentList (content);
-            return (ContentList) SucceedRule (contentList);
+            return new ContentList (content);
         }
     }
 }
