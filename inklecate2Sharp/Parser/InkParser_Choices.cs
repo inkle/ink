@@ -103,7 +103,6 @@ namespace Inklewriter
 
         protected Gather GatherLine()
         {
-            // TODO: Handle multiple dashes
             var dashes = Interleave<string>(OptionalExclude(Whitespace), String("-"));
             if (dashes == null) {
                 return null;

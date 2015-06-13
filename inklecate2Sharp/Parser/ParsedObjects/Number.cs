@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace Inklewriter.Parsed
 {
-	// TODO: Handle other number types
 	public class Number : Parsed.Expression
 	{
 		public object value;

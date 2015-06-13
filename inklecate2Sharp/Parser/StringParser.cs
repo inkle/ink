@@ -133,8 +133,7 @@ namespace Inklewriter
 		protected void Error(string message)
 		{
             if ( !state.errorReportedAlreadyInScope ) {
-                // TODO: Do something more sensible than this. Probably don't assert though?
-
+                
                 if (errorHandler == null) {
                     Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
                 } else {

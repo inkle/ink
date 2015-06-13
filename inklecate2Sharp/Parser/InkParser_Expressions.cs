@@ -278,10 +278,7 @@ namespace Inklewriter
                 return null;
             }
 
-            // TODO: Build function call object
-            var f = new FunctionCall(iden, arguments);
-
-            return f;
+            return new FunctionCall(iden, arguments);
         }
 
         protected List<Expression> ExpressionFunctionCallArguments()

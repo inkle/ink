@@ -118,9 +118,6 @@ namespace Inklewriter.Parsed
 
             gatherPointsToResolve = new List<GatherPointToResolve> ();
 
-            // TODO: Gather loose ends
-            //result.gatheredLooseEndDelegate = OnLooseEndGathered;
-
             // Iterate through content for the block at this level of indentation
             //  - Normal content is nested under Choices and Gathers
             //  - Blocks that are further indented cause recursion

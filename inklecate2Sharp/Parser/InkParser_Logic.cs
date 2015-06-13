@@ -28,10 +28,7 @@ namespace Inklewriter
             // to have a return value, or to be used in compound expressions.
             ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, VariableDeclarationOrAssignment, Expression);
 
-            var parsedExpr = (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
-
-            // TODO: A piece of logic after a tilda shouldn't have its result printed as text (I don't think?)
-            return parsedExpr;
+            return (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
         }
 
         protected object IncludeStatement()
