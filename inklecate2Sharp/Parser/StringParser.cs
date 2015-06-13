@@ -237,20 +237,10 @@ namespace Inklewriter
 
 		public object OneOf(params ParseRule[] array)
 		{
-            int i = 0;
 			foreach (ParseRule rule in array) {
-
-                // TODO: REMOVE EXTRA LEVELS OF BEGIN/FAIL/SUCCEED
-				int ruleId = BeginRule ();
-
                 object result = ParseObject(rule);
-				if (result != null) {
-                    return SucceedRule (ruleId, result);
-				} else {
-                    FailRule (ruleId);
-				}
-
-                i++;
+				if (result != null)
+                    return result;
 			}
 
 			return null;
