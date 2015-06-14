@@ -391,17 +391,27 @@ namespace Inklewriter
 
             int ruleId = BeginRule ();
 
+            // Optimisation from profiling:
+            // Store in temporary local variables
+            // since they're properties that would have to access
+            // the rule stack every time otherwise.
+            int i = index;
+            int li = lineIndex;
+
 			bool success = true;
 			foreach (char c in str) {
-				if ( _chars[index] != c) {
+				if ( _chars[i] != c) {
 					success = false;
 					break;
 				}
                 if (c == '\n') {
-                    lineIndex++;
+                    li++;
                 }
-				index++;
+				i++;
 			}
+
+            index = i;
+            lineIndex = li;
 
 			if (success) {
                 return (string) SucceedRule(ruleId, str);
@@ -453,14 +463,24 @@ namespace Inklewriter
 
 			int startIndex = index;
 
+            // Optimisation from profiling:
+            // Store in temporary local variables
+            // since they're properties that would have to access
+            // the rule stack every time otherwise.
+            int i = index;
+            int li = lineIndex;
+
 			int count = 0;
-			while ( index < _chars.Length && charSet.Contains (_chars [index]) == shouldIncludeChars && count < maxCount ) {
-                if (_chars [index] == '\n') {
-                    lineIndex++;
+            while ( i < _chars.Length && charSet.Contains (_chars [i]) == shouldIncludeChars && count < maxCount ) {
+                if (_chars [i] == '\n') {
+                    li++;
                 }
-                index++;
+                i++;
 				count++;
 			}
+
+            index = i;
+            lineIndex = li;
 
 			int lastCharIndex = index;
 			if (lastCharIndex > startIndex) {

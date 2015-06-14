@@ -128,7 +128,7 @@ namespace Inklewriter
 		protected Element currentElement
 		{
 			get {
-				return _stack.Last ();
+                return _stack [_stack.Count - 1];
 			}
 		}
 
