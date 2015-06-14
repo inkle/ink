@@ -10,6 +10,7 @@ namespace Inklewriter
         public InkParser(string str, string filenameForMetadata = null) : base(str) { 
             _filename = filenameForMetadata;
 			RegisterExpressionOperators ();
+            GenerateStatementLevelRules ();
             this.errorHandler = OnError;
 		}
 

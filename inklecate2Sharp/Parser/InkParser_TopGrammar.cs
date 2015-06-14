@@ -35,40 +35,12 @@ namespace Inklewriter
                 () => StatementAtLevel (level), 
                 untilTerminator: () => StatementsBreakForLevel(level));
 		}
+            
+        protected object StatementAtLevel(StatementLevel level)
+        {            
+            ParseRule[] rulesAtLevel = _statementRulesAtLevel[(int)level];
 
-		protected object StatementAtLevel(StatementLevel level)
-		{
-			List<ParseRule> rulesAtLevel = new List<ParseRule> ();
-
-            // Diverts can go anywhere
-            // (Check before KnotDefinition since possible "==>" has to be found before "== name ==")
-            rulesAtLevel.Add(Line(Divert));
-
-			if (level >= StatementLevel.Top) {
-
-				// Knots can only be parsed at Top/Global scope
-				rulesAtLevel.Add (KnotDefinition);
-			}
-
-			rulesAtLevel.Add(Line(Choice));
-
-            // Gather lines would be confused with multi-line block separators, like
-            // within a multi-line if statement
-            if (level > StatementLevel.InnerBlock) {
-                rulesAtLevel.Add (GatherLine);
-            }
-
-            // Stitches (and gathers) can (currently) only go in Knots and top level
-			if (level >= StatementLevel.Knot) {
-				rulesAtLevel.Add (StitchDefinition);
-			}
-
-            // Normal logic / text can go anywhere
-			rulesAtLevel.Add(LogicLine);
-			rulesAtLevel.Add(LineOfMixedTextAndLogic);
-
-            // Parse the rules
-			var statement = OneOf (rulesAtLevel.ToArray());
+            var statement = OneOf (rulesAtLevel);
 
             // For some statements, allow them to parse, but create errors, since
             // writers may think they can use the statement, so it's useful to have 
@@ -78,41 +50,83 @@ namespace Inklewriter
                     Error ("should not have return statement outside of a knot");
             }
 
-			if (statement == null) {
-				return null;
-			}
-
-			return statement;
-		}
+            return statement;
+        }
 
         protected object StatementsBreakForLevel(StatementLevel level)
         {
             Whitespace ();
 
-            var breakingRules = new List<ParseRule> ();
+            ParseRule[] breakRules = _statementBreakRulesAtLevel[(int)level];
 
-            // Break current knot with a new knot
-            if (level <= StatementLevel.Knot) {
-                breakingRules.Add (KnotDeclaration);
-            }
-
-            // Break current stitch with a new stitch
-            if (level <= StatementLevel.Stitch) {
-                breakingRules.Add (StitchDeclaration);
-            }
-
-            // Breaking an inner block (like a multi-line condition statement)
-            if (level <= StatementLevel.InnerBlock) {
-                breakingRules.Add (String ("-"));
-                breakingRules.Add (String ("}"));
-            }
-
-            var breakRuleResult = OneOf (breakingRules.ToArray ());
+            var breakRuleResult = OneOf (breakRules);
             if (breakRuleResult == null)
                 return null;
 
             return breakRuleResult;
         }
+
+		void GenerateStatementLevelRules()
+		{
+            var levels = Enum.GetValues (typeof(StatementLevel)).Cast<StatementLevel> ().ToList();
+
+            _statementRulesAtLevel = new ParseRule[levels.Count][];
+            _statementBreakRulesAtLevel = new ParseRule[levels.Count][];
+
+            foreach (var level in levels) {
+                List<ParseRule> rulesAtLevel = new List<ParseRule> ();
+                List<ParseRule> breakingRules = new List<ParseRule> ();
+
+                // Diverts can go anywhere
+                // (Check before KnotDefinition since possible "==>" has to be found before "== name ==")
+                rulesAtLevel.Add(Line(Divert));
+
+                if (level >= StatementLevel.Top) {
+
+                    // Knots can only be parsed at Top/Global scope
+                    rulesAtLevel.Add (KnotDefinition);
+                }
+
+                rulesAtLevel.Add(Line(Choice));
+
+                // Gather lines would be confused with multi-line block separators, like
+                // within a multi-line if statement
+                if (level > StatementLevel.InnerBlock) {
+                    rulesAtLevel.Add (GatherLine);
+                }
+
+                // Stitches (and gathers) can (currently) only go in Knots and top level
+                if (level >= StatementLevel.Knot) {
+                    rulesAtLevel.Add (StitchDefinition);
+                }
+
+                // Normal logic / text can go anywhere
+                rulesAtLevel.Add(LogicLine);
+                rulesAtLevel.Add(LineOfMixedTextAndLogic);
+
+                // --------
+                // Breaking rules
+
+                // Break current knot with a new knot
+                if (level <= StatementLevel.Knot) {
+                    breakingRules.Add (KnotDeclaration);
+                }
+
+                // Break current stitch with a new stitch
+                if (level <= StatementLevel.Stitch) {
+                    breakingRules.Add (StitchDeclaration);
+                }
+
+                // Breaking an inner block (like a multi-line condition statement)
+                if (level <= StatementLevel.InnerBlock) {
+                    breakingRules.Add (String ("-"));
+                    breakingRules.Add (String ("}"));
+                }
+
+                _statementRulesAtLevel [(int)level] = rulesAtLevel.ToArray ();
+                _statementBreakRulesAtLevel [(int)level] = breakingRules.ToArray ();
+            }
+		}
 
 		protected object SkipToNextLine()
 		{
@@ -309,6 +323,9 @@ namespace Inklewriter
 		}
 		private CharacterSet _nonTextPauseCharacters;
 		private CharacterSet _nonTextEndCharacters;
+
+        ParseRule[][] _statementRulesAtLevel;
+        ParseRule[][] _statementBreakRulesAtLevel;
 	}
 }
 
