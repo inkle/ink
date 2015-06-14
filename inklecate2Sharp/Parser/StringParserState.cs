@@ -24,7 +24,7 @@ namespace Inklewriter
 
         public int stackHeight {
             get {
-                return _stack.Count;
+                return _numElements;
             }
         }
 					
@@ -32,48 +32,60 @@ namespace Inklewriter
 			public int characterIndex;
 			public int lineIndex;
             public bool reportedErrorInScope;
-            public int uniqueId { get { return _uniqueId; } set { _uniqueId = value; } }
+            public int uniqueId;
 
 			public Element() {
-                _uniqueIdCounter++;
-                _uniqueId = _uniqueIdCounter;
+
             }
 
-            public Element(int characterIndex, int lineIndex) : this() {
-				this.characterIndex = characterIndex;
-				this.lineIndex = lineIndex;
-			}
+            public void CopyFrom(Element fromElement)
+            {
+                _uniqueIdCounter++;
+                this.uniqueId = _uniqueIdCounter;
+                this.characterIndex = fromElement.characterIndex;
+                this.lineIndex = fromElement.lineIndex;
+                reportedErrorInScope = false;
+            }
 
-            public Element Copy()
-			{
-				return new Element (characterIndex, lineIndex);
-			}
-
-            int _uniqueId;
+            public void SquashFrom(Element fromElement)
+            {
+                this.characterIndex = fromElement.characterIndex;
+                this.lineIndex = fromElement.lineIndex;
+                this.reportedErrorInScope = fromElement.reportedErrorInScope;
+            }
 
             static int _uniqueIdCounter;
 		}
 
 		public StringParserState ()
 		{
-			_stack = new List<Element> ();
+            const int kExpectedMaxStackDepth = 200;
+            _stack = new Element[kExpectedMaxStackDepth];
 
-			// Default element
-			_stack.Add (new Element ());
+            for (int i = 0; i < kExpectedMaxStackDepth; ++i) {
+                _stack [i] = new Element ();
+            }
+
+            _numElements = 1;
 		}
 
 		public int Push()
 		{
-            var newEl = this.currentElement.Copy ();
+            if (_numElements >= _stack.Length)
+                throw new System.Exception ("Stack overflow in parser state");
 
-            _stack.Add (newEl);
+            var prevElement = _stack [_numElements - 1];
+            var newElement = _stack[_numElements];
+            _numElements++;
 
-            return newEl.uniqueId;
+            newElement.CopyFrom (prevElement);
+
+            return newElement.uniqueId;
 		}
 
         public void Pop(int expectedRuleId)
 		{
-			if (_stack.Count == 1) {
+            if (_numElements == 1) {
 				throw new System.Exception ("Attempting to remove final stack element is illegal! Mismatched Begin/Succceed/Fail?");
 			}
 
@@ -81,7 +93,7 @@ namespace Inklewriter
                 throw new System.Exception ("Mismatched rule IDs - do you have mismatched Begin/Succeed/Fail?");
 
 			// Restore state
-			_stack.RemoveAt (_stack.Count - 1);
+            _numElements--;
 		}
 
         public Element Peek(int expectedRuleId)
@@ -89,13 +101,13 @@ namespace Inklewriter
             if (currentElement.uniqueId != expectedRuleId)
                 throw new System.Exception ("Mismatched rule IDs - do you have mismatched Begin/Succeed/Fail?");
 
-            return currentElement;
+            return _stack[_numElements-1];
 		}
 
         public Element PeekPenultimate()
         {
-            if (_stack.Count >= 2) {
-                return _stack [_stack.Count - 2];
+            if (_numElements >= 2) {
+                return _stack [_numElements - 2];
             } else {
                 return null;
             }
@@ -105,15 +117,16 @@ namespace Inklewriter
 		// Remove second last element: i.e. "squash last two elements together"
 		public void Squash()
 		{
-			if (_stack.Count < 2) {
+            if (_numElements < 2) {
 				throw new System.Exception ("Attempting to remove final stack element is illegal! Mismatched Begin/Succceed/Fail?");
 			}
 
-            var penultimateEl = _stack [_stack.Count - 2];
-            var penultimateUniqueId = penultimateEl.uniqueId;
-            currentElement.uniqueId = penultimateUniqueId;
+            var penultimateEl = _stack [_numElements - 2];
+            var lastEl = _stack [_numElements - 1];
+
+            penultimateEl.SquashFrom (lastEl);
 				
-			_stack.RemoveAt (_stack.Count - 2);
+            _numElements--;
 		}
 
         public void NoteErrorReported()
@@ -126,11 +139,12 @@ namespace Inklewriter
 		protected Element currentElement
 		{
 			get {
-                return _stack [_stack.Count - 1];
+                return _stack [_numElements - 1];
 			}
 		}
 
-		private List<Element> _stack;
+        private Element[] _stack;
+        private int _numElements;
 	}
 }
 
