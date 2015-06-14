@@ -77,7 +77,7 @@ namespace Inklewriter
 				throw new System.Exception ("Attempting to remove final stack element is illegal! Mismatched Begin/Succceed/Fail?");
 			}
 
-            if (_stack.Last ().uniqueId != expectedRuleId)
+            if ( currentElement.uniqueId != expectedRuleId)
                 throw new System.Exception ("Mismatched rule IDs - do you have mismatched Begin/Succeed/Fail?");
 
 			// Restore state
@@ -86,12 +86,10 @@ namespace Inklewriter
 
         public Element Peek(int expectedRuleId)
 		{
-            var lastEl = _stack.Last ();
-
-            if (lastEl.uniqueId != expectedRuleId)
+            if (currentElement.uniqueId != expectedRuleId)
                 throw new System.Exception ("Mismatched rule IDs - do you have mismatched Begin/Succeed/Fail?");
 
-            return lastEl;
+            return currentElement;
 		}
 
         public Element PeekPenultimate()
@@ -113,7 +111,7 @@ namespace Inklewriter
 
             var penultimateEl = _stack [_stack.Count - 2];
             var penultimateUniqueId = penultimateEl.uniqueId;
-            _stack.Last ().uniqueId = penultimateUniqueId;
+            currentElement.uniqueId = penultimateUniqueId;
 				
 			_stack.RemoveAt (_stack.Count - 2);
 		}

@@ -85,7 +85,7 @@ namespace Inklewriter
                 return null;
 
             // Trim whitespace from end and add a newline
-            var lastObj = result.Last ();
+            var lastObj = result[result.Count-1];
             if (lastObj is Text) {
                 var text = (Text)lastObj;
                 text.text = text.text.TrimEnd (' ', '\t') + "\n";
