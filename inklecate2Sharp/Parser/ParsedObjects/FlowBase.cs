@@ -138,21 +138,12 @@ namespace Inklewriter.Parsed
             if (fromNode == null) {
                 fromNode = this;
             }
-                
-            List<string> searchedLocationsForErrorReport = null;
-            if (reportErrors) {
-                searchedLocationsForErrorReport = new List<string> ();
-            }
 
             var ancestor = fromNode;
             while (ancestor != null) {
 
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
-
-                    if (reportErrors && ancestorFlow.name != null) {
-                        searchedLocationsForErrorReport.Add ("'"+ancestorFlow.name+"'");
-                    }
 
                     if( ancestorFlow.HasOwnVariableWithName(varName, allowReadCounts) ) {
                         return true;
@@ -165,14 +156,24 @@ namespace Inklewriter.Parsed
                             return true;
                         }
                     }
-
-
                 }
 
                 ancestor = ancestor.parent;
             }
 
             if (reportErrors) {
+
+                var searchedLocationsForErrorReport = new List<string> ();
+
+                ancestor = fromNode;
+                while (ancestor != null) {
+                    var ancestorFlow = ancestor as FlowBase;
+                    if (ancestorFlow != null && ancestorFlow.name != null) {
+                        searchedLocationsForErrorReport.Add ("'"+ancestorFlow.name+"'");
+                    }
+                    ancestor = ancestor.parent;
+                }
+                    
                 var locationsStr = "";
                 if (searchedLocationsForErrorReport.Count > 0) {
                     var locationsListStr = string.Join (", ", searchedLocationsForErrorReport);
@@ -180,7 +181,6 @@ namespace Inklewriter.Parsed
                 }
                 string.Join (", ", searchedLocationsForErrorReport);
                 Error ("variable '" + varName + "' not found"+locationsStr, fromNode);
-                //ResolveVariableWithName (varName, out foundFlow, fromNode, allowReadCounts, reportErrors);
             }
 
             return false;
