@@ -28,10 +28,10 @@ namespace Inklewriter
             if (ProcessArguments (args) == false) {
                 Console.WriteLine (
                     "Usage: inklecate2 <options> <ink file> \n"+
-                    "   -p:    Play mode"+
-                    "   -v:    Verbose mode - print compilation timings"+
-                    "   -t:    Test mode - loads up test.ink"+
-                    "   -s:    Stress test mode - generates test content and times compilation");
+                    "   -p:    Play mode\n"+
+                    "   -v:    Verbose mode - print compilation timings\n"+
+                    "   -t:    Test mode - loads up test.ink\n"+
+                    "   -s:    Stress test mode - generates test content and times compilation\n");
                 Environment.Exit (ExitCodeError);
             }
 
