@@ -101,7 +101,7 @@ namespace Inklewriter.Runtime
 			components.AddRange (tail.components);
 		}
 
-		public Path(List<Component> components) : this()
+		public Path(IEnumerable<Component> components) : this()
 		{
 			this.components.AddRange (components);
 		}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Inklewriter.Runtime
 {
@@ -53,7 +54,29 @@ namespace Inklewriter.Runtime
 				if (parent == null) {
 					return new Path ();
 				} else {
-					return parent.PathToChild (this);
+
+                    // Maintain a Stack so that the order of the components
+                    // is reversed when they're added to the Path.
+                    // We're iterating up the hierarchy from the leaves/children to the root.
+                    var comps = new Stack<Path.Component> ();
+
+                    var child = this;
+                    Container container = child.parent as Container;
+
+                    while (container != null) {
+
+                        var namedChild = child as INamedContent;
+                        if (namedChild != null && namedChild.hasValidName) {
+                            comps.Push (new Path.Component (namedChild.name));
+                        } else {
+                            comps.Push (new Path.Component (container.content.IndexOf(child)));
+                        }
+
+                        child = container;
+                        container = container.parent as Container;
+                    }
+
+                    return new Path (comps);
 				}
 			}
 		}
@@ -69,12 +92,6 @@ namespace Inklewriter.Runtime
                 return ancestor as Container;
             }
         }
-
-		public virtual Path PathToChild(Runtime.Object child)
-		{
-			// Default: Not a child of this object
-			return null;
-		}
 
 		public Object ()
 		{

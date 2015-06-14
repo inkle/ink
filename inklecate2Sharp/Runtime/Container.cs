@@ -171,22 +171,6 @@ namespace Inklewriter.Runtime
 			return null;
 		}
 
-		public override Path PathToChild(Runtime.Object child)
-		{
-			var namedChild = child as INamedContent;
-			if (namedChild != null && namedChild.hasValidName) {
-				return this.path.PathByAppendingElementWithName (namedChild.name);
-			}
-
-			int childIndex = content.IndexOf (child);
-			if (childIndex >= 0) {
-				return this.path.PathByAppendingElementWithIndex (childIndex);
-			}
-
-			// Not a child
-			return null;
-		}
-
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
             Action appendIndentation = () => { 
