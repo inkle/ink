@@ -105,6 +105,7 @@
     <Compile Include="Parser\ParsedObjects\Wrap.cs" />
     <Compile Include="Parser\ParsedObjects\Sequence.cs" />
     <Compile Include="Parser\ParsedObjects\ContentList.cs" />
+    <Compile Include="StressTestContentGenerator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
