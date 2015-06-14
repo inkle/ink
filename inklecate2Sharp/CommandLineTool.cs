@@ -41,7 +41,7 @@ namespace Inklewriter
 
                 StressTestContentGenerator stressTestContent = null;
                 TimeOperation ("Generating test content", () => {
-                    stressTestContent = new StressTestContentGenerator (800);
+                    stressTestContent = new StressTestContentGenerator (100);
                 });
 
                 Console.WriteLine ("Generated ~{0}k of test ink", stressTestContent.sizeInKiloChars);

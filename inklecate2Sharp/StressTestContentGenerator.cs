@@ -10,7 +10,7 @@ namespace Inklewriter
 
         public StressTestContentGenerator (int repetitions)
         {
-            var initialContent = "~ var myVar = 5 + 5 + (3 * 2 * 9) + 1.2\n\n==> test1\n\n";
+            var initialContent = "~ var myVar = 5 + 5 + (3 * 2 * 9) + 1.2\n\n";
 
             var repeatingContent = @"== test__X__ ==
 This is some content in a test knot with the number {myVar}.
