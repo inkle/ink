@@ -71,8 +71,7 @@ namespace Inklewriter
             });
 
             if (parsedStory == null) {
-                Environment
-                    .Exit (ExitCodeError);
+                Environment.Exit (ExitCodeError);
             }
 
             TimeOperation ("Exporting runtime", () => {

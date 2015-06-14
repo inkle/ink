@@ -7,7 +7,6 @@ namespace Inklewriter.Parsed
 	public class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
-        public List<string> allKnotAndStitchNames { get { return _allKnotAndStitchNames; } }
         public bool hadError { get; protected set; }
 
         public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
@@ -76,13 +75,13 @@ namespace Inklewriter.Parsed
 
         }
 
-        void GetAllKnotAndStitchNames(List<Parsed.Object> fromContent)
+        void GatherAllKnotAndStitchNames(List<Parsed.Object> fromContent)
         {
             foreach (var obj in fromContent) {
                 var subFlow = obj as FlowBase;
                 if (subFlow != null) {
                     _allKnotAndStitchNames.Add (subFlow.dotSeparatedFullName);
-                    GetAllKnotAndStitchNames (subFlow.content);
+                    GatherAllKnotAndStitchNames (subFlow.content);
                 }
             }
         }
@@ -101,8 +100,8 @@ namespace Inklewriter.Parsed
 		public Runtime.Story ExportRuntime()
 		{
             // Gather all FlowBase definitions as variable names
-            _allKnotAndStitchNames = new List<string>();
-            GetAllKnotAndStitchNames (content);
+            _allKnotAndStitchNames = new HashSet<string>();
+            GatherAllKnotAndStitchNames (content);
 
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
@@ -167,7 +166,7 @@ namespace Inklewriter.Parsed
             hadError = false;
         }
 
-        List<string> _allKnotAndStitchNames;
+        HashSet<string> _allKnotAndStitchNames;
 	}
 }
 
