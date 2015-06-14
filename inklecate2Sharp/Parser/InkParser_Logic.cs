@@ -259,18 +259,17 @@ namespace Inklewriter
 
         protected object SequenceTypeSymbolAnnotation()
         {
-            var symbol = ParseCharactersFromString ("!&~$", 1);
-            if (symbol != null) {
-                switch (symbol) {
-                case "!":
-                    return SequenceType.Once;
-                case "&":
-                    return SequenceType.Cycle;
-                case "~":
-                    return SequenceType.Shuffle;
-                case "$":
-                    return SequenceType.Stopping;
-                }
+            var symbol = ParseSingleCharacter ();
+
+            switch (symbol) {
+            case '!':
+                return SequenceType.Once;
+            case '&':
+                return SequenceType.Cycle;
+            case '~':
+                return SequenceType.Shuffle;
+            case '$':
+                return SequenceType.Stopping;
             }
 
             return null;
