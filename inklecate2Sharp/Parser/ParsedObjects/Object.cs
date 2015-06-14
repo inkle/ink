@@ -104,6 +104,31 @@ namespace Inklewriter.Parsed
             return null;
         }
 
+
+        public IEnumerable<T> FindAll<T>(FindQueryFunc<T> queryFunc) where T : class
+        {
+            var found = new List<T> ();
+
+            FindAll (queryFunc, found);
+
+            return found;
+        }
+
+        void FindAll<T>(FindQueryFunc<T> queryFunc, List<T> foundSoFar) where T : class
+        {
+            if (content == null)
+                return;
+
+            foreach (var obj in content) {
+                var tObj = obj as T;
+                if (tObj != null && queryFunc (tObj) == true) {
+                    foundSoFar.Add (tObj);
+                }
+
+                obj.FindAll (queryFunc, foundSoFar);
+            }
+        }
+
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
         public virtual void ResolveReferences(Story context)

@@ -68,9 +68,14 @@ namespace Inklewriter.Parsed
             var weaveObjs = new List<Parsed.Object> ();
             var subFlowObjs = new List<Parsed.Object> ();
 
+            _subFlowsByName = new Dictionary<string, FlowBase> ();
+
             foreach (var obj in contentObjs) {
-                if (obj is FlowBase) {
+
+                var subFlow = obj as FlowBase;
+                if (subFlow != null) {
                     subFlowObjs.Add (obj);
+                    _subFlowsByName [subFlow.name] = subFlow;
                 } else {
                     weaveObjs.Add (obj);
                 }
@@ -88,8 +93,8 @@ namespace Inklewriter.Parsed
 
             var finalContent = new List<Parsed.Object> ();
             if (weaveObjs.Count > 0) {
-                var weave = new Weave (weaveObjs, 0);
-                finalContent.Add (weave);
+                _rootWeave = new Weave (weaveObjs, 0);
+                finalContent.Add (_rootWeave);
             }
             if (subFlowObjs.Count > 0) {
                 finalContent.AddRange (subFlowObjs);
@@ -297,32 +302,26 @@ namespace Inklewriter.Parsed
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
         {
             if (levelType == FlowLevel.WeavePoint) {
-                return (Parsed.Object) this.Find<IWeavePoint> (w => w.name == name);
+                return (Parsed.Object) _rootWeave.WeavePointNamed (name);
             }
 
-            foreach(var obj in content) {
+            // If this flow would be incapable of containing the requested level, early out
+            // (e.g. asking for a Knot from a Stitch)
+            if (levelType != null && levelType < this.flowLevel)
+                return null;
 
-                var namedContent = obj as INamedContent;
-                if (namedContent != null && namedContent.name == name) {
+            FlowBase subFlow = null;
 
-                    // No FlowLevel specified
-                    if (levelType == null) {
-                        return obj;
-                    } 
-
-                    // Searching for Knot/Stitch
-                    else if (obj is FlowBase) {
-                        var flowContent = (FlowBase)obj;
-                        if (flowContent.flowLevel == levelType) {
-                            return obj;
-                        }
-                    }
-
-                }
+            if (_subFlowsByName.TryGetValue (name, out subFlow)) {
+                if (levelType == null || levelType == subFlow.flowLevel)
+                    return subFlow;
             }
 
             return null;
         }
+
+        Weave _rootWeave;
+        Dictionary<string, FlowBase> _subFlowsByName;
             
 	}
 }

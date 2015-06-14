@@ -32,7 +32,7 @@ namespace Inklewriter.Parsed
             public Runtime.Divert divert;
             public Runtime.Object targetRuntimeObj;
         }
-            
+                        
         public Weave(List<Parsed.Object> cont, int indentIndex=-1) 
         {
             if (indentIndex == -1) {
@@ -44,6 +44,18 @@ namespace Inklewriter.Parsed
             AddContent (cont);
 
             ConstructWeaveHierarchyFromIndentation ();
+
+            // Only base level weaves keep track of named weave points
+            if (indentIndex == 0) {
+
+                var namedWeavePoints = FindAll<IWeavePoint> (w => w.name != null && w.name.Length > 0);
+
+                _namedWeavePoints = new Dictionary<string, IWeavePoint> ();
+
+                foreach (var weavePoint in namedWeavePoints) {
+                    _namedWeavePoints [weavePoint.name] = weavePoint;
+                }
+            }
         }
 
         void ConstructWeaveHierarchyFromIndentation()
@@ -95,7 +107,7 @@ namespace Inklewriter.Parsed
                 contentIdx++;
             }
         }
-
+            
         // When the indentation wasn't told to us at construction time using
         // a choice point with a known indentation level, we may be told to
         // determine the indentation level by incrementing from our closest ancestor.
@@ -296,6 +308,18 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public IWeavePoint WeavePointNamed(string name)
+        {
+            if (_namedWeavePoints == null)
+                return null;
+
+            IWeavePoint weavePointResult = null;
+            if (_namedWeavePoints.TryGetValue (name, out weavePointResult))
+                return weavePointResult;
+
+            return null;
+        }
+
         Weave closestWeaveAncestor {
             get {
                 var ancestor = this.parent;
@@ -357,6 +381,7 @@ namespace Inklewriter.Parsed
 
 
         Runtime.Container _rootContainer;
+        Dictionary<string, IWeavePoint> _namedWeavePoints;
     }
 }
 
