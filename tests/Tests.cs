@@ -235,8 +235,7 @@ namespace Tests
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            // Unfortunate leading newline...
-            Assert.AreEqual (story.currentText, "\ngather\nchoice content\ngather\nsecond time round\n");
+            Assert.AreEqual (story.currentText, "gather\nchoice content\ngather\nsecond time round\n");
         }
             
         [Test ()]

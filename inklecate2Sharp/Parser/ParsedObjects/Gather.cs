@@ -9,12 +9,10 @@ namespace Inklewriter.Parsed
 
         public Runtime.Container runtimeContainer { get { return (Runtime.Container) runtimeObject; } }
 
-        public Gather (string name, List<Parsed.Object> content, int indentationDepth)
+        public Gather (string name, int indentationDepth)
         {
             this.name = name;
             this.indentationDepth = indentationDepth;
-
-            AddContent (content);
         }
 
         public void AddContent(Parsed.Object obj)

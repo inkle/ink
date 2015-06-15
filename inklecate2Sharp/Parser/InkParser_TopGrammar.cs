@@ -92,7 +92,7 @@ namespace Inklewriter
                 // Gather lines would be confused with multi-line block separators, like
                 // within a multi-line if statement
                 if (level > StatementLevel.InnerBlock) {
-                    rulesAtLevel.Add (GatherLine);
+                    rulesAtLevel.Add (Gather);
                 }
 
                 // Stitches (and gathers) can (currently) only go in Knots and top level

@@ -89,7 +89,7 @@ namespace Inklewriter
             if (lastObj is Text) {
                 var text = (Text)lastObj;
                 text.text = text.text.TrimEnd (' ', '\t') + "\n";
-            } 
+            }
 
             // Last object in line wasn't text (but some kind of logic), so
             // we need to append the newline afterwards using a new object
@@ -99,6 +99,10 @@ namespace Inklewriter
             else {
                 result.Add (new Text ("\n"));
             }
+
+            var divert = Parse (Divert);
+            if (divert != null)
+                result.Add (divert);
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 

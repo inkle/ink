@@ -101,7 +101,7 @@ namespace Inklewriter
             return condExpr;
         }
 
-        protected Gather GatherLine()
+        protected Gather Gather()
         {
             var dashes = Interleave<string>(OptionalExclude(Whitespace), String("-"));
             if (dashes == null) {
@@ -111,20 +111,10 @@ namespace Inklewriter
             // Optional name for the gather
             string optionalName = Parse(BracketedName);
 
-            Whitespace ();
+            // Optional newline before gather's content begins
+            Newline ();
 
-            // Optional content from the rest of the line
-            var content = Parse(MixedTextAndLogic);
-            if (content == null) {
-                content = new List<Parsed.Object> ();
-            }
-
-            Expect (EndOfLine, "end of line after gather ('-' with content)");
-            content.Add (new Parsed.Text ("\n"));
-
-            Gather gather = new Gather (optionalName, content, dashes.Count);
-
-            return gather;
+            return new Gather (optionalName, dashes.Count);
         }
 
         protected string BracketedName()
