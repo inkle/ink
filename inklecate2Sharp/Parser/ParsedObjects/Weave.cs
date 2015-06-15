@@ -287,11 +287,6 @@ namespace Inklewriter.Parsed
                     looseEnds = null;
                 }
             }
-
-            if (looseEnds != null && looseEnds.Count > 0) {
-                // TODO: When we *require* a return statement, show this error
-                //Error ("unresolved loose ends");
-            }
         }
 
         public void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
