@@ -237,7 +237,22 @@ namespace Tests
 
             Assert.AreEqual (story.currentText, "gather\nchoice content\ngather\nsecond time round\n");
         }
-            
+
+        [Test ()]
+        public void TestGatherChoiceSameLine()
+        {
+            var storyStr =  "- * hello\n- * world";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentChoices [0].choiceText, "hello");
+
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual (story.currentChoices [0].choiceText, "world");
+        }
+
         [Test ()]
         public void TestEscapeCharacter()
         {
