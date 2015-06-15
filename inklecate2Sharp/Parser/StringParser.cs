@@ -216,7 +216,7 @@ namespace Inklewriter
             if (result == null)
                 return FailRule (ruleId);
 
-            SucceedRule (ruleId);
+            SucceedRule (ruleId, result);
             return result;
         }
 
@@ -230,7 +230,7 @@ namespace Inklewriter
                 return null;
             }
 
-            SucceedRule (ruleId);
+            SucceedRule (ruleId, result);
             return result;
         }
 
