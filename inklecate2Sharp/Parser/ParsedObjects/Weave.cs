@@ -24,7 +24,10 @@ namespace Inklewriter.Parsed
         public Runtime.Container currentContainer { get; private set; }
         public int baseIndentIndex { get; }
 
-        public List<IWeavePoint> looseEnds;
+        // Loose ends are:
+        //  - Choices or Gathers that need to be joined up
+        //  - Explicit Divert to gather points (i.e. "->" without a target)
+        public List<Parsed.Object> looseEnds;
 
         public List<GatherPointToResolve> gatherPointsToResolve;
         public class GatherPointToResolve
@@ -126,7 +129,7 @@ namespace Inklewriter.Parsed
         public override Runtime.Object GenerateRuntimeObject ()
         {
             _rootContainer = currentContainer = new Runtime.Container();
-            looseEnds = new List<IWeavePoint> ();
+            looseEnds = new List<Parsed.Object> ();
 
             gatherPointsToResolve = new List<GatherPointToResolve> ();
 
@@ -150,18 +153,17 @@ namespace Inklewriter.Parsed
                     
                 else {
 
-                    // Explicit gather?
-                    var divert = obj as Divert;
-                    if (divert != null && divert.isToGather) {
-                        looseEnds.Add (previousWeavePoint);
-                        addContentToPreviousWeavePoint = false;
-                    } 
-
-                    // Normal content
-                    else {
-                        AddGeneralRuntimeContent (obj.runtimeObject);
+                    // Find any nested explicit gather points within this object
+                    // (including the object itself)
+                    // i.e. instances of "->" without a target that's meant to go 
+                    // to the next gather point.
+                    var innerExplicitGathers = obj.FindAll<Divert> (d => d.isToGather);
+                    if (innerExplicitGathers.Count > 0) {
+                        looseEnds.AddRange (innerExplicitGathers);
                     }
-
+                        
+                    // Add content
+                    AddGeneralRuntimeContent (obj.runtimeObject);
                 }
             }
 
@@ -210,7 +212,7 @@ namespace Inklewriter.Parsed
             currentContainer.AddToNamedContentOnly (gatherContainer);
 
             // Consume loose ends: divert them to this gather
-            foreach (IWeavePoint looseEnd in looseEnds) {
+            foreach (Parsed.Object looseEnd in looseEnds) {
 
                 // Skip gather loose ends that are at the same level
                 // since they'll be handled by the auto-enter code below
@@ -222,15 +224,22 @@ namespace Inklewriter.Parsed
                     }
                 }
 
-                var divert = new Runtime.Divert ();
-                looseEnd.runtimeContainer.AddContent (divert);
+                Runtime.Divert divert = null;
 
+                if (looseEnd is Parsed.Divert) {
+                    divert = (Runtime.Divert) looseEnd.runtimeObject;
+                } else {
+                    var looseWeavePoint = looseEnd as IWeavePoint;
+                    divert = new Runtime.Divert ();
+                    looseWeavePoint.runtimeContainer.AddContent (divert);
+                }
+                   
                 // Pass back knowledge of this loose end being diverted
                 // to the FlowBase so that it can maintain a list of them,
                 // and resolve the divert references later
                 gatherPointsToResolve.Add (new GatherPointToResolve{ divert = divert, targetRuntimeObj = gatherAutoDivertEvalStart });
             }
-            looseEnds.RemoveRange (0, looseEnds.Count);
+            looseEnds.Clear ();
 
             // Replace the current container itself
             currentContainer = gatherContainer;
@@ -251,7 +260,7 @@ namespace Inklewriter.Parsed
             // Keep track of loose ends
             addContentToPreviousWeavePoint = false; // default
             if (WeavePointHasLooseEnd (weavePoint)) {
-                looseEnds.Add (weavePoint);
+                looseEnds.Add ((Parsed.Object)weavePoint);
 
                 // If choice has an explicit gather divert ("->") then it doesn't need content added to it
                 var looseChoice = weavePoint as Choice;
@@ -272,7 +281,7 @@ namespace Inklewriter.Parsed
             // Now there's a deeper indentation level, the previous weave point doesn't
             // count as a loose end (since it will have content to go to)
             if (previousWeavePoint != null) {
-                looseEnds.Remove (previousWeavePoint);
+                looseEnds.Remove ((Parsed.Object)previousWeavePoint);
                 addContentToPreviousWeavePoint = false;
             }
         }
@@ -300,7 +309,7 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
+        public void ReceiveLooseEnds(List<Parsed.Object> childWeaveLooseEnds)
         {
             looseEnds.AddRange (childWeaveLooseEnds);
         }

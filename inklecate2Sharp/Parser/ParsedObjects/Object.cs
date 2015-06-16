@@ -131,7 +131,7 @@ namespace Inklewriter.Parsed
         }
 
 
-        public IEnumerable<T> FindAll<T>(FindQueryFunc<T> queryFunc) where T : class
+        public IList<T> FindAll<T>(FindQueryFunc<T> queryFunc) where T : class
         {
             var found = new List<T> ();
 
@@ -142,15 +142,15 @@ namespace Inklewriter.Parsed
 
         void FindAll<T>(FindQueryFunc<T> queryFunc, List<T> foundSoFar) where T : class
         {
+            var tObj = this as T;
+            if (tObj != null && queryFunc (tObj) == true) {
+                foundSoFar.Add (tObj);
+            }
+
             if (content == null)
                 return;
 
             foreach (var obj in content) {
-                var tObj = obj as T;
-                if (tObj != null && queryFunc (tObj) == true) {
-                    foundSoFar.Add (tObj);
-                }
-
                 obj.FindAll (queryFunc, foundSoFar);
             }
         }
