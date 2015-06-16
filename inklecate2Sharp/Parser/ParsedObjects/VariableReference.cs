@@ -22,19 +22,19 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
-            Parsed.FlowBase foundFlowForReadCount = null;
 
-            if (context.ResolveVariableWithName (this.name, 
-                out foundFlowForReadCount, 
-                fromNode:this, 
-                allowReadCounts:true, 
-                reportErrors:true)) {
-
-                // Resolving a read count of a piece of flow?
-                // Update to use the full name of that flow rather than the local name
-                if (foundFlowForReadCount != null) {
-                    _runtimeVarRef.name = this.name = foundFlowForReadCount.dotSeparatedFullName;
+            if (!context.ResolveVariableWithName (this.name, fromNode: this)) {
+               
+                // No variables with the given name. Try a read count.
+                var objForReadCount = context.ResolveTargetForReadCountWithName (this.name, fromNode: this);
+                if (objForReadCount != null) {
+                    _runtimeVarRef.pathForVisitCount = objForReadCount.runtimePath;
                 }
+
+                else {
+                    Error("Unresolved variable: "+this.name+" after searching: "+this.DescriptionOfScope (), this);
+                }
+
             }
         }
 

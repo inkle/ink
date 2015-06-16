@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Inklewriter.Parsed
 {
@@ -50,6 +51,31 @@ namespace Inklewriter.Parsed
             get {
                 return runtimeObject.path;
             }
+        }
+
+        public string DescriptionOfScope()
+        {
+            var locationNames = new List<string> ();
+
+            Parsed.Object ancestor = this;
+            while (ancestor != null) {
+                var ancestorFlow = ancestor as FlowBase;
+                if (ancestorFlow != null && ancestorFlow.name != null) {
+                    locationNames.Add ("'"+ancestorFlow.name+"'");
+                }
+                ancestor = ancestor.parent;
+            }
+
+            var scopeSB = new StringBuilder ();
+            if (locationNames.Count > 0) {
+                var locationsListStr = string.Join (", ", locationNames);
+                scopeSB.Append (locationsListStr);
+                scopeSB.Append (" and ");
+            }
+
+            scopeSB.Append( "at top scope");
+
+            return scopeSB.ToString ();
         }
 
         // Return the object so that method can be chained easily

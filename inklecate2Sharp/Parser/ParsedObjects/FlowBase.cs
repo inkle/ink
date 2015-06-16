@@ -136,10 +136,8 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public bool ResolveVariableWithName(string varName, out Parsed.FlowBase foundFlow, Parsed.Object fromNode, bool allowReadCounts, bool reportErrors)
+        public bool ResolveVariableWithName(string varName, Parsed.Object fromNode)
         {
-            foundFlow = null;
-
             if (fromNode == null) {
                 fromNode = this;
             }
@@ -150,55 +148,42 @@ namespace Inklewriter.Parsed
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
 
-                    if( ancestorFlow.HasOwnVariableWithName(varName, allowReadCounts) ) {
+                    if( ancestorFlow.HasVariableWithName(varName) ) {
                         return true;
                     }
+                }
 
-                    if (allowReadCounts) {
-                        var content = ancestorFlow.ContentWithNameAtLevel (varName);
-                        if (content != null) {
-                            foundFlow = (FlowBase) content;
-                            return true;
-                        }
+                ancestor = ancestor.parent;
+            }
+                
+            return false;
+        }
+
+        public Parsed.Object ResolveTargetForReadCountWithName(string name, Parsed.Object fromNode)
+        {
+            if (fromNode == null) {
+                fromNode = this;
+            }
+
+            var ancestor = fromNode;
+            while (ancestor != null) {
+
+                if (ancestor is FlowBase) {
+                    var ancestorFlow = (FlowBase)ancestor;
+
+                    var content = ancestorFlow.ContentWithNameAtLevel (name);
+                    if (content != null) {
+                        return content;
                     }
                 }
 
                 ancestor = ancestor.parent;
             }
 
-            if (reportErrors) {
-
-                var searchedLocationsForErrorReport = new List<string> ();
-
-                ancestor = fromNode;
-                while (ancestor != null) {
-                    var ancestorFlow = ancestor as FlowBase;
-                    if (ancestorFlow != null && ancestorFlow.name != null) {
-                        searchedLocationsForErrorReport.Add ("'"+ancestorFlow.name+"'");
-                    }
-                    ancestor = ancestor.parent;
-                }
-                    
-                var locationsStr = "";
-                if (searchedLocationsForErrorReport.Count > 0) {
-                    var locationsListStr = string.Join (", ", searchedLocationsForErrorReport);
-                    locationsStr = " in " + locationsListStr + " or globally";
-                }
-                string.Join (", ", searchedLocationsForErrorReport);
-                Error ("variable '" + varName + "' not found"+locationsStr, fromNode);
-            }
-
-            return false;
+            return null;
         }
 
-        public bool HasVariableWithName(string varName, bool allowReadCounts = true)
-        {
-            // Search full tree
-            Parsed.FlowBase unusedFoundFlow = null;
-            return ResolveVariableWithName (varName, out unusedFoundFlow, this, allowReadCounts, reportErrors:false);
-        }
-
-        public virtual bool HasOwnVariableWithName(string varName, bool allowReadCounts = true)
+        public bool HasVariableWithName(string varName)
         {
             if (variableDeclarations.ContainsKey (varName))
                 return true;
@@ -213,6 +198,7 @@ namespace Inklewriter.Parsed
         {
             var container = new Runtime.Container ();
             container.name = name;
+            container.visitsShouldBeCounted = true;
 
             OnRuntimeGenerationDidStart (container);
 
@@ -261,8 +247,6 @@ namespace Inklewriter.Parsed
         protected virtual void OnRuntimeGenerationDidStart(Runtime.Container container)
         {
             GenerateArgumentVariableAssignments (container);
-
-            GenerateReadCountUpdate (container);
         }
 
         void GenerateArgumentVariableAssignments(Runtime.Container container)
@@ -281,28 +265,22 @@ namespace Inklewriter.Parsed
                 container.AddContent (assign);
             }
         }
-
-        protected void GenerateReadCountUpdate(Runtime.Container container)
-        {
-            if (name == null) {
-                return;
-            }
-
-            container.AddContent (Runtime.ControlCommand.EvalStart());
-
-            string varName = dotSeparatedFullName;
-            container.AddContent (new Runtime.VariableReference (varName));
-            container.AddContent (new Runtime.LiteralInt(1));
-            container.AddContent (Runtime.NativeFunctionCall.CallWithName("+"));
-            container.AddContent (new Runtime.VariableAssignment (varName, false));
-
-            container.AddContent (Runtime.ControlCommand.EvalEnd());
-        }
             
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null)
         {
-            if (levelType == FlowLevel.WeavePoint) {
-                return (Parsed.Object) _rootWeave.WeavePointNamed (name);
+            if ( levelType == FlowLevel.WeavePoint || levelType == null ) {
+                
+                Parsed.Object weavePointResult = null;
+
+                if (_rootWeave != null) {
+                    weavePointResult = (Parsed.Object)_rootWeave.WeavePointNamed (name);
+                    if (weavePointResult != null)
+                        return weavePointResult;
+                }
+
+                // Stop now if we only wanted a result if it's a weave point?
+                if (levelType == FlowLevel.WeavePoint)
+                    return null;
             }
 
             // If this flow would be incapable of containing the requested level, early out

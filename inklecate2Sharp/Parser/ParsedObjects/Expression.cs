@@ -132,14 +132,8 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            FlowBase unusedFlowForReadCount;
-            if (!context.ResolveVariableWithName (varName, 
-                out unusedFlowForReadCount, 
-                fromNode:this, 
-                allowReadCounts:false, 
-                reportErrors:true)) {
-
-                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"'");
+            if (!context.ResolveVariableWithName (varName, fromNode:this)) {
+                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.DescriptionOfScope ());
             }
         }
 

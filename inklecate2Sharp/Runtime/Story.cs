@@ -327,12 +327,25 @@ namespace Inklewriter.Runtime
             // Variable reference
             else if( contentObj is VariableReference ) {
                 var varRef = (VariableReference)contentObj;
-                var varContents = _callStack.GetVariableWithName (varRef.name);
-                if (varContents == null) {
-                    
-                    Error("Uninitialised variable: " + varRef.name);
+
+                // Read/visit count
+                if (varRef.pathForVisitCount != null) {
+                    var container = ContentAtPath (varRef.pathForVisitCount) as Container;
+                    int visitCount = VisitCountForContainer (container);
+                    _evaluationStack.Add (new LiteralInt (visitCount));
+                } 
+
+                // Normal variable reference
+                else {
+                    var varContents = _callStack.GetVariableWithName (varRef.name);
+                    if (varContents == null) {
+                        Error("Uninitialised variable: " + varRef.name);
+                        varContents = new LiteralInt (0);
+                    }
+
+                    _evaluationStack.Add( varContents );
                 }
-                _evaluationStack.Add( varContents );
+
                 return true;
             }
 
@@ -688,7 +701,8 @@ namespace Inklewriter.Runtime
                 }
             }
             foreach (var c in newlyOpenContainers) {
-                IncrementVisitCountForContainer (c);
+                if( c.visitsShouldBeCounted )
+                    IncrementVisitCountForContainer (c);
             }
             previouslyOpenContainers = openContainers;
         }

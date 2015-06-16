@@ -14,12 +14,12 @@ namespace Inklewriter.Parsed
             this.name = name;
             this.indentationDepth = indentationDepth;
         }
-
             
         public override Runtime.Object GenerateRuntimeObject ()
         {
             var container = new Runtime.Container ();
             container.name = name;
+            container.visitsShouldBeCounted = true;
 
             // A gather can have null content, e.g. it's just purely a line with "-"
             if (content != null) {

@@ -86,17 +86,6 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public override bool HasOwnVariableWithName(string varName, bool allowReadCounts = true)
-        {
-            if (allowReadCounts) {
-                if (_allKnotAndStitchNames.Contains (varName)) {
-                    return true;
-                }
-            }
-
-            return base.HasOwnVariableWithName (varName, allowReadCounts);
-        }
-
 		public Runtime.Story ExportRuntime()
 		{
             // Gather all FlowBase definitions as variable names
