@@ -151,6 +151,37 @@ namespace Inklewriter.Parsed
             }
         }
     }
+
+    public class MultipleConditionExpression : Expression
+    {
+        public MultipleConditionExpression(List<Expression> conditionExpressions)
+        {
+            AddContent (conditionExpressions);
+        }
+
+        public override void GenerateIntoContainer(Runtime.Container container)
+        {
+            //    A && B && C && D
+            // => (((A B &&) C &&) D &&) etc
+            bool isFirst = true;
+            foreach (var child in content) {
+
+                var conditionExpr = child as Expression;
+                if (conditionExpr == null) {
+                    Error ("Unexpected non-expression in MultipleConditionExpression", child);
+                    continue;
+                }
+
+                conditionExpr.GenerateIntoContainer (container);
+
+                if (!isFirst) {
+                    container.AddContent (Runtime.NativeFunctionCall.CallWithName ("&&"));
+                }
+
+                isFirst = false;
+            }
+        }
+    }
         
 }
 

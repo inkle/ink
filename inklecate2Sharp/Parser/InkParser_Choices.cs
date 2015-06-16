@@ -19,9 +19,15 @@ namespace Inklewriter
 
                 onceOnlyChoice = false;
             }
-
-            // Optional name for the gather
+                
+            // Optional name for the choice
             string optionalName = Parse(BracketedName);
+
+            Whitespace ();
+
+            Expression conditionExpr = Parse(ChoiceCondition);
+
+            // Condition
 
             Whitespace ();
                 
@@ -61,8 +67,6 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var conditionExpr = Parse(ChoiceCondition);
-
             var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
@@ -90,6 +94,27 @@ namespace Inklewriter
 		private CharacterSet _choiceTextEndCharacters;
 
         protected Expression ChoiceCondition()
+        {
+            var conditions = Interleave<Expression> (ChoiceSingleCondition, ChoiceConditionsSpace);
+            if (conditions == null)
+                return null;
+            else if (conditions.Count == 1)
+                return conditions [0];
+            else {
+                return new MultipleConditionExpression (conditions);
+            }
+        }
+    
+        protected object ChoiceConditionsSpace()
+        {
+            // Both optional
+            // Newline includes initial end of line whitespace
+            Newline (); 
+            Whitespace ();
+            return ParseSuccess;
+        }
+
+        protected Expression ChoiceSingleCondition()
         {
             if (ParseString ("{") == null)
                 return null;

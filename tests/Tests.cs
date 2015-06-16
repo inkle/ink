@@ -94,6 +94,32 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestConditionalChoices()
+        {
+            var storyStr =
+                @"
+* { true } { false } not displayed
+* { true } { true }
+  { true and true }  one
+* { false } not displayed
+* (name) { true } two
+* { true }
+  { true }
+  three
+* { true }
+  four
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentChoices.Count, 4);
+            Assert.AreEqual (story.currentChoices[0].choiceText, "one");
+            Assert.AreEqual (story.currentChoices[1].choiceText, "two");
+            Assert.AreEqual (story.currentChoices[2].choiceText, "three");
+            Assert.AreEqual (story.currentChoices[3].choiceText, "four");
+        }
+
+        [Test ()]
         public void TestConditionals()
         {
             var storyStr =

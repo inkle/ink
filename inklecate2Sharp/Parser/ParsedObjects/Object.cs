@@ -65,7 +65,7 @@ namespace Inklewriter.Parsed
             return subContent;
         }
 
-        public void AddContent(List<Parsed.Object> listContent)
+        public void AddContent<T>(List<T> listContent) where T : Parsed.Object
         {
             foreach (var obj in listContent) {
                 AddContent (obj);
