@@ -9,6 +9,13 @@ namespace Inklewriter
 		public bool autoPlay { get; set; }
         public Parsed.Story parsedStory { get; set; }
 
+        enum ConsoleColour {
+            Red,
+            Green,
+            Blue,
+            None
+        }
+
         public CommandLinePlayer (Story story, bool autoPlay = false, Parsed.Story parsedStory = null)
 		{
 			this.story = story;
@@ -38,6 +45,8 @@ namespace Inklewriter
 
 				// Normal: Ask user for choice number
 				else {
+
+                    SetConsoleTextColour (ConsoleColour.Blue);
 
 					int i = 1;
 					foreach (Choice choice in choices) {
@@ -115,6 +124,8 @@ namespace Inklewriter
 
 				}
 
+                ResetConsoleTextColour ();
+
                 if (choiceIsValid) {
                     story.ContinueWithChoiceIndex (choiceIdx);
                 } else if (userDivertedPath != null) {
@@ -125,6 +136,32 @@ namespace Inklewriter
 				Console.WriteLine(story.currentText);
 			}
 		}
+
+        void SetConsoleTextColour(ConsoleColour colour)
+        {
+            // ANSI colour codes:
+            // http://stackoverflow.com/questions/2353430/how-can-i-print-to-the-console-in-color-in-a-cross-platform-manner
+            const char escapeChar = (char)27;
+            switch (colour) {
+            case ConsoleColour.Red:
+                Console.Write ("{0}[1;31m", escapeChar);
+                break;
+            case ConsoleColour.Green:
+                Console.Write ("{0}[1;32m", escapeChar);
+                break;
+            case ConsoleColour.Blue:
+                Console.Write ("{0}[1;34m", escapeChar);
+                break;
+            case ConsoleColour.None:
+                Console.Write ("{0}[0m", escapeChar);
+                break;
+            }
+        }
+
+        void ResetConsoleTextColour()
+        {
+            SetConsoleTextColour (ConsoleColour.None);
+        }
             
 	}
 }
