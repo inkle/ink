@@ -81,13 +81,13 @@ namespace Inklewriter.Runtime
     				currentContentObj = ContentAtPath(currentPath);
     				if( currentContentObj != null ) {
                     					
-    					// Convert path to get first leaf content
-    					Container currentContainer = currentContentObj as Container;
-    					if( currentContainer != null ) {
-    						currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
-    						currentContentObj = ContentAtPath(currentPath);
-    					}
-
+                        // Convert path to get first leaf content
+                        Container currentContainer = currentContentObj as Container;;
+                        if( currentContainer != null && currentContainer.content.Count > 0 ) {
+                            currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
+                            currentContentObj = ContentAtPath(currentPath);
+                        }
+                            
                         IncrementVisitCountForActiveContainers (currentContentObj, ref previouslyOpenContainers);
 
                         // Is the current content object:
@@ -117,6 +117,12 @@ namespace Inklewriter.Runtime
                                 shouldAddObject = visitCount == 0;
                             }
 
+                        }
+
+                        // If the container has no content, then it will be
+                        // the "content" itself, but we skip over it.
+                        if( currentContentObj is Container ) {
+                            shouldAddObject = false;
                         }
 
                         // Error?

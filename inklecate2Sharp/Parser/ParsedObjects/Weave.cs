@@ -147,10 +147,21 @@ namespace Inklewriter.Parsed
                     AddRuntimeForNestedWeave (weave);
                     gatherPointsToResolve.AddRange (weave.gatherPointsToResolve);
                 }
-
-                // Normal content
+                    
                 else {
-                    AddGeneralRuntimeContent (obj.runtimeObject);
+
+                    // Explicit gather?
+                    var divert = obj as Divert;
+                    if (divert != null && divert.isToGather) {
+                        looseEnds.Add (previousWeavePoint);
+                        addContentToPreviousWeavePoint = false;
+                    } 
+
+                    // Normal content
+                    else {
+                        AddGeneralRuntimeContent (obj.runtimeObject);
+                    }
+
                 }
             }
 
@@ -242,7 +253,7 @@ namespace Inklewriter.Parsed
             if (WeavePointHasLooseEnd (weavePoint)) {
                 looseEnds.Add (weavePoint);
 
-                // If choice has an explicit gather divert ("->") then
+                // If choice has an explicit gather divert ("->") then it doesn't need content added to it
                 var looseChoice = weavePoint as Choice;
                 if (looseChoice != null && !looseChoice.explicitGather) {
                     addContentToPreviousWeavePoint = true;
