@@ -31,6 +31,28 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
+            Parsed.Object usageContext = this;
+            while (usageContext != null && usageContext is Expression) {
+
+                bool badUsage = false;
+
+                var usageParent = usageContext.parent;
+                if (usageParent is BinaryExpression || usageParent is MultipleConditionExpression) {
+                    badUsage = true;
+                } else if (usageParent is Choice && ((Choice)usageParent).condition == usageContext) {
+                    badUsage = true;
+                } else if (usageParent is Conditional || usageParent is ConditionalSingleBranch) {
+                    badUsage = true;
+                }
+
+                if (badUsage) {
+                    Error ("Can't use a divert target like that. Did you intend to call '" + divert.target + "' as a function: likeThis(), or check the read count: likeThis, with no arrows?", this);
+                    break;
+                }
+
+                usageContext = usageParent;
+            }
+
             _runtimeLiteralDivertTarget.divert = _runtimeDivert;
         }
             

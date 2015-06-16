@@ -95,7 +95,7 @@ namespace Inklewriter.Runtime
     {
         public Divert divert { get; set; }
         public override LiteralType literalType { get { return LiteralType.DivertTarget; } }
-        public override bool isTruthy { get { return true; } }
+        public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a divert target"); } }
 
         public LiteralDivertTarget(Divert divert) : base(divert)
         {

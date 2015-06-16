@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Inklewriter;
 
 namespace Inklewriter.Parsed
@@ -131,9 +132,9 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            FlowBase foundFlowForReadCount;
+            FlowBase unusedFlowForReadCount;
             if (!context.ResolveVariableWithName (varName, 
-                out foundFlowForReadCount, 
+                out unusedFlowForReadCount, 
                 fromNode:this, 
                 allowReadCounts:false, 
                 reportErrors:true)) {
@@ -154,6 +155,12 @@ namespace Inklewriter.Parsed
 
     public class MultipleConditionExpression : Expression
     {
+        public List<Expression> subExpressions {
+            get {
+                return this.content.Cast<Expression> ().ToList ();
+            }
+        }
+
         public MultipleConditionExpression(List<Expression> conditionExpressions)
         {
             AddContent (conditionExpressions);
@@ -164,13 +171,7 @@ namespace Inklewriter.Parsed
             //    A && B && C && D
             // => (((A B &&) C &&) D &&) etc
             bool isFirst = true;
-            foreach (var child in content) {
-
-                var conditionExpr = child as Expression;
-                if (conditionExpr == null) {
-                    Error ("Unexpected non-expression in MultipleConditionExpression", child);
-                    continue;
-                }
+            foreach (var conditionExpr in subExpressions) {
 
                 conditionExpr.GenerateIntoContainer (container);
 

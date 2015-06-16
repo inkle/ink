@@ -15,10 +15,6 @@ namespace Inklewriter.Parsed
             this.indentationDepth = indentationDepth;
         }
 
-        public void AddContent(Parsed.Object obj)
-        {
-            base.AddContent (obj);
-        }
             
         public override Runtime.Object GenerateRuntimeObject ()
         {

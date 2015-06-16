@@ -73,84 +73,89 @@ namespace Inklewriter.Runtime
 		{
             HashSet<Container> previouslyOpenContainers = null;
 
-			Runtime.Object currentContentObj = null;
-			do {
+            try {
 
-				currentContentObj = ContentAtPath(currentPath);
-				if( currentContentObj != null ) {
-                					
-					// Convert path to get first leaf content
-					Container currentContainer = currentContentObj as Container;
-					if( currentContainer != null ) {
-						currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
-						currentContentObj = ContentAtPath(currentPath);
-					}
+    			Runtime.Object currentContentObj = null;
+    			do {
 
-                    IncrementVisitCountForActiveContainers (currentContentObj, ref previouslyOpenContainers);
+    				currentContentObj = ContentAtPath(currentPath);
+    				if( currentContentObj != null ) {
+                    					
+    					// Convert path to get first leaf content
+    					Container currentContainer = currentContentObj as Container;
+    					if( currentContainer != null ) {
+    						currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
+    						currentContentObj = ContentAtPath(currentPath);
+    					}
 
-                    // Is the current content object:
-                    //  - Normal content
-                    //  - Or a logic/flow statement - if so, do it
-                    bool stopFlow;
-                    bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj, out stopFlow);
-                    if( stopFlow ) {
-                        currentContentObj = null;
-                        currentPath = null;
-                        break;
-                    }
+                        IncrementVisitCountForActiveContainers (currentContentObj, ref previouslyOpenContainers);
 
-                    // Choice with condition?
-                    bool shouldAddObject = true;
-                    var choice = currentContentObj as Choice;
-                    if( choice != null ) {
-
-                        if( choice.hasCondition ) {
-                            var conditionValue = PopEvaluationStack();
-                            shouldAddObject = IsTruthy(conditionValue);
+                        // Is the current content object:
+                        //  - Normal content
+                        //  - Or a logic/flow statement - if so, do it
+                        bool stopFlow;
+                        bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj, out stopFlow);
+                        if( stopFlow ) {
+                            currentContentObj = null;
+                            currentPath = null;
+                            break;
                         }
 
-                        if( choice.onceOnly && shouldAddObject ) {
-                            var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
-                            var visitCount = VisitCountForContainer(choiceTargetContainer);
-                            shouldAddObject = visitCount == 0;
+                        // Choice with condition?
+                        bool shouldAddObject = true;
+                        var choice = currentContentObj as Choice;
+                        if( choice != null ) {
+
+                            if( choice.hasCondition ) {
+                                var conditionValue = PopEvaluationStack();
+                                shouldAddObject = IsTruthy(conditionValue);
+                            }
+
+                            if( choice.onceOnly && shouldAddObject ) {
+                                var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
+                                var visitCount = VisitCountForContainer(choiceTargetContainer);
+                                shouldAddObject = visitCount == 0;
+                            }
+
                         }
 
-                    }
-
-                    // Error?
-                    if( currentContentObj is Error ) {
-                        var err = (Error)currentContentObj;
-                        Error(err.message, err.useEndLineNumber);
-                        return;
-                    }
-
-                    // Content to add to evaluation stack or the output stream
-                    if( !isLogicOrFlowControl && shouldAddObject ) {
-                        
-                        // Expression evaluation content
-                        if( inExpressionEvaluation ) {
-                            PushEvaluationStack(currentContentObj);
+                        // Error?
+                        if( currentContentObj is Error ) {
+                            var err = (Error)currentContentObj;
+                            Error(err.message, err.useEndLineNumber);
+                            return;
                         }
 
-                        // Output stream content (i.e. not expression evaluation)
-                        else {
-                            PushToOutputStream(currentContentObj);
+                        // Content to add to evaluation stack or the output stream
+                        if( !isLogicOrFlowControl && shouldAddObject ) {
+                            
+                            // Expression evaluation content
+                            if( inExpressionEvaluation ) {
+                                PushEvaluationStack(currentContentObj);
+                            }
+
+                            // Output stream content (i.e. not expression evaluation)
+                            else {
+                                PushToOutputStream(currentContentObj);
+                            }
                         }
-                    }
 
-                    // Increment the content pointer, following diverts if necessary
-					NextContent();
+                        // Increment the content pointer, following diverts if necessary
+    					NextContent();
 
-                    // Any push to the call stack should be done after the increment to the content pointer,
-                    // so that when returning from the stack, it returns to the content after the push instruction
-                    bool isStackPush = currentContentObj is ControlCommand && ((ControlCommand)currentContentObj).commandType == ControlCommand.CommandType.StackPush;
-                    if( isStackPush ) {
-                        _callStack.Push();
-					}
+                        // Any push to the call stack should be done after the increment to the content pointer,
+                        // so that when returning from the stack, it returns to the content after the push instruction
+                        bool isStackPush = currentContentObj is ControlCommand && ((ControlCommand)currentContentObj).commandType == ControlCommand.CommandType.StackPush;
+                        if( isStackPush ) {
+                            _callStack.Push();
+    					}
 
-				}
+    				}
 
-			} while(currentContentObj != null && currentPath != null);
+    			} while(currentContentObj != null && currentPath != null);
+            } catch(System.Exception e) {
+                Console.WriteLine (e.Message);
+            }
 		}
 
         // Does the expression result represented by this object evaluate to true?
@@ -160,6 +165,13 @@ namespace Inklewriter.Runtime
             bool truthy = false;
             if (obj is Literal) {
                 var literal = (Literal)obj;
+
+                if (literal is LiteralDivertTarget) {
+                    var divTarget = (LiteralDivertTarget)literal;
+                    Error ("Shouldn't use a divert target (to " + divTarget.divert.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
+                    return false;
+                }
+
                 return literal.isTruthy;
             }
             return truthy;

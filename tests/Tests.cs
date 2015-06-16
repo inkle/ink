@@ -190,6 +190,25 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestHasReadOnChoice()
+        {
+            var storyStr =
+                @"
+* { not test } visible choice
+* { test } visible choice
+
+== test ==
+~ done
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentChoices.Count, 1);
+            Assert.AreEqual (story.currentChoices[0].choiceText, "visible choice");
+        }
+
+        [Test ()]
         public void TestConditionalChoiceInWeave2()
         {
             var storyStr =

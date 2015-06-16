@@ -10,7 +10,6 @@ namespace Inklewriter.Parsed
         List<Parsed.Object> content { get; }
         string name { get; }
 
-        void AddContent(Parsed.Object obj);
     }
 }
 

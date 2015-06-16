@@ -11,7 +11,18 @@ namespace Inklewriter.Parsed
         public string contentOnlyText { get; protected set; }
 
         public string name { get; set; }
-        public Expression condition { get; set; }
+
+        public Expression condition { 
+            get { 
+                return _condition; 
+            } 
+            set { 
+                _condition = value; 
+                if( _condition != null )
+                    AddContent (_condition);
+            }
+        }
+
         public bool onceOnly { get; set; }
 
 		public Path   explicitPath { get; }
@@ -59,10 +70,6 @@ namespace Inklewriter.Parsed
             }
 		}
 
-        public void AddContent(Parsed.Object obj)
-        {
-            base.AddContent (obj);
-        }
 
 		public override Runtime.Object GenerateRuntimeObject ()
         {
@@ -123,19 +130,6 @@ namespace Inklewriter.Parsed
 
                     _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
 
-                    if (content != null) {
-                        foreach(var nestedObj in content) {
-
-                            // Explicit gather diverts aren't included since the
-                            // weave generating algorithm adds another normal divert
-                            var divert = nestedObj as Divert;
-                            if (divert != null && divert.isToGather) {
-                                continue;
-                            }
-
-                            _weaveContentContainer.AddContent(nestedObj.runtimeObject);
-                        }
-                    }
                 }
 
                 return _weaveOuterContainer;
@@ -193,6 +187,7 @@ namespace Inklewriter.Parsed
         Runtime.Container _weaveOuterContainer;
         Runtime.Divert _weaveContentEndDivert;
         Runtime.Path _resolvedExplicitPath;
+        Expression _condition;
 	}
 
 }
