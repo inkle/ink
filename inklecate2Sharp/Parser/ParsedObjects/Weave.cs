@@ -98,8 +98,8 @@ namespace Inklewriter.Parsed
                         var weave = new Weave (weaveContent, weaveIndentIdx);
                         InsertContent (innerWeaveStartIdx, weave);
 
-                        // contentIdx is already incremented at this point
-                        continue;
+                        // Continue iteration from this point
+                        contentIdx = innerWeaveStartIdx;
                     }
 
                 } 

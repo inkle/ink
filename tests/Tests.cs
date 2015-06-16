@@ -283,6 +283,36 @@ namespace Tests
             Assert.AreEqual (story.currentText, "gather\nchoice content\ngather\nsecond time round\n");
         }
 
+
+        [Test ()]
+        public void TestWeaveGathers()
+        {
+            var storyStr =
+                @"
+- 
+ * one
+    * * two
+   - - three
+ *  four
+   - - five
+- six
+                ";
+
+            Story story = CompileString (storyStr);
+
+            story.Begin ();
+            Assert.AreEqual (story.currentChoices.Count, 2);
+            Assert.AreEqual (story.currentChoices[0].choiceText, "one");
+            Assert.AreEqual (story.currentChoices[1].choiceText, "four");
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (story.currentChoices.Count, 1);
+            Assert.AreEqual (story.currentChoices[0].choiceText, "two");
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (story.currentText, "\nthree\nsix\n");
+        }
+
         [Test ()]
         public void TestDivertWeaveArrowTypes()
         {
