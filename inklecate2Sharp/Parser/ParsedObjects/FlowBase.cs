@@ -122,20 +122,6 @@ namespace Inklewriter.Parsed
             // empty by default, used by Story to process included file references
         }
 
-        public string dotSeparatedFullName {
-            get {
-                if (this.parent != null) {
-                    var parentFlow = (FlowBase)this.parent;
-                    var parentName = parentFlow.dotSeparatedFullName;
-                    if (parentName != null) {
-                        return parentFlow.dotSeparatedFullName + "." + this.name;
-                    }
-                }
-
-                return this.name;
-            }
-        }
-
         public bool ResolveVariableWithName(string varName, Parsed.Object fromNode)
         {
             if (fromNode == null) {
@@ -200,7 +186,7 @@ namespace Inklewriter.Parsed
             container.name = name;
             container.visitsShouldBeCounted = true;
 
-            OnRuntimeGenerationDidStart (container);
+            GenerateArgumentVariableAssignments (container);
 
             // Run through content defined for this knot/stitch:
             //  - First of all, any initial content before a sub-stitch
@@ -242,11 +228,6 @@ namespace Inklewriter.Parsed
             }
                 
             return container;
-        }
-
-        protected virtual void OnRuntimeGenerationDidStart(Runtime.Container container)
-        {
-            GenerateArgumentVariableAssignments (container);
         }
 
         void GenerateArgumentVariableAssignments(Runtime.Container container)

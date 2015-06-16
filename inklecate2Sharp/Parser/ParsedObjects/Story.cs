@@ -75,23 +75,8 @@ namespace Inklewriter.Parsed
 
         }
 
-        void GatherAllKnotAndStitchNames(List<Parsed.Object> fromContent)
-        {
-            foreach (var obj in fromContent) {
-                var subFlow = obj as FlowBase;
-                if (subFlow != null) {
-                    _allKnotAndStitchNames.Add (subFlow.dotSeparatedFullName);
-                    GatherAllKnotAndStitchNames (subFlow.content);
-                }
-            }
-        }
-
 		public Runtime.Story ExportRuntime()
 		{
-            // Gather all FlowBase definitions as variable names
-            _allKnotAndStitchNames = new HashSet<string>();
-            GatherAllKnotAndStitchNames (content);
-
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 
@@ -117,27 +102,6 @@ namespace Inklewriter.Parsed
 			return runtimeStory;
 		}
 
-        // Initialise all read count variables for every knot and stitch name
-        // TODO: This seems a bit overkill, to mass-generate a load of variable assignment
-        // statements. Could probably just include a bespoke "initial variable state" in
-        // the story, or even just a list of knots/stitches that the story automatically
-        // initialises.
-        protected override void OnRuntimeGenerationDidStart(Runtime.Container container)
-        {
-            container.AddContent (Runtime.ControlCommand.EvalStart());
-
-            foreach (string flowName in _allKnotAndStitchNames) {
-                container.AddContent (new Runtime.LiteralInt(0));
-                container.AddContent (new Runtime.VariableAssignment (flowName, true));
-            }
-
-            container.AddContent (Runtime.ControlCommand.EvalEnd());
-
-            // FlowBase handles argument variable assignment and read count updates
-            base.OnRuntimeGenerationDidStart(container);
-        }
-
-
 		public override void Error(string message, Parsed.Object source)
 		{
             var sb = new StringBuilder ();
@@ -154,8 +118,6 @@ namespace Inklewriter.Parsed
         {
             hadError = false;
         }
-
-        HashSet<string> _allKnotAndStitchNames;
 	}
 }
 
