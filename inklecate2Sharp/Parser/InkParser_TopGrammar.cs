@@ -155,6 +155,7 @@ namespace Inklewriter
         const string knotDivertArrow = "==>";
         const string stitchDivertArrow = "=>";
         const string weavePointDivertArrow = "->";
+        const string weavePointDivertAltArrow = "-->";
         const string weavePointExplicitGather = "<explicit-gather>";
 
 		protected Divert Divert()
@@ -190,8 +191,16 @@ namespace Inklewriter
         {
             Whitespace ();
 
-            if (ParseString (arrowStr) == null)
+            string parsedArrowResult = ParseString (arrowStr);
+
+            // Allow both -> and --> for weaves
+            if (parsedArrowResult == null && arrowStr == weavePointDivertArrow) {
+                parsedArrowResult = ParseString (weavePointDivertAltArrow);
+            }
+
+            if (parsedArrowResult == null) {
                 return null;
+            }
 
             Whitespace ();
 
@@ -212,7 +221,7 @@ namespace Inklewriter
 
 		protected string DivertArrow()
 		{
-            return OneOf(String(knotDivertArrow), String(stitchDivertArrow), String(weavePointDivertArrow)) as string;
+            return OneOf(String(knotDivertArrow), String(stitchDivertArrow), String(weavePointDivertArrow), String(weavePointDivertAltArrow)) as string;
 		}
 
 		protected string Identifier()

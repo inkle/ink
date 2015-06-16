@@ -265,6 +265,22 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestDivertWeaveArrowTypes()
+        {
+            var storyStr =
+                @"
+- (one) one -> two
+- (two) two --> three
+- (three) three
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "one\ntwo\nthree\n");
+        }
+            
+        [Test ()]
         public void TestGatherChoiceSameLine()
         {
             var storyStr =  "- * hello\n- * world";
