@@ -314,6 +314,19 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestGatherAtFlowEnd()
+        {
+            // The final "->" doesn't have anywhere to go, so it should
+            // happily just go to the end of the flow.
+            var storyStr = "- nothing ->";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "nothing\n");
+        }
+
+        [Test ()]
         public void TestDivertWeaveArrowTypes()
         {
             var storyStr =

@@ -220,11 +220,30 @@ namespace Inklewriter.Parsed
                 }
 
                 // Other content (including entire Weaves that were grouped in the constructor)
+                // At the time of writing, all FlowBases have a maximum of one piece of "other content"
+                // and it's always the root Weave
                 else {
                     container.AddContent (obj.runtimeObject);
                 }
 
                 contentIdx++;
+            }
+
+            // Tie up final loose ends to the very end
+            if (_rootWeave != null && _rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
+
+                foreach (var looseEnd in _rootWeave.looseEnds) {
+                    if (looseEnd is Divert) {
+                        
+                        if (_finalLooseEnds == null) {
+                            _finalLooseEnds = new List<Inklewriter.Runtime.Divert> ();
+                            _finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
+                            container.AddContent (_finalLooseEndTarget);
+                        }
+
+                        _finalLooseEnds.Add ((Runtime.Divert)looseEnd.runtimeObject);
+                    }
+                }
             }
                 
             return container;
@@ -279,8 +298,22 @@ namespace Inklewriter.Parsed
             return null;
         }
 
+        public override void ResolveReferences (Story context)
+        {
+            if (_finalLooseEndTarget != null) {
+                var flowEndPath = _finalLooseEndTarget.path;
+                foreach (var finalLooseEndDivert in _finalLooseEnds) {
+                    finalLooseEndDivert.targetPath = flowEndPath;
+                }
+            }
+
+            base.ResolveReferences(context);
+        }
+
         Weave _rootWeave;
         Dictionary<string, FlowBase> _subFlowsByName;
+        List<Runtime.Divert> _finalLooseEnds;
+        Runtime.Object _finalLooseEndTarget;
             
 	}
 }
