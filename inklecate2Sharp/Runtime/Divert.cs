@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace Inklewriter.Runtime
 {
 	public class Divert : Runtime.Object

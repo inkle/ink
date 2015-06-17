@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Inklewriter.Parsed;
+﻿using Inklewriter.Parsed;
 
 namespace Inklewriter
 {

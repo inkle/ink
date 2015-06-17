@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 namespace Inklewriter.Parsed
 {
     public class Gather : Parsed.Object, IWeavePoint, INamedContent

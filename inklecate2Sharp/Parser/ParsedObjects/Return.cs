@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Inklewriter.Parsed
+﻿namespace Inklewriter.Parsed
 {
     public class Return : Parsed.Object
     {

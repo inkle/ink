@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace Inklewriter.Runtime
 {
     public enum LiteralType

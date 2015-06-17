@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-
+﻿
 namespace Inklewriter
 {
     // Perform comment elimination as a pre-pass to simplify the parse rules in the main parser

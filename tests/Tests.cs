@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using System;
 using Inklewriter;
 using Inklewriter.Runtime;
 

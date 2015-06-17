@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace Inklewriter.Parsed
 {
 	public class Number : Parsed.Expression

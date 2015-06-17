@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace Inklewriter
 {
     public partial class InkParser
