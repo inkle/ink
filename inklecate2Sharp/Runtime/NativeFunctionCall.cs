@@ -66,8 +66,10 @@ namespace Inklewriter.Runtime
                 return Call<int> (coercedParams);
             } else if (coercedType == LiteralType.Float) {
                 return Call<float> (coercedParams);
+            } else if (coercedType == LiteralType.DivertTarget) {
+                return Call<Divert> (coercedParams);
             }
-                
+
             return null;
         }
 
@@ -115,8 +117,8 @@ namespace Inklewriter.Runtime
             // int and float causes the int to be casted to a float.
             foreach (var obj in parametersIn) {
                 var literal = (Literal)obj;
-                if (literal.literalType == LiteralType.Float) {
-                    litType = LiteralType.Float;
+                if (literal.literalType > litType) {
+                    litType = literal.literalType;
                 }
             }
 
@@ -191,6 +193,12 @@ namespace Inklewriter.Runtime
                 AddFloatBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
+
+                // Special case: The only operation you can do on divert target literals
+                BinaryOp<Divert> divertTargetsEqual = (Divert d1, Divert d2) => {
+                    return d1 == d2 ? 1 : 0;
+                };
+                AddOpToNativeFunc (Equal, 2, LiteralType.DivertTarget, divertTargetsEqual);
             }
         }
 

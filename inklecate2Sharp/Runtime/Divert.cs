@@ -12,6 +12,32 @@ namespace Inklewriter.Runtime
 		{
 		}
 
+        public override bool Equals (object obj)
+        {
+            var otherDivert = obj as Divert;
+            if (otherDivert != null) {
+                if (this.hasVariableTarget == otherDivert.hasVariableTarget) {
+                    if (this.hasVariableTarget) {
+                        return this.variableDivertName == otherDivert.variableDivertName;
+                    } else {
+                        return this.targetPath == otherDivert.targetPath;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public override int GetHashCode ()
+        {
+            if (hasVariableTarget) {
+                const int variableTargetSalt = 12345;
+                return variableDivertName.GetHashCode() + variableTargetSalt;
+            } else {
+                const int pathTargetSalt = 54321;
+                return targetPath.GetHashCode() + pathTargetSalt;
+            }
+        }
+
         public override string ToString ()
         {
             if (hasVariableTarget) {

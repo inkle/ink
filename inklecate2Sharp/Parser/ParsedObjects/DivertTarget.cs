@@ -36,7 +36,15 @@ namespace Inklewriter.Parsed
                 bool badUsage = false;
 
                 var usageParent = usageContext.parent;
-                if (usageParent is BinaryExpression || usageParent is MultipleConditionExpression) {
+                if (usageParent is BinaryExpression) {
+
+                    // Only allowed to compare for equality
+                    var binaryExprParent = usageParent as BinaryExpression;
+                    if (binaryExprParent.opName != "==") {
+                        badUsage = true;
+                    }
+                }
+                else if (usageParent is MultipleConditionExpression) {
                     badUsage = true;
                 } else if (usageParent is Choice && ((Choice)usageParent).condition == usageContext) {
                     badUsage = true;

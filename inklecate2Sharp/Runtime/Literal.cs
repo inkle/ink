@@ -63,7 +63,7 @@ namespace Inklewriter.Runtime
                 return new LiteralFloat ((float)this.value);
             }
 
-            throw new System.Exception ("Unexpected type cast of Litereal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
         }
     }
 
@@ -86,7 +86,7 @@ namespace Inklewriter.Runtime
                 return new LiteralInt ((int)this.value);
             }
 
-            throw new System.Exception ("Unexpected type cast of Litereal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
         }
     }
 
@@ -103,7 +103,10 @@ namespace Inklewriter.Runtime
 
         public override Literal Cast(LiteralType newType)
         {
-            throw new System.Exception ("Unexpected type cast of Litereal to new LiteralType");
+            if (newType == literalType)
+                return this;
+            
+            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
         }
 
         public override string ToString ()

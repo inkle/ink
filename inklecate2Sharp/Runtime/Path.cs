@@ -34,6 +34,28 @@ namespace Inklewriter.Runtime
 					return name;
 				}
 			}
+
+            public override bool Equals (object obj)
+            {
+                var otherComp = obj as Component;
+                if (otherComp != null && otherComp.isIndex == this.isIndex) {
+                    if (isIndex) {
+                        return index == otherComp.index;   
+                    } else {
+                        return name == otherComp.name;
+                    }
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode ()
+            {
+                if (isIndex)
+                    return this.index;
+                else
+                    return this.name.GetHashCode ();
+            }
 		}
 
 		public List<Component> components { get; }
@@ -142,6 +164,21 @@ namespace Inklewriter.Runtime
 		{
 			return string.Join (".", components);
 		}
+
+        public override bool Equals (object obj)
+        {
+            var otherPath = obj as Path;
+            if( otherPath != null )
+                return otherPath.components == this.components;
+
+            return false;
+        }
+
+        public override int GetHashCode ()
+        {
+            // TODO: Better way to make a hash code!
+            return this.ToString ().GetHashCode ();
+        }
 	}
 }
 
