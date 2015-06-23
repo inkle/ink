@@ -140,10 +140,7 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var logic = Parse(InnerLogic);
-            if (logic == null) {
-                return null;
-            }
+            var logic = (Parsed.Object) Expect(InnerLogic, "Expected some kind of logic within braces: { ... }");
                 
             Whitespace ();
 
