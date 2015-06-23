@@ -196,7 +196,7 @@ namespace Inklewriter.Runtime
 
                 // Special case: The only operation you can do on divert target literals
                 BinaryOp<Divert> divertTargetsEqual = (Divert d1, Divert d2) => {
-                    return d1 == d2 ? 1 : 0;
+                    return d1.Equals(d2) ? 1 : 0;
                 };
                 AddOpToNativeFunc (Equal, 2, LiteralType.DivertTarget, divertTargetsEqual);
             }

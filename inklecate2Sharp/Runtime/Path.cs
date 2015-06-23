@@ -169,7 +169,7 @@ namespace Inklewriter.Runtime
         {
             var otherPath = obj as Path;
             if( otherPath != null )
-                return otherPath.components == this.components;
+                return otherPath.components.SequenceEqual(this.components);
 
             return false;
         }

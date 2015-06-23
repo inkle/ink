@@ -44,8 +44,13 @@ namespace Inklewriter.Parsed
                     var binaryExprParent = usageParent as BinaryExpression;
                     if (binaryExprParent.opName != "==") {
                         badUsage = true;
-                    } else if (!(binaryExprParent.leftExpression is DivertTarget && binaryExprParent.rightExpression is DivertTarget)) {
-                        badUsage = true;
+                    } else {
+                        if (!(binaryExprParent.leftExpression is DivertTarget || binaryExprParent.leftExpression is VariableReference)) {
+                            badUsage = true;
+                        }
+                        if (!(binaryExprParent.leftExpression is DivertTarget || binaryExprParent.leftExpression is VariableReference)) {
+                            badUsage = true;
+                        }
                     }
                     foundUsage = true;
                 } 

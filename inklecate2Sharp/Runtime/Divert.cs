@@ -20,7 +20,7 @@ namespace Inklewriter.Runtime
                     if (this.hasVariableTarget) {
                         return this.variableDivertName == otherDivert.variableDivertName;
                     } else {
-                        return this.targetPath == otherDivert.targetPath;
+                        return this.targetPath.Equals(otherDivert.targetPath);
                     }
                 }
             }

@@ -389,6 +389,8 @@ namespace Tests
 {to_one == to_one:same knot|different knot}
 {to_two == to_two:same knot|different knot}
 { ==> one == ==> two:same knot|different knot}
+{ ==> one == to_one:same knot|different knot}
+{ to_one == ==> one:same knot|different knot}
 
 == one
     One
@@ -400,7 +402,7 @@ namespace Tests
             story.Begin ();
 
             // Unfortunate leading newline...
-            Assert.AreEqual (story.currentText, "different knot\nsame knot\nsame knot\ndifferent knot\n");
+            Assert.AreEqual (story.currentText, "different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n");
         }
 
 		//------------------------------------------------------------------------
