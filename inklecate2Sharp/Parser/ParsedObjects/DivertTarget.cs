@@ -34,28 +34,36 @@ namespace Inklewriter.Parsed
             while (usageContext != null && usageContext is Expression) {
 
                 bool badUsage = false;
+                bool foundUsage = false;
 
                 var usageParent = usageContext.parent;
                 if (usageParent is BinaryExpression) {
 
                     // Only allowed to compare for equality
+
                     var binaryExprParent = usageParent as BinaryExpression;
                     if (binaryExprParent.opName != "==") {
                         badUsage = true;
                     }
+                    foundUsage = true;
                 }
                 else if (usageParent is MultipleConditionExpression) {
                     badUsage = true;
+                    foundUsage = true;
                 } else if (usageParent is Choice && ((Choice)usageParent).condition == usageContext) {
                     badUsage = true;
+                    foundUsage = true;
                 } else if (usageParent is Conditional || usageParent is ConditionalSingleBranch) {
                     badUsage = true;
+                    foundUsage = true;
                 }
 
                 if (badUsage) {
                     Error ("Can't use a divert target like that. Did you intend to call '" + divert.target + "' as a function: likeThis(), or check the read count: likeThis, with no arrows?", this);
-                    break;
                 }
+
+                if (foundUsage)
+                    break;
 
                 usageContext = usageParent;
             }
