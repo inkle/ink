@@ -357,6 +357,17 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestSimpleGlue()
+        {
+            var storyStr =  "Some <> \ncontent<> with glue.";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "Some content with glue.\n");
+        }
+
+        [Test ()]
         public void TestEscapeCharacter()
         {
             var storyStr =  @"{true:this is a '\|' character|this isn't}";

@@ -123,7 +123,7 @@ namespace Inklewriter
         {
             // Don't want to parse whitespace, since it might be important
             // surrounding the glue.
-            var glueStr = ParseString("::");
+            var glueStr = ParseString("<>");
             if (glueStr != null) {
                 var glue = new Runtime.Glue ();
                 return new Parsed.Wrap<Runtime.Glue> (glue);
