@@ -119,6 +119,26 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestNonTextInChoiceInnerContent()
+        {
+            var storyStr =
+                @"
+== knot 
+   *   option text[]. {true: Conditional bit.} ==> next
+   ~ done
+
+== next
+    Next.
+    ~ done
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (story.currentText, "option text. Conditional bit.\nNext.\n");
+        }
+
+        [Test ()]
         public void TestConditionals()
         {
             var storyStr =
@@ -309,7 +329,7 @@ namespace Tests
             Assert.AreEqual (story.currentChoices[0].choiceText, "two");
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "\nthree\nsix\n");
+            Assert.AreEqual (story.currentText, "three\nsix\n");
         }
 
         [Test ()]

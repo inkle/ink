@@ -6,7 +6,7 @@ namespace Inklewriter.Parsed
 	{
         public string startText { get; protected set; }
         public string choiceOnlyText { get; protected set; }
-        public string contentOnlyText { get; protected set; }
+        public ContentList innerContent { get; protected set; }
 
         public string name { get; set; }
 
@@ -52,11 +52,15 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public Choice (string startText, string choiceOnlyText, string contentOnlyText, Divert divert)
+        public Choice (string startText, string choiceOnlyText, ContentList innerContent, Divert divert)
 		{
             this.startText = startText;
             this.choiceOnlyText = choiceOnlyText;
-            this.contentOnlyText = contentOnlyText;
+            this.innerContent = innerContent;
+
+            if( innerContent != null )
+                AddContent (this.innerContent);
+
             this.onceOnly = true; // default
 
             if (divert != null) {
@@ -81,13 +85,13 @@ namespace Inklewriter.Parsed
             }
 
             // Content (Weave style choices)
-            var contentTextSB = new StringBuilder ();
+            var onChoosingContent = new ContentList ();
             if (hasWeaveStyleInlineBrackets) {
                 if (startText != null) {
-                    contentTextSB.Append (startText);
+                    onChoosingContent.AddContent (new Parsed.Text(startText));
                 }
-                if (contentOnlyText != null) {
-                    contentTextSB.Append (contentOnlyText);
+                if (innerContent != null) {
+                    onChoosingContent.AddContent (innerContent);
                 }
             }
 
@@ -115,11 +119,14 @@ namespace Inklewriter.Parsed
 
                 if( hasOwnContent ) {
 
-                    _weaveContentContainer = new Runtime.Container ();
+                    if (onChoosingContent != null && onChoosingContent.content != null)
+                        _weaveContentContainer = onChoosingContent.runtimeContainer;
+                    else
+                        _weaveContentContainer = new Runtime.Container ();
+                    
+                    
                     _weaveContentContainer.name = "c";
                     _weaveContentContainer.visitsShouldBeCounted = true;
-                    _weaveContentContainer.AddContent (new Runtime.Text (contentTextSB.ToString () + "\n"));
-
 
                     if (this.explicitPath != null) {
                         _weaveContentEndDivert = new Runtime.Divert ();

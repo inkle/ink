@@ -31,7 +31,7 @@ namespace Inklewriter
                 
             string startText = Parse (ChoiceText);
             string optionOnlyText = null;
-            string contentOnlyText = null;
+            ContentList innerContent = null;
 
             // Check for a the weave style format:
             //   * "Hello[."]," he said.
@@ -41,14 +41,20 @@ namespace Inklewriter
 
                 Expect (String("]"), "closing ']' for weave-style option");
 
-                contentOnlyText = Parse(ChoiceText);
+                var innerTextAndLogic = Parse (MixedTextAndLogic);
+                innerContent = new ContentList (innerTextAndLogic);
             }
              
             // Trim
-            if (contentOnlyText != null) {
-                contentOnlyText = contentOnlyText.TrimEnd (' ', '\t');
-                if (contentOnlyText.Length == 0)
-                    contentOnlyText = null;
+            if (innerContent != null) {
+                innerContent.TrimTrailingWhitespace ();
+                if (innerContent.content.Count == 0) {
+                    innerContent = null;
+                } else { 
+                    // Inner content of a choice counts as full line 
+                    // unless there's glue   
+                    innerContent.AddContent (new Text ("\n"));
+                }
             } else if( startText != null ) {
                 startText = startText.TrimEnd (' ', '\t');
                 if (startText.Length == 0)
@@ -65,7 +71,7 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var choice = new Choice (startText, optionOnlyText, contentOnlyText, divert);
+            var choice = new Choice (startText, optionOnlyText, innerContent, divert);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
