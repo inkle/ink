@@ -42,7 +42,8 @@ namespace Inklewriter
                 Expect (String("]"), "closing ']' for weave-style option");
 
                 var innerTextAndLogic = Parse (MixedTextAndLogic);
-                innerContent = new ContentList (innerTextAndLogic);
+                if( innerTextAndLogic != null )
+                    innerContent = new ContentList (innerTextAndLogic);
             }
              
             // Trim
