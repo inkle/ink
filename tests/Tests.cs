@@ -346,6 +346,24 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestChoiceWithBracketsOnly()
+        {
+            // The final "->" doesn't have anywhere to go, so it should
+            // happily just go to the end of the flow.
+            var storyStr = "*   [Option]\n    Text";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentChoices.Count, 1);
+            Assert.AreEqual (story.currentChoices[0].choiceText, "Option");
+
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual (story.currentText, "Text\n");
+        }
+
+        [Test ()]
         public void TestDivertWeaveArrowTypes()
         {
             var storyStr =
