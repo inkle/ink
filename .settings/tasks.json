@@ -10,24 +10,8 @@
 // for csc, cpp, tsc and vb. The configuration assumes that msbuild
 // is available on the path and a solution file exists in the 
 // workspace folder root.
-
 {
 	"version": "0.1.0",
 	"command": "xbuild",
-	"args": [
-		// Ask msbuild to generate full paths for file names.
-		"/property:GenerateFullPaths=true"
-	],
-	"taskSelector": "/t:",
-	"showOutput": "silent",
-	"tasks": [
-		{
-			"taskName": "build",
-			// Show the output window only if unrecognized errors occur.
-			"showOutput": "silent",
-			// Use the standard MS compiler pattern to detect errors, warnings
-			// and infos in the output.
-			"problemMatcher": "$msCompile"
-		}
-	]
+	"args": ["inklewriter.sln"]
 }
