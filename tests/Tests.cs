@@ -139,6 +139,26 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestDivertInConditional()
+        {
+            var storyStr =
+                @"
+=== intro
+= top
+    { main: => done }
+    ~ done
+= main 
+    => top 
+= done 
+    ~ done
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentText, "\n");
+        }
+
+        [Test ()]
         public void TestConditionals()
         {
             var storyStr =
