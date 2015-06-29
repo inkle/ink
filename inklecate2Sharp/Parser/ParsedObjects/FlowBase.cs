@@ -83,9 +83,27 @@ namespace Inklewriter.Parsed
 
             // Add error if runtime gets to the end of content without a divert/return etc
             if (!(this is Story) && !willStepStraightIntoSubFlow) {
-                var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ done'?");
-                runtimeError.useEndLineNumber = true;
-                weaveObjs.Add (new Parsed.Wrap<Runtime.Error>(runtimeError));
+                
+
+                var lastWeaveObj = weaveObjs [weaveObjs.Count - 1];
+                if (!(lastWeaveObj is Parsed.Return)) {
+
+                    var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ done' or '~ return'?");
+                    var lineNumber = lastWeaveObj.debugMetadata.endLineNumber;
+
+                    // Steal debug metadata from the last content line 
+                    // of this FlowBase since the *lack* of content doesn't
+                    // have a line number!
+                    var dm = new Runtime.DebugMetadata ();
+                    dm.startLineNumber = lineNumber;
+                    dm.endLineNumber = lineNumber;
+                    dm.fileName = lastWeaveObj.debugMetadata.fileName;
+
+                    var wrappedError = new Parsed.Wrap<Runtime.Error> (runtimeError);
+                    wrappedError.debugMetadata = dm;
+                    weaveObjs.Add (wrappedError);
+                }
+
             }
 
             var finalContent = new List<Parsed.Object> ();
