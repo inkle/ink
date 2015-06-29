@@ -86,6 +86,7 @@ namespace Inklewriter.Parsed
 
             // Content (Weave style choices)
             var onChoosingContent = new ContentList ();
+            AddContent (onChoosingContent);
             if (hasWeaveStyleInlineBrackets) {
                 if (startText != null) {
                     onChoosingContent.AddContent (new Parsed.Text(startText));
