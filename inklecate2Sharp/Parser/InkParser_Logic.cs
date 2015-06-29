@@ -66,6 +66,26 @@ namespace Inklewriter
             return new IncludedFile (includedStory);
         }
 
+        void TrimEndWhitespaceAndAddNewline(List<Parsed.Object> mixedTextAndLogicResults)
+        {
+            // Trim whitespace from end and add a newline
+            if (mixedTextAndLogicResults.Count > 0) {
+                var lastObj = mixedTextAndLogicResults[mixedTextAndLogicResults.Count-1];
+                if (lastObj is Text) {
+                    var text = (Text)lastObj;
+                    text.text = text.text.TrimEnd (' ', '\t') + "\n";
+                    return;
+                }
+            }
+                
+            // Otherwise, last object in line wasn't text (but some kind of logic), so
+            // we need to append the newline afterwards using a new object
+            // If we end up generating multiple newlines (e.g. due to conditional
+            // logic), we rely on the runtime to absorb them.
+            // TODO: Is there some more clever logic we can do here?
+            mixedTextAndLogicResults.Add (new Text ("\n"));
+        }
+
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
         {
             var result = Parse(MixedTextAndLogic);
@@ -83,25 +103,10 @@ namespace Inklewriter
             if (result.Count == 0)
                 return null;
 
-            // Trim whitespace from end and add a newline
-            var lastObj = result[result.Count-1];
-            if (lastObj is Text) {
-                var text = (Text)lastObj;
-                text.text = text.text.TrimEnd (' ', '\t') + "\n";
+            var lastObj = result [result.Count - 1];
+            if (!(lastObj is Divert)) {
+                TrimEndWhitespaceAndAddNewline (result);
             }
-
-            // Last object in line wasn't text (but some kind of logic), so
-            // we need to append the newline afterwards using a new object
-            // If we end up generating multiple newlines (e.g. due to conditional
-            // logic), we rely on the runtime to absorb them.
-            // TODO: Is there some more clever logic we can do here?
-            else {
-                result.Add (new Text ("\n"));
-            }
-
-            var divert = Parse (Divert);
-            if (divert != null)
-                result.Add (divert);
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 
@@ -111,7 +116,25 @@ namespace Inklewriter
         protected List<Parsed.Object> MixedTextAndLogic()
         {
             // Either, or both interleaved
-            return Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
+            var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
+
+            // Terminating divert?
+            var divert = Parse (Divert);
+            if (divert != null) {
+
+                // May not have had any results at all if there's *only* a divert!
+                if (results == null)
+                    results = new List<Parsed.Object> ();
+
+                TrimEndWhitespaceAndAddNewline (results);
+
+                results.Add (divert);
+            }
+
+            if (results == null)
+                return null;
+
+            return results;
         }
 
         protected Parsed.Object InlineLogicOrGlue()
