@@ -127,12 +127,15 @@ namespace Inklewriter
 
         protected List<ConditionalSingleBranch> MultilineConditionalBranches()
         {
+            MultilineWhitespace ();
+
             List<object> multipleConditions = OneOrMore (SingleMultilineCondition);
-            if (multipleConditions == null) {
+            if (multipleConditions == null)
                 return null;
-            } else {
-                return multipleConditions.Cast<ConditionalSingleBranch>().ToList();
-            }
+            
+            MultilineWhitespace ();
+
+            return multipleConditions.Cast<ConditionalSingleBranch>().ToList();
         }
 
         protected ConditionalSingleBranch SingleMultilineCondition()
