@@ -106,6 +106,7 @@
     <Compile Include="StressTestContentGenerator.cs" />
     <Compile Include="Parser\ParsedObjects\IWeavePoint.cs" />
     <Compile Include="Parser\ParsedObjects\Weave.cs" />
+    <Compile Include="Runtime\StoryException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -27,7 +27,7 @@ namespace Inklewriter
 		{
 			story.Begin ();
 
-			Console.WriteLine(story.currentText);
+            PrintOutput ();
 
 			var rand = new Random ();
 
@@ -133,9 +133,23 @@ namespace Inklewriter
                     userDivertedPath = null;
                 }
 
-				Console.WriteLine(story.currentText);
+                PrintOutput ();
 			}
 		}
+
+        void PrintOutput()
+        {
+            Console.WriteLine(story.currentText);
+
+            if (story.hasError) {
+                SetConsoleTextColour (ConsoleColour.Red);
+                foreach (var errorMsg in story.currentErrors) {
+                    Console.WriteLine (errorMsg);
+                }
+                ResetConsoleTextColour ();
+                story.ResetErrors ();
+            }
+        }
 
         void SetConsoleTextColour(ConsoleColour colour)
         {

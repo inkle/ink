@@ -84,10 +84,6 @@ namespace Inklewriter
 			// Randomly play through
 			if (opts.playMode || opts.testMode) {
 
-                if (opts.testMode) {
-                    story.dontCatchRuntimeExceptions = true;
-                }
-
 				var player = new CommandLinePlayer (story, false, parsedStory);
 				player.Begin ();
 

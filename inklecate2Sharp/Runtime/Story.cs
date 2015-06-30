@@ -40,8 +40,20 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        public bool dontCatchRuntimeExceptions;
+        public List<string> currentErrors
+        {
+            get {
+                return _currentErrors;
+            }
+        }
 
+        public bool hasError
+        {
+            get {
+                return _currentErrors != null && _currentErrors.Count > 0;
+            }
+        }
+            
 		public Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
@@ -69,6 +81,11 @@ namespace Inklewriter.Runtime
 			currentPath = Path.ToFirstElement ();
 			Continue ();
 		}
+
+        public void ResetErrors()
+        {
+            _currentErrors = null;
+        }
 
 		public void Continue()
 		{
@@ -160,8 +177,8 @@ namespace Inklewriter.Runtime
     				}
 
     			} while(currentContentObj != null && currentPath != null);
-            } catch(System.Exception e) {
-                if (dontCatchRuntimeExceptions) throw; else Console.WriteLine (e.Message);
+            } catch(StoryException e) {
+                return;
             }
 		}
 
@@ -791,7 +808,6 @@ namespace Inklewriter.Runtime
 
         void Error(string message, bool useEndLineNum = false)
         {
-            
             var dm = currentDebugMetadata;
 
             if (dm != null) {
@@ -802,7 +818,14 @@ namespace Inklewriter.Runtime
                     ": "+message;
             }
 
-            throw new System.Exception (message);
+            // TODO: Could just add to output?
+            if (_currentErrors == null) {
+                _currentErrors = new List<string> ();
+            }
+
+            _currentErrors.Add (message);
+
+            throw new StoryException (message);
             // BuildStringOfHierarchy
         }
 
@@ -907,6 +930,8 @@ namespace Inklewriter.Runtime
         private int _storySeed;
 
         private List<Runtime.Object> _evaluationStack;
+
+        private List<string> _currentErrors;
 
         private Path _previousPath;
 
