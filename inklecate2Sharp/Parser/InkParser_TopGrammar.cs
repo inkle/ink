@@ -30,6 +30,14 @@ namespace Inklewriter
 
 		protected List<Parsed.Object> StatementsAtLevel(StatementLevel level)
 		{
+            // Check for error: Should not be allowed gather dashes within an inner block
+            if (level == StatementLevel.InnerBlock) {
+                var badGatherDashes = Interleave<string>(OptionalExclude (Whitespace), String ("-"));
+                if (badGatherDashes != null) {
+                    Error ("You can't use a gather (the dashes) within the { curly braces } context. For multi-line sequences and conditions, you should only use one dash.");
+                }
+            }
+                
 			return Interleave<Parsed.Object>(
                 Optional (MultilineWhitespace), 
                 () => StatementAtLevel (level), 
