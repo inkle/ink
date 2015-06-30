@@ -159,6 +159,39 @@ namespace Tests
         }
 
         [Test ()]
+        public void TestInclude()
+        {
+            var storyStr =
+                @"
+~ include test_included_file.ink
+~ include test_included_file2.ink
+
+This is the main file.
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentText, "This is include 1.\nThis is include 2.\nThis is the main file.\n");
+        }
+
+        [Test ()]
+        public void TestNestedInclude()
+        {
+            var storyStr =
+                @"
+~ include test_included_file3.ink
+
+This is the main file
+
+==> knot_in_2
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+            Assert.AreEqual (story.currentText, "The value of a variable in test file 2 is 5.\nThis is the main file\nThe value when accessed from knot_in_2 is 5.\n");
+        }
+
+        [Test ()]
         public void TestConditionals()
         {
             var storyStr =
