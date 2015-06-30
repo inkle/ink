@@ -89,18 +89,23 @@ namespace Inklewriter.Parsed
                 if (!(lastWeaveObj is Parsed.Return)) {
 
                     var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ done' or '~ return'?");
-                    var lineNumber = lastWeaveObj.debugMetadata.endLineNumber;
-
-                    // Steal debug metadata from the last content line 
-                    // of this FlowBase since the *lack* of content doesn't
-                    // have a line number!
-                    var dm = new Runtime.DebugMetadata ();
-                    dm.startLineNumber = lineNumber;
-                    dm.endLineNumber = lineNumber;
-                    dm.fileName = lastWeaveObj.debugMetadata.fileName;
-
                     var wrappedError = new Parsed.Wrap<Runtime.Error> (runtimeError);
-                    wrappedError.debugMetadata = dm;
+
+                    if (lastWeaveObj.debugMetadata != null) {
+
+                        int lineNumber = lastWeaveObj.debugMetadata.endLineNumber;
+
+                        // Steal debug metadata from the last content line 
+                        // of this FlowBase since the *lack* of content doesn't
+                        // have a line number!
+                        var dm = new Runtime.DebugMetadata ();
+                        dm.startLineNumber = lineNumber;
+                        dm.endLineNumber = lineNumber;
+                        dm.fileName = lastWeaveObj.debugMetadata.fileName;
+
+                        wrappedError.debugMetadata = dm;
+                    }
+
                     weaveObjs.Add (wrappedError);
                 }
 

@@ -107,9 +107,12 @@ namespace Inklewriter
 
 		protected object KnotStitchNoContentRecoveryRule()
 		{
-			var recoveredStitchContent = new List<Parsed.Object>();
-			recoveredStitchContent.Add( new Parsed.Text("<ERROR IN STITCH>" ) );
-			return recoveredStitchContent;
+            // Jump ahead to the next knot or the end of the file
+            ParseUntil (KnotDeclaration, new CharacterSet ("="), null);
+
+            var recoveredFlowContent = new List<Parsed.Object>();
+			recoveredFlowContent.Add( new Parsed.Text("<ERROR IN FLOW>" ) );
+			return recoveredFlowContent;
 		}
 
         protected List<string> BracketedParameterNames()

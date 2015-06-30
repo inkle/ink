@@ -163,7 +163,7 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var logic = (Parsed.Object) Expect(InnerLogic, "Expected some kind of logic within braces: { ... }");
+            var logic = (Parsed.Object) Expect(InnerLogic, "some kind of logic within braces: { ... }");
                 
             Whitespace ();
 
@@ -359,7 +359,11 @@ namespace Inklewriter
 
         protected List<ContentList> InnerMultilineSequenceObjects()
         {
-            return OneOrMore (SingleMultilineSequenceElement).Cast<ContentList>().ToList();
+            var contentLists = OneOrMore (SingleMultilineSequenceElement);
+            if (contentLists == null)
+                return null;
+
+            return contentLists.Cast<ContentList> ().ToList();
         }
 
         protected ContentList SingleMultilineSequenceElement()
