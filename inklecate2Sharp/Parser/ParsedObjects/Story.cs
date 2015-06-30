@@ -48,25 +48,38 @@ namespace Inklewriter.Parsed
                         var nonFlowContent = new List<Parsed.Object> ();
 
                         var subStory = file.includedStory;
-                        foreach (var subStoryObj in subStory.content) {
-                            if (subStoryObj is FlowBase) {
-                                flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
-                            } else {
-                                nonFlowContent.Add (subStoryObj);
+
+                        // Allow empty file
+                        if (subStory.content != null) {
+
+                            foreach (var subStoryObj in subStory.content) {
+                                if (subStoryObj is FlowBase) {
+                                    flowsFromOtherFiles.Add ((FlowBase)subStoryObj);
+                                } else {
+                                    nonFlowContent.Add (subStoryObj);
+                                }
                             }
+
+                            // Add contents of the file in its place
+                            topLevelContent.InsertRange (i, nonFlowContent);
+
+                            // Skip past the content of this sub story
+                            // (since it will already have recursively included
+                            //  any lines from other files)
+                            i += nonFlowContent.Count;
                         }
 
-                        // Add contents of the file in its place
-                        topLevelContent.InsertRange (i, nonFlowContent);
-
-                        // Skip past the lines of this sub story
-                        // (since it will already have recursively included
-                        //  any lines from other files)
-                        i += nonFlowContent.Count;
                     }
-                    
+
+                    // Include object has been removed, with possible content inserted,
+                    // and position of 'i' will have been determined already.
+                    continue;
+                } 
+
+                // Non-include: skip over it
+                else {
+                    i++;
                 }
-                i++;
             }
 
             // Add the flows we collected from the included files to the
