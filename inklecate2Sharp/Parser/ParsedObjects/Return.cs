@@ -4,7 +4,7 @@
     {
         public Expression returnedExpression { get; protected set; }
 
-        public Return (Expression returnedExpression)
+        public Return (Expression returnedExpression = null)
         {            
             if (returnedExpression != null) {
                 this.returnedExpression = AddContent(returnedExpression);

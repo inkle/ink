@@ -25,9 +25,10 @@ namespace Inklewriter
             // ~ f()        -- expr
             // We don't treat variable decl/assign as an expression since we don't want an assignment
             // to have a return value, or to be used in compound expressions.
-            ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, VariableDeclarationOrAssignment, Expression);
+            ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnOrSectionEnd, VariableDeclarationOrAssignment, Expression);
 
-            return (Parsed.Object) Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
+            var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
+            return result as Parsed.Object;
         }
 
         protected object IncludeStatement()

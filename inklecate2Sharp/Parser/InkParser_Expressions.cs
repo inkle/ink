@@ -80,7 +80,21 @@ namespace Inklewriter
             }
         }
 
-        protected Parsed.Object ReturnStatement()
+        protected Parsed.Return ReturnOrSectionEnd()
+        {
+            return (Parsed.Return) OneOf (ReturnStatement, SectionEnd);
+        }
+
+        protected Parsed.Return SectionEnd()
+        {
+            var tildas = Interleave<string>(OptionalExclude(Whitespace), String ("~"));
+            if (tildas == null)
+                return null;
+
+            return new Return ();
+        }
+
+        protected Parsed.Return ReturnStatement()
         {
             Whitespace ();
 

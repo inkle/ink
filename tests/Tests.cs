@@ -507,6 +507,21 @@ This is the main file
         }
 
         [Test ()]
+        public void TestSectionEnd()
+        {
+            var storyStr =  @"
+== knot
+Hello world
+ ~ ~ ~~";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            // Unfortunate leading newline...
+            Assert.AreEqual (story.currentText, "Hello world\n");
+        }
+
+        [Test ()]
         public void TestCompareDivertTargets()
         {
             var storyStr =  @"~ var to_one = ==> one
