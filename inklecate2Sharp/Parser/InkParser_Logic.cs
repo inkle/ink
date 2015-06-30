@@ -116,6 +116,11 @@ namespace Inklewriter
 
         protected List<Parsed.Object> MixedTextAndLogic()
         {
+            // Check for disallowed "~" within this context
+            var disallowedTilda = ParseObject(Spaced(String("~")));
+            if (disallowedTilda != null)
+                Error ("You shouldn't use a '~' here - tildas are for logic that's on its own line. To do inline logic, use { curly braces } instead");
+
             // Either, or both interleaved
             var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
 
