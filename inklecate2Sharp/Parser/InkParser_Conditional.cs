@@ -47,6 +47,16 @@ namespace Inklewriter
                             var soleBranch = new ConditionalSingleBranch (soleContent);
                             alternatives = new List<ConditionalSingleBranch> ();
                             alternatives.Add (soleBranch);
+
+                            // Also allow a final "- else:" clause
+                            var elseBranch = Parse(SingleMultilineCondition);
+                            if (elseBranch != null) {
+                                if (!elseBranch.alwaysMatch) {
+                                    Error ("Expected an '- else:' clause here rather than an extra condition");
+                                    elseBranch.alwaysMatch = true;
+                                }
+                                alternatives.Add (elseBranch);
+                            }
                         }
                     }
 
@@ -73,13 +83,18 @@ namespace Inklewriter
                     }
                 } else {
 
-                    for (int i = 0; i < alternatives.Count - 1; ++i) {
+                    for (int i = 0; i < alternatives.Count; ++i) {
                         var alt = alternatives [i];
+                        bool isLast = (i == alternatives.Count - 1);
                         if (alt.ownExpression == null) {
-                            Error ("in a multi-line condition that has no initial condition, you need a condition on the branches themselves (except the last, which can be an 'else' clause)");
+                            if (isLast) {
+                                alt.alwaysMatch = true;
+                            } else {
+                                Error ("in a multi-line condition that has no initial condition, you need a condition on the branches themselves (except the last, which can be an 'else' clause)");
+                            }
                         }
                     }
-
+                        
                     if (alternatives.Count == 1 && alternatives [0].ownExpression == null) {
                         Error ("condition block with no actual conditions");
                     }
@@ -147,7 +162,11 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var expr = Parse(ConditionExpression);
+            Expression expr = null;
+            bool isElse = Parse(ElseExpression) != null;
+
+            if( !isElse )
+                expr = Parse(ConditionExpression);
 
             List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
             if (expr == null && content == null) {
@@ -160,6 +179,7 @@ namespace Inklewriter
 
             var branch = new ConditionalSingleBranch (content);
             branch.ownExpression = expr;
+            branch.alwaysMatch = isElse;
             return branch;
         }
 
@@ -179,6 +199,19 @@ namespace Inklewriter
             ParseCharactersFromString (".");
 
             return expr;
+        }
+
+        protected object ElseExpression()
+        {
+            if (ParseString ("else") == null)
+                return null;
+
+            Whitespace ();
+
+            if (ParseString (":") == null)
+                return null;
+
+            return ParseSuccess;
         }
     }
 }

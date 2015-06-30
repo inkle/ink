@@ -230,6 +230,42 @@ This is the main file
             Assert.AreEqual (story.currentText, "true\ntrue\ntrue\ntrue\ntrue\ngreat\nright?\n");
         }
 
+        public void TestElseBranches()
+        {
+            var storyStr =
+                @"
+~ var x = 3
+
+{ 
+    - x == 1: one
+    - x == 2: two
+    - else: other
+}
+
+{ 
+    - x == 1: one
+    - x == 2: two
+    - other
+}
+
+{ x == 4:
+  - The main clause
+  - else: other
+}
+
+{ x == 4:
+  The main clause
+- else:
+  other
+}
+                ";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "other\nother\nother\nother\n");
+        }
+
         [Test ()]
         public void TestConditionalChoiceInWeave()
         {

@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace Inklewriter.Parsed
 {
     public class VariableAssignment : Parsed.Object
@@ -44,11 +45,16 @@ namespace Inklewriter.Parsed
         // TODO: Move this somewhere more general?
         bool IsReservedKeyword(string name)
         {
-            return name == "true"   || name == "false" 
-                || name == "on"     || name == "off" 
-                || name == "yes"    || name == "no"
-                || name == "return" || name == "done";
+            return _reservedKeywords.Contains (name);
         }
+
+        static HashSet<string> _reservedKeywords = new HashSet<string>(new string[] { 
+            "true", "false",
+            "on", "off",
+            "yes", "no",
+            "return", "done",
+            "else"
+        });
     }
 }
 
