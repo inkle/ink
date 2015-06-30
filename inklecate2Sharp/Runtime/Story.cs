@@ -40,6 +40,8 @@ namespace Inklewriter.Runtime
 			}
 		}
 
+        public bool dontCatchRuntimeExceptions;
+
 		public Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
@@ -159,7 +161,7 @@ namespace Inklewriter.Runtime
 
     			} while(currentContentObj != null && currentPath != null);
             } catch(System.Exception e) {
-                Console.WriteLine (e.Message);
+                if (dontCatchRuntimeExceptions) throw; else Console.WriteLine (e.Message);
             }
 		}
 
