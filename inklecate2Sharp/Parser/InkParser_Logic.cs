@@ -198,14 +198,20 @@ namespace Inklewriter
             // Conditional with expression?
             var initialQueryExpression = Parse(ConditionExpression);
             if (initialQueryExpression != null) {
-                var conditional = Parse(() => InnerConditionalContent (initialQueryExpression));
-                if (conditional != null)
-                    return conditional;
+                var conditional = (Conditional) Expect(() => InnerConditionalContent (initialQueryExpression), "conditional content following query (i.e. '"+initialQueryExpression+"'");
+                return conditional;
             }
 
             // Now try to evaluate each of the "full" rules in turn
             ParseRule[] rules = {
-                InnerConditionalContent,
+
+                // Conditional still necessary, since you can have a multi-line conditional
+                // without an initial query expression:
+                // {
+                //   - true:  this is true
+                //   - false: this is false
+                // }
+                InnerConditionalContent, 
                 InnerSequence,
                 InnerExpression,
             };

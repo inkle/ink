@@ -62,6 +62,11 @@ namespace Inklewriter.Parsed
                 return "||";
             return opName;
         }
+
+        public override string ToString ()
+        {
+            return string.Format ("({0} {1} {2})", leftExpression, opName, rightExpression);
+        }
 	}
 
     public class UnaryExpression : Expression
@@ -79,18 +84,24 @@ namespace Inklewriter.Parsed
 		{
 			innerExpression.GenerateIntoContainer (container);
 
-            string nativeOp = NativeNameForOp(this.op);
-            container.AddContent(Runtime.NativeFunctionCall.CallWithName(nativeOp));
+            container.AddContent(Runtime.NativeFunctionCall.CallWithName(nativeNameForOp));
 		}
 
-        string NativeNameForOp(string opName)
+        public override string ToString ()
         {
-            // Replace "-" with "~" to make it unique
-            if (opName == "-")
-                return "~";
-            if (opName == "not")
-                return "!";
-            return opName;
+            return nativeNameForOp + innerExpression;
+        }
+
+        string nativeNameForOp
+        {
+            get {
+                // Replace "-" with "~" to make it unique
+                if (op == "-")
+                    return "~";
+                if (op == "not")
+                    return "!";
+                return op;
+            }
         }
 	}
 
@@ -142,6 +153,11 @@ namespace Inklewriter.Parsed
                 else
                     return "decrement";
             }
+        }
+
+        public override string ToString ()
+        {
+            return varName + (isInc ? "++" : "--");
         }
     }
 

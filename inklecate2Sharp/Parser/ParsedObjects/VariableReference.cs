@@ -36,6 +36,11 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public override string ToString ()
+        {
+            return name;
+        }
+
         Runtime.VariableReference _runtimeVarRef;
     }
 }

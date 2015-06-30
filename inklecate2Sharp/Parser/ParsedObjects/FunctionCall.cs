@@ -20,6 +20,12 @@ namespace Inklewriter.Parsed
             container.AddContent (_proxyDivert.runtimeObject);
         }
 
+        public override string ToString ()
+        {
+            var strArgs = string.Join (", ", arguments);
+            return string.Format ("{0}({1})", name, strArgs);
+        }
+
         Parsed.Divert _proxyDivert;
     }
 }

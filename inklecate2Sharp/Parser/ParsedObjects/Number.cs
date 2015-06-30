@@ -22,6 +22,11 @@ namespace Inklewriter.Parsed
                 container.AddContent (new Runtime.LiteralFloat ((float)value));
             }
 		}
+
+        public override string ToString ()
+        {
+            return value.ToString ();
+        }
          
 	}
 }
