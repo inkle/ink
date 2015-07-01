@@ -78,82 +78,6 @@ namespace Inklewriter
             return new IncludedFile (includedStory);
         }
 
-        void TrimEndWhitespaceAndAddNewline(List<Parsed.Object> mixedTextAndLogicResults)
-        {
-            // Trim whitespace from end and add a newline
-            if (mixedTextAndLogicResults.Count > 0) {
-                var lastObj = mixedTextAndLogicResults[mixedTextAndLogicResults.Count-1];
-                if (lastObj is Text) {
-                    var text = (Text)lastObj;
-                    text.text = text.text.TrimEnd (' ', '\t') + "\n";
-                    return;
-                }
-            }
-                
-            // Otherwise, last object in line wasn't text (but some kind of logic), so
-            // we need to append the newline afterwards using a new object
-            // If we end up generating multiple newlines (e.g. due to conditional
-            // logic), we rely on the runtime to absorb them.
-            // TODO: Is there some more clever logic we can do here?
-            mixedTextAndLogicResults.Add (new Text ("\n"));
-        }
-
-        protected List<Parsed.Object> LineOfMixedTextAndLogic()
-        {
-            var result = Parse(MixedTextAndLogic);
-            if (result == null || result.Count == 0)
-                return null;
-
-            // Trim whitepace from start
-            var firstText = result[0] as Text;
-            if (firstText != null) {
-                firstText.text = firstText.text.TrimStart(' ', '\t');
-                if (firstText.text.Length == 0) {
-                    result.RemoveAt (0);
-                }
-            }
-            if (result.Count == 0)
-                return null;
-
-            var lastObj = result [result.Count - 1];
-            if (!(lastObj is Divert)) {
-                TrimEndWhitespaceAndAddNewline (result);
-            }
-
-            Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
-
-            return result;
-        }
-
-        protected List<Parsed.Object> MixedTextAndLogic()
-        {
-            // Check for disallowed "~" within this context
-            var disallowedTilda = ParseObject(Spaced(String("~")));
-            if (disallowedTilda != null)
-                Error ("You shouldn't use a '~' here - tildas are for logic that's on its own line. To do inline logic, use { curly braces } instead");
-
-            // Either, or both interleaved
-            var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
-
-            // Terminating divert?
-            var divert = Parse (Divert);
-            if (divert != null) {
-
-                // May not have had any results at all if there's *only* a divert!
-                if (results == null)
-                    results = new List<Parsed.Object> ();
-
-                TrimEndWhitespaceAndAddNewline (results);
-
-                results.Add (divert);
-            }
-
-            if (results == null)
-                return null;
-
-            return results;
-        }
-
         protected Parsed.Object InlineLogicOrGlue()
         {
             return (Parsed.Object) OneOf (InlineLogic, Glue);
@@ -270,141 +194,38 @@ namespace Inklewriter
             return expr;
         }
 
-        protected Sequence InnerSequence()
+        protected string Identifier()
         {
-            Whitespace ();
+            if (_identifierCharSet == null) {
 
-            // Default sequence type
-            SequenceType seqType = SequenceType.Stopping;
+                _identifierFirstCharSet = new CharacterSet ();
+                _identifierFirstCharSet.AddRange ('A', 'Z');
+                _identifierFirstCharSet.AddRange ('a', 'z');
+                _identifierFirstCharSet.Add ('_');
 
-            // Optional explicit sequence type
-            SequenceType? parsedSeqType = (SequenceType?) Parse(SequenceTypeAnnotation);
-            if (parsedSeqType != null)
-                seqType = (SequenceType) parsedSeqType;
+                // TEMP: Allow read counts like "myKnot.myStitch" to be parsed
+                _identifierFirstCharSet.Add ('.');
 
-            var contentLists = Parse(InnerSequenceObjects);
-            if (contentLists == null || contentLists.Count <= 1) {
+                _identifierCharSet = new CharacterSet(_identifierFirstCharSet);
+                _identifierCharSet.AddRange ('0', '9');
+            }
+
+            // Parse single character first
+            var name = ParseCharactersFromCharSet (_identifierFirstCharSet, true, 1);
+            if (name == null) {
                 return null;
             }
 
-            return new Sequence (contentLists, seqType);
-        }
-
-        protected object SequenceTypeAnnotation()
-        {
-            var symbolAnnotation = Parse(SequenceTypeSymbolAnnotation);
-            if (symbolAnnotation != null)
-                return symbolAnnotation;
-
-            var wordAnnotation = Parse(SequenceTypeWordAnnotation);
-            if (wordAnnotation != null)
-                return wordAnnotation;
-
-            return null;
-        }
-
-        protected object SequenceTypeSymbolAnnotation()
-        {
-            var symbol = ParseSingleCharacter ();
-
-            switch (symbol) {
-            case '!':
-                return SequenceType.Once;
-            case '&':
-                return SequenceType.Cycle;
-            case '~':
-                return SequenceType.Shuffle;
-            case '$':
-                return SequenceType.Stopping;
+            // Parse remaining characters (if any)
+            var tailChars = ParseCharactersFromCharSet (_identifierCharSet);
+            if (tailChars != null) {
+                name = name + tailChars;
             }
 
-            return null;
+            return name;
         }
-
-        protected object SequenceTypeWordAnnotation()
-        {
-            SequenceType? seqType = null;
-
-            var word = Parse(Identifier);
-            switch (word) {
-            case "once":
-                seqType = SequenceType.Once;
-                break;
-            case "cycle":
-                seqType = SequenceType.Cycle;
-                break;
-            case "shuffle":
-                seqType = SequenceType.Shuffle;
-                break;
-            case "stopping":
-                seqType = SequenceType.Stopping;
-                break;
-            }
-
-            if (seqType == null)
-                return null;
-
-            Whitespace ();
-
-            if (ParseString (":") == null)
-                return null;
-
-            return seqType;
-        }
-
-        protected List<ContentList> InnerSequenceObjects()
-        {
-            var multiline = Parse(Newline) != null;
-
-            List<ContentList> result = null;
-            if (multiline) {
-                result = Parse(InnerMultilineSequenceObjects);
-            } else {
-                result = Parse(InnerInlineSequenceObjects);
-            }
-
-            return result;
-        }
-
-        protected List<ContentList> InnerInlineSequenceObjects()
-        {
-            var listOfLists = Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
-            if (listOfLists == null)
-                return null;
-
-            var result = new List<ContentList> ();
-            foreach (var list in listOfLists) {
-                result.Add (new ContentList (list));
-            }
-
-            return result;
-        }
-
-        protected List<ContentList> InnerMultilineSequenceObjects()
-        {
-            var contentLists = OneOrMore (SingleMultilineSequenceElement);
-            if (contentLists == null)
-                return null;
-
-            return contentLists.Cast<ContentList> ().ToList();
-        }
-
-        protected ContentList SingleMultilineSequenceElement()
-        {
-            Whitespace ();
-
-            if (ParseString ("-") == null)
-                return null;
-
-            Whitespace ();
-
-            List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
-            if (content == null) {
-                Error ("expected content for the sequence element following '-'");
-            }
-
-            return new ContentList (content);
-        }
+        private CharacterSet _identifierFirstCharSet;
+        private CharacterSet _identifierCharSet;
     }
 }
 

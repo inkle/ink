@@ -107,6 +107,9 @@
     <Compile Include="Parser\ParsedObjects\IWeavePoint.cs" />
     <Compile Include="Parser\ParsedObjects\Weave.cs" />
     <Compile Include="Runtime\StoryException.cs" />
+    <Compile Include="Parser\InkParser_Divert.cs" />
+    <Compile Include="Parser\InkParser_Content.cs" />
+    <Compile Include="Parser\InkParser_Sequences.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
