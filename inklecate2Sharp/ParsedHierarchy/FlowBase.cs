@@ -300,7 +300,7 @@ namespace Inklewriter.Parsed
 
                 // Stop now if we only wanted a result if it's a weave point?
                 if (levelType == FlowLevel.WeavePoint)
-                    return deepSearch ? DeepSearchForContent(name, levelType) : null;
+                    return deepSearch ? DeepSearchForAnyLevelContent(name) : null;
             }
 
             // If this flow would be incapable of containing the requested level, early out
@@ -315,14 +315,14 @@ namespace Inklewriter.Parsed
                     return subFlow;
             }
 
-            return deepSearch ? DeepSearchForContent(name, levelType) : null;
+            return deepSearch ? DeepSearchForAnyLevelContent(name) : null;
         }
 
-        Parsed.Object DeepSearchForContent(string name, FlowLevel? levelType = null)
+        Parsed.Object DeepSearchForAnyLevelContent(string name)
         {
             foreach (var subFlowNamePair in _subFlowsByName) {
                 var subFlow = subFlowNamePair.Value;
-                var deepResult = subFlow.ContentWithNameAtLevel (name, levelType, deepSearch: true);
+                var deepResult = subFlow.ContentWithNameAtLevel (name, levelType:null, deepSearch: true);
                 if (deepResult != null)
                     return deepResult;
             }

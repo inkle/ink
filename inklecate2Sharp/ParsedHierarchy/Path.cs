@@ -84,12 +84,16 @@ namespace Inklewriter.Parsed
             if (_components == null || _components.Count == 0) {
                 return null;
             }
-            
+
+            // Find base target of path from current context. e.g.
+            //   ==> BASE.sub.sub
             var baseTargetObject = ResolveBaseTarget (context);
             if (baseTargetObject == null) {
                 return null;
             }
 
+            // Given base of path, resolve final target by working deeper into hierarchy
+            //  e.g. ==> base.mid.FINAL
             if (_components.Count > 1) {
                 return ResolveTailComponents (baseTargetObject);
             }
@@ -103,6 +107,7 @@ namespace Inklewriter.Parsed
         {
             var firstComp = firstComponent;
 
+            // Work up the ancestry to find the node that has the named object
             while (context != null) {
 
                 var foundBase = TryGetChildFromContext (context, firstComp, _baseTargetLevel);
@@ -120,38 +125,46 @@ namespace Inklewriter.Parsed
         Parsed.Object ResolveTailComponents(Parsed.Object rootTarget)
         {
             Parsed.Object foundComponent = rootTarget;
-            FlowLevel minimumExpectedLevel = (FlowLevel)(baseTargetLevel + 1);
             for (int i = 1; i < _components.Count; ++i) {
                 var compName = _components [i];
+
+                FlowLevel minimumExpectedLevel;
+                var foundFlow = foundComponent as FlowBase;
+                if (foundFlow != null)
+                    minimumExpectedLevel = (FlowLevel)(foundFlow.flowLevel + 1);
+                else
+                    minimumExpectedLevel = FlowLevel.WeavePoint;
+                
 
                 foundComponent = TryGetChildFromContext (foundComponent, compName, minimumExpectedLevel);
                 if (foundComponent == null)
                     break;
-
-                if( i < _components.Count-1 )
-                    minimumExpectedLevel = (FlowLevel)(minimumExpectedLevel + 1);
             }
 
             return foundComponent;
         }
 
+        // See whether "context" contains a child with a given name at a given flow level
+        // Can either be a named knot/stitch (a FlowBase) or a weave point within a Weave (Choice or Gather)
+        // This function also ignores any other object types that are neither FlowBase nor Weave.
         Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? childLevel)
         {
+            // null childLevel means that we don't know where to find it
             bool ambiguousChildLevel = childLevel == null;
 
+            // Search for WeavePoint within Weave
             var weaveContext = context as Weave;
-            if ( (ambiguousChildLevel || childLevel == FlowLevel.WeavePoint) && weaveContext != null) {
-                var foundWeavePoint = weaveContext.WeavePointNamed (childName);
-
-                if (foundWeavePoint != null)
-                    return (Parsed.Object) foundWeavePoint;
-
-                if (!ambiguousChildLevel)
-                    return null;
+            if ( weaveContext != null && (ambiguousChildLevel || childLevel == FlowLevel.WeavePoint)) {
+                return (Parsed.Object) weaveContext.WeavePointNamed (childName);
             }
 
+            // Search for content within Flow (either a sub-Flow or a WeavePoint)
             var flowContext = context as FlowBase;
             if (flowContext != null) {
+
+                // When searching within a Knot, allow a deep searches so that
+                // named weave points (choices and gathers) can be found within any stitch
+                // Otherwise, we just search within the immediate object.
                 var shouldDeepSearch = flowContext.flowLevel == FlowLevel.Knot;
                 return flowContext.ContentWithNameAtLevel (childName, childLevel, shouldDeepSearch);
             }
