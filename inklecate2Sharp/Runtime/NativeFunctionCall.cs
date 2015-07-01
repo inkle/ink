@@ -67,7 +67,7 @@ namespace Inklewriter.Runtime
             } else if (coercedType == LiteralType.Float) {
                 return Call<float> (coercedParams);
             } else if (coercedType == LiteralType.DivertTarget) {
-                return Call<Divert> (coercedParams);
+                return Call<Path> (coercedParams);
             }
 
             return null;
@@ -195,7 +195,7 @@ namespace Inklewriter.Runtime
 
 
                 // Special case: The only operation you can do on divert target literals
-                BinaryOp<Divert> divertTargetsEqual = (Divert d1, Divert d2) => {
+                BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
                     return d1.Equals(d2) ? 1 : 0;
                 };
                 AddOpToNativeFunc (Equal, 2, LiteralType.DivertTarget, divertTargetsEqual);

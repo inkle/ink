@@ -15,8 +15,7 @@ namespace Inklewriter.Parsed
             divert.GenerateRuntimeObject();
 
             _runtimeDivert = (Runtime.Divert) divert.runtimeDivert;
-            _runtimeLiteralDivertTarget = new Runtime.LiteralDivertTarget (_runtimeDivert);
-            _runtimeLiteralDivertTarget.divert = _runtimeDivert;
+            _runtimeLiteralDivertTarget = new Runtime.LiteralDivertTarget ();
 
             if (divert.arguments != null && divert.arguments.Count > 0) {
                 Error ("Can't use a divert target as a variable if it has parameters");
@@ -79,7 +78,7 @@ namespace Inklewriter.Parsed
                 usageContext = usageParent;
             }
 
-            _runtimeLiteralDivertTarget.divert = _runtimeDivert;
+            _runtimeLiteralDivertTarget.targetPath = _runtimeDivert.targetPath;
         }
             
         Runtime.LiteralDivertTarget _runtimeLiteralDivertTarget;

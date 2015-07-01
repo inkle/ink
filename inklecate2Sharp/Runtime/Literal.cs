@@ -22,7 +22,7 @@ namespace Inklewriter.Runtime
             } else if (val is float) {
                 return new LiteralFloat ((float)val);
             } else if (val is Path) {
-                return new LiteralDivertTarget ((Divert)val);
+                return new LiteralDivertTarget ((Path)val);
             }
 
             return null;
@@ -90,16 +90,18 @@ namespace Inklewriter.Runtime
         }
     }
 
-    public class LiteralDivertTarget : Literal<Divert>
+    public class LiteralDivertTarget : Literal<Path>
     {
-        public Divert divert { get; set; }
+        public Path targetPath { get { return this.value; } set { this.value = value; } }
         public override LiteralType literalType { get { return LiteralType.DivertTarget; } }
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a divert target"); } }
 
-        public LiteralDivertTarget(Divert divert) : base(divert)
+        public LiteralDivertTarget(Path targetPath) : base(targetPath)
         {
-            this.divert = divert;
         }
+
+        public LiteralDivertTarget() : base(null)
+        {}
 
         public override Literal Cast(LiteralType newType)
         {
@@ -111,7 +113,7 @@ namespace Inklewriter.Runtime
 
         public override string ToString ()
         {
-            return "LiteralDivertTarget(" + divert.targetPath + ")";
+            return "LiteralDivertTarget(" + targetPath + ")";
         }
     }
         

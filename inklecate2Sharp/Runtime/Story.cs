@@ -195,7 +195,7 @@ namespace Inklewriter.Runtime
 
                 if (literal is LiteralDivertTarget) {
                     var divTarget = (LiteralDivertTarget)literal;
-                    Error ("Shouldn't use a divert target (to " + divTarget.divert.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
+                    Error ("Shouldn't use a divert target (to " + divTarget.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
                     return false;
                 }
 
@@ -226,16 +226,17 @@ namespace Inklewriter.Runtime
                     var varName = currentDivert.variableDivertName;
                     var varContents = _callStack.GetVariableWithName (varName);
 
-                    if ( !(varContents is LiteralDivertTarget) ) {
-                        Error("Tried to divert to a target from a variable, but the variable ("+varName+") didn't contain a divert target, it contained '"+varContents+"'");
+                    if (!(varContents is LiteralDivertTarget)) {
+                        Error ("Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it contained '" + varContents + "'");
                     }
 
                     var target = (LiteralDivertTarget)varContents;
-                    currentDivert = target.divert;
+                    _divertedPath = target.targetPath;
 
+                } else {
+                    _divertedPath = currentDivert.targetPath;
                 }
 
-                _divertedPath = currentDivert.targetPath;
 
                 if (_divertedPath == null) {
                     Error ("Divert resolution failed: " + currentDivert);
