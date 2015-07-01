@@ -367,7 +367,7 @@ This is the main file
         {
             var storyStr =
                 @"
-==> knot => stitch -> gather
+==> knot.stitch.gather
 
 == knot ==
 = stitch
@@ -378,7 +378,7 @@ This is the main file
   gather
 
   {stopping:
-    - ==> knot => stitch -> choice
+    - ==> knot.stitch.choice
     - second time round
   }
 

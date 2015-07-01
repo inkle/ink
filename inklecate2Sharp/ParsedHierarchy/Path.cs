@@ -44,6 +44,18 @@ namespace Inklewriter.Parsed
             }
         }
 
+        // TODO: Store path in this format rather than converting directly to knot/stitch/weave point
+        public Path(FlowLevel baseFlowLevel, List<string> components)
+        {
+            targetAtLevels = new SortedDictionary<FlowLevel, string> ();
+
+            FlowLevel flowLevel = baseFlowLevel;
+            foreach (string name in components) {
+                targetAtLevels[flowLevel] = name;
+                flowLevel = (FlowLevel)(flowLevel+1);
+            }
+        }
+
         public static Path To(string knotName = null, string stitchName = null, string weavePointName = null)
         {
             return new Path(knotName, stitchName, weavePointName);
