@@ -82,14 +82,11 @@ namespace Inklewriter.Parsed
         public Parsed.Object ResolveFromContext(Parsed.Object context)
         {
             if (_components == null || _components.Count == 0) {
-                Console.WriteLine ("Path components are empty");
                 return null;
             }
             
             var baseTargetObject = ResolveBaseTarget (context);
             if (baseTargetObject == null) {
-                // TODO: Make Path a Parsed.Object so that it can use Error
-                Console.WriteLine ("Failed to find base path component: " + firstComponent);
                 return null;
             }
 
@@ -155,7 +152,8 @@ namespace Inklewriter.Parsed
 
             var flowContext = context as FlowBase;
             if (flowContext != null) {
-                return flowContext.ContentWithNameAtLevel (childName, childLevel);
+                var shouldDeepSearch = flowContext.flowLevel == FlowLevel.Knot;
+                return flowContext.ContentWithNameAtLevel (childName, childLevel, shouldDeepSearch);
             }
 
             return null;
