@@ -178,9 +178,12 @@ namespace Inklewriter.Runtime
 
     			} while(currentContentObj != null && currentPath != null);
             } catch(StoryException e) {
+                AddError (e.Message, e.useEndLineNumber);
                 return;
             }
 		}
+
+
 
         // Does the expression result represented by this object evaluate to true?
         // e.g. is it a Number that's not equal to 1?
@@ -806,16 +809,25 @@ namespace Inklewriter.Runtime
             return (Runtime.Container) content;
         }
 
-        void Error(string message, bool useEndLineNum = false)
+        // Throw an exception that gets caught and causes AddError to be called,
+        // then exits the flow.
+        void Error(string message, bool useEndLineNumber = false)
+        {
+            var e = new StoryException (message);
+            e.useEndLineNumber = useEndLineNumber;
+            throw e;
+        }
+
+        void AddError (string message, bool useEndLineNumber)
         {
             var dm = currentDebugMetadata;
 
             if (dm != null) {
-                int lineNum = useEndLineNum ? dm.endLineNumber : dm.startLineNumber;
+                int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
                 message = string.Format ("Runtime error in {0} line {1}: {2}", dm.fileName, lineNum, message);
-            } else {
-                message = "Runtime error" +
-                    ": "+message;
+            }
+            else {
+                message = "Runtime error" + ": " + message;
             }
 
             // TODO: Could just add to output?
@@ -824,9 +836,6 @@ namespace Inklewriter.Runtime
             }
 
             _currentErrors.Add (message);
-
-            throw new StoryException (message);
-            // BuildStringOfHierarchy
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)

@@ -102,7 +102,7 @@ namespace Inklewriter.Runtime
                 }
             }
 
-            throw new System.Exception ("Could not find variable to set: " + name);
+            throw new StoryException ("Could not find variable to set: " + name);
         }
 
         private List<Element> _callStack;
