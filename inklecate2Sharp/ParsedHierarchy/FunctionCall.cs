@@ -4,13 +4,13 @@ namespace Inklewriter.Parsed
 {
     public class FunctionCall : Expression
     {
-        public string name { get { return _proxyDivert.target.ambiguousName; } }
+        public string name { get { return _proxyDivert.target.firstComponent; } }
         public List<Expression> arguments { get { return _proxyDivert.arguments; } }
         public Runtime.Divert runtimeDivert { get { return _proxyDivert.runtimeDivert; } }
 
         public FunctionCall (string functionName, List<Expression> arguments)
         {
-            _proxyDivert = new Parsed.Divert(Path.ToAmbiguous(functionName), arguments);
+            _proxyDivert = new Parsed.Divert(new Path(functionName), arguments);
             _proxyDivert.isFunctionCall = true;
             AddContent (_proxyDivert);
         }

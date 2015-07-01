@@ -6,204 +6,163 @@ namespace Inklewriter.Parsed
 {
 	public class Path
 	{
-        public string knotName { get { return TryGetTargetAtLevel (FlowLevel.Knot); } }
-        public string stitchName { get { return TryGetTargetAtLevel (FlowLevel.Stitch); } }
-        public string weavePointName { get { return TryGetTargetAtLevel (FlowLevel.WeavePoint); } }
-		public string ambiguousName { get; }
-
-        public FlowLevel firstAddressedLevel { 
+        public FlowLevel baseTargetLevel { 
             get { 
-                if (targetAtLevels.Count > 0) {
-                    return targetAtLevels.First().Key;
-                } else {
-                    return FlowLevel.Knot;
-                }
+                if (baseLevelIsAmbiguous)
+                    return FlowLevel.Story;
+                else
+                    return (FlowLevel) _baseTargetLevel;
             }
         }
 
-        public FlowLevel lastAddressedLevel {
-            get { 
-                if (targetAtLevels.Count > 0) {
-                    return targetAtLevels.Last().Key;
-                } else {
-                    return FlowLevel.Knot;
-                }
+        public bool baseLevelIsAmbiguous {
+            get {
+                return _baseTargetLevel == null;
             }
         }
 
-        // TODO: Upgrade to provide more alternatives for weave points
-        // of the form DebugResolveAlternatives
+        public string firstComponent {
+            get {
+                if (_components == null || _components.Count == 0)
+                    return null;
+
+                return _components [0];
+            }
+        }
+
+        // TODO: Re-implement this, and intelligently!
         public Path debugSuggestedAlternative { 
             get {
-                if (this.knotName != null) {
-                    return Path.To (stitchName: this.knotName);
-                } else if (this.stitchName != null) {
-                    return Path.To (knotName: this.stitchName);
-                }
                 return null;
             }
         }
 
-        // TODO: Store path in this format rather than converting directly to knot/stitch/weave point
         public Path(FlowLevel baseFlowLevel, List<string> components)
         {
-            targetAtLevels = new SortedDictionary<FlowLevel, string> ();
-
-            FlowLevel flowLevel = baseFlowLevel;
-            foreach (string name in components) {
-                targetAtLevels[flowLevel] = name;
-                flowLevel = (FlowLevel)(flowLevel+1);
-            }
+            _baseTargetLevel = baseFlowLevel;
+            _components = components;
         }
 
-        public static Path To(string knotName = null, string stitchName = null, string weavePointName = null)
+        public Path(string ambiguousName)
         {
-            return new Path(knotName, stitchName, weavePointName);
+            _baseTargetLevel = null;
+            _components = new List<string> ();
+            _components.Add (ambiguousName);
         }
-
-        public static Path ToAmbiguous(string name)
-        {
-            return new Path(ambiguousName: name);
-        }
-
-        // -----
-
-        protected Path(string knotName = null, string stitchName = null, string weavePointName = null, string ambiguousName = null)
-		{
-            targetAtLevels = new SortedDictionary<FlowLevel, string> ();
-
-            if (knotName != null)
-                targetAtLevels.Add (FlowLevel.Knot, knotName);
-
-            if (stitchName != null)
-                targetAtLevels.Add (FlowLevel.Stitch, stitchName);
-
-            if (weavePointName != null)
-                targetAtLevels.Add (FlowLevel.WeavePoint, weavePointName);
-
-			this.ambiguousName = ambiguousName;
-		}
-            
+             
 		public override string ToString ()
 		{
-            if (ambiguousName != null) {
-                return "-?-> " + ambiguousName;
+            if (_components == null || _components.Count == 0) {
+                if (baseTargetLevel == FlowLevel.WeavePoint)
+                    return "-> <next gather point>";
+                else
+                    return "<invalid Path>";
             }
 
-            var components = new List<string> (); 
+            var dotStr = string.Join (".", _components);
 
-            foreach (var levelNamePair in targetAtLevels) {
-                switch (levelNamePair.Key) {
-                case FlowLevel.Knot:       components.Add ("==>"); break;
-                case FlowLevel.Stitch:     components.Add ("=>");  break;
-                case FlowLevel.WeavePoint: components.Add ("->");  break;
-                }
-                components.Add (levelNamePair.Value);
+            string baseArrowStr;
+            switch (baseTargetLevel) {
+            case FlowLevel.Knot:
+                baseArrowStr = "==>";
+                break;
+            case FlowLevel.Stitch:
+                baseArrowStr = "=>";
+                break;
+            case FlowLevel.WeavePoint:
+                baseArrowStr = "->";
+                break;
+            default:
+                return dotStr;
             }
 
-            if (components.Count > 0) {
-                return string.Join (" ", components);
-            }
-
-			return "<Unknown path>";
+            return baseArrowStr + " " + dotStr;
 		}
-
-        protected string TryGetTargetAtLevel(FlowLevel level)
-        {
-            string targetName = null;
-            if (targetAtLevels.TryGetValue (level, out targetName)) {
-                return targetName;
-            } else {
-                return null;
-            }
-        }
 
         public Parsed.Object ResolveFromContext(Parsed.Object context)
         {
-            var startContext = context;
-
-            // Find closest FlowBase in ancestry
-            // (e.g. if we're in a Text, work our way up to the first Stitch etc)
-            while(context != null && !(context is FlowBase)) {
-                context = context.parent;
+            if (_components == null || _components.Count == 0) {
+                Console.WriteLine ("Path components are empty");
+                return null;
             }
-
-            if (context == null || !(context is FlowBase)) {
-                Console.WriteLine ("ERROR when resolving path: could not find a FlowBase when searching ancestry from " + startContext);
+            
+            var baseTargetObject = ResolveBaseTarget (context);
+            if (baseTargetObject == null) {
+                // TODO: Make Path a Parsed.Object so that it can use Error
+                Console.WriteLine ("Failed to find base path component: " + firstComponent);
                 return null;
             }
 
-            var flowContext = (FlowBase)context;
-
-            if (ambiguousName != null) {
-                return ResolveAmbiguousFromContext (flowContext);
+            if (_components.Count > 1) {
+                return ResolveTailComponents (baseTargetObject);
             }
 
-            // Work our way up to the base level that we we search in
-            // (subtract 1 since if the first addressed level is a knot, we
-            //  want to search within a Story - the level up)
-            while (this.firstAddressedLevel-1 < flowContext.flowLevel) {
-                flowContext = (FlowBase) flowContext.parent;
-            }
-
-            // The foreach loop drill further into the path, e.g. for
-            // multiple path components: ==> knot => stitch -> gather,
-            // going further into the content.
-            Parsed.Object content = null;
-            foreach (var levelStringPair in targetAtLevels) {
-
-                FlowLevel pathComponentLevel = levelStringPair.Key;
-                string nameAtLevel = levelStringPair.Value;
-
-                // Both knots and stories may contain e.g. stitches, so
-                // we may still need to loop upwards to find the container
-                // that owns the content type we're looping for
-
-                do {
-                    var foundContent = flowContext.ContentWithNameAtLevel (nameAtLevel, pathComponentLevel);
-
-                    // Not found, keep searching upward for a FlowBase that contains
-                    // content at this level flow level (e.g. try searching in a Story
-                    // for a Stitch rather than in a Knot)
-                    if (foundContent == null) {
-                        flowContext = (FlowBase) flowContext.parent;
-                    } 
-
-                    // Found. 
-                    else {
-                        content = foundContent;
-
-                        // If we continue to dig deeper, we now need to search within
-                        // this content that we just found
-                        if( content is FlowBase ) {
-                            flowContext = (FlowBase)content;
-                        } else {
-                            break;
-                        }
-                    }
-                        
-                } while(flowContext != null && flowContext.flowLevel < pathComponentLevel);
-
-            }
-
-            return content;
+            return baseTargetObject;
         }
 
-        Parsed.Object ResolveAmbiguousFromContext(FlowBase context)
+        // Find the root object from the base, i.e. root from:
+        //    root.sub1.sub2
+        Parsed.Object ResolveBaseTarget(Parsed.Object context)
         {
-            do {
-                var foundContent = context.ContentWithNameAtLevel(this.ambiguousName);
-                if( foundContent != null ) {
-                    return foundContent;
-                } else {
-                    context = (FlowBase) context.parent;
-                }
-            } while(context != null);
+            var firstComp = firstComponent;
+
+            while (context != null) {
+
+                var foundBase = TryGetChildFromContext (context, firstComp, _baseTargetLevel);
+                if (foundBase != null)
+                    return foundBase;
+
+                context = context.parent;
+            }
 
             return null;
         }
 
-        SortedDictionary<FlowLevel, string> targetAtLevels;
+        // Find the final child from path given root, i.e.:
+        //   root.sub.finalChild
+        Parsed.Object ResolveTailComponents(Parsed.Object rootTarget)
+        {
+            Parsed.Object foundComponent = rootTarget;
+            FlowLevel minimumExpectedLevel = (FlowLevel)(baseTargetLevel + 1);
+            for (int i = 1; i < _components.Count; ++i) {
+                var compName = _components [i];
+
+                foundComponent = TryGetChildFromContext (foundComponent, compName, minimumExpectedLevel);
+                if (foundComponent == null)
+                    break;
+
+                if( i < _components.Count-1 )
+                    minimumExpectedLevel = (FlowLevel)(minimumExpectedLevel + 1);
+            }
+
+            return foundComponent;
+        }
+
+        Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? childLevel)
+        {
+            bool ambiguousChildLevel = childLevel == null;
+
+            var weaveContext = context as Weave;
+            if ( (ambiguousChildLevel || childLevel == FlowLevel.WeavePoint) && weaveContext != null) {
+                var foundWeavePoint = weaveContext.WeavePointNamed (childName);
+
+                if (foundWeavePoint != null)
+                    return (Parsed.Object) foundWeavePoint;
+
+                if (!ambiguousChildLevel)
+                    return null;
+            }
+
+            var flowContext = context as FlowBase;
+            if (flowContext != null) {
+                return flowContext.ContentWithNameAtLevel (childName, childLevel);
+            }
+
+            return null;
+        }
+            
+        FlowLevel? _baseTargetLevel;
+        List<string> _components;
 	}
 }
 

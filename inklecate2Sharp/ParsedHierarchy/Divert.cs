@@ -72,17 +72,7 @@ namespace Inklewriter.Parsed
         // as such by getting the variable name.
         public string PathAsVariableName()
         {
-            if (target.ambiguousName != null) {
-                return target.ambiguousName;
-            }
-
-            if (target.knotName != null && target.stitchName == null) {
-                return target.knotName;
-            } else if (target.stitchName != null && target.knotName == null) {
-                return target.stitchName;
-            }
-
-            return null;
+            return target.firstComponent;
         }
 
         public override void ResolveReferences(Story context)
