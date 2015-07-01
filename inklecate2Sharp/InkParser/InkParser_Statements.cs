@@ -7,16 +7,7 @@ namespace Inklewriter
 {
 	public partial class InkParser
 	{
-		// Main entry point
-		public Parsed.Story Parse()
-		{
-			List<Parsed.Object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
-            if (hadError) {
-                return null;
-            }
-                
-            return new Parsed.Story (topLevelContent);
-		}
+		
 
 		protected enum StatementLevel
 		{

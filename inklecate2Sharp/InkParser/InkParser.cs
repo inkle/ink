@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Inklewriter
 {
@@ -10,6 +11,17 @@ namespace Inklewriter
             GenerateStatementLevelRules ();
             this.errorHandler = OnError;
 		}
+
+        // Main entry point
+        public Parsed.Story Parse()
+        {
+            List<Parsed.Object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
+            if (hadError) {
+                return null;
+            }
+
+            return new Parsed.Story (topLevelContent);
+        }
 
         protected override string PreProcessInputString(string str)
         {

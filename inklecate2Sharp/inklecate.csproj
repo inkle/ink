@@ -101,7 +101,6 @@
     <Compile Include="InkParser\InkParser_Knot.cs" />
     <Compile Include="InkParser\InkParser_Whitespace.cs" />
     <Compile Include="InkParser\InkParser_Choices.cs" />
-    <Compile Include="InkParser\InkParser_TopGrammar.cs" />
     <Compile Include="InkParser\InkParser_Expressions.cs" />
     <Compile Include="InkParser\CommentEliminator.cs" />
     <Compile Include="InkParser\InkParser_Logic.cs" />
@@ -110,6 +109,7 @@
     <Compile Include="InkParser\InkParser_Divert.cs" />
     <Compile Include="InkParser\InkParser_Content.cs" />
     <Compile Include="InkParser\InkParser_Sequences.cs" />
+    <Compile Include="InkParser\InkParser_Statements.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
