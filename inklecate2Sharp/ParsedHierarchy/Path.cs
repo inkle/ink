@@ -79,7 +79,7 @@ namespace Inklewriter.Parsed
             return baseArrowStr + " " + dotStr;
 		}
 
-        public Parsed.Object ResolveFromContext(Parsed.Object context)
+        public Parsed.Object ResolveFromContext(Parsed.Object context, bool forceSearchAnywhere=false)
         {
             if (_components == null || _components.Count == 0) {
                 return null;
@@ -87,9 +87,10 @@ namespace Inklewriter.Parsed
 
             // Find base target of path from current context. e.g.
             //   ==> BASE.sub.sub
-            var baseTargetObject = ResolveBaseTarget (context);
+            var baseTargetObject = ResolveBaseTarget (context, _baseTargetLevel, forceSearchAnywhere);
             if (baseTargetObject == null) {
                 return null;
+
             }
 
             // Given base of path, resolve final target by working deeper into hierarchy
@@ -103,14 +104,17 @@ namespace Inklewriter.Parsed
 
         // Find the root object from the base, i.e. root from:
         //    root.sub1.sub2
-        Parsed.Object ResolveBaseTarget(Parsed.Object context)
+        Parsed.Object ResolveBaseTarget(Parsed.Object context, FlowLevel? baseLevel, bool forceSearchAnywhere)
         {
             var firstComp = firstComponent;
+
+            if (forceSearchAnywhere)
+                baseLevel = null;
 
             // Work up the ancestry to find the node that has the named object
             while (context != null) {
 
-                var foundBase = TryGetChildFromContext (context, firstComp, _baseTargetLevel);
+                var foundBase = TryGetChildFromContext (context, firstComp, baseLevel, forceSearchAnywhere);
                 if (foundBase != null)
                     return foundBase;
 
@@ -147,7 +151,7 @@ namespace Inklewriter.Parsed
         // See whether "context" contains a child with a given name at a given flow level
         // Can either be a named knot/stitch (a FlowBase) or a weave point within a Weave (Choice or Gather)
         // This function also ignores any other object types that are neither FlowBase nor Weave.
-        Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? childLevel)
+        Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? childLevel, bool forceDeepSearch = false)
         {
             // null childLevel means that we don't know where to find it
             bool ambiguousChildLevel = childLevel == null;
@@ -165,7 +169,7 @@ namespace Inklewriter.Parsed
                 // When searching within a Knot, allow a deep searches so that
                 // named weave points (choices and gathers) can be found within any stitch
                 // Otherwise, we just search within the immediate object.
-                var shouldDeepSearch = flowContext.flowLevel == FlowLevel.Knot;
+                var shouldDeepSearch = forceDeepSearch || flowContext.flowLevel == FlowLevel.Knot;
                 return flowContext.ContentWithNameAtLevel (childName, childLevel, shouldDeepSearch);
             }
 

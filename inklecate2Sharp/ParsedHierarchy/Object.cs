@@ -52,6 +52,81 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public Parsed.Path PathRelativeTo(Parsed.Object otherObj)
+        {
+            var ownAncestry = ancestry;
+            var otherAncestry = otherObj.ancestry;
+
+            Parsed.Object highestCommonAncestor = null;
+            int minLength = System.Math.Min (ownAncestry.Count, otherAncestry.Count);
+            for (int i = 0; i < minLength; ++i) {
+                var a1 = ancestry [i];
+                var a2 = otherAncestry [i];
+                if (a1 == a2)
+                    highestCommonAncestor = a1;
+                else
+                    break;
+            }
+                
+            FlowBase commonFlowAncestor = highestCommonAncestor as FlowBase;
+            if (commonFlowAncestor == null)
+                commonFlowAncestor = highestCommonAncestor.ClosestFlowBase ();
+
+
+            var pathComponents = new List<string> ();
+            bool hasWeavePoint = false;
+            FlowLevel baseFlow = FlowLevel.WeavePoint;
+
+            var ancestor = this;
+            while(ancestor != null && ancestor != commonFlowAncestor && !(ancestor is Story)) {
+
+                if (ancestor == commonFlowAncestor)
+                    break;
+
+                if (!hasWeavePoint) {
+                    var weavePointAncestor = ancestor as IWeavePoint;
+                    if (weavePointAncestor != null && weavePointAncestor.name != null) {
+                        pathComponents.Add (weavePointAncestor.name);
+                        hasWeavePoint = true;
+                        continue;
+                    }
+                }
+
+                var flowAncestor = ancestor as FlowBase;
+                if (flowAncestor != null) {
+                    pathComponents.Add (flowAncestor.name);
+                    baseFlow = flowAncestor.flowLevel;
+                }
+
+                ancestor = ancestor.parent;
+            }
+
+            pathComponents.Reverse ();
+
+            if (pathComponents.Count > 0) {
+                return new Path (baseFlow, pathComponents);
+            }
+
+            return null;
+        }
+
+        public List<Parsed.Object> ancestry
+        {
+            get {
+                var result = new List<Parsed.Object> ();
+
+                var ancestor = this.parent;
+                while(ancestor != null) {
+                    result.Add (ancestor);
+                    ancestor = ancestor.parent;
+                }
+
+                result.Reverse ();
+
+                return result;
+            }
+        }
+
         public string DescriptionOfScope()
         {
             var locationNames = new List<string> ();

@@ -99,16 +99,11 @@ namespace Inklewriter.Parsed
 
                 if (targetContent == null) {
 
-                    bool foundAlternative = false;
-                    Path alternativePath = target.debugSuggestedAlternative;
-                    if (alternativePath != null) {
-                        targetContent = alternativePath.ResolveFromContext (this);
-                        if (targetContent != null) {
-                            foundAlternative = true;
-                        }
-                    }
+                    targetContent = target.ResolveFromContext (this, forceSearchAnywhere:true);
 
-                    if (foundAlternative) {
+                    var alternativePath = targetContent.PathRelativeTo (this);
+
+                    if (targetContent != null) {
                         Error ("target not found: '" + target.ToString () + "'. Did you mean '"+alternativePath+"'?");
                         target = alternativePath;
                     } else {
