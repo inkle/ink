@@ -21,6 +21,19 @@ namespace Tests
 			return story;
 		}
 
+        protected Inklewriter.Parsed.Story CompileStringWithoutRuntime(string str)
+        {
+            InkParser parser = new InkParser(str);
+            parser.errorHandler += (string message, int index, int lineIndex) => {
+                Assert.Fail(message + " on line " + lineIndex);
+            };
+            var parsedStory = parser.Parse();
+            Assert.IsFalse (parsedStory.hadError);
+
+            parsedStory.ExportRuntime ();
+            return parsedStory;
+        }
+
 		[Test ()]
 		public void TestHelloWorld()
 		{
@@ -545,6 +558,24 @@ Hello world
 
             // Unfortunate leading newline...
             Assert.AreEqual (story.currentText, "different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n");
+        }
+
+        [Test ()]
+        public void TestSuggestedAlternateDivert()
+        {
+            var storyStr =  @"
+== test ==
+
+= another
+  ==> inner
+
+= inner
+ Done
+ ~~~";
+
+            var parsedStory = CompileStringWithoutRuntime (storyStr);
+            Assert.IsTrue (parsedStory.hadWarning);
+            Assert.AreEqual (parsedStory.warnings [0], "WARNING: Divert target not found: '==> inner'. Assuming you meant '=> inner' on line 5");
         }
 
 		//------------------------------------------------------------------------
