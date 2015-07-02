@@ -253,16 +253,21 @@ namespace Inklewriter.Parsed
             return null;
         }
 
-		public virtual void Error(string message, Parsed.Object source = null)
+        public virtual void Error(string message, Parsed.Object source = null, bool isWarning = false)
 		{
 			if (source == null) {
 				source = this;
 			}
 
 			if (this.parent != null) {
-				this.parent.Error (message, source);
+				this.parent.Error (message, source, isWarning);
 			}
 		}
+
+        public void Warning(string message, Parsed.Object source = null)
+        {
+            Error (message, source, isWarning: true);
+        }
 	}
 }
 

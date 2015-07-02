@@ -104,7 +104,7 @@ namespace Inklewriter.Parsed
                     var alternativePath = targetContent.PathRelativeTo (this);
 
                     if (targetContent != null) {
-                        Error ("target not found: '" + target.ToString () + "'. Did you mean '"+alternativePath+"'?");
+                        Warning ("target not found: '" + target.ToString () + "'. Assuming you meant '"+alternativePath+"'");
                         target = alternativePath;
                     } else {
                         Error ("target not found: '" + target.ToString () + "'");
@@ -158,7 +158,7 @@ namespace Inklewriter.Parsed
 			}
 		}
 
-        public override void Error (string message, Object source = null)
+        public override void Error (string message, Object source = null, bool isWarning = false)
         {
             // Could be getting an error from a nested Divert
             if (source != this && source != null) {
@@ -167,9 +167,9 @@ namespace Inklewriter.Parsed
             }
 
             if (isFunctionCall) {
-                base.Error ("Function call " + message, source);
+                base.Error ("Function call " + message, source, isWarning);
             } else {
-                base.Error ("Divert " + message, source);
+                base.Error ("Divert " + message, source, isWarning);
             }
 
         }

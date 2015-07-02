@@ -7,7 +7,10 @@ namespace Inklewriter.Parsed
 	public class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
-        public bool hadError { get; protected set; }
+        public bool hadError { get { return _errors != null && _errors.Count > 0; } }
+        public bool hadWarning { get { return _warnings != null && _warnings.Count > 0; } }
+        public List<string> errors { get { return _errors; } }
+        public List<string> warnings { get { return _warnings; } }
 
         public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
@@ -107,30 +110,57 @@ namespace Inklewriter.Parsed
 			// we want the paths to be absolute)
 			ResolveReferences (this);
 
+            // Print all warnings before all errors
+            if (hadWarning) {
+                foreach (var w in _warnings) Console.WriteLine (w);
+            }
+
 			// Don't successfully return the object if there was an error
             if (hadError) {
+                foreach (var e in _errors) Console.WriteLine (e);
 				return null;
 			}
 
 			return runtimeStory;
 		}
 
-		public override void Error(string message, Parsed.Object source)
+        public override void Error(string message, Parsed.Object source, bool isWarning)
 		{
             var sb = new StringBuilder ();
-            sb.Append ("ERROR: ");
+            if (isWarning) {
+                sb.Append ("WARNING: ");
+            } else {
+                sb.Append ("ERROR: ");
+            }
+
             sb.Append (message);
             if (source != null && source.debugMetadata != null && source.debugMetadata.startLineNumber >= 1 ) {
                 sb.Append (" on "+source.debugMetadata.ToString());
             }
-            Console.WriteLine (sb.ToString());
-            hadError = true;
+
+            message = sb.ToString ();
+
+            if (isWarning) {
+                if (_warnings == null)
+                    _warnings = new List<string> ();
+
+                _warnings.Add (message);
+            } else {
+                if (_errors == null)
+                    _errors = new List<string> ();
+
+                _errors.Add (message);
+            }
 		}
 
         public void ResetError()
         {
-            hadError = false;
+            _errors = null;
+            _warnings = null;
         }
+
+        List<string> _errors;
+        List<string> _warnings;
 	}
 }
 
