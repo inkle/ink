@@ -156,9 +156,15 @@ namespace Inklewriter.Parsed
                     // i.e. instances of "->" without a target that's meant to go 
                     // to the next gather point.
                     var innerExplicitGathers = obj.FindAll<Divert> (d => d.isToGather);
-                    if (innerExplicitGathers.Count > 0) {
+                    if (innerExplicitGathers.Count > 0)
                         looseEnds.AddRange (innerExplicitGathers);
-                    }
+
+                    // Keep track of nested choices within the current section,
+                    // so that the next Gather knows whether to auto-enter
+                    // (it auto-enters when there are no choices)
+                    var innerChoices = obj.FindAll<Choice> ();
+                    if (innerChoices.Count > 0)
+                        hasSeenChoiceInSection = true;
                         
                     // Add content
                     AddGeneralRuntimeContent (obj.runtimeObject);
@@ -176,6 +182,12 @@ namespace Inklewriter.Parsed
         //  - set the gather as the main container to dump new content in
         void AddRuntimeForGather(Gather gather)
         {
+            // Determine whether this Gather should be auto-entered:
+            //  - It is auto-entered if there were no choices in the last section
+            //  - A section is "since the previous gather" - so reset now
+            bool autoEnter = !hasSeenChoiceInSection;
+            hasSeenChoiceInSection = false;
+
             var gatherContainer = gather.runtimeContainer;
 
             if (gather.name == null) {
@@ -183,31 +195,19 @@ namespace Inklewriter.Parsed
                 gatherContainer.name = "g-" + _unnamedGatherCount;
                 _unnamedGatherCount++;
             }
+                
+            // Auto-enter: include in main content
+            if (autoEnter) {
+                currentContainer.AddContent (gatherContainer);
+            } 
 
+            // Don't auto-enter:
             // Add this gather to the main content, but only accessible
             // by name so that it isn't stepped into automatically, but only via
             // a divert from a loose end.
-            // However, at runtime, we detect whether there are no choices that
-            // have been generated at this point, and if so, divert straight
-            // into the gather.
-
-            // (num choices == 0)?
-            var gatherAutoDivertEvalStart = Runtime.ControlCommand.EvalStart();
-            currentContainer.AddContent(gatherAutoDivertEvalStart);
-            currentContainer.AddContent(Runtime.ControlCommand.ChoiceCount());
-            currentContainer.AddContent (new Runtime.LiteralInt (0));
-            currentContainer.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
-            currentContainer.AddContent(Runtime.ControlCommand.EvalEnd());
-
-            // Branch into gather if true
-            var autoEnterDivert = new Runtime.Divert ();
-            currentContainer.AddContent (new Runtime.Branch (autoEnterDivert));
-
-            // Ensure that the divert and gather have their references resolved
-            gatherPointsToResolve.Add (new GatherPointToResolve{ divert = autoEnterDivert, targetRuntimeObj = gatherContainer });
-
-            // Gather content itself is accessible by name only
-            currentContainer.AddToNamedContentOnly (gatherContainer);
+            else {
+                currentContainer.AddToNamedContentOnly (gatherContainer);
+            }
 
             // Consume loose ends: divert them to this gather
             foreach (Parsed.Object looseEnd in looseEnds) {
@@ -235,7 +235,7 @@ namespace Inklewriter.Parsed
                 // Pass back knowledge of this loose end being diverted
                 // to the FlowBase so that it can maintain a list of them,
                 // and resolve the divert references later
-                gatherPointsToResolve.Add (new GatherPointToResolve{ divert = divert, targetRuntimeObj = gatherAutoDivertEvalStart });
+                gatherPointsToResolve.Add (new GatherPointToResolve{ divert = divert, targetRuntimeObj = gatherContainer });
             }
             looseEnds.Clear ();
 
@@ -253,6 +253,7 @@ namespace Inklewriter.Parsed
             // Current level choice
             else if (weavePoint is Choice) {
                 currentContainer.AddContent (((Choice)weavePoint).runtimeObject);
+                hasSeenChoiceInSection = true;
             }
 
             // Keep track of loose ends
@@ -389,6 +390,9 @@ namespace Inklewriter.Parsed
         //    indented content since it's no longer a loose end
         IWeavePoint previousWeavePoint = null;
         bool addContentToPreviousWeavePoint = false;
+
+        // Used for determining whether the next Gather should auto-enter
+        bool hasSeenChoiceInSection = false;
 
         int _unnamedGatherCount;
 

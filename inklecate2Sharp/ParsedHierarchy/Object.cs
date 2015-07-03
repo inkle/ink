@@ -185,14 +185,14 @@ namespace Inklewriter.Parsed
         }
 
         public delegate bool FindQueryFunc<T>(T obj);
-        public T Find<T>(FindQueryFunc<T> queryFunc) where T : class
+        public T Find<T>(FindQueryFunc<T> queryFunc = null) where T : class
         {
             if (content == null)
                 return null;
             
             foreach (var obj in content) {
                 var tObj = obj as T;
-                if (tObj != null && queryFunc (tObj) == true) {
+                if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
                     return tObj;
                 }
 
@@ -205,7 +205,7 @@ namespace Inklewriter.Parsed
         }
 
 
-        public IList<T> FindAll<T>(FindQueryFunc<T> queryFunc) where T : class
+        public IList<T> FindAll<T>(FindQueryFunc<T> queryFunc = null) where T : class
         {
             var found = new List<T> ();
 
@@ -217,7 +217,7 @@ namespace Inklewriter.Parsed
         void FindAll<T>(FindQueryFunc<T> queryFunc, List<T> foundSoFar) where T : class
         {
             var tObj = this as T;
-            if (tObj != null && queryFunc (tObj) == true) {
+            if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
                 foundSoFar.Add (tObj);
             }
 
