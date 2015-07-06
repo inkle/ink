@@ -239,7 +239,13 @@ namespace Inklewriter.Runtime
 
 
                 if (_divertedPath == null) {
-                    Error ("Divert resolution failed: " + currentDivert);
+
+                    // Human readable name available - runtime divert is part of a hard-written divert that to missing content
+                    if (currentDivert != null && currentDivert.debugMetadata.sourceName != null) {
+                        Error ("Divert target doesn't exist: " + currentDivert.debugMetadata.sourceName);
+                    } else {
+                        Error ("Divert resolution failed: " + currentDivert);
+                    }
                 }
 
                 Assert (_divertedPath != null, "diverted path is null");

@@ -99,16 +99,22 @@ namespace Inklewriter.Parsed
 
                 if (targetContent == null) {
 
+                    Path alternativePath = null;
                     targetContent = target.ResolveFromContext (this, forceSearchAnywhere:true);
-
-                    var alternativePath = targetContent.PathRelativeTo (this);
+                    if( targetContent != null )
+                        alternativePath = targetContent.PathRelativeTo (this);
 
                     if (targetContent != null) {
                         Warning ("target not found: '" + target.ToString () + "'. Assuming you meant '"+alternativePath+"'");
                         target = alternativePath;
                     } else {
-                        Error ("target not found: '" + target.ToString () + "'");
+                        Warning ("target not found: '" + target.ToString () + "'");
                     }
+
+                    // Add name to the debugMetadata so that if we get a runtime error,
+                    // we have a human readable name for the original source target,
+                    // rather than a runtime path.
+                    debugMetadata.sourceName = target.ToString ();
                 }
                     
             }

@@ -6,6 +6,7 @@ namespace Inklewriter.Runtime
 		public int startLineNumber;
         public int endLineNumber;
 		public string fileName;
+        public string sourceName;
 
 		public DebugMetadata ()
 		{
