@@ -101,14 +101,16 @@ namespace Inklewriter.Parsed
 
                     Path alternativePath = null;
                     targetContent = target.ResolveFromContext (this, forceSearchAnywhere:true);
-                    if( targetContent != null )
+                    if (targetContent != null) {
                         alternativePath = targetContent.PathRelativeTo (this);
+                    }
 
                     if (targetContent != null) {
                         Warning ("target not found: '" + target.ToString () + "'. Assuming you meant '"+alternativePath+"'");
                         target = alternativePath;
                     } else {
-                        Warning ("target not found: '" + target.ToString () + "'");
+                        var isWarning = target.baseTargetLevel == FlowLevel.Knot;
+                        Error ("target not found: '" + target.ToString () + "'", this, isWarning);
                     }
 
                     // Add name to the debugMetadata so that if we get a runtime error,
