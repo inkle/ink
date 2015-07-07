@@ -145,12 +145,12 @@ namespace Inklewriter.Parsed
                     return;
                 } 
 
-                if (targetFlow.parameterNames == null && numArgs > 0) {
+                if (targetFlow.arguments == null && numArgs > 0) {
                     Error ("target (" + targetFlow.name + ") doesn't take parameters");
                     return;
                 }
 
-                var paramCount = targetFlow.parameterNames.Count;
+                var paramCount = targetFlow.arguments.Count;
                 if (paramCount != numArgs) {
                     string butClause;
                     if (numArgs == 0) {

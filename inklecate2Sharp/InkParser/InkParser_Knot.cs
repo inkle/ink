@@ -8,7 +8,7 @@ namespace Inklewriter
         protected class FlowDecl
         {
             public string name;
-            public List<string> parameters;
+            public List<FlowBase.Argument> arguments;
         }
 
 		protected Knot KnotDefinition()
@@ -23,7 +23,7 @@ namespace Inklewriter
 
             var content = Expect (innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 			 
-            return new Knot (knotDecl.name, content, knotDecl.parameters);
+            return new Knot (knotDecl.name, content, knotDecl.arguments);
 		}
 
         protected FlowDecl KnotDeclaration()
@@ -41,14 +41,14 @@ namespace Inklewriter
 
             Whitespace ();
 
-            List<string> parameterNames = Parse (BracketedParameterNames);
+            List<FlowBase.Argument> parameterNames = Parse (BracketedKnotDeclArguments);
 
             Whitespace ();
 
             // Optional equals after name
             Parse(KnotTitleEquals);
 
-            return new FlowDecl () { name = knotName, parameters = parameterNames };
+            return new FlowDecl () { name = knotName, arguments = parameterNames };
         }
 
         protected string KnotTitleEquals()
@@ -74,7 +74,7 @@ namespace Inklewriter
 
             var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
-            return new Stitch (decl.name, content, decl.parameters);
+            return new Stitch (decl.name, content, decl.arguments);
 		}
 
         protected FlowDecl StitchDeclaration()
@@ -97,11 +97,11 @@ namespace Inklewriter
 
             Whitespace ();
 
-            List<string> parameterNames = Parse(BracketedParameterNames);
+            List<FlowBase.Argument> flowArgs = Parse(BracketedKnotDeclArguments);
 
             Whitespace ();
 
-            return new FlowDecl () { name = stitchName, parameters = parameterNames };
+            return new FlowDecl () { name = stitchName, arguments = flowArgs };
         }
 
 
@@ -115,22 +115,50 @@ namespace Inklewriter
 			return recoveredFlowContent;
 		}
 
-        protected List<string> BracketedParameterNames()
+        protected List<FlowBase.Argument> BracketedKnotDeclArguments()
         {
             if (ParseString ("(") == null)
                 return null;
 
-            var parameterNames = Interleave<string>(Spaced(Identifier), Exclude (String(",")));
+            var flowArguments = Interleave<FlowBase.Argument>(Spaced(FlowDeclArgument), Exclude (String(",")));
 
             Expect (String (")"), "closing ')' for parameter list");
 
             // If no parameters, create an empty list so that this method is type safe and 
             // doesn't attempt to return the ParseSuccess object
-            if (parameterNames == null) {
-                parameterNames = new List<string> ();
+            if (flowArguments == null) {
+                flowArguments = new List<FlowBase.Argument> ();
             }
 
-            return parameterNames;
+            return flowArguments;
+        }
+
+        protected FlowBase.Argument FlowDeclArgument()
+        {
+            // Next word could either be "ref" or the argument name
+            var firstIden = Parse(Identifier);
+            if (firstIden == null)
+                return null;
+
+            var flowArg = new FlowBase.Argument ();
+
+            // Passing by reference
+            if (firstIden == "ref") {
+
+                Whitespace ();
+
+                flowArg.name = (string) Expect (Identifier, "parameter name after 'ref'");
+                flowArg.isByReference = true;
+
+            } 
+
+            // Simple argument name
+            else {
+                flowArg.name = firstIden;
+                flowArg.isByReference = false;
+            }
+
+            return flowArg;
         }
 
 	}

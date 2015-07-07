@@ -5,13 +5,19 @@ namespace Inklewriter.Parsed
 	// Base class for Knots and Stitches
     public abstract class FlowBase : Parsed.Object, INamedContent
 	{
+        public class Argument
+        {
+            public string name;
+            public bool isByReference;
+        }
+
 		public string name { get; set; }
-        public List<string> parameterNames { get; protected set; }
-        public bool hasParameters { get { return parameterNames != null && parameterNames.Count > 0; } }
+        public List<Argument> arguments { get; protected set; }
+        public bool hasParameters { get { return arguments != null && arguments.Count > 0; } }
         public Dictionary<string, VariableAssignment> variableDeclarations;
         public abstract FlowLevel flowLevel { get; }
 
-        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<string> parameterNames = null)
+        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null)
 		{
 			this.name = name;
 
@@ -26,7 +32,7 @@ namespace Inklewriter.Parsed
 
             AddContent(topLevelObjects);
 
-            this.parameterNames = parameterNames;
+            this.arguments = arguments;
 
             variableDeclarations = new Dictionary<string, VariableAssignment> ();
 
@@ -194,8 +200,11 @@ namespace Inklewriter.Parsed
             if (variableDeclarations.ContainsKey (varName))
                 return true;
 
-            if (this.parameterNames != null && this.parameterNames.Contains (varName))
-                return true;
+            if (arguments != null ) {
+                foreach (var arg in arguments) {
+                    if( arg.name.Equals(varName) ) return true;
+                }
+            }
 
             return false;
         }
@@ -271,15 +280,15 @@ namespace Inklewriter.Parsed
 
         void GenerateArgumentVariableAssignments(Runtime.Container container)
         {
-            if (this.parameterNames == null || this.parameterNames.Count == 0) {
+            if (this.arguments == null || this.arguments.Count == 0) {
                 return;
             }
 
             // Assign parameters in reverse since they'll be popped off the evaluation stack
             // No need to generate EvalStart and EvalEnd since there's nothing being pushed
             // back onto the evaluation stack.
-            for (int i = parameterNames.Count - 1; i >= 0; --i) {
-                var paramName = parameterNames [i];
+            for (int i = arguments.Count - 1; i >= 0; --i) {
+                var paramName = arguments [i].name;
 
                 var assign = new Runtime.VariableAssignment (paramName, isNewDeclaration:true);
                 container.AddContent (assign);
