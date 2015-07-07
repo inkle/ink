@@ -123,13 +123,16 @@ namespace Inklewriter.Runtime
         public string variableName { get { return this.value; } set { this.value = value; } }
         public override LiteralType literalType { get { return LiteralType.VariablePointer; } }
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a variable pointer"); } }
+        public int resolvedCallstackElementIndex { get; set; }
 
         public LiteralVariablePointer(string variableName) : base(variableName)
         {
+            resolvedCallstackElementIndex = -1;
         }
 
-        public LiteralVariablePointer() : base(null)
-        {}
+        public LiteralVariablePointer() : this(null)
+        {
+        }
 
         public override Literal Cast(LiteralType newType)
         {

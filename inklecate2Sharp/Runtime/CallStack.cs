@@ -61,7 +61,24 @@ namespace Inklewriter.Runtime
             }
         }
 
+        // Get variable value, dereferencing a variable pointer if necessary
         public Runtime.Object GetVariableWithName(string name)
+        {
+            int unusedStackIdx;
+            var varValue = GetRawVariableWithName (name, out unusedStackIdx);
+
+            // Get value from pointer?
+            var varPointer = varValue as LiteralVariablePointer;
+            if (varPointer != null) {
+                var variablePointerContextEl = _callStack [varPointer.resolvedCallstackElementIndex];
+                varValue = variablePointerContextEl.variables [varPointer.variableName];
+            }
+
+            return varValue;
+        }
+
+        // Raw, in that it could be a variable pointer, in which case it doesn't de-reference it
+        Runtime.Object GetRawVariableWithName(string name, out int foundInStackElIdx)
         {
             Runtime.Object varValue = null;
 
@@ -70,16 +87,12 @@ namespace Inklewriter.Runtime
                 var element = _callStack [elIdx];
 
                 if (element.variables.TryGetValue (name, out varValue)) {
-
-                    var varPointer = varValue as LiteralVariablePointer;
-                    if (varPointer != null) {
-                        return GetVariableWithName (varPointer.variableName);
-                    }
-
+                    foundInStackElIdx = elIdx;
                     return varValue;
                 }
             }
 
+            foundInStackElIdx = -1;
             return null;
         }
 
@@ -92,6 +105,14 @@ namespace Inklewriter.Runtime
                 } else {
                     el = currentElement;
                 }
+
+                if (declareNew && value is LiteralVariablePointer) {
+                    var varPointer = value as LiteralVariablePointer;
+                    if (varPointer != null) {
+                        value = ResolveVariablePointer (varPointer);
+                    }
+                }
+
                 el.variables [name] = value;
                 return;
             }
@@ -105,12 +126,15 @@ namespace Inklewriter.Runtime
                 Runtime.Object existingValue = null;
                 if (element.variables.TryGetValue (name, out existingValue)) {
 
-                    var varPointer = existingValue as LiteralVariablePointer;
-                    if (varPointer != null) {
-                        SetVariable(varPointer.variableName, value, false, prioritiseHigherInCallStack);
-                    } else {
-                        element.variables [name] = value;
+                    // Resolve variable pointer to assign to
+                    while (existingValue is LiteralVariablePointer) {
+                        var varPointer = (LiteralVariablePointer) existingValue;
+                        name = varPointer.variableName;
+                        element = _callStack [varPointer.resolvedCallstackElementIndex];
+                        existingValue = element.variables [name];
                     }
+
+                    element.variables [name] = value;
 
                     return;
                 }
@@ -118,6 +142,29 @@ namespace Inklewriter.Runtime
             }
 
             throw new StoryException ("Could not find variable to set: " + name);
+        }
+
+        // Takes:   variable pointer where only the name of the variable is known
+        // Returns: variable pointer with additional information to pinpoint the
+        //          precise instance of a variable with that name on the callstack
+        LiteralVariablePointer ResolveVariablePointer(LiteralVariablePointer varPointer)
+        {
+            int stackIdx;
+            var varValue = GetRawVariableWithName (varPointer.variableName, out stackIdx);
+
+            // Extra layer of indirection:
+            // When accessing a pointer to a pointer (e.g. when calling nested or 
+            // recursive functions that take a variable references, ensure we don't create
+            // a chain of indirection by just returning the final target.
+            var existingPointer = varValue as LiteralVariablePointer;
+            if (existingPointer != null && existingPointer.resolvedCallstackElementIndex >= 0) {
+                return existingPointer;
+            }
+
+            // Return clone so we're not attempting to modify the source runtime
+            var clone = new LiteralVariablePointer (varPointer.variableName);
+            clone.resolvedCallstackElementIndex = stackIdx;
+            return clone;
         }
 
         private List<Element> _callStack;
