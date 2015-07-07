@@ -652,6 +652,28 @@ Hello world
             Assert.AreEqual (story.currentText, "\n120\n");
         }
 
+        [Test ()]
+        public void TestVariableSwapRecurse()
+        {
+            var storyStr =  @"
+~ f(1, 1)
+
+== f(x, y) ==
+{ x == 1 and y == 1:
+  ~ x = 2
+  ~ f(y, x)
+- else:
+  {x} {y}
+}
+~ ~ ~
+";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "1 2\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
