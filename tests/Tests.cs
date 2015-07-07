@@ -625,6 +625,33 @@ Hello world
             Assert.AreEqual (story.currentText, "5\n \n625\n");
         }
 
+
+        [Test ()]
+        public void TestFactorialByReference()
+        {
+            var storyStr =  @"
+~ var result
+~ factorialByRef(result, 5)
+{ result }
+
+
+== factorialByRef(ref r, n) ==
+{ r == 0:
+    ~ r = 1
+}
+{ n > 1:
+    ~ r = r * n
+    ~ factorialByRef(r, n-1)
+}
+~ ~ ~
+";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "\n120\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
