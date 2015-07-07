@@ -90,11 +90,10 @@ namespace Inklewriter.Parsed
             // Add error if runtime gets to the end of content without a divert/return etc
             if (!(this is Story) && !willStepStraightIntoSubFlow) {
                 
-
                 var lastWeaveObj = weaveObjs [weaveObjs.Count - 1];
                 if (!(lastWeaveObj is Parsed.Return)) {
 
-                    var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ done' or '~ return'?");
+                    var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ ~ ~' or '~ return'?");
                     var wrappedError = new Parsed.Wrap<Runtime.Error> (runtimeError);
 
                     if (lastWeaveObj.debugMetadata != null) {

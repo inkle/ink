@@ -59,6 +59,11 @@ namespace Inklewriter.Runtime
                 throw new System.Exception ("Unexpected number of parameters");
             }
 
+            foreach (var p in parameters) {
+                if (p is Void)
+                    throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
+            }
+
             var coercedParams = CoerceLiteralsToSingleType (parameters);
             LiteralType coercedType = coercedParams[0].literalType;
 
