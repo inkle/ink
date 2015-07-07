@@ -5,7 +5,7 @@ using Inklewriter.Runtime;
 namespace Tests
 {
 	[TestFixture ()]
-	public class StringParserTests
+	public class Tests
 	{
 		// Helper compile function
 		protected Story CompileString(string str)
@@ -556,7 +556,6 @@ Hello world
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            // Unfortunate leading newline...
             Assert.AreEqual (story.currentText, "different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n");
         }
 
@@ -576,6 +575,54 @@ Hello world
             var parsedStory = CompileStringWithoutRuntime (storyStr);
             Assert.IsTrue (parsedStory.hadWarning);
             Assert.AreEqual (parsedStory.warnings [0], "WARNING: Divert target not found: '==> inner'. Assuming you meant '=> inner' on line 5");
+        }
+
+        [Test ()]
+        public void TestFactorialRecursive()
+        {
+            var storyStr =  @"
+{ factorial(5) }
+
+== factorial(n) ==
+ { n == 1:
+    ~ return 1
+ - else:
+    ~ return (n * factorial(n-1))
+ }
+";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "120\n");
+       }
+
+        [Test ()]
+        public void TestNestedPassByReference()
+        {
+            var storyStr =  @"
+~ var x = 5
+
+{x}
+
+~ squaresquare(x)
+
+{x}
+
+== squaresquare(ref x) ==
+ {square(x)} {square(x)}
+ ~ ~ ~
+
+== square(ref x) ==
+ ~ x = x * x
+ ~ ~ ~
+";
+
+            Story story = CompileString (storyStr);
+            story.Begin ();
+
+            // Bloody whitespace
+            Assert.AreEqual (story.currentText, "5\n \n625\n");
         }
 
 		//------------------------------------------------------------------------
