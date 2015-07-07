@@ -226,7 +226,7 @@ namespace Inklewriter.Parsed
             //  - Any Choices and Gathers (i.e. IWeavePoint) found are 
             //    processsed by GenerateFlowContent.
             int contentIdx = 0;
-            while (contentIdx < content.Count) {
+            while (content != null && contentIdx < content.Count) {
 
                 Parsed.Object obj = content [contentIdx];
 

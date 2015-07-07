@@ -674,6 +674,15 @@ Hello world
             Assert.AreEqual (story.currentText, "1 2\n");
         }
 
+        [Test ()]
+        public void TestEmpty()
+        {
+            Story story = CompileString (@"");
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, string.Empty);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
