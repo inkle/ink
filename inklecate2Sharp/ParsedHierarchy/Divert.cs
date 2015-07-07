@@ -42,7 +42,7 @@ namespace Inklewriter.Parsed
             ResolveTargetContent ();
 
             // Passing arguments to the knot
-            if ( ResolveArguments() ) {
+            if ( ResolveArguments() || isFunctionCall ) {
 
                 var container = new Runtime.Container ();
 
