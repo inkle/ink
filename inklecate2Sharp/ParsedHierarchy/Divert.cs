@@ -31,8 +31,18 @@ namespace Inklewriter.Parsed
 		{
             runtimeDivert = new Runtime.Divert ();
 
+            // Normally we resolve the target content during the
+            // Resolve phase, since we expect all runtime objects to
+            // be available in order to find the final runtime path for
+            // the destination. However, we need to resolve the target
+            // (albeit without the runtime target) early so that
+            // we can get information about the arguments - whether
+            // they're by reference - since it affects the code we 
+            // generate here.
+            ResolveTargetContent ();
+
             // Passing arguments to the knot
-            if ( (arguments != null && arguments.Count > 0) || isFunctionCall) {
+            if ( ResolveArguments() ) {
 
                 var container = new Runtime.Container ();
 
@@ -40,10 +50,31 @@ namespace Inklewriter.Parsed
                     container.AddContent (Runtime.ControlCommand.EvalStart());
                 }
 
-                foreach (var expr in arguments) {
-                    expr.GenerateIntoContainer (container);
-                }
+                var targetArguments = (targetContent as FlowBase).arguments;
 
+                for (var i = 0; i < arguments.Count; ++i) {
+                    Expression argToPass = arguments [i];
+                    FlowBase.Argument argExpected = targetArguments [i];
+
+                    // Pass by reference: argument needs to be a variable reference
+                    if (argExpected.isByReference) {
+
+                        var varRef = argToPass as VariableReference;
+                        if (varRef == null) {
+                            Error ("Expected variable name to pass by reference to 'ref " + argExpected.name + "' but saw " + argToPass.ToString ());
+                            break;
+                        }
+
+                        var varPointer = new Runtime.LiteralVariablePointer (varRef.name);
+                        container.AddContent (varPointer);
+                    } 
+
+                    // Normal value being passed: evaluate it as normal
+                    else {
+                        argToPass.GenerateIntoContainer (container);
+                    }
+                }
+                    
                 if (!isFunctionCall) {
                     container.AddContent (Runtime.ControlCommand.EvalEnd());
                 }
@@ -74,9 +105,10 @@ namespace Inklewriter.Parsed
         {
             return target.firstComponent;
         }
+            
 
-        public override void ResolveReferences(Story context)
-		{
+        void ResolveTargetContent()
+        {
             if (isToGather) {
                 return;
             }
@@ -118,53 +150,77 @@ namespace Inklewriter.Parsed
                     // rather than a runtime path.
                     debugMetadata.sourceName = target.ToString ();
                 }
-                    
+
+            }
+        }
+
+        public override void ResolveReferences(Story context)
+		{
+            if (isToGather) {
+                return;
             }
 
-            // Resolve children (arguments)
+            if (targetContent != null) {
+                runtimeDivert.targetPath = targetContent.runtimePath;
+            }
+
+            // Resolve children (the arguments)
             base.ResolveReferences (context);
-
-			if (targetContent != null) {
-                
-				runtimeDivert.targetPath = targetContent.runtimePath;
-
-                // Argument passing: Check for errors in number of arguments
-                var numArgs = 0;
-                if (arguments != null && arguments.Count > 0)
-                    numArgs = arguments.Count;
-
-                FlowBase targetFlow = targetContent as FlowBase;
-
-                // No error, crikey!
-                if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
-                    return;
-                }
-
-                if (targetFlow == null && numArgs > 0) {
-                    Error ("target needs to be a knot or stitch in order to pass arguments");
-                    return;
-                } 
-
-                if (targetFlow.arguments == null && numArgs > 0) {
-                    Error ("target (" + targetFlow.name + ") doesn't take parameters");
-                    return;
-                }
-
-                var paramCount = targetFlow.arguments.Count;
-                if (paramCount != numArgs) {
-                    string butClause;
-                    if (numArgs == 0) {
-                        butClause = "but there weren't any passed to it";
-                    } else if (numArgs < paramCount) {
-                        butClause = "but only got " + numArgs;
-                    } else {
-                        butClause = "but got " + numArgs;
-                    }
-                    Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
-                    return;
-                }
-			}
 		}
+
+        // Returns true if arguments require code generation (as opposed to whether there's an error,
+        // though that's related)
+        bool ResolveArguments()
+        {
+            if (isToGather) 
+                return false;
+
+            if (targetContent == null)
+                return false;
+
+            // Argument passing: Check for errors in number of arguments
+            var numArgs = 0;
+            if (arguments != null && arguments.Count > 0)
+                numArgs = arguments.Count;
+
+            FlowBase targetFlow = targetContent as FlowBase;
+
+            // No error, crikey!
+            if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
+                return false;
+            }
+
+            if (targetFlow == null && numArgs > 0) {
+                Error ("target needs to be a knot or stitch in order to pass arguments");
+                return false;
+            } 
+
+            if (targetFlow.arguments == null && numArgs > 0) {
+                Error ("target (" + targetFlow.name + ") doesn't take parameters");
+                return false;
+            }
+
+            var paramCount = targetFlow.arguments.Count;
+            if (paramCount != numArgs) {
+                string butClause;
+                if (numArgs == 0) {
+                    butClause = "but there weren't any passed to it";
+                } else if (numArgs < paramCount) {
+                    butClause = "but only got " + numArgs;
+                } else {
+                    butClause = "but got " + numArgs;
+                }
+                Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
+                return false;
+            }
+                
+            if (targetFlow == null) {
+                Error ("Can't call as a function or with arguments unless it's a knot or stitch");
+                return false;
+            }
+
+            return true;
+        }
 
         public override void Error (string message, Object source = null, bool isWarning = false)
         {
@@ -179,9 +235,8 @@ namespace Inklewriter.Parsed
             } else {
                 base.Error ("Divert " + message, source, isWarning);
             }
-
         }
-            			
+
 	}
 }
 

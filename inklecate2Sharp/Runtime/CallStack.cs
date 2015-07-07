@@ -70,6 +70,12 @@ namespace Inklewriter.Runtime
                 var element = _callStack [elIdx];
 
                 if (element.variables.TryGetValue (name, out varValue)) {
+
+                    var varPointer = varValue as LiteralVariablePointer;
+                    if (varPointer != null) {
+                        return GetVariableWithName (varPointer.variableName);
+                    }
+
                     return varValue;
                 }
             }
@@ -96,10 +102,19 @@ namespace Inklewriter.Runtime
             for (int elIdx = _callStack.Count - 1; elIdx >= 0; --elIdx) {
                 var element = _callStack [elIdx];
 
-                if (element.variables.ContainsKey (name)) {
-                    element.variables [name] = value;
+                Runtime.Object existingValue = null;
+                if (element.variables.TryGetValue (name, out existingValue)) {
+
+                    var varPointer = existingValue as LiteralVariablePointer;
+                    if (varPointer != null) {
+                        SetVariable(varPointer.variableName, value, false, prioritiseHigherInCallStack);
+                    } else {
+                        element.variables [name] = value;
+                    }
+
                     return;
                 }
+
             }
 
             throw new StoryException ("Could not find variable to set: " + name);
