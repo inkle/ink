@@ -50,14 +50,18 @@ namespace Inklewriter.Parsed
                     container.AddContent (Runtime.ControlCommand.EvalStart());
                 }
 
-                var targetArguments = (targetContent as FlowBase).arguments;
+                List<FlowBase.Argument> targetArguments = null;
+                if( targetContent != null )
+                    targetArguments = (targetContent as FlowBase).arguments;
 
                 for (var i = 0; i < arguments.Count; ++i) {
                     Expression argToPass = arguments [i];
-                    FlowBase.Argument argExpected = targetArguments [i];
+                    FlowBase.Argument argExpected = null; 
+                    if( targetArguments != null ) 
+                        argExpected = targetArguments [i];
 
                     // Pass by reference: argument needs to be a variable reference
-                    if (argExpected.isByReference) {
+                    if (argExpected != null && argExpected.isByReference) {
 
                         var varRef = argToPass as VariableReference;
                         if (varRef == null) {
@@ -193,7 +197,7 @@ namespace Inklewriter.Parsed
             if (targetFlow == null && numArgs > 0) {
                 Error ("target needs to be a knot or stitch in order to pass arguments");
                 return false;
-            } 
+            }
 
             if (targetFlow.arguments == null && numArgs > 0) {
                 Error ("target (" + targetFlow.name + ") doesn't take parameters");
@@ -201,7 +205,13 @@ namespace Inklewriter.Parsed
             }
 
             var paramCount = targetFlow.arguments.Count;
+            if (paramCount > 0 && this.parent is DivertTarget) {
+                Error ("Can't store a link to a knot that takes parameters in a variable");
+                return false;
+            }
+
             if (paramCount != numArgs) {
+
                 string butClause;
                 if (numArgs == 0) {
                     butClause = "but there weren't any passed to it";
