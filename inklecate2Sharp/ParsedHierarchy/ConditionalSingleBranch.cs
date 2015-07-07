@@ -5,8 +5,22 @@ namespace Inklewriter.Parsed
 {
     public class ConditionalSingleBranch : Parsed.Object
     {
+        // bool condition, e.g.:
+        // { 5 == 4:
+        //   - the true branch
+        //   - the false branch
+        // }
         public bool isBoolCondition { get; set; }
+
+        // whether it's the "true" branch or "false" branch when it's a bool condition
         public bool boolRequired { get; set; }
+
+        // When each branch has its own expression like a switch statement,
+        // this is non-null. e.g.
+        // { x:
+        //    - 4: the value of x is four (ownExpression is the value 4)
+        //    - 3: the value of x is three
+        // }
         public Expression ownExpression { 
             get { 
                 return _ownExpression; 
@@ -18,8 +32,19 @@ namespace Inklewriter.Parsed
                 }
             }
         }
+
+        // In the above example, match equality of x with 4 for the first branch.
+        // This is as opposed to simply evaluating boolean equality for each branch,
+        // example when shouldMatchEqualtity is FALSE:
+        // {
+        //    3 > 2:  This will happen
+        //    2 > 3:  This won't happen
+        // }
         public bool shouldMatchEquality { get; set; }
-        public bool alwaysMatch { get; set; } // used for else clause
+
+        // used for else branches
+        public bool alwaysMatch { get; set; }
+
         public Runtime.Divert returnDivert { get; protected set; }
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
@@ -41,7 +66,8 @@ namespace Inklewriter.Parsed
             // branch? If so, the first thing we need to do is replicate the value that's
             // on the evaluation stack so that we don't fully consume it, in case other
             // branches need to use it.
-            if ( (isBoolCondition || shouldMatchEquality) && !alwaysMatch ) {
+            bool usingValueOnStack = (isBoolCondition || shouldMatchEquality) && !alwaysMatch;
+            if ( usingValueOnStack ) {
                 container.AddContent (Runtime.ControlCommand.Duplicate ());
             }
 
@@ -81,6 +107,10 @@ namespace Inklewriter.Parsed
 
             _contentContainer = GenerateRuntimeForContent ();
             _contentContainer.name = "b";
+
+            if( usingValueOnStack )
+                _contentContainer.InsertContent (Runtime.ControlCommand.PopEvaluatedValue (), 0);
+
             container.AddToNamedContentOnly (_contentContainer);
 
             returnDivert = new Runtime.Divert ();
@@ -100,9 +130,9 @@ namespace Inklewriter.Parsed
                 var runtimeObj = container.content [0];
                 var singleContentContainer = runtimeObj as Runtime.Container;
                 if (singleContentContainer != null && !singleContentContainer.hasValidName) {
-                    return singleContentContainer;
+                    container = singleContentContainer;
                 }
-            }
+            } 
 
             return container;
         }
@@ -110,7 +140,6 @@ namespace Inklewriter.Parsed
         public override void ResolveReferences (Story context)
         {
             _divertOnBranch.targetPath = _contentContainer.path;
-
 
             base.ResolveReferences (context);
         }

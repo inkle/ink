@@ -320,6 +320,10 @@ namespace Inklewriter.Runtime
                     PushEvaluationStack (PeekEvaluationStack ());
                     break;
 
+                case ControlCommand.CommandType.PopEvaluatedValue:
+                    PopEvaluationStack ();
+                    break;
+
                 case ControlCommand.CommandType.ChoiceCount:
                     var choiceCount = currentChoices.Count;
                     PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
@@ -854,8 +858,8 @@ namespace Inklewriter.Runtime
                 if (formatParams != null && formatParams.Count() > 0) {
                     message = string.Format (message, formatParams);
                 }
-
-                Error (message);
+                    
+                throw new SystemException (message + " " + currentDebugMetadata);
             }
         }
 

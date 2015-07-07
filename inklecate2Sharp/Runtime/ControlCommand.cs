@@ -11,6 +11,7 @@ namespace Inklewriter.Runtime
             StackPush,
             StackPop,
             Duplicate,
+            PopEvaluatedValue,
             NoOp,
             ChoiceCount,
             VisitIndex,
@@ -46,6 +47,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand Duplicate() {
             return new ControlCommand(CommandType.Duplicate);
+        }
+
+        public static ControlCommand PopEvaluatedValue() {
+            return new ControlCommand (CommandType.PopEvaluatedValue);
         }
 
         public static ControlCommand NoOp() {

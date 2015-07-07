@@ -60,6 +60,19 @@ namespace Inklewriter.Runtime
 
 			TryAddNamedContent (contentObj);
 		}
+
+        public void InsertContent(Runtime.Object contentObj, int index)
+        {
+            content.Insert (index, contentObj);
+
+            if (contentObj.parent != null) {
+                throw new System.Exception ("content is already in " + contentObj.parent);
+            }
+
+            contentObj.parent = this;
+
+            TryAddNamedContent (contentObj);
+        }
             
 		public void TryAddNamedContent(Runtime.Object contentObj)
 		{
