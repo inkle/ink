@@ -683,6 +683,22 @@ Hello world
             Assert.AreEqual (story.currentText, string.Empty);
         }
 
+        [Test ()]
+        public void TestIncrement()
+        {
+            Story story = CompileString (@"
+~ var x = 5
+~ x++
+{x}
+
+~ x--
+{x}
+");
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "6\n5\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
