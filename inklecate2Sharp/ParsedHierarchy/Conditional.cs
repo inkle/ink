@@ -12,7 +12,7 @@ namespace Inklewriter.Parsed
         public Conditional (Expression condition, List<ConditionalSingleBranch> branches)
         {
             this.initialCondition = condition;
-            if (this.initialCondition != null) {
+            if (this.initialCondition) {
                 AddContent (condition);
             }
 
@@ -28,7 +28,7 @@ namespace Inklewriter.Parsed
             var container = new Runtime.Container ();
 
             // Initial condition
-            if (this.initialCondition != null) {
+            if (this.initialCondition) {
                 container.AddContent (initialCondition.runtimeObject);
             }
 
@@ -39,7 +39,7 @@ namespace Inklewriter.Parsed
             }
 
             // If no branches matched, tidy up after ourselves
-            if (this.initialCondition != null)
+            if (this.initialCondition)
                 container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
 
             // Target for branches to rejoin to

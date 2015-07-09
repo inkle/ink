@@ -15,7 +15,7 @@ namespace Inklewriter.Runtime
         public override bool Equals (object obj)
         {
             var otherDivert = obj as Divert;
-            if (otherDivert != null) {
+            if (otherDivert) {
                 if (this.hasVariableTarget == otherDivert.hasVariableTarget) {
                     if (this.hasVariableTarget) {
                         return this.variableDivertName == otherDivert.variableDivertName;

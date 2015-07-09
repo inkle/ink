@@ -51,7 +51,7 @@ namespace Inklewriter.Parsed
                 }
 
                 List<FlowBase.Argument> targetArguments = null;
-                if( targetContent != null )
+                if( targetContent )
                     targetArguments = (targetContent as FlowBase).arguments;
 
                 for (var i = 0; i < arguments.Count; ++i) {
@@ -137,11 +137,11 @@ namespace Inklewriter.Parsed
 
                     Path alternativePath = null;
                     targetContent = target.ResolveFromContext (this, forceSearchAnywhere:true);
-                    if (targetContent != null) {
+                    if (targetContent) {
                         alternativePath = targetContent.PathRelativeTo (this);
                     }
 
-                    if (targetContent != null) {
+                    if (targetContent) {
                         Warning ("target not found: '" + target.ToString () + "'. Assuming you meant '"+alternativePath+"'");
                         target = alternativePath;
                     } else {
@@ -164,7 +164,7 @@ namespace Inklewriter.Parsed
                 return;
             }
 
-            if (targetContent != null) {
+            if (targetContent) {
                 runtimeDivert.targetPath = targetContent.runtimePath;
             }
 
@@ -235,7 +235,7 @@ namespace Inklewriter.Parsed
         public override void Error (string message, Object source = null, bool isWarning = false)
         {
             // Could be getting an error from a nested Divert
-            if (source != this && source != null) {
+            if (source != this && source) {
                 base.Error (message, source);
                 return;
             }

@@ -138,7 +138,7 @@ namespace Inklewriter
 
             // Conditional with expression?
             var initialQueryExpression = Parse(ConditionExpression);
-            if (initialQueryExpression != null) {
+            if (initialQueryExpression) {
                 var conditional = (Conditional) Expect(() => InnerConditionalContent (initialQueryExpression), "conditional content following query (i.e. '"+initialQueryExpression+"'");
                 return conditional;
             }
@@ -167,7 +167,7 @@ namespace Inklewriter
                 int ruleId = BeginRule ();
 
                 Parsed.Object result = ParseObject(rule) as Parsed.Object;
-                if (result != null) {
+                if (result) {
 
                     // Not yet at end?
                     if (Peek (Spaced (String ("}"))) == null)
@@ -188,7 +188,7 @@ namespace Inklewriter
         protected Parsed.Object InnerExpression()
         {
             var expr = Parse(Expression);
-            if (expr != null) {
+            if (expr) {
                 expr.outputWhenComplete = true;
             }
             return expr;

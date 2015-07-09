@@ -41,7 +41,7 @@ namespace Inklewriter
                     // { true: 
                     //    Some content that isn't preceded by '-'
                     // }
-                    if (initialQueryExpression != null) {
+                    if (initialQueryExpression) {
                         List<Parsed.Object> soleContent = StatementsAtLevel (StatementLevel.InnerBlock);
                         if (soleContent != null) {
                             var soleBranch = new ConditionalSingleBranch (soleContent);
@@ -50,7 +50,7 @@ namespace Inklewriter
 
                             // Also allow a final "- else:" clause
                             var elseBranch = Parse(SingleMultilineCondition);
-                            if (elseBranch != null) {
+                            if (elseBranch) {
                                 if (!elseBranch.alwaysMatch) {
                                     Error ("Expected an '- else:' clause here rather than an extra condition");
                                     elseBranch.alwaysMatch = true;
@@ -66,12 +66,12 @@ namespace Inklewriter
                     }
                 }
 
-                if (initialQueryExpression != null) {
+                if (initialQueryExpression) {
 
                     bool earlierBranchesHaveOwnExpression = false;
                     for (int i = 0; i < alternatives.Count; ++i) {
                         var branch = alternatives [i];
-                        if (branch.ownExpression != null) {
+                        if (branch.ownExpression) {
                             branch.shouldMatchEquality = true;
                             earlierBranchesHaveOwnExpression = true;
                         } else if (earlierBranchesHaveOwnExpression) {

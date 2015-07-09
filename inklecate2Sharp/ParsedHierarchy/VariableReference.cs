@@ -25,7 +25,7 @@ namespace Inklewriter.Parsed
                
                 // No variables with the given name. Try a read count.
                 var objForReadCount = context.ResolveTargetForReadCountWithName (this.name, fromNode: this);
-                if (objForReadCount != null) {
+                if (objForReadCount) {
                     _runtimeVarRef.pathForVisitCount = objForReadCount.runtimePath;
                 }
 

@@ -46,7 +46,7 @@ namespace Inklewriter.Parsed
 
                     // When an included story fails to load, the include
                     // line itself is still valid, so we have to handle it here
-                    if (file.includedStory != null) {
+                    if (file.includedStory) {
                         
                         var nonFlowContent = new List<Parsed.Object> ();
 
@@ -134,7 +134,7 @@ namespace Inklewriter.Parsed
             }
 
             sb.Append (message);
-            if (source != null && source.debugMetadata != null && source.debugMetadata.startLineNumber >= 1 ) {
+            if (source && source.debugMetadata != null && source.debugMetadata.startLineNumber >= 1 ) {
                 sb.Append (" on "+source.debugMetadata.ToString());
             }
 

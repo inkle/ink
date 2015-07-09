@@ -36,7 +36,7 @@ namespace Inklewriter.Runtime
         public string name { get; protected set; }
         public int numberOfParameters { 
             get {
-                if (_prototype != null) {
+                if (_prototype) {
                     return _prototype.numberOfParameters;
                 } else {
                     return _numberOfParameters;
@@ -51,7 +51,7 @@ namespace Inklewriter.Runtime
 
         public Runtime.Object Call(List<Runtime.Object> parameters)
         {
-            if (_prototype != null) {
+            if (_prototype) {
                 return _prototype.Call(parameters);
             }
 

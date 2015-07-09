@@ -48,7 +48,7 @@ namespace Inklewriter.Parsed
 
                 if (obj is VariableAssignment) {
                     var varDecl = (VariableAssignment)obj;
-                    if (varDecl != null && varDecl.isNewDeclaration) {
+                    if (varDecl && varDecl.isNewDeclaration) {
                         TryAddNewVariableDeclaration (varDecl);
                     }
                 } 
@@ -76,7 +76,7 @@ namespace Inklewriter.Parsed
             foreach (var obj in contentObjs) {
 
                 var subFlow = obj as FlowBase;
-                if (subFlow != null) {
+                if (subFlow) {
                     subFlowObjs.Add (obj);
                     _subFlowsByName [subFlow.name] = subFlow;
                 } else {
@@ -154,7 +154,7 @@ namespace Inklewriter.Parsed
             }
 
             var ancestor = fromNode;
-            while (ancestor != null) {
+            while (ancestor) {
 
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
@@ -177,13 +177,13 @@ namespace Inklewriter.Parsed
             }
 
             var ancestor = fromNode;
-            while (ancestor != null) {
+            while (ancestor) {
 
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
 
                     var content = ancestorFlow.ContentWithNameAtLevel (name);
-                    if (content != null) {
+                    if (content) {
                         return content;
                     }
                 }
@@ -258,7 +258,7 @@ namespace Inklewriter.Parsed
             }
 
             // Tie up final loose ends to the very end
-            if (_rootWeave != null && _rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
+            if (_rootWeave && _rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
 
                 foreach (var looseEnd in _rootWeave.looseEnds) {
                     if (looseEnd is Divert) {
@@ -300,9 +300,9 @@ namespace Inklewriter.Parsed
                 
                 Parsed.Object weavePointResult = null;
 
-                if (_rootWeave != null) {
+                if (_rootWeave) {
                     weavePointResult = (Parsed.Object)_rootWeave.WeavePointNamed (name);
-                    if (weavePointResult != null)
+                    if (weavePointResult)
                         return weavePointResult;
                 }
 
@@ -331,7 +331,7 @@ namespace Inklewriter.Parsed
             foreach (var subFlowNamePair in _subFlowsByName) {
                 var subFlow = subFlowNamePair.Value;
                 var deepResult = subFlow.ContentWithNameAtLevel (name, levelType:null, deepSearch: true);
-                if (deepResult != null)
+                if (deepResult)
                     return deepResult;
             }
 
@@ -340,7 +340,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            if (_finalLooseEndTarget != null) {
+            if (_finalLooseEndTarget) {
                 var flowEndPath = _finalLooseEndTarget.path;
                 foreach (var finalLooseEndDivert in _finalLooseEnds) {
                     finalLooseEndDivert.targetPath = flowEndPath;

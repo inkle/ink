@@ -24,7 +24,7 @@ namespace Inklewriter.Runtime
 				if (content.Count > 0) {
 					Path path = Path.ToFirstElement();
 					var subContainer = content.First () as Container;
-					if (subContainer != null) {
+					if (subContainer) {
 						Path tailPath = subContainer.pathToFirstLeafContent;
 						path = path.PathByAppendingPath (tailPath);
 					}
@@ -52,7 +52,7 @@ namespace Inklewriter.Runtime
 		{
 			content.Add (contentObj);
 
-            if (contentObj.parent != null) {
+            if (contentObj.parent) {
                 throw new System.Exception ("content is already in " + contentObj.parent);
             }
 
@@ -65,7 +65,7 @@ namespace Inklewriter.Runtime
         {
             content.Insert (index, contentObj);
 
-            if (contentObj.parent != null) {
+            if (contentObj.parent) {
                 throw new System.Exception ("content is already in " + contentObj.parent);
             }
 

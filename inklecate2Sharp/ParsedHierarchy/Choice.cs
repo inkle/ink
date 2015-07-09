@@ -16,7 +16,7 @@ namespace Inklewriter.Parsed
             } 
             set { 
                 _condition = value; 
-                if( _condition != null )
+                if( _condition )
                     AddContent (_condition);
             }
         }
@@ -42,7 +42,7 @@ namespace Inklewriter.Parsed
         public override Runtime.Path runtimePath
         {
             get {
-                if (_weaveContentContainer != null) {
+                if (_weaveContentContainer) {
                     return _weaveContentContainer.path;
                 } else {
                     // This Choice may or may not have been resolved already
@@ -58,12 +58,12 @@ namespace Inklewriter.Parsed
             this.choiceOnlyText = choiceOnlyText;
             this.innerContent = innerContent;
 
-            if( innerContent != null )
+            if( innerContent )
                 AddContent (this.innerContent);
 
             this.onceOnly = true; // default
 
-            if (divert != null) {
+            if (divert) {
                 if (divert.isToGather) {
                     this.explicitGather = true;
                 } else {
@@ -106,11 +106,11 @@ namespace Inklewriter.Parsed
             //         weave content
             //     ]
             // ]
-            if ( hasOwnContent || condition != null ) {
+            if ( hasOwnContent || condition ) {
 
                 _weaveOuterContainer = new Runtime.Container ();
 
-                if (condition != null) {
+                if (condition) {
                     var exprContainer = (Runtime.Container) condition.runtimeObject;
                     _weaveOuterContainer.AddContentsOfContainer (exprContainer);
                     _runtimeChoice.hasCondition = true;
@@ -166,7 +166,7 @@ namespace Inklewriter.Parsed
                 targetObjContainer.visitsShouldBeCounted = true;
             }
 
-            if (_weaveContentEndDivert != null) {
+            if (_weaveContentEndDivert) {
                 _weaveContentEndDivert.targetPath = _resolvedExplicitPath;
             } else {
                 _runtimeChoice.pathOnChoice = _resolvedExplicitPath;
@@ -176,7 +176,7 @@ namespace Inklewriter.Parsed
         public override void ResolveReferences(Story context)
 		{
 			// Weave style choice - target own content container
-            if (_weaveContentContainer != null) {
+            if (_weaveContentContainer) {
                 _runtimeChoice.pathOnChoice = _weaveContentContainer.path;
             }
 

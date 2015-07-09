@@ -9,7 +9,7 @@ namespace Inklewriter.Runtime
         public Runtime.DebugMetadata debugMetadata { 
             get {
                 if (_debugMetadata == null) {
-                    if (parent != null) {
+                    if (parent) {
                         return parent.debugMetadata;
                     }
                 }
@@ -33,9 +33,9 @@ namespace Inklewriter.Runtime
             
             // Try to get a line number from debug metadata
             var root = this.rootContentContainer;
-            if (root != null) {
+            if (root) {
                 var targetContent = root.ContentAtPath (path);
-                if (targetContent != null) {
+                if (targetContent) {
                     var dm = targetContent.debugMetadata;
                     if (dm != null) {
                         return dm.startLineNumber;
@@ -62,7 +62,7 @@ namespace Inklewriter.Runtime
                     var child = this;
                     Container container = child.parent as Container;
 
-                    while (container != null) {
+                    while (container) {
 
                         var namedChild = child as INamedContent;
                         if (namedChild != null && namedChild.hasValidName) {
@@ -85,7 +85,7 @@ namespace Inklewriter.Runtime
             get 
             {
                 Runtime.Object ancestor = this;
-                while (ancestor.parent != null) {
+                while (ancestor.parent) {
                     ancestor = ancestor.parent;
                 }
                 return ancestor as Container;

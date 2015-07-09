@@ -8,7 +8,7 @@ namespace Inklewriter.Parsed
         public Runtime.DebugMetadata debugMetadata { 
             get {
                 if (_debugMetadata == null) {
-                    if (parent != null) {
+                    if (parent) {
                         return parent.debugMetadata;
                     }
                 }
@@ -78,7 +78,7 @@ namespace Inklewriter.Parsed
             FlowLevel baseFlow = FlowLevel.WeavePoint;
 
             var ancestor = this;
-            while(ancestor != null && ancestor != commonFlowAncestor && !(ancestor is Story)) {
+            while(ancestor && ancestor != commonFlowAncestor && !(ancestor is Story)) {
 
                 if (ancestor == commonFlowAncestor)
                     break;
@@ -93,7 +93,7 @@ namespace Inklewriter.Parsed
                 }
 
                 var flowAncestor = ancestor as FlowBase;
-                if (flowAncestor != null) {
+                if (flowAncestor) {
                     pathComponents.Add (flowAncestor.name);
                     baseFlow = flowAncestor.flowLevel;
                 }
@@ -116,7 +116,7 @@ namespace Inklewriter.Parsed
                 var result = new List<Parsed.Object> ();
 
                 var ancestor = this.parent;
-                while(ancestor != null) {
+                while(ancestor) {
                     result.Add (ancestor);
                     ancestor = ancestor.parent;
                 }
@@ -132,9 +132,9 @@ namespace Inklewriter.Parsed
             var locationNames = new List<string> ();
 
             Parsed.Object ancestor = this;
-            while (ancestor != null) {
+            while (ancestor) {
                 var ancestorFlow = ancestor as FlowBase;
-                if (ancestorFlow != null && ancestorFlow.name != null) {
+                if (ancestorFlow && ancestorFlow.name != null) {
                     locationNames.Add ("'"+ancestorFlow.name+"'");
                 }
                 ancestor = ancestor.parent;
@@ -243,7 +243,7 @@ namespace Inklewriter.Parsed
         public FlowBase ClosestFlowBase()
         {
             var ancestor = this.parent;
-            while (ancestor != null) {
+            while (ancestor) {
                 if (ancestor is FlowBase) {
                     return (FlowBase)ancestor;
                 }
@@ -259,7 +259,7 @@ namespace Inklewriter.Parsed
 				source = this;
 			}
 
-			if (this.parent != null) {
+			if (this.parent) {
 				this.parent.Error (message, source, isWarning);
 			}
 		}

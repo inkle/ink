@@ -34,7 +34,7 @@ namespace Inklewriter
 
             // Trim whitepace from start
             var firstText = result[0] as Text;
-            if (firstText != null) {
+            if (firstText) {
                 firstText.text = firstText.text.TrimStart(' ', '\t');
                 if (firstText.text.Length == 0) {
                     result.RemoveAt (0);
@@ -65,7 +65,7 @@ namespace Inklewriter
 
             // Terminating divert?
             var divert = Parse (Divert);
-            if (divert != null) {
+            if (divert) {
 
                 // May not have had any results at all if there's *only* a divert!
                 if (results == null)

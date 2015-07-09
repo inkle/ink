@@ -12,10 +12,10 @@ namespace Inklewriter.Runtime
             this.trueDivert = trueDivert;
             this.falseDivert = falseDivert;
 
-            if (trueDivert != null) {
+            if (trueDivert) {
                 trueDivert.parent = this;
             }
-            if (falseDivert != null) {
+            if (falseDivert) {
                 falseDivert.parent = this;
             }
         }
@@ -24,10 +24,10 @@ namespace Inklewriter.Runtime
         {
             var sb = new StringBuilder ();
             sb.Append ("Branch: ");
-            if (trueDivert != null) {
+            if (trueDivert) {
                 sb.AppendFormat ("(true: {0})", trueDivert);
             }
-            if (falseDivert != null) {
+            if (falseDivert) {
                 sb.AppendFormat ("(false: {0})", falseDivert);
             }
             return sb.ToString ();

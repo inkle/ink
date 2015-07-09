@@ -6,7 +6,7 @@
 
         public Return (Expression returnedExpression = null)
         {            
-            if (returnedExpression != null) {
+            if (returnedExpression) {
                 this.returnedExpression = AddContent(returnedExpression);
             }
         }
@@ -16,7 +16,7 @@
             var container = new Runtime.Container ();
 
             // Evaluate expression
-            if (returnedExpression != null) {
+            if (returnedExpression) {
                 container.AddContent (returnedExpression.runtimeObject);
             } 
 

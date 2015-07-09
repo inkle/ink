@@ -263,7 +263,7 @@ namespace Inklewriter.Parsed
 
                 // If choice has an explicit gather divert ("->") then it doesn't need content added to it
                 var looseChoice = weavePoint as Choice;
-                if (looseChoice != null && !looseChoice.explicitGather) {
+                if (looseChoice && !looseChoice.explicitGather) {
                     addContentToPreviousWeavePoint = true;
                 }
             }
@@ -301,7 +301,7 @@ namespace Inklewriter.Parsed
             if (looseEnds.Count > 0) {
 
                 var weaveAncestor = closestWeaveAncestor;
-                if (weaveAncestor != null) {
+                if (weaveAncestor) {
                     weaveAncestor.ReceiveLooseEnds (looseEnds);
                     looseEnds = null;
                 }
@@ -337,7 +337,7 @@ namespace Inklewriter.Parsed
         Weave closestWeaveAncestor {
             get {
                 var ancestor = this.parent;
-                while (ancestor != null && !(ancestor is Weave)) {
+                while (ancestor && !(ancestor is Weave)) {
                     ancestor = ancestor.parent;
                 }
                 return (Weave)ancestor;
@@ -371,7 +371,7 @@ namespace Inklewriter.Parsed
             else {
                 for (int i = weavePoint.content.Count - 1; i >= 0; --i) {
                     var innerDivert = weavePoint.content [i] as Divert;
-                    if (innerDivert != null && !innerDivert.isToGather) {
+                    if (innerDivert && !innerDivert.isToGather) {
                         return false;
                     }
                 }

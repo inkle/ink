@@ -69,7 +69,7 @@ namespace Inklewriter.Runtime
 
             // Get value from pointer?
             var varPointer = varValue as LiteralVariablePointer;
-            if (varPointer != null) {
+            if (varPointer) {
                 var variablePointerContextEl = _callStack [varPointer.resolvedCallstackElementIndex];
                 varValue = variablePointerContextEl.variables [varPointer.variableName];
             }
@@ -108,7 +108,7 @@ namespace Inklewriter.Runtime
 
                 if (declareNew && value is LiteralVariablePointer) {
                     var varPointer = value as LiteralVariablePointer;
-                    if (varPointer != null) {
+                    if (varPointer) {
                         value = ResolveVariablePointer (varPointer);
                     }
                 }
@@ -157,7 +157,7 @@ namespace Inklewriter.Runtime
             // recursive functions that take a variable references, ensure we don't create
             // a chain of indirection by just returning the final target.
             var existingPointer = varValue as LiteralVariablePointer;
-            if (existingPointer != null && existingPointer.resolvedCallstackElementIndex >= 0) {
+            if (existingPointer && existingPointer.resolvedCallstackElementIndex >= 0) {
                 return existingPointer;
             }
 

@@ -27,7 +27,7 @@ namespace Inklewriter.Parsed
             } 
             set { 
                 _ownExpression = value; 
-                if (_ownExpression != null) {
+                if (_ownExpression) {
                     AddContent (_ownExpression); 
                 }
             }
@@ -83,12 +83,12 @@ namespace Inklewriter.Parsed
                 }
             } else {
 
-                bool needsEval = ownExpression != null || alwaysMatch;
+                bool needsEval = ownExpression || alwaysMatch;
 
                 if( needsEval )
                     container.AddContent (Runtime.ControlCommand.EvalStart ());
 
-                if (ownExpression != null)
+                if (ownExpression)
                     ownExpression.GenerateIntoContainer (container);
 
                 if (shouldMatchEquality)
@@ -129,7 +129,7 @@ namespace Inklewriter.Parsed
             if (container.content.Count == 1) {
                 var runtimeObj = container.content [0];
                 var singleContentContainer = runtimeObj as Runtime.Container;
-                if (singleContentContainer != null && !singleContentContainer.hasValidName) {
+                if (singleContentContainer && !singleContentContainer.hasValidName) {
                     container = singleContentContainer;
                 }
             } 

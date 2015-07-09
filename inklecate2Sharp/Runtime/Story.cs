@@ -97,11 +97,11 @@ namespace Inklewriter.Runtime
     			do {
 
     				currentContentObj = ContentAtPath(currentPath);
-    				if( currentContentObj != null ) {
+    				if( currentContentObj ) {
                     					
                         // Convert path to get first leaf content
                         Container currentContainer = currentContentObj as Container;;
-                        if( currentContainer != null && currentContainer.content.Count > 0 ) {
+                        if( currentContainer && currentContainer.content.Count > 0 ) {
                             currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
                             currentContentObj = ContentAtPath(currentPath);
                         }
@@ -122,7 +122,7 @@ namespace Inklewriter.Runtime
                         // Choice with condition?
                         bool shouldAddObject = true;
                         var choice = currentContentObj as Choice;
-                        if( choice != null ) {
+                        if( choice ) {
 
                             if( choice.hasCondition ) {
                                 var conditionValue = PopEvaluationStack();
@@ -176,7 +176,7 @@ namespace Inklewriter.Runtime
 
     				}
 
-    			} while(currentContentObj != null && currentPath != null);
+    			} while(currentContentObj && currentPath != null);
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
                 return;
@@ -244,7 +244,7 @@ namespace Inklewriter.Runtime
                 if (_divertedPath == null) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
-                    if (currentDivert != null && currentDivert.debugMetadata.sourceName != null) {
+                    if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
                         Error ("Divert target doesn't exist: " + currentDivert.debugMetadata.sourceName);
                     } else {
                         Error ("Divert resolution failed: " + currentDivert);
@@ -262,7 +262,7 @@ namespace Inklewriter.Runtime
 
                 if ( IsTruthy(conditionValue) )
                     _divertedPath = branch.trueDivert.targetPath;
-                else if (branch.falseDivert != null)
+                else if (branch.falseDivert)
                     _divertedPath = branch.falseDivert.targetPath;
                 
                 return true;
@@ -611,7 +611,7 @@ namespace Inklewriter.Runtime
             get {
                 if (outputStream.Count > 0) {
                     var text = outputStream.Last () as Text;
-                    if (text != null) {
+                    if (text) {
                         return text.text == "\n";
                     }
                 }
@@ -691,7 +691,7 @@ namespace Inklewriter.Runtime
 				_divertedPath = null;
 
                 // Diverted location has valid content?
-                if (ContentAtPath (currentPath) != null) {
+                if (ContentAtPath (currentPath)) {
                     return;
                 }
 				
@@ -730,7 +730,7 @@ namespace Inklewriter.Runtime
         {
             var openContainers = new HashSet<Container> ();
             var ancestor = currentContentObj;
-            while (ancestor != null) {
+            while (ancestor) {
                 if (ancestor is Container)
                     openContainers.Add ((Container)ancestor);
                 ancestor = ancestor.parent;
@@ -817,7 +817,7 @@ namespace Inklewriter.Runtime
         Runtime.Container ClosestContainerAtPath(Path path)
         {
             var content = ContentAtPath (path);
-            while (content != null && !(content is Container)) {
+            while (content && !(content is Container)) {
                 content = content.parent;
             }
             return (Runtime.Container) content;
@@ -922,7 +922,7 @@ namespace Inklewriter.Runtime
         {
             if (path != null) {
                 var currentObj = ContentAtPath (path);
-                if (currentObj != null) {
+                if (currentObj) {
                     var dm = currentObj.debugMetadata;
                     if (dm != null) {
                         return dm;
@@ -935,7 +935,7 @@ namespace Inklewriter.Runtime
 
         Container mainContentContainer {
             get {
-                if (_temporaryEvaluationContainer != null) {
+                if (_temporaryEvaluationContainer) {
                     return _temporaryEvaluationContainer;
                 } else {
                     return _mainContentContainer;

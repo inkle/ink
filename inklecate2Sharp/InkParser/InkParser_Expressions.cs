@@ -345,7 +345,7 @@ namespace Inklewriter
 			Whitespace ();
 
             var right = Parse(() => Expression (op.precedence));
-			if (right != null) {
+			if (right) {
 
 				// We assume that the character we use for the operator's type is the same
 				// as that used internally by e.g. Runtime.Expression.Add, Runtime.Expression.Multiply etc

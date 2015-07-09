@@ -47,7 +47,7 @@ namespace Inklewriter
             }
              
             // Trim
-            if (innerContent != null) {
+            if (innerContent) {
                 innerContent.TrimTrailingWhitespace ();
                 if (innerContent.content.Count == 0) {
                     innerContent = null;

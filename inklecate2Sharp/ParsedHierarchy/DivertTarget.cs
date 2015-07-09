@@ -30,7 +30,7 @@ namespace Inklewriter.Parsed
             base.ResolveReferences (context);
 
             Parsed.Object usageContext = this;
-            while (usageContext != null && usageContext is Expression) {
+            while (usageContext && usageContext is Expression) {
 
                 bool badUsage = false;
                 bool foundUsage = false;
