@@ -53,7 +53,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\inklecate2Sharp\inklecate.csproj">
+    <ProjectReference Include="..\inklecate\inklecate.csproj">
       <Project>{D10ED1A8-CF83-4E58-B505-3714B3A16215}</Project>
       <Name>inklecate</Name>
     </ProjectReference>

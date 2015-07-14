@@ -3,12 +3,12 @@
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle ("inklecate2Sharp")]
+[assembly: AssemblyTitle ("inklecate")]
 [assembly: AssemblyDescription ("")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany ("")]
+[assembly: AssemblyCompany ("inkle Ltd")]
 [assembly: AssemblyProduct ("")]
-[assembly: AssemblyCopyright ("phish")]
+[assembly: AssemblyCopyright ("inkle Ltd")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 

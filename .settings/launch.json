@@ -9,7 +9,7 @@
 			// Type of configuration. Possible values: "node", "mono".
 			"type": "mono",
 			// Workspace relative or absolute path to the program.
-			"program": "inklecate2Sharp/bin/Debug/inklecate2Sharp.exe"
+			"program": "inklecate/bin/Debug/inklecate.exe"
 			// Automatically stop program after launch.
 			//"stopOnEntry": true,
 			// Command line arguments passed to the program.
