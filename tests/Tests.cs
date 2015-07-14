@@ -718,6 +718,22 @@ hi
             Assert.AreEqual (story.currentText, "hi\nhi\nhi\n3\n");
         }
 
+        [Test ()]
+        public void TestChoiceCount()
+        {
+            Story story = CompileString (@"
+* one => end
+* two => end
+{ choice_count() }
+
+= end
+~ ~ ~
+");
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "2\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

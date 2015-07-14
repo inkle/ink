@@ -17,7 +17,18 @@ namespace Inklewriter.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            container.AddContent (_proxyDivert.runtimeObject);
+            // Built in function
+            if (name == "choice_count") {
+                if (arguments.Count > 0)
+                    Error ("The choice_count() function shouldn't take any arguments");
+
+                container.AddContent (Runtime.ControlCommand.ChoiceCount());
+            } 
+
+            // Normal function call
+            else {
+                container.AddContent (_proxyDivert.runtimeObject);
+            }
         }
 
         public override string ToString ()
