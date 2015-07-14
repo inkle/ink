@@ -288,6 +288,16 @@ namespace Inklewriter.Parsed
         {
             return !(a == b);
         }
+
+        public override bool Equals (object obj)
+        {
+            return object.ReferenceEquals (obj, this);
+        }
+
+        public override int GetHashCode ()
+        {
+            return base.GetHashCode ();
+        }
 	}
 }
 
