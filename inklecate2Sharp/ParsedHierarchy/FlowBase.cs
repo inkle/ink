@@ -169,31 +169,7 @@ namespace Inklewriter.Parsed
                 
             return false;
         }
-
-        public Parsed.Object ResolveTargetForReadCountWithName(string name, Parsed.Object fromNode)
-        {
-            if (fromNode == null) {
-                fromNode = this;
-            }
-
-            var ancestor = fromNode;
-            while (ancestor) {
-
-                if (ancestor is FlowBase) {
-                    var ancestorFlow = (FlowBase)ancestor;
-
-                    var content = ancestorFlow.ContentWithNameAtLevel (name);
-                    if (content) {
-                        return content;
-                    }
-                }
-
-                ancestor = ancestor.parent;
-            }
-
-            return null;
-        }
-
+            
         public bool HasVariableWithName(string varName)
         {
             if (variableDeclarations.ContainsKey (varName))

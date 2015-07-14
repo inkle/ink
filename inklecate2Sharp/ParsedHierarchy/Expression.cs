@@ -142,7 +142,7 @@ namespace Inklewriter.Parsed
         public override void ResolveReferences (Story context)
         {
             if (!context.ResolveVariableWithName (varName, fromNode:this)) {
-                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.DescriptionOfScope ());
+                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
             }
         }
 

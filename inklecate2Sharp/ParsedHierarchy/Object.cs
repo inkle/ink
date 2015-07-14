@@ -78,7 +78,7 @@ namespace Inklewriter.Parsed
             FlowLevel baseFlow = FlowLevel.WeavePoint;
 
             var ancestor = this;
-            while(ancestor && ancestor != commonFlowAncestor && !(ancestor is Story)) {
+            while(ancestor && (ancestor != commonFlowAncestor) && !(ancestor is Story)) {
 
                 if (ancestor == commonFlowAncestor)
                     break;
@@ -127,29 +127,31 @@ namespace Inklewriter.Parsed
             }
         }
 
-        public string DescriptionOfScope()
+        public string descriptionOfScope
         {
-            var locationNames = new List<string> ();
+            get {
+                var locationNames = new List<string> ();
 
-            Parsed.Object ancestor = this;
-            while (ancestor) {
-                var ancestorFlow = ancestor as FlowBase;
-                if (ancestorFlow && ancestorFlow.name != null) {
-                    locationNames.Add ("'"+ancestorFlow.name+"'");
+                Parsed.Object ancestor = this;
+                while (ancestor) {
+                    var ancestorFlow = ancestor as FlowBase;
+                    if (ancestorFlow && ancestorFlow.name != null) {
+                        locationNames.Add ("'" + ancestorFlow.name + "'");
+                    }
+                    ancestor = ancestor.parent;
                 }
-                ancestor = ancestor.parent;
+
+                var scopeSB = new StringBuilder ();
+                if (locationNames.Count > 0) {
+                    var locationsListStr = string.Join (", ", locationNames);
+                    scopeSB.Append (locationsListStr);
+                    scopeSB.Append (" and ");
+                }
+
+                scopeSB.Append ("at top scope");
+
+                return scopeSB.ToString ();
             }
-
-            var scopeSB = new StringBuilder ();
-            if (locationNames.Count > 0) {
-                var locationsListStr = string.Join (", ", locationNames);
-                scopeSB.Append (locationsListStr);
-                scopeSB.Append (" and ");
-            }
-
-            scopeSB.Append( "at top scope");
-
-            return scopeSB.ToString ();
         }
 
         // Return the object so that method can be chained easily
@@ -273,7 +275,18 @@ namespace Inklewriter.Parsed
         // if( myObj != null ) ...
         public static implicit operator bool (Object obj)
         {
-            return !(obj == null);
+            var isNull = object.ReferenceEquals (obj, null);
+            return !isNull;
+        }
+
+        public static bool operator ==(Object a, Object b)
+        {
+            return object.ReferenceEquals (a, b);
+        }
+
+        public static bool operator !=(Object a, Object b)
+        {
+            return !(a == b);
         }
 	}
 }

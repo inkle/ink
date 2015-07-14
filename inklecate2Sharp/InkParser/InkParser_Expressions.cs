@@ -316,12 +316,12 @@ namespace Inklewriter
 
         protected Expression ExpressionVariableName()
         {
-            var iden = Parse (Identifier);
-            if (iden == null) {
+            List<string> path = Interleave<string> (Identifier, Exclude (Spaced (String ("."))));
+            
+            if (path == null)
                 return null;
-            } else {
-                return new VariableReference (iden);
-            }
+            
+            return new VariableReference (path);
         }
 
 		protected Expression ExpressionParen()

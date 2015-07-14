@@ -699,6 +699,25 @@ Hello world
             Assert.AreEqual (story.currentText, "6\n5\n");
         }
 
+        [Test ()]
+        public void TestReadCountDotSeparatedPath()
+        {
+            Story story = CompileString (@"
+~ hi()
+~ hi()
+~ hi()
+{ hi.stitch_to_count }
+
+== hi ==
+= stitch_to_count
+hi
+~ ~ ~
+");
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "hi\nhi\nhi\n3\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

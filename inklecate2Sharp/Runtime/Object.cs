@@ -95,12 +95,23 @@ namespace Inklewriter.Runtime
 		public Object ()
 		{
 		}
-
+            
         // Allow implicit conversion to bool so you don't have to do:
         // if( myObj != null ) ...
         public static implicit operator bool (Object obj)
         {
-            return !(obj == null);
+            var isNull = object.ReferenceEquals (obj, null);
+            return !isNull;
+        }
+
+        public static bool operator ==(Object a, Object b)
+        {
+            return object.ReferenceEquals (a, b);
+        }
+
+        public static bool operator !=(Object a, Object b)
+        {
+            return !(a == b);
         }
 	}
 }

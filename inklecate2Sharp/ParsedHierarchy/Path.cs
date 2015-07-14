@@ -30,16 +30,21 @@ namespace Inklewriter.Parsed
             }
         }
 
-        // TODO: Re-implement this, and intelligently!
-        public Path debugSuggestedAlternative { 
+        public string dotSeparatedComponents {
             get {
-                return null;
+                return string.Join (".", _components);
             }
         }
 
         public Path(FlowLevel baseFlowLevel, List<string> components)
         {
             _baseTargetLevel = baseFlowLevel;
+            _components = components;
+        }
+
+        public Path(List<string> components)
+        {
+            _baseTargetLevel = null;
             _components = components;
         }
 
@@ -59,8 +64,6 @@ namespace Inklewriter.Parsed
                     return "<invalid Path>";
             }
 
-            var dotStr = string.Join (".", _components);
-
             string baseArrowStr;
             switch (baseTargetLevel) {
             case FlowLevel.Knot:
@@ -73,10 +76,10 @@ namespace Inklewriter.Parsed
                 baseArrowStr = "->";
                 break;
             default:
-                return dotStr;
+                return dotSeparatedComponents;
             }
 
-            return baseArrowStr + " " + dotStr;
+            return baseArrowStr + " " + dotSeparatedComponents;
 		}
 
         public Parsed.Object ResolveFromContext(Parsed.Object context, bool forceSearchAnywhere=false)
