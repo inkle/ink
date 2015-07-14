@@ -89,20 +89,19 @@ namespace Inklewriter.Runtime
 
 		public void Continue()
 		{
-            var openContainers = new HashSet<Container>();
-
             try {
 
-                while( Step (openContainers) ) {}
+                while( Step () || TryFollowDefaultInvisibleChoice() ) {}
 
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
-                return;
+            } finally {
+                _openContainers = null;
             }
 		}
 
         // Return false if story ran out of content
-        bool Step (HashSet<Container> openContainers)
+        bool Step ()
         {
             var currentContentObj = ContentAtPath (currentPath);
             if (currentContentObj == null)
@@ -115,7 +114,7 @@ namespace Inklewriter.Runtime
                 currentContentObj = ContentAtPath (currentPath);
             }
 
-            IncrementVisitCountForActiveContainers (currentContentObj, openContainers);
+            IncrementVisitCountForActiveContainers (currentContentObj);
 
             // Is the current content object:
             //  - Normal content
@@ -179,9 +178,6 @@ namespace Inklewriter.Runtime
             if (isStackPush) {
                 _callStack.Push ();
             }
-
-            if( currentPath == null )
-                TryFollowDefaultInvisibleChoice ();
 
             // Do we have somewhere valid to go?
             return currentPath != null;
@@ -656,7 +652,8 @@ namespace Inklewriter.Runtime
 				object outputObj = outputStream [i];
 
 				// "Current" is defined as "since last chosen choice"
-				if (outputObj is ChosenChoice) {
+                var chosenChoice = outputObj as ChosenChoice;
+                if (chosenChoice) {
 					break;
 				}
 
@@ -738,12 +735,17 @@ namespace Inklewriter.Runtime
             if (invisibleChoices.Count == 0)
                 return false;
 
-            currentPath = invisibleChoices [0].pathOnChoice;
+            // Silently consume the invisible choice so that it doesn't
+            // get used twice in the same call to Continue
+            var choice = invisibleChoices [0];
+            outputStream.Remove (choice);
+
+            currentPath = choice.pathOnChoice;
 
             return true;
         }
 
-        void IncrementVisitCountForActiveContainers (Object currentContentObj, HashSet<Container> openContainers)
+        void IncrementVisitCountForActiveContainers (Object currentContentObj)
         {
             var openContainersThisStep = new HashSet<Container> ();
             var ancestor = currentContentObj;
@@ -752,20 +754,20 @@ namespace Inklewriter.Runtime
                     openContainersThisStep.Add ((Container)ancestor);
                 ancestor = ancestor.parent;
             }
+
             var newlyOpenContainers = new HashSet<Container> (openContainersThisStep);
-            foreach (var c in openContainers) {
-                newlyOpenContainers.Remove (c);
+            if (_openContainers != null) {
+                foreach (var c in _openContainers) {
+                    newlyOpenContainers.Remove (c);
+                }
             }
 
             foreach (var c in newlyOpenContainers) {
                 if( c.visitsShouldBeCounted )
                     IncrementVisitCountForContainer (c);
             }
-
-            openContainers.Clear ();
-            foreach (var c in openContainersThisStep) {
-                openContainers.Add (c);
-            }
+                
+            _openContainers = openContainersThisStep;
         }
 
         int VisitCountForContainer(Container container)
@@ -977,6 +979,11 @@ namespace Inklewriter.Runtime
         private List<string> _currentErrors;
 
         private Path _previousPath;
+
+        // Keep track of the current set of containers up the nested chain,
+        // so that as we move between the containers, we know which ones are
+        // being newly visited, and therefore increment their visit counts.
+        private HashSet<Container> _openContainers;
 
         private bool inExpressionEvaluation {
             get {

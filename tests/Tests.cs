@@ -739,6 +739,8 @@ hi
         public void TestDefaultChoices()
         {
             Story story = CompileString (@"
+Some content.
+
 * {false} impossible choice
 * => default_target
 
@@ -748,7 +750,7 @@ Default choice chosen.
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "Default choice chosen.\n");
+            Assert.AreEqual (story.currentText, "Some content.\nDefault choice chosen.\n");
         }
 
 		//------------------------------------------------------------------------
