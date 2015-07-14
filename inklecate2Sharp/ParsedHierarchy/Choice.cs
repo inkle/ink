@@ -22,6 +22,7 @@ namespace Inklewriter.Parsed
         }
 
         public bool onceOnly { get; set; }
+        public bool isInvisibleDefault { get; set; }
 
 		public Path   explicitPath { get; }
         public bool   explicitGather { get; }
@@ -98,6 +99,7 @@ namespace Inklewriter.Parsed
 
             // Build choice itself
             _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString(), onceOnly);
+            _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
 
             // Nested content like this:
             // [

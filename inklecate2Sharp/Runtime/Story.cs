@@ -28,7 +28,7 @@ namespace Inklewriter.Runtime
 		{
 			get 
 			{
-				return CurrentOutput<Choice> ();
+                return CurrentOutput<Choice> (c => !c.isInvisibleDefault);
 			}
 		}
 
@@ -89,100 +89,103 @@ namespace Inklewriter.Runtime
 
 		public void Continue()
 		{
-            HashSet<Container> previouslyOpenContainers = null;
+            var openContainers = new HashSet<Container>();
 
             try {
 
-    			Runtime.Object currentContentObj = null;
-    			do {
+                while( Step (openContainers) ) {}
 
-    				currentContentObj = ContentAtPath(currentPath);
-    				if( currentContentObj ) {
-                    					
-                        // Convert path to get first leaf content
-                        Container currentContainer = currentContentObj as Container;;
-                        if( currentContainer && currentContainer.content.Count > 0 ) {
-                            currentPath = currentPath.PathByAppendingPath(currentContainer.pathToFirstLeafContent);
-                            currentContentObj = ContentAtPath(currentPath);
-                        }
-                            
-                        IncrementVisitCountForActiveContainers (currentContentObj, ref previouslyOpenContainers);
-
-                        // Is the current content object:
-                        //  - Normal content
-                        //  - Or a logic/flow statement - if so, do it
-                        bool stopFlow;
-                        bool isLogicOrFlowControl = PerformLogicAndFlowControl(currentContentObj, out stopFlow);
-                        if( stopFlow ) {
-                            currentContentObj = null;
-                            currentPath = null;
-                            break;
-                        }
-
-                        // Choice with condition?
-                        bool shouldAddObject = true;
-                        var choice = currentContentObj as Choice;
-                        if( choice ) {
-
-                            if( choice.hasCondition ) {
-                                var conditionValue = PopEvaluationStack();
-                                shouldAddObject = IsTruthy(conditionValue);
-                            }
-
-                            if( choice.onceOnly && shouldAddObject ) {
-                                var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
-                                var visitCount = VisitCountForContainer(choiceTargetContainer);
-                                shouldAddObject = visitCount == 0;
-                            }
-
-                        }
-
-                        // If the container has no content, then it will be
-                        // the "content" itself, but we skip over it.
-                        if( currentContentObj is Container ) {
-                            shouldAddObject = false;
-                        }
-
-                        // Error?
-                        if( currentContentObj is Error ) {
-                            var err = (Error)currentContentObj;
-                            Error(err.message, err.useEndLineNumber);
-                            return;
-                        }
-
-                        // Content to add to evaluation stack or the output stream
-                        if( !isLogicOrFlowControl && shouldAddObject ) {
-                            
-                            // Expression evaluation content
-                            if( inExpressionEvaluation ) {
-                                PushEvaluationStack(currentContentObj);
-                            }
-
-                            // Output stream content (i.e. not expression evaluation)
-                            else {
-                                PushToOutputStream(currentContentObj);
-                            }
-                        }
-
-                        // Increment the content pointer, following diverts if necessary
-    					NextContent();
-
-                        // Any push to the call stack should be done after the increment to the content pointer,
-                        // so that when returning from the stack, it returns to the content after the push instruction
-                        bool isStackPush = currentContentObj is ControlCommand && ((ControlCommand)currentContentObj).commandType == ControlCommand.CommandType.StackPush;
-                        if( isStackPush ) {
-                            _callStack.Push();
-    					}
-
-    				}
-
-    			} while(currentContentObj && currentPath != null);
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
                 return;
             }
 		}
 
+        // Return false if story ran out of content
+        bool Step (HashSet<Container> openContainers)
+        {
+            var currentContentObj = ContentAtPath (currentPath);
+            if (currentContentObj == null)
+                return false;
+            
+            // Convert path to get first leaf content
+            Container currentContainer = currentContentObj as Container;
+            if (currentContainer && currentContainer.content.Count > 0) {
+                currentPath = currentPath.PathByAppendingPath (currentContainer.pathToFirstLeafContent);
+                currentContentObj = ContentAtPath (currentPath);
+            }
+
+            IncrementVisitCountForActiveContainers (currentContentObj, openContainers);
+
+            // Is the current content object:
+            //  - Normal content
+            //  - Or a logic/flow statement - if so, do it
+            // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
+            // that was diverted to rather than called as a function)
+            bool stopFlow;
+            bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out stopFlow);
+            if (stopFlow) {
+                currentPath = null;
+                return false;
+            }
+
+            // Choice with condition?
+            bool shouldAddObject = true;
+            var choice = currentContentObj as Choice;
+            if (choice) {
+                if (choice.hasCondition) {
+                    var conditionValue = PopEvaluationStack ();
+                    shouldAddObject = IsTruthy (conditionValue);
+                }
+                if (choice.onceOnly && shouldAddObject) {
+                    var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
+                    var visitCount = VisitCountForContainer (choiceTargetContainer);
+                    shouldAddObject = visitCount == 0;
+                }
+            }
+
+            // If the container has no content, then it will be
+            // the "content" itself, but we skip over it.
+            if (currentContentObj is Container) {
+                shouldAddObject = false;
+            }
+
+            // Error?
+            if (currentContentObj is Error) {
+                var err = (Error)currentContentObj;
+                Error (err.message, err.useEndLineNumber);
+                currentPath = null;
+                return false;
+            }
+
+            // Content to add to evaluation stack or the output stream
+            if (!isLogicOrFlowControl && shouldAddObject) {
+                // Expression evaluation content
+                if (inExpressionEvaluation) {
+                    PushEvaluationStack (currentContentObj);
+                }
+                // Output stream content (i.e. not expression evaluation)
+                else {
+                    PushToOutputStream (currentContentObj);
+                }
+            }
+
+            // Increment the content pointer, following diverts if necessary
+            NextContent ();
+
+            // Any push to the call stack should be done after the increment to the content pointer,
+            // so that when returning from the stack, it returns to the content after the push instruction
+            bool isStackPush = currentContentObj is ControlCommand && ((ControlCommand)currentContentObj).commandType == ControlCommand.CommandType.StackPush;
+            if (isStackPush) {
+                _callStack.Push ();
+            }
+
+            if( currentPath == null )
+                TryFollowDefaultInvisibleChoice ();
+
+            // Do we have somewhere valid to go?
+            return currentPath != null;
+        }
 
 
         // Does the expression result represented by this object evaluate to true?
@@ -645,7 +648,7 @@ namespace Inklewriter.Runtime
             return popped;
         }
 			
-		public List<T> CurrentOutput<T>() where T : class
+        public List<T> CurrentOutput<T>(Func<T, bool> optionalQuery = null) where T : class
 		{
 			List<T> result = new List<T> ();
 
@@ -660,8 +663,11 @@ namespace Inklewriter.Runtime
 				T outputOfType = outputObj as T;
 				if (outputOfType != null) {
 
-					// Insert rather than Add since we're iterating in reverse
-					result.Insert (0, outputOfType);
+                    if (optionalQuery == null || optionalQuery(outputOfType) == true) {
+                        
+                        // Insert rather than Add since we're iterating in reverse
+                        result.Insert (0, outputOfType);
+                    }
 				}
 			}
 
@@ -726,26 +732,40 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        void IncrementVisitCountForActiveContainers (Object currentContentObj, ref HashSet<Container> previouslyOpenContainers)
+        bool TryFollowDefaultInvisibleChoice()
         {
-            var openContainers = new HashSet<Container> ();
+            var invisibleChoices = CurrentOutput<Choice> (c => c.isInvisibleDefault);
+            if (invisibleChoices.Count == 0)
+                return false;
+
+            currentPath = invisibleChoices [0].pathOnChoice;
+
+            return true;
+        }
+
+        void IncrementVisitCountForActiveContainers (Object currentContentObj, HashSet<Container> openContainers)
+        {
+            var openContainersThisStep = new HashSet<Container> ();
             var ancestor = currentContentObj;
             while (ancestor) {
                 if (ancestor is Container)
-                    openContainers.Add ((Container)ancestor);
+                    openContainersThisStep.Add ((Container)ancestor);
                 ancestor = ancestor.parent;
             }
-            var newlyOpenContainers = new HashSet<Container> (openContainers);
-            if (previouslyOpenContainers != null) {
-                foreach (var c in previouslyOpenContainers) {
-                    newlyOpenContainers.Remove (c);
-                }
+            var newlyOpenContainers = new HashSet<Container> (openContainersThisStep);
+            foreach (var c in openContainers) {
+                newlyOpenContainers.Remove (c);
             }
+
             foreach (var c in newlyOpenContainers) {
                 if( c.visitsShouldBeCounted )
                     IncrementVisitCountForContainer (c);
             }
-            previouslyOpenContainers = openContainers;
+
+            openContainers.Clear ();
+            foreach (var c in openContainersThisStep) {
+                openContainers.Add (c);
+            }
         }
 
         int VisitCountForContainer(Container container)

@@ -62,9 +62,7 @@ namespace Inklewriter
                     startText = null;
             }
 
-            if (startText == null && optionOnlyText == null) {
-                Error ("choice text cannot be empty");
-            }
+            bool isDefaultChoice = startText == null && optionOnlyText == null;
                 
 			Whitespace ();
 
@@ -78,6 +76,7 @@ namespace Inklewriter
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
             choice.condition = conditionExpr;
             choice.onceOnly = onceOnlyChoice;
+            choice.isInvisibleDefault = isDefaultChoice;
 
             return choice;
 

@@ -7,6 +7,7 @@ namespace Inklewriter.Runtime
 		public string choiceText { get; set; }
         public bool hasCondition { get; set; }
         public bool onceOnly { get; set; }
+        public bool isInvisibleDefault { get; set; }
 
         public Choice (string choiceText, bool onceOnly)
 		{
