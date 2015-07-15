@@ -36,7 +36,7 @@ namespace Inklewriter.Runtime
 		{
 			get 
 			{
-                return string.Join("", CurrentOutput<Runtime.Text> ());
+                return StringExt.Join("", CurrentOutput<Runtime.Text> ());
 			}
 		}
 

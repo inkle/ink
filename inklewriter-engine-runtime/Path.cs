@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using Inklewriter.Runtime;
 
 namespace Inklewriter.Runtime
 {
@@ -162,7 +163,7 @@ namespace Inklewriter.Runtime
 
 		public override string ToString()
 		{
-            return string.Join (".", components);
+            return StringExt.Join (".", components);
 		}
 
         public override bool Equals (object obj)

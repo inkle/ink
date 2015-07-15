@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Inklewriter.Runtime
 {
-    public static class StringJoinExtension
+    public static class StringExt
     {
-        public static string Join(this string str, string separator, IEnumerable objects)
+        public static string Join<T>(string separator, List<T> objects)
         {
             var sb = new StringBuilder ();
 
@@ -20,7 +20,7 @@ namespace Inklewriter.Runtime
 
                 isFirst = false;
             }
-            
+
             return sb.ToString ();
         }
     }
