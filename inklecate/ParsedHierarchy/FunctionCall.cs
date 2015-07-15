@@ -33,7 +33,8 @@ namespace Inklewriter.Parsed
 
         public override string ToString ()
         {
-            var strArgs = string.Join (", ", arguments);
+			var exprStrings = System.Array.ConvertAll(arguments.ToArray(), arg => arg.ToString());
+			var strArgs = string.Join (", ", exprStrings);
             return string.Format ("{0}({1})", name, strArgs);
         }
 

@@ -4,8 +4,8 @@ namespace Inklewriter.Runtime
 {
     public class Branch : Runtime.Object
     {
-        public Divert trueDivert { get; }
-        public Divert falseDivert { get; }
+		public Divert trueDivert { get; private set; }
+		public Divert falseDivert { get; private set; }
 
         public Branch (Divert trueDivert = null, Divert falseDivert = null)
         {

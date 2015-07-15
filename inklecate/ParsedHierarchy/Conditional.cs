@@ -6,8 +6,8 @@ namespace Inklewriter.Parsed
 {
     public class Conditional : Parsed.Object
     {
-        public Expression initialCondition { get; }
-        public List<ConditionalSingleBranch> branches { get; }
+		public Expression initialCondition { get; private set; }
+		public List<ConditionalSingleBranch> branches { get; private set; }
         
         public Conditional (Expression condition, List<ConditionalSingleBranch> branches)
         {
@@ -51,8 +51,6 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            var container = (Runtime.Container)runtimeObject;
-
             var pathToReJoin = _reJoinTarget.path;
 
             foreach (var branch in branches) {

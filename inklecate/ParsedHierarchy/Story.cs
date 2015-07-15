@@ -87,7 +87,7 @@ namespace Inklewriter.Parsed
 
             // Add the flows we collected from the included files to the
             // end of our list of our content
-            topLevelContent.AddRange (flowsFromOtherFiles);
+            topLevelContent.AddRange (flowsFromOtherFiles.ToArray());
 
         }
 

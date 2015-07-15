@@ -50,7 +50,7 @@ namespace Inklewriter
 
             // Weave point explicit gather
             if (baseFlowLevel == FlowLevel.WeavePoint && components == null) {
-                var gatherDivert = new Divert (null);
+                var gatherDivert = new Divert ((Parsed.Object)null);
                 gatherDivert.isToGather = true;
                 return gatherDivert;
             }

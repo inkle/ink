@@ -54,7 +54,7 @@ namespace Inklewriter.Parsed
 
         public override string ToString ()
         {
-            return string.Join(".", path);
+            return string.Join(".", path.ToArray());
         }
 
         Runtime.VariableReference _runtimeVarRef;

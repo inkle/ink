@@ -20,7 +20,7 @@ namespace Inklewriter.Parsed
             }
         }
         public Runtime.Container currentContainer { get; private set; }
-        public int baseIndentIndex { get; }
+		public int baseIndentIndex { get; private set; }
 
         // Loose ends are:
         //  - Choices or Gathers that need to be joined up
@@ -157,7 +157,7 @@ namespace Inklewriter.Parsed
                     // to the next gather point.
                     var innerExplicitGathers = obj.FindAll<Divert> (d => d.isToGather);
                     if (innerExplicitGathers.Count > 0)
-                        looseEnds.AddRange (innerExplicitGathers);
+                        looseEnds.AddRange (innerExplicitGathers.ToArray());
 
                     // Keep track of nested choices within the current section,
                     // so that the next Gather knows whether to auto-enter

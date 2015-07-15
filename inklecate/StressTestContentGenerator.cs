@@ -4,7 +4,7 @@ namespace Inklewriter
 {
     public class StressTestContentGenerator
     {
-        public string content { get; }
+		public string content { get; private set; }
         public int sizeInKiloChars { get { return content.Length / 1024; } }
 
         public StressTestContentGenerator (int repetitions)

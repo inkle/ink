@@ -24,9 +24,9 @@ namespace Inklewriter.Parsed
         public bool onceOnly { get; set; }
         public bool isInvisibleDefault { get; set; }
 
-		public Path   explicitPath { get; }
-        public bool   explicitGather { get; }
-        public int    indentationDepth { get; set; } = 1;
+		public Path   explicitPath { get; private set; }
+		public bool   explicitGather { get; private set; }
+        public int    indentationDepth { get; set; }// = 1;
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
         public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
@@ -58,6 +58,7 @@ namespace Inklewriter.Parsed
             this.startText = startText;
             this.choiceOnlyText = choiceOnlyText;
             this.innerContent = innerContent;
+			this.indentationDepth = 1;
 
             if( innerContent )
                 AddContent (this.innerContent);

@@ -58,7 +58,7 @@ namespace Inklewriter.Runtime
             }
 		}
 
-		public List<Component> components { get; }
+		public List<Component> components { get; private set; }
 
 		public Component head 
 		{ 
@@ -162,7 +162,8 @@ namespace Inklewriter.Runtime
 
 		public override string ToString()
 		{
-			return string.Join (".", components);
+			var strComponents = System.Array.ConvertAll(components.ToArray(), x => x.ToString());
+			return string.Join (".", strComponents);
 		}
 
         public override bool Equals (object obj)

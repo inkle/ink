@@ -3,7 +3,7 @@ namespace Inklewriter.Parsed
 {
     public class IncludedFile : Parsed.Object
     {
-        public Parsed.Story includedStory { get; }
+		public Parsed.Story includedStory { get; private set; }
 
         public IncludedFile (Parsed.Story includedStory)
         {

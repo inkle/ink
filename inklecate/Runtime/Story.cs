@@ -36,7 +36,9 @@ namespace Inklewriter.Runtime
 		{
 			get 
 			{
-				return string.Join(separator:"", values: CurrentOutput<Runtime.Text> ());
+				var textsArray = CurrentOutput<Runtime.Text> ().ToArray();
+				var strArray = Array.ConvertAll(textsArray, t => t.ToString());
+				return string.Join("", strArray);
 			}
 		}
 

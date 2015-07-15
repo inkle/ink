@@ -48,7 +48,7 @@ namespace Inklewriter
 			}
 		}
 
-        public StringParserState state { get; }
+		public StringParserState state { get; private set; }
 
         public bool hadError { get; protected set; }
 
@@ -110,7 +110,7 @@ namespace Inklewriter
             object result = ParseObject(rule);
 			if (result == null) {
 				if (message == null) {
-					message = rule.GetMethodInfo ().Name;
+                    message = rule.Method.Name;
 				}
 
                 string butSaw;
@@ -170,7 +170,7 @@ namespace Inklewriter
 			}
 		}
 
-		public string inputString { get; }
+		public string inputString { get; private set; }
 
 
         public int lineIndex
