@@ -26,6 +26,7 @@ namespace Inklewriter.Runtime
 
         // TODO: Come up with some clever solution for not having
         // to have debug metadata on the object itself?!
+        [JsonProperty("dm")]
         DebugMetadata _debugMetadata;
 
         public int? DebugLineNumberOfPath(Path path)

@@ -85,8 +85,12 @@ namespace Inklewriter.Runtime
         public string ToJsonString(bool indented = false)
         {
             var formatting = indented ? Formatting.Indented : Formatting.None;
-            var settings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
-            return JsonConvert.SerializeObject(this, formatting, settings);
+            var settings = new JsonSerializerSettings { 
+                DefaultValueHandling = DefaultValueHandling.Ignore
+            };
+            settings.Converters.Add(new RuntimeObjectJsonConverter());
+
+            return JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
         }
 
 		public Runtime.Object ContentAtPath(Path path)

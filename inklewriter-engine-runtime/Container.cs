@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using System.ComponentModel;
 
 namespace Inklewriter.Runtime
 {
@@ -13,7 +14,7 @@ namespace Inklewriter.Runtime
         [JsonProperty]
 		public string name { get; set; }
 
-        [JsonProperty]
+        [JsonProperty("c")]
         public List<Runtime.Object> content { 
             get {
                 return _content;
@@ -26,27 +27,41 @@ namespace Inklewriter.Runtime
 
 		public Dictionary<string, INamedContent> namedContent { get; }
 
-        [JsonProperty]
-        public Dictionary<string, INamedContent> namedOnlyContent { 
+        [JsonProperty("named")]
+        public Dictionary<string, Runtime.Object> namedOnlyContent { 
             get {
-                var namedOnlyContent = new Dictionary<string, INamedContent>(namedContent);
+                var namedOnlyContent = new Dictionary<string, Runtime.Object>();
+                foreach (var kvPair in namedContent) {
+                    namedOnlyContent [kvPair.Key] = (Runtime.Object)kvPair.Value;
+                }
+
                 foreach (var c in content) {
                     var named = c as INamedContent;
                     if (named != null && named.hasValidName) {
                         namedOnlyContent.Remove (named.name);
                     }
                 }
+
+                if (namedOnlyContent.Count == 0)
+                    namedOnlyContent = null;
+
                 return namedOnlyContent;
             } 
             protected set {
                 namedContent.Clear ();
+                if (value == null)
+                    return;
+                
                 foreach (var keyPair in value) {
-                    AddToNamedContentOnly (keyPair.Value);
+                    var named = keyPair.Value as INamedContent;
+                    if( named != null )
+                        AddToNamedContentOnly (named);
                 }
             }
         }
 
-        [JsonProperty]
+        [JsonProperty(propertyName:"counted")]
+        [DefaultValue(false)]
         public bool visitsShouldBeCounted { get; set; }
 
 		public bool hasValidName 
