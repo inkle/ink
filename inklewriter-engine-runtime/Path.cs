@@ -162,8 +162,7 @@ namespace Inklewriter.Runtime
 
 		public override string ToString()
 		{
-			var strComponents = System.Array.ConvertAll(components.ToArray(), x => x.ToString());
-			return string.Join (".", strComponents);
+            return string.Join (".", components);
 		}
 
         public override bool Equals (object obj)

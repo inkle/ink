@@ -57,5 +57,9 @@
       <Project>{D10ED1A8-CF83-4E58-B505-3714B3A16215}</Project>
       <Name>inklecate</Name>
     </ProjectReference>
+    <ProjectReference Include="..\inklewriter-engine-runtime\inklewriter-engine-runtime.csproj">
+      <Project>{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}</Project>
+      <Name>inklewriter-engine-runtime</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

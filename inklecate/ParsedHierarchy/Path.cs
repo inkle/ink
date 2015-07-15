@@ -32,7 +32,7 @@ namespace Inklewriter.Parsed
 
         public string dotSeparatedComponents {
             get {
-                return string.Join (".", _components.ToArray());
+                return string.Join (".", _components);
             }
         }
 

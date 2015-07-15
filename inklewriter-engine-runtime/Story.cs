@@ -36,9 +36,7 @@ namespace Inklewriter.Runtime
 		{
 			get 
 			{
-				var textsArray = CurrentOutput<Runtime.Text> ().ToArray();
-				var strArray = Array.ConvertAll(textsArray, t => t.ToString());
-				return string.Join("", strArray);
+                return string.Join("", CurrentOutput<Runtime.Text> ());
 			}
 		}
 
@@ -444,11 +442,7 @@ namespace Inklewriter.Runtime
 
             int evalStackHeight = _evaluationStack.Count;
 
-            try {
-                Continue ();
-            } catch(System.Exception e) {
-                Console.WriteLine (e.Message);
-            }
+            Continue ();
 
             _temporaryEvaluationContainer = null;
 
@@ -886,7 +880,7 @@ namespace Inklewriter.Runtime
                     message = string.Format (message, formatParams);
                 }
                     
-                throw new SystemException (message + " " + currentDebugMetadata);
+                throw new System.Exception (message + " " + currentDebugMetadata);
             }
         }
 

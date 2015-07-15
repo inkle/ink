@@ -14,7 +14,7 @@ namespace Inklewriter
             var stringList = Interleave<string>(Optional (Comment), Optional(NonComment));
 
             if (stringList != null) {
-                return string.Join("", stringList.ToArray());
+                return string.Join("", stringList);
             } else {
                 return null;
             }

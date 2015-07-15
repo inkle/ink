@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inklecate", "inklecate\inkl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{C48016BB-CF8B-4357-B052-E4DC63AED06B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inklewriter-engine-runtime", "inklewriter-engine-runtime\inklewriter-engine-runtime.csproj", "{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -12,6 +14,12 @@ Global
 		Test|x86 = Test|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}.Debug|x86.Build.0 = Debug|Any CPU
+		{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}.Release|x86.ActiveCfg = Release|Any CPU
+		{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}.Release|x86.Build.0 = Release|Any CPU
+		{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}.Test|x86.ActiveCfg = Debug|Any CPU
+		{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}.Test|x86.Build.0 = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|x86.Build.0 = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.ActiveCfg = Release|Any CPU
