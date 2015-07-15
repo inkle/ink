@@ -3,14 +3,50 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
+    [JsonObject(MemberSerialization.OptIn)]
 	public class Container : Runtime.Object, INamedContent
 	{
+        [JsonProperty]
 		public string name { get; set; }
-		public List<Runtime.Object> content { get; protected set; }
-		public Dictionary<string, INamedContent> namedContent { get; protected set; }
+
+        [JsonProperty]
+        public List<Runtime.Object> content { 
+            get {
+                return _content;
+            }
+            set {
+                AddContent (value);
+            }
+        }
+        List<Runtime.Object> _content;
+
+		public Dictionary<string, INamedContent> namedContent { get; }
+
+        [JsonProperty]
+        public Dictionary<string, INamedContent> namedOnlyContent { 
+            get {
+                var namedOnlyContent = new Dictionary<string, INamedContent>(namedContent);
+                foreach (var c in content) {
+                    var named = c as INamedContent;
+                    if (named != null && named.hasValidName) {
+                        namedOnlyContent.Remove (named.name);
+                    }
+                }
+                return namedOnlyContent;
+            } 
+            protected set {
+                namedContent.Clear ();
+                foreach (var keyPair in value) {
+                    AddToNamedContentOnly (keyPair.Value);
+                }
+            }
+        }
+
+        [JsonProperty]
         public bool visitsShouldBeCounted { get; set; }
 
 		public bool hasValidName 
@@ -44,7 +80,7 @@ namespace Inklewriter.Runtime
 
 		public Container ()
 		{
-			content = new List<Runtime.Object> ();
+            _content = new List<Runtime.Object> ();
 			namedContent = new Dictionary<string, INamedContent> ();
 		}
 
@@ -60,6 +96,13 @@ namespace Inklewriter.Runtime
 
 			TryAddNamedContent (contentObj);
 		}
+
+        public void AddContent(IList<Runtime.Object> contentList)
+        {
+            foreach (var c in contentList) {
+                AddContent (c);
+            }
+        }
 
         public void InsertContent(Runtime.Object contentObj, int index)
         {

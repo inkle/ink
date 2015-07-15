@@ -81,13 +81,22 @@ namespace Inklewriter
 				Environment.Exit (ExitCodeError);
 			}
 
-			// Randomly play through
-			if (opts.playMode || opts.testMode) {
+			// Play mode
+            if (opts.playMode) {
 
-				var player = new CommandLinePlayer (story, false, parsedStory);
-				player.Begin ();
+                var player = new CommandLinePlayer (story, false, parsedStory);
+                player.Begin ();
+            } 
 
-			}
+            // Compile mode
+            else {
+                
+                var jsonStr = story.ToJsonString (indented:true);
+                Console.WriteLine (jsonStr);
+
+                var reloadedStory = new Runtime.Story (jsonStr);
+                Console.WriteLine (reloadedStory.ToString());
+            }
 		}
 
         bool ProcessArguments(string[] args)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
@@ -53,23 +54,40 @@ namespace Inklewriter.Runtime
                 return _currentErrors != null && _currentErrors.Count > 0;
             }
         }
+
+
             
 		public Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
 
+            InitState ();
+		}
+
+        public Story(string jsonString)
+        {
+            _mainContentContainer = JsonConvert.DeserializeObject<Container> (jsonString);
+
+            InitState ();
+        }
+
+        void InitState ()
+        {
             outputStream = new List<Runtime.Object> ();
-
             _evaluationStack = new List<Runtime.Object> ();
-
             _callStack = new CallStack ();
-
             _visitCounts = new Dictionary<string, int> ();
-
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
             _storySeed = (new Random (timeSeed)).Next () % 100;
-		}
+        }
+
+        public string ToJsonString(bool indented = false)
+        {
+            var formatting = indented ? Formatting.Indented : Formatting.None;
+            var settings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
+            return JsonConvert.SerializeObject(this, formatting, settings);
+        }
 
 		public Runtime.Object ContentAtPath(Path path)
 		{
@@ -961,7 +979,9 @@ namespace Inklewriter.Runtime
             }
         }
 
+        [JsonProperty]
         private Container _mainContentContainer;
+
         private Container _temporaryEvaluationContainer;
         private Path _divertedPath;
             

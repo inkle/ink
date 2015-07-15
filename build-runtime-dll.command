@@ -5,4 +5,4 @@ cd "`dirname "$0"`"
 mkdir -p RuntimeDLL
 
 # Unity requires SDK 2.x
-mcs -t:library -out:RuntimeDLL/inklewriter-engine.dll -sdk:2 inklewriter-engine-runtime/*.cs
+mcs -t:library -r:inklewriter-engine-runtime/Newtonsoft.Json.dll -out:RuntimeDLL/inklewriter-engine.dll -sdk:2 inklewriter-engine-runtime/*.cs

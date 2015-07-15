@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
+    [JsonObject(MemberSerialization.OptIn)]
 	public class Object
 	{
 		public Runtime.Object parent { get; set; }
