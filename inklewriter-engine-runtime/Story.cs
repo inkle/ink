@@ -54,8 +54,6 @@ namespace Inklewriter.Runtime
                 return _currentErrors != null && _currentErrors.Count > 0;
             }
         }
-
-
             
 		public Story (Container contentContainer)
 		{
@@ -66,7 +64,12 @@ namespace Inklewriter.Runtime
 
         public Story(string jsonString)
         {
-            _mainContentContainer = JsonConvert.DeserializeObject<Container> (jsonString);
+            var settings = new JsonSerializerSettings { 
+                DefaultValueHandling = DefaultValueHandling.Ignore
+            };
+            settings.Converters.Add(new ObjectJsonConverter());
+
+            _mainContentContainer = JsonConvert.DeserializeObject<Container> (jsonString, settings);
 
             InitState ();
         }
@@ -88,7 +91,6 @@ namespace Inklewriter.Runtime
             var settings = new JsonSerializerSettings { 
                 DefaultValueHandling = DefaultValueHandling.Ignore
             };
-            settings.Converters.Add(new RuntimeObjectJsonConverter());
 
             return JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
         }

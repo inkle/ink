@@ -1,4 +1,6 @@
-﻿
+﻿using Newtonsoft.Json;
+using System.ComponentModel;
+
 namespace Inklewriter.Runtime
 {
     public enum LiteralType
@@ -32,6 +34,7 @@ namespace Inklewriter.Runtime
 
     public abstract class Literal<T> : Literal
     {
+        [JsonProperty("v")]
         public T value { get; set; }
 
         public Literal (T literalVal)

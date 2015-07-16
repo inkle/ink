@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>{DF1CA307-A546-48DF-8BDD-0BA6D8F38645}</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>inklewriter-engine-runtime</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Branch.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CallStack.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Choice.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ChosenChoice.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Container.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DebugMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Divert.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Error.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Glue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)INamedContent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Literal.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NativeFunctionCall.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Object.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectJsonConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Path.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Story.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StoryException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringJoinExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Text.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VariableAssignment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VariableReference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Void.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />
+  </ItemGroup>
+</Project>

@@ -93,6 +93,7 @@
     <Compile Include="InkParser\InkParser_Sequences.cs" />
     <Compile Include="InkParser\InkParser_Statements.cs" />
   </ItemGroup>
+  <Import Project="..\inklewriter-engine-runtime\inklewriter-engine-runtime.projitems" Label="Shared" Condition="Exists('..\inklewriter-engine-runtime\inklewriter-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="test.ink">
@@ -108,11 +109,5 @@
   <ItemGroup>
     <Folder Include="StringParser\" />
     <Folder Include="InkParser\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\inklewriter-engine-runtime\inklewriter-engine-runtime.csproj">
-      <Project>{61FE8CBD-987F-46AE-941A-EBB975C4A1D2}</Project>
-      <Name>inklewriter-engine-runtime</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>

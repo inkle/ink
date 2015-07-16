@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Inklewriter.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
-	public class Object
+	public /* TODO: abstract */ class Object
 	{
 		public Runtime.Object parent { get; set; }
 
@@ -26,8 +26,18 @@ namespace Inklewriter.Runtime
 
         // TODO: Come up with some clever solution for not having
         // to have debug metadata on the object itself?!
-        [JsonProperty("dm")]
+//        #if DEBUG
+//        [JsonProperty("dm")]
+//        #endif
         DebugMetadata _debugMetadata;
+
+        // Serialised type
+        [JsonProperty("%t")]
+        protected virtual string serialisedTypeName {
+            get {
+                return ObjectJsonConverter.TypeName (this);
+            }
+        }
 
         public int? DebugLineNumberOfPath(Path path)
         {

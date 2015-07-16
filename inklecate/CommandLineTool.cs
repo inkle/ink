@@ -94,8 +94,12 @@ namespace Inklewriter
                 var jsonStr = story.ToJsonString (indented:true);
                 Console.WriteLine (jsonStr);
 
+                Console.WriteLine ("---------------------------------------------------");
+
                 var reloadedStory = new Runtime.Story (jsonStr);
-                Console.WriteLine (reloadedStory.ToString());
+                var newJsonStr = reloadedStory.ToJsonString (indented: true);
+                Console.WriteLine (newJsonStr);
+
             }
 		}
 
