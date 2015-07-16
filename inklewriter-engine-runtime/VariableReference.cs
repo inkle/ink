@@ -14,6 +14,9 @@ namespace Inklewriter.Runtime
             this.name = name;
         }
 
+        // Require default constructor for serialisation
+        public VariableReference() {}
+
         public override string ToString ()
         {
             return name;

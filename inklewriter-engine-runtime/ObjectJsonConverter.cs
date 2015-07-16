@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -8,8 +9,8 @@ namespace Inklewriter.Runtime
     {
         public override bool CanConvert(Type objectType)
         {
-            //return objectType.IsSubclassOf (typeof(Runtime.Object));
-            return objectType.IsSubclassOf(typeof(Runtime.Literal));
+            var runtimeObjType = typeof(Runtime.Object);
+            return runtimeObjType.Equals (objectType) || objectType.IsSubclassOf (runtimeObjType);
         }
 
         public override object ReadJson(JsonReader reader, 
@@ -21,7 +22,9 @@ namespace Inklewriter.Runtime
             JObject jObject = JObject.Load(reader);
 
             var runtimeObjTypeName = jObject.Value<string> ("%t");
-            var newObj = Create (runtimeObjTypeName);
+
+            Type type = Type.GetType ("Inklewriter.Runtime." + runtimeObjTypeName);
+            var newObj = (Runtime.Object) System.Activator.CreateInstance (type);
 
             // Populate the object properties
             serializer.Populate (jObject.CreateReader (), newObj);
@@ -36,40 +39,9 @@ namespace Inklewriter.Runtime
             throw new NotImplementedException();
         }
 
-        Runtime.Object Create(string type)
-        {
-            switch (type) {
-            case "int":
-                return new LiteralInt(0);
-            case "float":
-                return new LiteralFloat (0.0f);
-            case "divert":
-                return new LiteralDivertTarget();
-            case "pointer":
-                return new LiteralVariablePointer();
-            }
-
-            return null;
-        }
-
         public static string TypeName(Runtime.Object obj)
         {
-            var literal = obj as Literal;
-            if (literal == null) {
-                return "<unknown>";
-            }
-
-            switch (literal.literalType) {
-            case LiteralType.Int:
-                return "int";
-            case LiteralType.Float:
-                return "float";
-            case LiteralType.DivertTarget:
-                return "divert";
-            case LiteralType.VariablePointer:
-                return "pointer";
-            }
-            return "other";
+            return obj.GetType ().Name;
         }
     }
 }

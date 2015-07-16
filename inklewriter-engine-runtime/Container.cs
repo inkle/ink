@@ -25,12 +25,9 @@ namespace Inklewriter.Runtime
         }
         List<Runtime.Object> _content;
 
-        [JsonProperty]
-        Runtime.Literal test = new LiteralFloat (3.1415f);
-
 		public Dictionary<string, INamedContent> namedContent { get; }
 
-        [JsonProperty("named")]
+        [JsonProperty("namedOnly")]
         public Dictionary<string, Runtime.Object> namedOnlyContent { 
             get {
                 var namedOnlyContent = new Dictionary<string, Runtime.Object>();

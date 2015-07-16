@@ -10,7 +10,10 @@ namespace Inklewriter.Runtime
 			text = str;
 		}
 
-		public override string ToString ()
+        // Require default constructor for serialisation
+        public Text() : this(null) {}
+
+        public override string ToString ()
 		{
 			return text;
 		}

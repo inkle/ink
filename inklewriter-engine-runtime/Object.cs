@@ -35,7 +35,8 @@ namespace Inklewriter.Runtime
         [JsonProperty("%t")]
         protected virtual string serialisedTypeName {
             get {
-                return ObjectJsonConverter.TypeName (this);
+                // Unqualified name (i.e. without namespace)
+                return this.GetType ().Name;
             }
         }
 

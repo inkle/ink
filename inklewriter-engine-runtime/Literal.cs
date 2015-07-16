@@ -57,6 +57,8 @@ namespace Inklewriter.Runtime
         {
         }
 
+        public LiteralInt() : this(0) {}
+
         public override Literal Cast(LiteralType newType)
         {
             if (newType == literalType) {
@@ -79,6 +81,8 @@ namespace Inklewriter.Runtime
         public LiteralFloat(float literalVal) : base(literalVal)
         {
         }
+
+        public LiteralFloat() : this(0.0f) {}
 
         public override Literal Cast(LiteralType newType)
         {

@@ -143,6 +143,9 @@ namespace Inklewriter.Runtime
             _prototype = _nativeFunctions [name];
         }
 
+        // Require default constructor for serialisation
+        public NativeFunctionCall() { }
+
         NativeFunctionCall (string name, int numberOfParamters)
         {
             this.name = name;

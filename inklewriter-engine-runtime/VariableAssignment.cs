@@ -19,6 +19,9 @@ namespace Inklewriter.Runtime
             this.isNewDeclaration = isNewDeclaration;
         }
 
+        // Require default constructor for serialisation
+        public VariableAssignment() : this(null, false) {}
+
         public override string ToString ()
         {
             return "VarAssign to " + variableName;

@@ -1,10 +1,13 @@
-﻿
+﻿using Newtonsoft.Json;
+using System;
+
 namespace Inklewriter.Runtime
 {
     public class ControlCommand : Runtime.Object
     {
         public enum CommandType
         {
+            NotSet = -1,
             EvalStart,
             EvalOutput,
             EvalEnd,
@@ -17,13 +20,29 @@ namespace Inklewriter.Runtime
             VisitIndex,
             SequenceShuffleIndex
         }
-
+            
         public CommandType commandType { get; protected set; }
+
+        // For serialisation
+        [JsonProperty("n")]
+        public string commandName {
+            get {
+                return this.commandType.ToString ();
+            }
+            set {
+                string[] enumNames = typeof(CommandType).GetEnumNames ();
+                int enumIndex = Array.IndexOf (enumNames, value);
+                commandType = (CommandType) typeof(CommandType).GetEnumValues ().GetValue(enumIndex);
+            }
+        }
 
         public ControlCommand (CommandType commandType)
         {
             this.commandType = commandType;
         }
+
+        // Require default constructor for serialisation
+        public ControlCommand() : this(CommandType.NotSet) {}
 
         public static ControlCommand EvalStart() {
             return new ControlCommand(CommandType.EvalStart);

@@ -15,6 +15,9 @@ namespace Inklewriter.Runtime
             this.onceOnly = onceOnly;
 		}
 
+        // Require default constructor for serialisation
+        public Choice() : this(null, true) {}
+
         public override string ToString ()
         {
             int? targetLineNum = DebugLineNumberOfPath (pathOnChoice);
