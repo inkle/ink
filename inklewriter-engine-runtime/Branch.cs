@@ -6,23 +6,36 @@ namespace Inklewriter.Runtime
     public class Branch : Runtime.Object
     {
         [JsonProperty("true")]
-		public Divert trueDivert { get; private set; }
+        public Divert trueDivert { 
+            get {
+                return _trueDivert;
+            } 
+            private set {
+                SetChild (ref _trueDivert, value);
+            } 
+        }
+        Divert _trueDivert;
 
         [JsonProperty("false")]
-		public Divert falseDivert { get; private set; }
+        public Divert falseDivert { 
+            get {
+                return _falseDivert;
+            } 
+            private set {
+                SetChild (ref _falseDivert, value);
+            } 
+        }
+        Divert _falseDivert;
 
         public Branch (Divert trueDivert = null, Divert falseDivert = null)
         {
             this.trueDivert = trueDivert;
             this.falseDivert = falseDivert;
-
-            if (trueDivert) {
-                trueDivert.parent = this;
-            }
-            if (falseDivert) {
-                falseDivert.parent = this;
-            }
         }
+
+        // Default constructor for serialisation only
+        public Branch()
+        { }
 
         public override string ToString ()
         {

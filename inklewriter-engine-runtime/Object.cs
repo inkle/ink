@@ -109,6 +109,17 @@ namespace Inklewriter.Runtime
 		public Object ()
 		{
 		}
+
+        protected void SetChild<T>(ref T obj, T value) where T : Runtime.Object
+        {
+            if (obj)
+                obj.parent = null;
+
+            obj = value;
+
+            if( obj )
+                obj.parent = this;
+        }
             
         // Allow implicit conversion to bool so you don't have to do:
         // if( myObj != null ) ...
