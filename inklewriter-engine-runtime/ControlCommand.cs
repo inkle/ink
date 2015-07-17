@@ -24,7 +24,8 @@ namespace Inklewriter.Runtime
         public CommandType commandType { get; protected set; }
 
         // For serialisation
-        [JsonProperty("n")]
+        [JsonProperty("cmd")]
+        [UniqueJsonIdentifier]
         public string commandName {
             get {
                 return this.commandType.ToString ();

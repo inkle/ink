@@ -7,6 +7,7 @@ namespace Inklewriter.Runtime
     public class VariableAssignment : Runtime.Object
     {
         [JsonProperty("var")]
+        [UniqueJsonIdentifier]
         public string variableName { get; protected set; }
 
         [JsonProperty("new")]

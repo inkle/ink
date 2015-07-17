@@ -9,13 +9,13 @@ using System.ComponentModel;
 namespace Inklewriter.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
-    [CustomJsonName("C")]
 	public class Container : Runtime.Object, INamedContent
 	{
         [JsonProperty]
 		public string name { get; set; }
 
         [JsonProperty("c")]
+        [UniqueJsonIdentifier]
         public List<Runtime.Object> content { 
             get {
                 return _content;
@@ -61,7 +61,7 @@ namespace Inklewriter.Runtime
             }
         }
 
-        [JsonProperty(propertyName:"counted")]
+        [JsonProperty(propertyName:"count")]
         [DefaultValue(false)]
         public bool visitsShouldBeCounted { get; set; }
 

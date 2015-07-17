@@ -67,6 +67,7 @@ namespace Inklewriter.Runtime
             var settings = new JsonSerializerSettings { 
                 DefaultValueHandling = DefaultValueHandling.Ignore
             };
+
             settings.Converters.Add(new ObjectJsonConverter());
 
             _mainContentContainer = JsonConvert.DeserializeObject<Container> (jsonString, settings);
@@ -89,7 +90,8 @@ namespace Inklewriter.Runtime
         {
             var formatting = indented ? Formatting.Indented : Formatting.None;
             var settings = new JsonSerializerSettings { 
-                DefaultValueHandling = DefaultValueHandling.Ignore
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
             };
 
             return JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);

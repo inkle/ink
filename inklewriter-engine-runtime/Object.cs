@@ -40,6 +40,12 @@ namespace Inklewriter.Runtime
                 if (customNameAttr != null)
                     return customNameAttr.name;
 
+                foreach (var p in GetType().GetProperties()) {
+                    if (Attribute.GetCustomAttribute (p, typeof(UniqueJsonIdentifierAttribute)) != null) {
+                        return null;
+                    }
+                }
+
                 // Default: unqualified name (i.e. without namespace)
                 return this.GetType ().Name;
             }

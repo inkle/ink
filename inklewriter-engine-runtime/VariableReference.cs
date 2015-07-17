@@ -5,7 +5,8 @@ namespace Inklewriter.Runtime
     public class VariableReference : Runtime.Object
     {
         // Normal named variable
-        [JsonProperty("var")]
+        [JsonProperty("get")]
+        [UniqueJsonIdentifier]
         public string name { get; set; }
 
         // Variable reference is actually a path for a visit (read) count
