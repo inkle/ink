@@ -130,6 +130,11 @@ namespace Inklewriter.Runtime
 			this.components.AddRange (components);
 		}
 
+        public Path(string componentsString) : this()
+        {
+            this.componentsString = componentsString;
+        }
+
 		public Path PathByAppendingPath(Path pathToAppend)
 		{
 			Path p = new Path (this.components);

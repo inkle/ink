@@ -1,10 +1,22 @@
-﻿
+﻿using Newtonsoft.Json;
+
 namespace Inklewriter.Runtime
 {
 	public class Divert : Runtime.Object
 	{
 		public Path targetPath { get; set; }
 
+        [JsonProperty("target")]
+        public string targetPathString {
+            get {
+                return targetPath.componentsString;
+            }
+            set {
+                targetPath = new Path (value);
+            }
+        }
+
+        [JsonProperty("variable")]
         public string variableDivertName { get; set; }
         public bool hasVariableTarget { get { return variableDivertName != null; } }
 
