@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
@@ -35,7 +36,11 @@ namespace Inklewriter.Runtime
         [JsonProperty("%t")]
         protected virtual string serialisedTypeName {
             get {
-                // Unqualified name (i.e. without namespace)
+                var customNameAttr = (CustomJsonNameAttribute) Attribute.GetCustomAttribute (GetType(), typeof(CustomJsonNameAttribute));
+                if (customNameAttr != null)
+                    return customNameAttr.name;
+
+                // Default: unqualified name (i.e. without namespace)
                 return this.GetType ().Name;
             }
         }

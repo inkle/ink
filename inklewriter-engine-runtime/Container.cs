@@ -9,6 +9,7 @@ using System.ComponentModel;
 namespace Inklewriter.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
+    [CustomJsonName("C")]
 	public class Container : Runtime.Object, INamedContent
 	{
         [JsonProperty]
