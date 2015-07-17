@@ -1,10 +1,14 @@
 ﻿using System.Text;
+using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
     public class Branch : Runtime.Object
     {
+        [JsonProperty("true")]
 		public Divert trueDivert { get; private set; }
+
+        [JsonProperty("false")]
 		public Divert falseDivert { get; private set; }
 
         public Branch (Divert trueDivert = null, Divert falseDivert = null)

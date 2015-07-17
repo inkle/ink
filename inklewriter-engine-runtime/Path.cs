@@ -2,9 +2,11 @@
 using System.Linq;
 using System.Diagnostics;
 using Inklewriter.Runtime;
+using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
+    [JsonObject(MemberSerialization.OptIn)]
 	public class Path
 	{
 		public class Component
@@ -149,6 +151,26 @@ namespace Inklewriter.Runtime
 			return p;
 		}
 
+        [JsonProperty("p")]
+        public string componentsString {
+            get {
+                return StringExt.Join (".", components);
+            }
+            set {
+                components.Clear ();
+
+                var componentStrings = value.Split('.');
+                foreach (var str in componentStrings) {
+                    int index;
+                    if (int.TryParse (str , out index)) {
+                        components.Add (new Component (index));
+                    } else {
+                        components.Add (new Component (str));
+                    }
+                }
+            }
+        }
+
 		static public Path ToFirstElement()
 		{
 			return ToElementWithIndex (0);
@@ -163,7 +185,7 @@ namespace Inklewriter.Runtime
 
 		public override string ToString()
 		{
-            return StringExt.Join (".", components);
+            return componentsString;
 		}
 
         public override bool Equals (object obj)

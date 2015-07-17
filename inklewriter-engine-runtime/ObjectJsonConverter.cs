@@ -32,6 +32,7 @@ namespace Inklewriter.Runtime
             return newObj;
         }
 
+        // This converter is only used for reading, not writing
         public override void WriteJson(JsonWriter writer, 
             object value,
             JsonSerializer serializer)
