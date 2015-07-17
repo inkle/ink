@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
@@ -28,12 +29,12 @@ namespace Inklewriter.Runtime
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
-            GenerateNativeFunctionsIfNecessary ();
-
             return new NativeFunctionCall (functionName);
         }
 
+        [JsonProperty("f")]
         public string name { get; protected set; }
+
         public int numberOfParameters { 
             get {
                 if (_prototype) {
@@ -139,13 +140,18 @@ namespace Inklewriter.Runtime
 
         public NativeFunctionCall(string name)
         {
+            GenerateNativeFunctionsIfNecessary ();
+
             this.name = name;
             _prototype = _nativeFunctions [name];
         }
 
         // Require default constructor for serialisation
-        public NativeFunctionCall() { }
+        public NativeFunctionCall() { 
+            GenerateNativeFunctionsIfNecessary ();
+        }
 
+        // Only called internally to generate prototypes
         NativeFunctionCall (string name, int numberOfParamters)
         {
             this.name = name;
