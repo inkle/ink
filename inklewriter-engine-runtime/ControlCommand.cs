@@ -31,9 +31,9 @@ namespace Inklewriter.Runtime
                 return this.commandType.ToString ();
             }
             set {
-                string[] enumNames = typeof(CommandType).GetEnumNames ();
+                string[] enumNames = Enum.GetNames (typeof(CommandType));
                 int enumIndex = Array.IndexOf (enumNames, value);
-                commandType = (CommandType) typeof(CommandType).GetEnumValues ().GetValue(enumIndex);
+                commandType = (CommandType) Enum.GetValues(typeof(CommandType)).GetValue(enumIndex);
             }
         }
 
