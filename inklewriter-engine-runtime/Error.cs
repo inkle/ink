@@ -6,10 +6,10 @@ namespace Inklewriter.Runtime
     {
         [JsonProperty("error")]
         [UniqueJsonIdentifier]
-        public string message;
+        public string message { get; set; }
 
         [JsonProperty("endLine")]
-        public bool useEndLineNumber;
+        public bool useEndLineNumber { get; set; }
 
         public Error (string message)
         {
