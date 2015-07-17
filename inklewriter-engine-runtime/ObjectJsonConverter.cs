@@ -47,11 +47,28 @@ namespace Inklewriter.Runtime
             object existingValue, 
             JsonSerializer serializer)
         {
+            // Try to read a simple value, and convert it to a Text or Literal<T>
+            var tokenType = reader.TokenType;
+            if (tokenType != JsonToken.StartObject) {
+                var val = JValue.ReadFrom (reader);
+                if (tokenType == JsonToken.String) {
+                    return new Text (val.Value<string> ());
+                } else if (tokenType == JsonToken.Integer) {
+                    return new LiteralInt (val.Value<int> ());
+                } else if (tokenType == JsonToken.Float) {
+                    return new LiteralFloat (val.Value<float> ());
+                }
+
+                return null;
+            }
+
             // Load JObject from stream
             JObject jObject = JObject.Load(reader);
 
             Type type = null;
 
+            // Try to find an explicit type of the Runtime.Object
+            // (this is the serialisedTypeName property of Object)
             var runtimeObjTypeName = jObject.Value<string> ("%t");
 
             // No explicit type name - try to find a field in the object
@@ -76,7 +93,7 @@ namespace Inklewriter.Runtime
 
             var newObj = (Runtime.Object) System.Activator.CreateInstance (type);
 
-            // Populate the object properties
+            // Populate the object properties as usual
             serializer.Populate (jObject.CreateReader (), newObj);
 
             return newObj;
@@ -93,6 +110,41 @@ namespace Inklewriter.Runtime
         Dictionary<string, Type> _typesByCustomName;
         Dictionary<string, Type> _typesByUniqueFieldName;
     }
+
+    // Convert objects that contain simple values into JSON values
+    // e.g. where a LiteralInt might otherwise have been stored as an object: { "value": 5 }
+    //      or where Text would've been stored as: { "text": "the text" }
+    public class SimpleValueJsonConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType.IsSubclassOf (typeof(Literal)) || objectType.Equals(typeof(Text));
+        }
+
+        public override object ReadJson(JsonReader reader, 
+            Type objectType, 
+            object existingValue, 
+            JsonSerializer serializer)
+        {
+            throw new System.NotImplementedException ();
+        }
+
+        public override void WriteJson(JsonWriter writer, 
+            object value,
+            JsonSerializer serializer)
+        {
+            var text = value as Text;
+            if (text) {
+                writer.WriteValue (text.text);
+            }
+
+            var literal = value as Literal;
+            if (literal) {
+                writer.WriteValue (literal.valueObject);
+            }
+        }
+    }
+   
 
     // Allows a custom/shorter type name than the default
     // class name to be used as the property for "%t" type name

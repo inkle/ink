@@ -4,7 +4,6 @@ namespace Inklewriter.Runtime
 {
     public class Text : Runtime.Object
 	{
-        [JsonProperty("txt")]
 		public string text { get; set; }
 
 		public Text (string str)

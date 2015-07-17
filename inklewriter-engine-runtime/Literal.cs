@@ -18,6 +18,8 @@ namespace Inklewriter.Runtime
 
         public abstract Literal Cast(LiteralType newType);
 
+        public abstract object valueObject { get; }
+
         public static Literal Create(object val)
         {
             if (val is int) {
@@ -36,6 +38,12 @@ namespace Inklewriter.Runtime
     {
         [JsonProperty("v")]
         public T value { get; set; }
+
+        public override object valueObject {
+            get {
+                return (object)value;
+            }
+        }
 
         public Literal (T literalVal)
         {

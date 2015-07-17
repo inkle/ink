@@ -93,6 +93,7 @@ namespace Inklewriter.Runtime
                 DefaultValueHandling = DefaultValueHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore
             };
+            settings.Converters.Add (new SimpleValueJsonConverter ());
 
             return JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
         }
