@@ -35,6 +35,7 @@ namespace Inklewriter.Parsed
             var targetForReadCount = parsedPath.ResolveFromContext (this);
             if (targetForReadCount) {
                 _runtimeVarRef.pathForVisitCount = targetForReadCount.runtimePath;
+                _runtimeVarRef.name = null;
                 return;
             }
 

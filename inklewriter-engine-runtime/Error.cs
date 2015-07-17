@@ -1,9 +1,13 @@
-﻿
+﻿using Newtonsoft.Json;
+
 namespace Inklewriter.Runtime
 {
     public class Error : Runtime.Object
     {
+        [JsonProperty("msg")]
         public string message;
+
+        [JsonProperty("endLine")]
         public bool useEndLineNumber;
 
         public Error (string message)
