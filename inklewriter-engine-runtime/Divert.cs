@@ -6,7 +6,8 @@ namespace Inklewriter.Runtime
 	{
 		public Path targetPath { get; set; }
 
-        [JsonProperty("target")]
+        [JsonProperty("div")]
+        [UniqueJsonIdentifier]
         public string targetPathString {
             get {
                 if (targetPath == null)
@@ -22,7 +23,8 @@ namespace Inklewriter.Runtime
             }
         }
 
-        [JsonProperty("variable")]
+        [JsonProperty("vdiv")]
+        [UniqueJsonIdentifier]
         public string variableDivertName { get; set; }
         public bool hasVariableTarget { get { return variableDivertName != null; } }
 

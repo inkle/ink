@@ -4,7 +4,8 @@ namespace Inklewriter.Runtime
 {
     public class Error : Runtime.Object
     {
-        [JsonProperty("msg")]
+        [JsonProperty("error")]
+        [UniqueJsonIdentifier]
         public string message;
 
         [JsonProperty("endLine")]

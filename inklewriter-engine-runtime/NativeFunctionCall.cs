@@ -33,6 +33,7 @@ namespace Inklewriter.Runtime
         }
 
         [JsonProperty("f")]
+        [UniqueJsonIdentifier]
         public string name { get; protected set; }
 
         public int numberOfParameters { 

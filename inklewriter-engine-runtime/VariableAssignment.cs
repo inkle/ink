@@ -10,7 +10,7 @@ namespace Inklewriter.Runtime
         [UniqueJsonIdentifier]
         public string variableName { get; protected set; }
 
-        [JsonProperty("new")]
+        [JsonProperty("decl")]
         [DefaultValue(false)]
         public bool isNewDeclaration { get; protected set; }
 

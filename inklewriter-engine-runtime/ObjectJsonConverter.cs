@@ -59,7 +59,7 @@ namespace Inklewriter.Runtime
                     return new LiteralFloat (val.Value<float> ());
                 }
 
-                return null;
+                throw new System.Exception ("Unexpected value type");
             }
 
             // Load JObject from stream
@@ -118,7 +118,7 @@ namespace Inklewriter.Runtime
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType.IsSubclassOf (typeof(Literal)) || objectType.Equals(typeof(Text));
+            return objectType.Equals (typeof(LiteralInt)) || objectType.Equals (typeof(LiteralFloat)) || objectType.Equals (typeof(Text));
         }
 
         public override object ReadJson(JsonReader reader, 
