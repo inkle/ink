@@ -22,8 +22,8 @@ namespace Inklewriter.Runtime
             set {
                 if (value == null)
                     pathForVisitCount = null;
-
-                pathForVisitCount = new Path (value);
+                else
+                    pathForVisitCount = new Path (value);
             }
         }
 

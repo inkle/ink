@@ -9,10 +9,16 @@ namespace Inklewriter.Runtime
         [JsonProperty("target")]
         public string targetPathString {
             get {
+                if (targetPath == null)
+                    return null;
+                
                 return targetPath.componentsString;
             }
             set {
-                targetPath = new Path (value);
+                if (value == null)
+                    targetPath = null;
+                else 
+                    targetPath = new Path (value);
             }
         }
 
