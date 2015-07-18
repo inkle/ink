@@ -49,7 +49,20 @@ namespace Inklewriter.Runtime
         {
             // Try to read a simple value, and convert it to a Text or Literal<T>
             var tokenType = reader.TokenType;
-            if (tokenType != JsonToken.StartObject) {
+
+            if (tokenType == JsonToken.StartArray) {
+                var container = new Container ();
+
+                JArray jArray = JArray.Load (reader);
+                foreach (var token in jArray) {
+                    var content = token.ToObject<Runtime.Object> (serializer);
+                    container.AddContent (content);
+                }
+
+                return container;
+            }
+
+            else if (tokenType != JsonToken.StartObject) {
                 var val = JValue.ReadFrom (reader);
                 if (tokenType == JsonToken.String) {
                     return new Text (val.Value<string> ());
@@ -57,7 +70,7 @@ namespace Inklewriter.Runtime
                     return new LiteralInt (val.Value<int> ());
                 } else if (tokenType == JsonToken.Float) {
                     return new LiteralFloat (val.Value<float> ());
-                }
+                } 
 
                 throw new System.Exception ("Unexpected value type");
             }
@@ -114,11 +127,16 @@ namespace Inklewriter.Runtime
     // Convert objects that contain simple values into JSON values
     // e.g. where a LiteralInt might otherwise have been stored as an object: { "value": 5 }
     //      or where Text would've been stored as: { "text": "the text" }
-    public class SimpleValueJsonConverter : JsonConverter
+    // In the case of Containers, try to write them out as a simple array if they don't 
+    // need any other properties
+    public class JsonSimplificationConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType.Equals (typeof(LiteralInt)) || objectType.Equals (typeof(LiteralFloat)) || objectType.Equals (typeof(Text));
+            return objectType.Equals (typeof(LiteralInt)) 
+                || objectType.Equals (typeof(LiteralFloat)) 
+                || objectType.Equals (typeof(Text))
+                || objectType.Equals (typeof(Container));
         }
 
         public override object ReadJson(JsonReader reader, 
@@ -141,6 +159,45 @@ namespace Inklewriter.Runtime
             var literal = value as Literal;
             if (literal) {
                 writer.WriteValue (literal.valueObject);
+            }
+
+            var container = value as Container;
+            if (container) {
+                var namedOnlyContent = container.namedOnlyContent;
+                var normalContent = container.content;
+
+                bool needsFullObject = namedOnlyContent != null 
+                    || container.visitsShouldBeCounted == true
+                    || container.name != null;
+                
+                if (needsFullObject) {
+                    writer.WriteStartObject ();
+
+                    if (container.name != null) {
+                        writer.WritePropertyName ("name");
+                        writer.WriteValue (container.name);
+                    }
+
+                    writer.WritePropertyName ("c");
+                }
+
+                serializer.Serialize (writer, normalContent);
+
+                if (needsFullObject) {
+
+                    if (namedOnlyContent != null) {
+                        writer.WritePropertyName ("namedOnly");
+                        JToken t = JToken.FromObject (namedOnlyContent, serializer);
+                        t.WriteTo (writer);
+                    }
+
+                    if (container.visitsShouldBeCounted) {
+                        writer.WritePropertyName ("count");
+                        writer.WriteValue (container.visitsShouldBeCounted);
+                    }
+
+                    writer.WriteEndObject ();
+                }
             }
         }
     }
