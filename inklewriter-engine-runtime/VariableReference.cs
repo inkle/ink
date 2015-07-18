@@ -13,6 +13,7 @@ namespace Inklewriter.Runtime
         public Path pathForVisitCount { get; set; }
 
         [JsonProperty("readCount")]
+        [UniqueJsonIdentifier]
         public string pathStringForVisitCount { 
             get {
                 if( pathForVisitCount == null )
