@@ -107,7 +107,36 @@ namespace Inklewriter.Runtime
             var newObj = (Runtime.Object) System.Activator.CreateInstance (type);
 
             // Populate the object properties as usual
-            serializer.Populate (jObject.CreateReader (), newObj);
+            if (type == typeof(Container)) {
+
+                var container = (Container)newObj;
+
+                JToken token;
+
+                if (jObject.TryGetValue ("c", out token)) {
+                    var content = (List<Runtime.Object>) serializer.Deserialize (token.CreateReader (), typeof(List<Runtime.Object>));
+                    container.content = content;
+                }
+
+                if (jObject.TryGetValue ("name", out token)) {
+                    container.name = token.Value<string> ();
+                }
+
+                if (jObject.TryGetValue ("namedOnly", out token)) {
+                    var named = (Dictionary<string, Runtime.Object>) serializer.Deserialize (token.CreateReader (), typeof(Dictionary<string, Runtime.Object>));
+                    foreach (var keyPair in named) {
+                        container.AddToNamedContentOnly ((INamedContent)keyPair.Value);
+                    }
+                }
+
+                if (jObject.TryGetValue ("count", out token)) {
+                    container.visitsShouldBeCounted = token.Value<bool> ();
+                }
+
+
+            } else {
+                serializer.Populate (jObject.CreateReader (), newObj);
+            }
 
             return newObj;
         }
