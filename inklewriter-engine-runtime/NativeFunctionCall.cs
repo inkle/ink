@@ -34,7 +34,17 @@ namespace Inklewriter.Runtime
 
         [JsonProperty("f")]
         [UniqueJsonIdentifier]
-        public string name { get; protected set; }
+        public string name { 
+            get { 
+                return _name;
+            } 
+            protected set {
+                _name = value;
+                if( !_isPrototype )
+                    _prototype = _nativeFunctions [_name];
+            }
+        }
+        string _name;
 
         public int numberOfParameters { 
             get {
@@ -144,7 +154,6 @@ namespace Inklewriter.Runtime
             GenerateNativeFunctionsIfNecessary ();
 
             this.name = name;
-            _prototype = _nativeFunctions [name];
         }
 
         // Require default constructor for serialisation
@@ -155,6 +164,7 @@ namespace Inklewriter.Runtime
         // Only called internally to generate prototypes
         NativeFunctionCall (string name, int numberOfParamters)
         {
+            _isPrototype = true;
             this.name = name;
             this.numberOfParameters = numberOfParamters;
         }
@@ -266,6 +276,7 @@ namespace Inklewriter.Runtime
         delegate object UnaryOp<T>(T val);
 
         NativeFunctionCall _prototype;
+        bool _isPrototype;
 
         // Operations for each data type, for a single operation (e.g. "+")
         Dictionary<LiteralType, object> _operationFuncs;
