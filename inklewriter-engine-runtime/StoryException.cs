@@ -1,6 +1,6 @@
 ﻿namespace Inklewriter.Runtime
 {
-    public class StoryException : System.Exception
+    internal class StoryException : System.Exception
     {
         public bool useEndLineNumber;
 

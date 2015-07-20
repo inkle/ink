@@ -5,10 +5,8 @@ using Inklewriter.Parsed;
 
 namespace Inklewriter
 {
-	public partial class InkParser
+	internal partial class InkParser
 	{
-		
-
 		protected enum StatementLevel
 		{
             InnerBlock,

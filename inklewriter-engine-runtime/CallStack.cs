@@ -4,9 +4,9 @@ using System.Diagnostics;
 
 namespace Inklewriter.Runtime
 {
-    public class CallStack
+    internal class CallStack
     {
-        public class Element
+        internal class Element
         {
             public Path path;
             public bool inExpressionEvaluation;

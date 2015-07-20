@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Inklewriter
 {
-	public class StringParser
+	internal class StringParser
 	{
 		public delegate object ParseRule();
 
@@ -29,7 +29,7 @@ namespace Inklewriter
 			inputString = str;
 		}
             
-		public class ParseSuccessStruct {};
+		internal class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");

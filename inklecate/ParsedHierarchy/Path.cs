@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Inklewriter.Parsed
 {
-	public class Path
+	internal class Path
 	{
         public FlowLevel baseTargetLevel { 
             get { 

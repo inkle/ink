@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Inklewriter.Runtime
 {
-    public class ObjectJsonConverter : JsonConverter
+    internal class ObjectJsonConverter : JsonConverter
     {
         public ObjectJsonConverter()
         {
@@ -150,7 +150,7 @@ namespace Inklewriter.Runtime
     //      or where Text would've been stored as: { "text": "the text" }
     // In the case of Containers, try to write them out as a simple array if they don't 
     // need any other properties
-    public class JsonSimplificationConverter : JsonConverter
+    internal class JsonSimplificationConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
@@ -226,7 +226,7 @@ namespace Inklewriter.Runtime
 
     // Allows a custom/shorter type name than the default
     // class name to be used as the property for "%t" type name
-    public class CustomJsonNameAttribute : Attribute
+    internal class CustomJsonNameAttribute : Attribute
     {
         public string name;
 
@@ -244,7 +244,7 @@ namespace Inklewriter.Runtime
     // object type. e.g. "var" as a property on a variable assignment
     // identifies the object type, and prevents the fallback "%t" type
     // name property from being used.
-    public class UniqueJsonIdentifierAttribute : Attribute
+    internal class UniqueJsonIdentifierAttribute : Attribute
     {
     }
 }

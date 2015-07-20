@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Parsed
 {
-    public class VariableReference : Expression
+    internal class VariableReference : Expression
     {
         public string name { 
             get {

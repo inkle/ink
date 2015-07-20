@@ -9,7 +9,7 @@ using System.ComponentModel;
 namespace Inklewriter.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
-	public class Container : Runtime.Object, INamedContent
+	internal class Container : Runtime.Object, INamedContent
 	{
         [JsonProperty]
 		public string name { get; set; }

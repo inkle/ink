@@ -1,7 +1,7 @@
 ﻿
 namespace Inklewriter.Runtime
 {
-    public class Void : Runtime.Object
+    internal class Void : Runtime.Object
     {
         public Void ()
         {

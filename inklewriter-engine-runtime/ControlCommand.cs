@@ -3,7 +3,7 @@ using System;
 
 namespace Inklewriter.Runtime
 {
-    public class ControlCommand : Runtime.Object
+    internal class ControlCommand : Runtime.Object
     {
         public enum CommandType
         {

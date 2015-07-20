@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Parsed
 {
-	public class Stitch : FlowBase
+	internal class Stitch : FlowBase
 	{ 
         public override FlowLevel flowLevel { get { return FlowLevel.Stitch; } }
 

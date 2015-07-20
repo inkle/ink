@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("tests")]
 
 namespace Inklewriter.Parsed
 {
-	public class Story : FlowBase
+	internal class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
         public bool hadError { get { return _errors != null && _errors.Count > 0; } }

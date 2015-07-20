@@ -8,11 +8,11 @@ namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        public Path currentPath { 
+        internal Path currentPath { 
             get { 
                 return _callStack.currentElement.path; 
             } 
-            protected set {
+            private set {
                 _callStack.currentElement.path = value;
             }
         }
@@ -55,7 +55,7 @@ namespace Inklewriter.Runtime
             }
         }
             
-		public Story (Container contentContainer)
+        internal Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
 
@@ -98,7 +98,7 @@ namespace Inklewriter.Runtime
             return JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
         }
 
-		public Runtime.Object ContentAtPath(Path path)
+        internal Runtime.Object ContentAtPath(Path path)
 		{
 			return mainContentContainer.ContentAtPath (path);
 		}
@@ -433,7 +433,7 @@ namespace Inklewriter.Runtime
         // The problem is that ContinueFromPath may be called externally,
         // and if it is then it wouldn't have a ChosenChoice to mark where
         // the last chunk of content ended
-        public void ContinueFromPath(Path path, bool addChoiceMarker = true)
+        internal void ContinueFromPath(Path path, bool addChoiceMarker = true)
 		{
             if (addChoiceMarker) {
                 outputStream.Add (new ChosenChoice (null));
@@ -457,7 +457,7 @@ namespace Inklewriter.Runtime
 			ContinueFromPath (choice.pathOnChoice, addChoiceMarker:false);
 		}
 
-        public Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
+        internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
         {
             int startCallStackHeight = _callStack.elements.Count;
 
@@ -490,7 +490,7 @@ namespace Inklewriter.Runtime
         }
 
 
-        protected void PushToOutputStream(Runtime.Object obj)
+        void PushToOutputStream(Runtime.Object obj)
         {
             // Glue: absorbs newlines both before and after it,
             // causing two piece of inline text to stay on the same line.
@@ -642,24 +642,24 @@ namespace Inklewriter.Runtime
             }
         }
 
-        protected void PushEvaluationStack(Runtime.Object obj)
+        void PushEvaluationStack(Runtime.Object obj)
         {
             _evaluationStack.Add(obj);
         }
 
-        protected Runtime.Object PopEvaluationStack()
+        Runtime.Object PopEvaluationStack()
         {
             var obj = _evaluationStack.Last ();
             _evaluationStack.RemoveAt (_evaluationStack.Count - 1);
             return obj;
         }
 
-        protected Runtime.Object PeekEvaluationStack()
+        Runtime.Object PeekEvaluationStack()
         {
             return _evaluationStack.Last ();
         }
 
-        protected List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
+        List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
         {
             Assert (numberOfObjects <= _evaluationStack.Count, "trying to pop too many objects");
             var popped = _evaluationStack.GetRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);

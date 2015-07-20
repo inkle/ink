@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Parsed
 {
-    public class ContentList : Parsed.Object
+    internal class ContentList : Parsed.Object
     {
         public Runtime.Container runtimeContainer {
             get {

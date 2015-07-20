@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Inklewriter.Parsed
 {
-	public abstract class Object
+	internal abstract class Object
 	{
         public Runtime.DebugMetadata debugMetadata { 
             get {

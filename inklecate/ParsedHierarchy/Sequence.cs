@@ -10,7 +10,7 @@ namespace Inklewriter.Parsed
         Once
     }
 
-    public class Sequence : Parsed.Object
+    internal class Sequence : Parsed.Object
     {
 
         public List<ContentList> sequenceElements;

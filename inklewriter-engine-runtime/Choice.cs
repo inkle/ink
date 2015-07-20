@@ -6,29 +6,29 @@ namespace Inklewriter.Runtime
 	public class Choice : Runtime.Object
 	{
         [JsonProperty("path")]
-		public Path pathOnChoice { get; set; }
+		internal Path pathOnChoice { get; set; }
 
         [JsonProperty("txt")]
 		public string choiceText { get; set; }
 
         [JsonProperty("hasCond")]
-        public bool hasCondition { get; set; }
+        internal bool hasCondition { get; set; }
 
         [JsonProperty("once")]
         [DefaultValue(true)]
-        public bool onceOnly { get; set; }
+        internal bool onceOnly { get; set; }
 
         [JsonProperty("default")]
-        public bool isInvisibleDefault { get; set; }
+        internal bool isInvisibleDefault { get; set; }
 
-        public Choice (string choiceText, bool onceOnly)
+        internal Choice (string choiceText, bool onceOnly)
 		{
 			this.choiceText = choiceText;
             this.onceOnly = onceOnly;
 		}
 
         // Require default constructor for serialisation
-        public Choice() : this(null, true) {}
+        internal Choice() : this(null, true) {}
 
         public override string ToString ()
         {

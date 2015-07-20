@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
-    public class NativeFunctionCall : Runtime.Object
+    internal class NativeFunctionCall : Runtime.Object
     {
         public const string Add      = "+";
         public const string Subtract = "-";

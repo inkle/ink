@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Inklewriter
 {
-	public partial class InkParser : StringParser
+	internal partial class InkParser : StringParser
 	{
         public InkParser(string str, string filenameForMetadata = null) : base(str) { 
             _filename = filenameForMetadata;

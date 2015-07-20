@@ -12,7 +12,7 @@ namespace Tests
 
     [TestFixture(TestMode.Normal)]
     [TestFixture(TestMode.JsonRoundTrip)]
-	public class Tests
+	internal class Tests
 	{
         public Tests(TestMode mode)
         {

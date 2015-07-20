@@ -1,7 +1,7 @@
 ﻿
 namespace Inklewriter.Parsed
 {
-    public class Wrap<T> : Parsed.Object where T : Runtime.Object
+    internal class Wrap<T> : Parsed.Object where T : Runtime.Object
     {
         public Wrap (T objToWrap)
         {

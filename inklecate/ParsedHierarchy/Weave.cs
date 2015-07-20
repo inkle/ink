@@ -4,7 +4,7 @@ namespace Inklewriter.Parsed
 {
     // Used by the FlowBase when constructing the weave flow from
     // a flat list of content objects.
-    public class Weave : Parsed.Object
+    internal class Weave : Parsed.Object
     {
         // Containers can be chained as multiple gather points
         // get created as the same indentation level.
@@ -28,7 +28,7 @@ namespace Inklewriter.Parsed
         public List<Parsed.Object> looseEnds;
 
         public List<GatherPointToResolve> gatherPointsToResolve;
-        public class GatherPointToResolve
+        internal class GatherPointToResolve
         {
             public Runtime.Divert divert;
             public Runtime.Object targetRuntimeObj;

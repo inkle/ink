@@ -4,7 +4,7 @@ using Inklewriter.Parsed;
 
 namespace Inklewriter
 {
-    public partial class InkParser
+    internal partial class InkParser
     {
         const string knotDivertArrow = "==>";
         const string stitchDivertArrow = "=>";

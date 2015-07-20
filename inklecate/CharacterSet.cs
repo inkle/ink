@@ -2,7 +2,7 @@
 
 namespace Inklewriter
 {
-	public class CharacterSet : HashSet<char>
+	internal class CharacterSet : HashSet<char>
 	{
 		public CharacterSet ()
 		{

@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace Inklewriter.Runtime
 {
     // The value to be assigned is popped off the evaluation stack, so no need to keep it here
-    public class VariableAssignment : Runtime.Object
+    internal class VariableAssignment : Runtime.Object
     {
         [JsonProperty("var")]
         [UniqueJsonIdentifier]

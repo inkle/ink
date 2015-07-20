@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace Inklewriter.Runtime
 {
-    public enum LiteralType
+    internal enum LiteralType
     {
         Int,
         Float,
@@ -11,7 +11,7 @@ namespace Inklewriter.Runtime
         VariablePointer
     }
 
-    public abstract class Literal : Runtime.Object
+    internal abstract class Literal : Runtime.Object
     {
         public abstract LiteralType literalType { get; }
         public abstract bool isTruthy { get; }
@@ -34,7 +34,7 @@ namespace Inklewriter.Runtime
         }
     }
 
-    public abstract class Literal<T> : Literal
+    internal abstract class Literal<T> : Literal
     {
         [JsonProperty("v")]
         public T value { get; set; }
@@ -56,7 +56,7 @@ namespace Inklewriter.Runtime
         }
     }
 
-    public class LiteralInt : Literal<int>
+    internal class LiteralInt : Literal<int>
     {
         public override LiteralType literalType { get { return LiteralType.Int; } }
         public override bool isTruthy { get { return value != 0; } }
@@ -81,7 +81,7 @@ namespace Inklewriter.Runtime
         }
     }
 
-    public class LiteralFloat : Literal<float>
+    internal class LiteralFloat : Literal<float>
     {
         public override LiteralType literalType { get { return LiteralType.Float; } }
         public override bool isTruthy { get { return value != 0.0f; } }
@@ -106,7 +106,7 @@ namespace Inklewriter.Runtime
         }
     }
 
-    public class LiteralDivertTarget : Literal<Path>
+    internal class LiteralDivertTarget : Literal<Path>
     {
         public Path targetPath { get { return this.value; } set { this.value = value; } }
         public override LiteralType literalType { get { return LiteralType.DivertTarget; } }
@@ -133,7 +133,7 @@ namespace Inklewriter.Runtime
         }
     }
 
-    public class LiteralVariablePointer : Literal<string>
+    internal class LiteralVariablePointer : Literal<string>
     {
         public string variableName { get { return this.value; } set { this.value = value; } }
         public override LiteralType literalType { get { return LiteralType.VariablePointer; } }

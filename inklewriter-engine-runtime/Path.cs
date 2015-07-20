@@ -7,9 +7,9 @@ using Newtonsoft.Json;
 namespace Inklewriter.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
-	public class Path
+	internal class Path
 	{
-		public class Component
+		internal class Component
 		{
 			public int index { get; set; }
 			public string name { get; set; }

@@ -2,7 +2,7 @@
 namespace Inklewriter
 {
     // Perform comment elimination as a pre-pass to simplify the parse rules in the main parser
-    public class CommentEliminator : StringParser
+    internal class CommentEliminator : StringParser
     {
         public CommentEliminator (string input) : base(input)
         {

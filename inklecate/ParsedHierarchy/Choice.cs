@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Parsed
 {
-    public class Choice : Parsed.Object, IWeavePoint, INamedContent
+    internal class Choice : Parsed.Object, IWeavePoint, INamedContent
 	{
         public string startText { get; protected set; }
         public string choiceOnlyText { get; protected set; }

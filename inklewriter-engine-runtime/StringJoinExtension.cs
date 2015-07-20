@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Inklewriter.Runtime
 {
-    public static class StringExt
+    internal static class StringExt
     {
         public static string Join<T>(string separator, List<T> objects)
         {

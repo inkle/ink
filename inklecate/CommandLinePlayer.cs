@@ -3,7 +3,7 @@ using Inklewriter.Runtime;
 
 namespace Inklewriter
 {
-	public class CommandLinePlayer
+	internal class CommandLinePlayer
 	{
 		public Story story { get; protected set; }
 		public bool autoPlay { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Parsed
 {
-	public class Knot : FlowBase
+	internal class Knot : FlowBase
 	{
         public override FlowLevel flowLevel { get { return FlowLevel.Knot; } }
 

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
-    public class Branch : Runtime.Object
+    internal class Branch : Runtime.Object
     {
         [JsonProperty("true")]
         public Divert trueDivert { 

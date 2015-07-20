@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Runtime
 {
-    public class VariableReference : Runtime.Object
+    internal class VariableReference : Runtime.Object
     {
         // Normal named variable
         [JsonProperty("get")]

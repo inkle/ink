@@ -51,7 +51,7 @@ namespace Inklewriter.Runtime
             }
         }
 
-        public int? DebugLineNumberOfPath(Path path)
+        internal int? DebugLineNumberOfPath(Path path)
         {
             if (path == null)
                 return null;
@@ -71,7 +71,7 @@ namespace Inklewriter.Runtime
             return null;
         }
 
-		public Path path 
+		internal Path path 
 		{ 
 			get 
 			{
@@ -105,7 +105,7 @@ namespace Inklewriter.Runtime
 			}
 		}
 
-        public Container rootContentContainer
+        internal Container rootContentContainer
         {
             get 
             {

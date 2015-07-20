@@ -2,7 +2,7 @@
 
 namespace Inklewriter.Runtime
 {
-    public class Error : Runtime.Object
+    internal class Error : Runtime.Object
     {
         [JsonProperty("error")]
         [UniqueJsonIdentifier]

@@ -1,7 +1,7 @@
 ﻿
 namespace Inklewriter.Parsed
 {
-	public class Number : Parsed.Expression
+	internal class Number : Parsed.Expression
 	{
 		public object value;
 		

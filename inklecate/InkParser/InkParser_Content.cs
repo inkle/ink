@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Inklewriter
 {
-    public partial class InkParser
+    internal partial class InkParser
     {
         void TrimEndWhitespaceAndAddNewline(List<Parsed.Object> mixedTextAndLogicResults)
         {

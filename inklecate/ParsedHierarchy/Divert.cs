@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Inklewriter.Parsed
 {
-	public class Divert : Parsed.Object
+	internal class Divert : Parsed.Object
 	{
 		public Parsed.Path target { get; protected set; }
         public Parsed.Object targetContent { get; protected set; }

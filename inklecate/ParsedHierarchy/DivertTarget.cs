@@ -1,7 +1,7 @@
 ﻿
 namespace Inklewriter.Parsed
 {
-    public class DivertTarget : Expression
+    internal class DivertTarget : Expression
     {
         public Divert divert;
 

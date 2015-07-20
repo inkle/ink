@@ -1,7 +1,7 @@
 ﻿
 namespace Inklewriter
 {
-    public partial class InkParser
+    internal partial class InkParser
     {
         // Valid returned objects:
         //  - "help"
