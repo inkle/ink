@@ -47,28 +47,23 @@ namespace Inklewriter.Runtime
             object existingValue, 
             JsonSerializer serializer)
         {
-            // Try to read a simple value, and convert it to a Text or Literal<T>
-            var tokenType = reader.TokenType;
+            var token = JToken.ReadFrom (reader);
 
-            if (tokenType == JsonToken.StartArray) {
+            var jArray = token as JArray;
+            if (jArray != null) {
+
                 var container = new Container ();
-
-                JArray jArray = JArray.Load (reader);
-                foreach (var token in jArray) {
-                    var content = token.ToObject<Runtime.Object> (serializer);
-                    container.AddContent (content);
-                }
-
+                container.content = jArray.ToObject<List<Runtime.Object>>(serializer);
                 return container;
             }
 
-            else if (tokenType != JsonToken.StartObject) {
-                var val = JValue.ReadFrom (reader);
-                if (tokenType == JsonToken.String) {
+            else if ( token is JValue ) {
+                var val = (JValue) token;
+                if (val.Type == JTokenType.String) {
                     return new Text (val.Value<string> ());
-                } else if (tokenType == JsonToken.Integer) {
+                } else if (val.Type == JTokenType.Integer) {
                     return new LiteralInt (val.Value<int> ());
-                } else if (tokenType == JsonToken.Float) {
+                } else if (val.Type == JTokenType.Float) {
                     return new LiteralFloat (val.Value<float> ());
                 } 
 
@@ -76,7 +71,7 @@ namespace Inklewriter.Runtime
             }
 
             // Load JObject from stream
-            JObject jObject = JObject.Load(reader);
+            JObject jObject = (JObject)token;
 
             Type type = null;
 
@@ -111,26 +106,23 @@ namespace Inklewriter.Runtime
 
                 var container = (Container)newObj;
 
-                JToken token;
+                JToken propToken = null;
 
-                if (jObject.TryGetValue ("c", out token)) {
-                    var content = (List<Runtime.Object>) serializer.Deserialize (token.CreateReader (), typeof(List<Runtime.Object>));
-                    container.content = content;
+                if (jObject.TryGetValue ("namedOnly", out propToken)) {
+                    var named = propToken.ToObject<Dictionary<string, Runtime.Object>> (serializer);
+                    container.namedOnlyContent = named;
                 }
 
-                if (jObject.TryGetValue ("name", out token)) {
-                    container.name = token.Value<string> ();
+                if (jObject.TryGetValue ("c", out propToken)) {
+                    container.content = propToken.ToObject<List<Runtime.Object>> (serializer);
                 }
 
-                if (jObject.TryGetValue ("namedOnly", out token)) {
-                    var named = (Dictionary<string, Runtime.Object>) serializer.Deserialize (token.CreateReader (), typeof(Dictionary<string, Runtime.Object>));
-                    foreach (var keyPair in named) {
-                        container.AddToNamedContentOnly ((INamedContent)keyPair.Value);
-                    }
+                if (jObject.TryGetValue ("name", out propToken)) {
+                    container.name = propToken.Value<string>();
                 }
 
-                if (jObject.TryGetValue ("count", out token)) {
-                    container.visitsShouldBeCounted = token.Value<bool> ();
+                if (jObject.TryGetValue ("count", out propToken)) {
+                    container.visitsShouldBeCounted = propToken.Value<bool> ();
                 }
 
 

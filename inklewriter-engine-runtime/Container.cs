@@ -48,13 +48,19 @@ namespace Inklewriter.Runtime
 
                 return namedOnlyContent;
             } 
-            protected set {
-                namedContent.Clear ();
+            set {
+                var existingNamedOnly = namedOnlyContent;
+                if (existingNamedOnly != null) {
+                    foreach (var kvPair in existingNamedOnly) {
+                        namedContent.Remove (kvPair.Key);
+                    }
+                }
+
                 if (value == null)
                     return;
                 
-                foreach (var keyPair in value) {
-                    var named = keyPair.Value as INamedContent;
+                foreach (var kvPair in value) {
+                    var named = kvPair.Value as INamedContent;
                     if( named != null )
                         AddToNamedContentOnly (named);
                 }
