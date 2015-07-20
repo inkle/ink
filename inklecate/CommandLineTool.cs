@@ -13,6 +13,8 @@ namespace Inklewriter
             public bool verbose;
 			public bool playMode;
 			public string inputFile;
+            public string outputFile;
+            public bool indentedJson;
 		}
 
 		public static int ExitCodeError = 1;
@@ -21,17 +23,37 @@ namespace Inklewriter
 		{
 			new CommandLineTool(args);
 		}
+
+        void ExitWithUsageInstructions()
+        {
+            Console.WriteLine (
+                "Usage: inklecate2 <options> <ink file> \n"+
+                "   -o <filename>:  Output file name\n"+
+                "   -p:             Play mode\n"+
+                "   -i:             Use indentation in output JSON\n"+
+                "   -v:             Verbose mode - print compilation timings\n"+
+                "   -t:             Test mode - loads up test.ink\n"+
+                "   -s:             Stress test mode - generates test content and \n" +
+                "                   times compilation\n");
+            Environment.Exit (ExitCodeError);
+        }
             
 		CommandLineTool(string[] args)
 		{
             if (ProcessArguments (args) == false) {
-                Console.WriteLine (
-                    "Usage: inklecate2 <options> <ink file> \n"+
-                    "   -p:    Play mode\n"+
-                    "   -v:    Verbose mode - print compilation timings\n"+
-                    "   -t:    Test mode - loads up test.ink\n"+
-                    "   -s:    Stress test mode - generates test content and times compilation\n");
-                Environment.Exit (ExitCodeError);
+                ExitWithUsageInstructions ();
+            }
+
+            if (opts.testMode) {
+                opts.inputFile = "test.ink";
+            }
+
+            if (opts.inputFile == null) {
+                ExitWithUsageInstructions ();
+            }
+
+            if (opts.outputFile == null) {
+                opts.outputFile = Path.ChangeExtension (opts.inputFile, ".ink.json");
             }
 
             string inputString = null;
@@ -80,8 +102,24 @@ namespace Inklewriter
 			if (story == null) {
 				Environment.Exit (ExitCodeError);
 			}
+                
+            // JSON round trip testing
+//            if (opts.testMode) {
+//                var jsonStr = story.ToJsonString (indented:true);
+//                Console.WriteLine (jsonStr);
+//
+//                Console.WriteLine ("---------------------------------------------------");
+//
+//                var reloadedStory = new Runtime.Story (jsonStr);
+//                var newJsonStr = reloadedStory.ToJsonString (indented: true);
+//                Console.WriteLine (newJsonStr);
+//
+//                story = reloadedStory;
+//            }
 
 			// Play mode
+            // Test mode may use "-tp" in commmand line args to specify that
+            // the test script is also played
             if (opts.playMode) {
 
                 var player = new CommandLinePlayer (story, false, parsedStory);
@@ -91,15 +129,14 @@ namespace Inklewriter
             // Compile mode
             else {
                 
-                var jsonStr = story.ToJsonString (indented:true);
-                Console.WriteLine (jsonStr);
+                var jsonStr = story.ToJsonString (opts.indentedJson);
 
-                Console.WriteLine ("---------------------------------------------------");
-
-                var reloadedStory = new Runtime.Story (jsonStr);
-                var newJsonStr = reloadedStory.ToJsonString (indented: true);
-                Console.WriteLine (newJsonStr);
-
+                try {
+                    File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
+                } catch {
+                    Console.WriteLine ("Could write to output file '" + opts.outputFile+"'");
+                    Environment.Exit (ExitCodeError);
+                }
             }
 		}
 
@@ -112,12 +149,20 @@ namespace Inklewriter
 
 			opts = new Options();
 
+            bool nextArgIsOutputFilename = false;
+
 			// Process arguments
+            int argIdx = 0;
 			foreach (string arg in args) {
+                            
+                if (nextArgIsOutputFilename) {
+                    opts.outputFile = arg;
+                    nextArgIsOutputFilename = false;
+                }
 
 				// Options
 				var firstChar = arg.Substring(0,1);
-				if (firstChar == "-" && arg.Length > 1) {
+                if (firstChar == "-" && arg.Length > 1) {
 
                     for (int i = 1; i < arg.Length; ++i) {
                         char argChar = arg [i];
@@ -125,7 +170,6 @@ namespace Inklewriter
                         switch (argChar) {
                         case 't':
                             opts.testMode = true;
-                            opts.inputFile = "test.ink";
                             break;
                         case 's':
                             opts.testMode = true;
@@ -138,18 +182,26 @@ namespace Inklewriter
                         case 'v':
                             opts.verbose = true;
                             break;
+                        case 'o':
+                            nextArgIsOutputFilename = true;   
+                            break;
+                        case 'i':
+                            opts.indentedJson = true;
+                            break;
                         default:
                             Console.WriteLine ("Unsupported argument type: '{0}'", argChar);
                             break;
                         }
                     }
-					
-				}
-			}
+                } 
+                    
+                // Last argument: input file
+                else if( argIdx == args.Length-1 ) {
+                    opts.inputFile = arg;
+                }
 
-            if (opts.testMode == false) {
-                opts.inputFile = args.Last ();
-            }
+                argIdx++;
+			}
 
 			return true;
 		}
