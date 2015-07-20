@@ -43,12 +43,13 @@ namespace Inklewriter
             }
         }
 
-        public void OnError(string message, int index, int lineIndex)
+        public void OnError(string message, int index, int lineIndex, bool isWarning)
         {
+            var warningType = isWarning ? "Warning" : "Error";
             if (_filename != null) {
-                Console.WriteLine ("Error in '{0}' line {1}: {2}", _filename, (lineIndex+1), message);
+                Console.WriteLine (warningType+" in '{0}' line {1}: {2}", _filename, (lineIndex+1), message);
             } else {
-                Console.WriteLine ("Error on line {0}: {1}", (lineIndex+1), message);
+                Console.WriteLine (warningType+" on line {0}: {1}", (lineIndex+1), message);
             }
         }
 

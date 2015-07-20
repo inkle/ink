@@ -39,6 +39,10 @@ namespace Inklewriter
                 if (firstText.text.Length == 0) {
                     result.RemoveAt (0);
                 }
+
+                if (firstText.text.StartsWith ("return")) {
+                    Warning ("Do you need a '~' before 'return'? If not, perhaps use a glue: <> (since it's lowercase) or rewrite somehow?");
+                }
             }
             if (result.Count == 0)
                 return null;

@@ -24,7 +24,7 @@ namespace Tests
 		protected Story CompileString(string str)
 		{
 			InkParser parser = new InkParser(str);
-            parser.errorHandler += (string message, int index, int lineIndex) => {
+            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
                 Assert.Fail(message + " on line " + lineIndex);
             };
 			var parsedStory = parser.Parse();
@@ -44,7 +44,7 @@ namespace Tests
         protected Inklewriter.Parsed.Story CompileStringWithoutRuntime(string str)
         {
             InkParser parser = new InkParser(str);
-            parser.errorHandler += (string message, int index, int lineIndex) => {
+            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
                 Assert.Fail(message + " on line " + lineIndex);
             };
             var parsedStory = parser.Parse();
@@ -771,6 +771,22 @@ Default choice chosen.
             story.Begin ();
 
             Assert.AreEqual (story.currentText, "Some content.\nDefault choice chosen.\n");
+        }
+
+
+        class TestWarningException : System.Exception {}
+
+        [Test ()]
+        public void TestReturnTextWarning()
+        {
+            InkParser parser = new InkParser("== test ==\n return something");
+            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
+                if( isWarning ) {
+                    throw new TestWarningException();
+                }
+            };
+
+            Assert.Throws<TestWarningException>(() => parser.Parse ());
         }
 
 		//------------------------------------------------------------------------

@@ -12,7 +12,7 @@ namespace Inklewriter
 
         public delegate T SpecificParseRule<T>() where T : class;
 
-        public delegate void ErrorHandler(string message, int index, int lineIndex);
+        public delegate void ErrorHandler(string message, int index, int lineIndex, bool isWarning);
 		
 		public StringParser (string str)
 		{
@@ -130,21 +130,29 @@ namespace Inklewriter
 			return result;
 		}
 
-		protected void Error(string message)
+        protected void Error(string message, bool isWarning = false)
 		{
             if ( !state.errorReportedAlreadyInScope ) {
+
+                var errorType = isWarning ? "Warning" : "Error";
                 
                 if (errorHandler == null) {
-                    Console.WriteLine ("Error on line " + (lineIndex+1) + ": " + message);
+                    Console.WriteLine (errorType+" on line " + (lineIndex+1) + ": " + message);
                 } else {
-                    errorHandler (message, index, lineIndex);
+                    errorHandler (message, index, lineIndex, isWarning);
                 }
 
                 state.NoteErrorReported ();
             }
 
-            hadError = true;
+            if( !isWarning )
+                hadError = true;
 		}
+
+        protected void Warning(string message)
+        {
+            Error(message, isWarning:true);
+        }
             
 		public bool endOfInput
 		{
