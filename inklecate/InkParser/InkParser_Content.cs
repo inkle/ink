@@ -130,17 +130,17 @@ namespace Inklewriter
         {
             // Eat through text, pausing at the following characters, and
             // attempt to parse the nonTextRule.
-            // "-": possible start of divert or start of gather
+            // "-", "=": possible start of divert or start of gather
             // "<": possible start of glue
             if (_nonTextPauseCharacters == null) {
-                _nonTextPauseCharacters = new CharacterSet ("-<");
+                _nonTextPauseCharacters = new CharacterSet ("-=<");
             }
 
             // If we hit any of these characters, we stop *immediately* without bothering to even check the nonTextRule
             // "{" for start of logic
-            // "=" for start of divert or new stitch
+            // "|" for mid logic branch
             if (_nonTextEndCharacters == null) {
-                _nonTextEndCharacters = new CharacterSet ("={}|\n\r\\");
+                _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\");
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
