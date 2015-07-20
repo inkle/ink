@@ -89,13 +89,17 @@ namespace Inklewriter.Parsed
             // Content (Weave style choices)
             var onChoosingContent = new ContentList ();
             AddContent (onChoosingContent);
-            if (hasWeaveStyleInlineBrackets) {
+            if (hasOwnContent) {
                 if (startText != null) {
                     onChoosingContent.AddContent (new Parsed.Text(startText));
                 }
                 if (innerContent != null) {
                     onChoosingContent.AddContent (innerContent);
                 }
+
+                // Add newline on the end of the choice's own line of text (if it actually has any)
+                if( onChoosingContent.content != null )
+                    onChoosingContent.AddContent (new Text ("\n"));
             }
 
             // Build choice itself

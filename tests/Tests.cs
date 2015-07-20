@@ -372,7 +372,7 @@ This is the main file
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentText, "the main gather\n");
+            Assert.AreEqual (story.currentText, "option 1\nthe main gather\n");
             Assert.AreEqual (story.currentChoices.Count, 0);
         }
 
@@ -421,7 +421,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "gather\nchoice content\ngather\nsecond time round\n");
+            Assert.AreEqual (story.currentText, "gather\ntest\nchoice content\ngather\nsecond time round\n");
         }
 
 
@@ -451,7 +451,7 @@ This is the main file
             Assert.AreEqual (story.currentChoices[0].choiceText, "two");
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "three\nsix\n");
+            Assert.AreEqual (story.currentText, "two\nthree\nsix\n");
         }
 
         [Test ()]
