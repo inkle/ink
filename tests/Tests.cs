@@ -4,9 +4,22 @@ using Inklewriter.Runtime;
 
 namespace Tests
 {
-	[TestFixture ()]
+    public enum TestMode
+    {
+        Normal,
+        JsonRoundTrip
+    }
+
+    [TestFixture(TestMode.Normal)]
+    [TestFixture(TestMode.JsonRoundTrip)]
 	public class Tests
 	{
+        public Tests(TestMode mode)
+        {
+            _mode = mode;
+        }
+        TestMode _mode;
+
 		// Helper compile function
 		protected Story CompileString(string str)
 		{
@@ -18,6 +31,13 @@ namespace Tests
             Assert.IsFalse (parsedStory.hadError);
                 
 			Story story = parsedStory.ExportRuntime ();
+
+            // Convert to json and back again
+            if (_mode == TestMode.JsonRoundTrip) {
+                var jsonStr = story.ToJsonString (indented:true);
+                story = new Story (jsonStr);
+            }
+
 			return story;
 		}
 
