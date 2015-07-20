@@ -58,8 +58,13 @@ namespace Inklewriter.Parsed
         {
             if (opName == "and")
                 return "&&";
+            
             if (opName == "or")
                 return "||";
+
+            if (opName == "mod")
+                return "%";
+            
             return opName;
         }
 

@@ -407,6 +407,7 @@ namespace Inklewriter
 			RegisterBinaryOperator ("/", precedence:6);
 
             RegisterBinaryOperator ("%", precedence:7);
+            RegisterBinaryOperator ("mod", precedence:7, requireWhitespace:true);
 		}
 
         void RegisterBinaryOperator(string op, int precedence, bool requireWhitespace = false)
