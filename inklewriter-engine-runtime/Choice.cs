@@ -28,7 +28,7 @@ namespace Inklewriter.Runtime
 		}
 
         // Require default constructor for serialisation
-        internal Choice() : this(null, true) {}
+        public Choice() : this(null, true) {}
 
         public override string ToString ()
         {
