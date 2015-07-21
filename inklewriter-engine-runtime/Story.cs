@@ -59,7 +59,7 @@ namespace Inklewriter.Runtime
 		{
 			_mainContentContainer = contentContainer;
 
-            InitState ();
+            Reset ();
 		}
 
         public Story(string jsonString)
@@ -72,18 +72,7 @@ namespace Inklewriter.Runtime
 
             _mainContentContainer = JsonConvert.DeserializeObject<Container> (jsonString, settings);
 
-            InitState ();
-        }
-
-        void InitState ()
-        {
-            outputStream = new List<Runtime.Object> ();
-            _evaluationStack = new List<Runtime.Object> ();
-            _callStack = new CallStack ();
-            _visitCounts = new Dictionary<string, int> ();
-            // Seed the shuffle random numbers
-            int timeSeed = DateTime.Now.Millisecond;
-            _storySeed = (new Random (timeSeed)).Next () % 100;
+            Reset ();
         }
 
         public string ToJsonString(bool indented = false)
@@ -105,9 +94,23 @@ namespace Inklewriter.Runtime
 
 		public void Begin()
 		{
-			currentPath = Path.ToFirstElement ();
+            Reset ();
 			Continue ();
 		}
+
+        public void Reset()
+        {
+            outputStream = new List<Runtime.Object> ();
+            _evaluationStack = new List<Runtime.Object> ();
+            _callStack = new CallStack ();
+            _visitCounts = new Dictionary<string, int> ();
+            // Seed the shuffle random numbers
+            int timeSeed = DateTime.Now.Millisecond;
+            _storySeed = (new Random (timeSeed)).Next () % 100;
+
+            // Go to start
+            currentPath = Path.ToFirstElement ();
+        }
 
         public void ResetErrors()
         {
