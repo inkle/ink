@@ -1,0 +1,203 @@
+# [PackageDev] target_format: plist, ext: tmLanguage
+---
+name: ink2
+scopeName: source.ink
+fileTypes: [ink]
+uuid: 5a0f60ba-87b8-4fa9-854c-6bf41f74bd98
+
+patterns:
+
+- {include: '#comments'}
+
+# knot/stitch declaration
+- match: ^\s*(={1,})\s*(\w+)\s*(\([\w\s,]+\))?\s*(={1,})?\s*$
+  captures:
+    '1': {name: keyword.operator}
+    '2': {name: entity.name.function}
+    '3': {name: variable.parameter}
+    '4': {name: keyword.operator}
+  name: meta.knot.declaration
+
+
+# Choice lines
+- begin: ^\s*((?:[\*\+]\s?)+)\s*(\(\s*(\w+)\s*\))?
+  beginCaptures:
+    '1': {name: keyword.operator.choiceBullet}
+    '3': {name: entity.name.function}
+  end: $\n?
+  name: choice
+  patterns:
+    - {include: '#comments'}
+    - match: (\[)([^\]]*)(\])
+      captures:
+        '1': {name: keyword.operator}
+        '2': {name: string.content}
+        '3': {name: keyword.operator}
+    - {include: '#divert'}
+    - {include: '#mixedContent'}
+
+# Gather lines
+- match: ^\s*((?:-\s?)+)\s*(?:\(\s*(\w+)\s*\))?
+  captures:
+    '1': {name: keyword.operator.gatherBullet} 
+    '2': {name: entity.name.function}
+  name: entity.gather
+
+
+- {include: '#statements'}
+
+repository:
+
+  comments:
+    patterns:
+    - begin: /\*\*
+      captures:
+        '0': {name: punctuation.definition.comment.json}
+      end: \*/
+      name: comment.block.documentation.json
+    - begin: /\*
+      captures:
+        '0': {name: punctuation.definition.comment.json}
+      end: \*/
+      name: comment.block.json
+    - captures:
+        '1': {name: punctuation.definition.comment.json}
+      match: (//).*$\n?
+      name: comment.line.double-slash.js
+
+  choice:
+    begin: ^\s*((?:[\*\+]\s?)+)\s*(\(\s*(\w+)\s*\))?
+    beginCaptures:
+      '1': {name: keyword.operator.choiceBullet}
+      '3': {name: entity.name.function}
+    end: $\n?
+    name: choice
+    patterns:
+      - {include: '#comments'}
+      - match: (\[)([^\]]*)(\])
+        captures:
+          '1': {name: keyword.operator}
+          '2': {name: string.content}
+          '3': {name: keyword.operator}
+      - {include: '#divert'}
+      - {include: '#mixedContent'}
+
+  multiLineLogic:
+    begin: '^\s*(\{)([\w_\s\*\/\-\+\&\|\%\<\>]+(:))?(?=[^}]+$)'
+    beginCaptures:
+      '1': {name: keyword.operator}
+      '3': {name: keyword.operator}
+    end: (\})
+    endCaptures:
+      '1': {name: keyword.operator}
+    contentName: meta.multilineLogicInner
+    name: meta.multilineLogic
+    patterns:
+      - begin: '^\s*(-)\s?[^:]+(:)'
+        beginCaptures:
+          '1': {name: keyword.operator}
+          '2': {name: keyword.operator}
+        end: $\n?
+        name: conditional.clause
+        patterns:
+          - {include: '#mixedContent'}
+
+      - {include: '#statements'}
+
+  inlineConditional:
+      begin: '(\{)[^:\|\}]+:'
+      beginCaptures:
+        '1': {name: keyword.operator.inlineConditionalStart}
+      end: (\})
+      endCaptures:
+        '1': {name: keyword.operator.inlineConditionalEnd}
+      name: entity.inlineConditional
+      patterns:
+        - match: \|
+          name: keyword.operator.inlineConditionalBranchSeparator
+        - {include: '#mixedContent'}
+
+  inlineSequence:
+    begin: (\{)\s*(~|&|!|\$)?(?=([^\|]*\|(?!\|)[^\}]*)\})
+    beginCaptures:
+      '1': {name: keyword.operator.inlineSequenceStart}
+      '2': {name: keyword.operator.inlineSequenceTypeChar}
+    end: \}
+    endCaptures:
+      '0': {name: keyword.operator.inlineSequenceEnd}
+    name: entity.inlineSequence
+    patterns:
+      - match: \|(?!\|)
+        name: keyword.operator.inlineSequenceSeparator
+      - {include: '#mixedContent'}
+      
+  inlineLogic:
+    begin: (\{)
+    beginCaptures:
+      '1': {name: keyword.operator.inlineLogicStart}
+    end: (\})
+    endCaptures:
+      '1': {name: keyword.operator.inlineLogicEnd}
+    name: entity.logic
+    patterns:
+      - {include: '#innerLogic'}
+
+  innerLogic:
+    patterns:
+      - match: '\bchoice_count\b\s*\(\s*\)'
+        name: support.function
+      - match: \b\w+\b\s*\((?:[^\)]*)\)
+        name: variable.parameter
+      - match: (\b(and|or|not|mod)\b)|\!\=|\!|&&|\|\||==|<=|>=|<|>|\+|-|\*|/|\+\+|\-\-|%
+        name: keyword.operator
+
+  logicLine:
+    begin: \s*(~)
+    beginCaptures:
+      '0': {name: keyword.operator}
+    end: $\n?
+    name: entity.logicLine
+    patterns:
+      # var x = blah
+      - match: (var)\s+(\w+)(?:\s*(=))?
+        name: meta.logic
+        captures:
+          '1': {name: storage.varDeclaration}
+          '2': {name: storage}
+          '3': {name: keyword.operator}
+      - {include: '#innerLogic'}
+      - match: done|return
+        name: keyword.control
+
+  endOfSection:
+    match: \s*(~\s*){2,}\s*
+    end: $
+    name: keyword.control
+
+  divert:
+      match: '(->|=>|==>)\s*(\w+)?'
+      captures:
+        '1': {name: keyword.operator.divert}
+        '2': {name: variable.parameter.divertTarget}
+
+  mixedContent:
+    patterns:
+      - {include: '#inlineConditional'}
+      - {include: '#inlineSequence'}
+      - {include: '#inlineLogic'}
+      - {include: '#divert'}
+      - match: <>
+        name: constant.glue
+      - match: .
+        name: string.content
+
+  statements:
+    patterns:
+      - {include: '#comments'}
+      - {include: '#choice'}
+      - {include: '#multiLineLogic'}
+      - {include: '#endOfSection'}
+      - {include: '#logicLine'}
+      - {include: '#mixedContent'}
+    
+...
