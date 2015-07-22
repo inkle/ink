@@ -10,22 +10,26 @@ namespace Inklewriter.Runtime
         public string name { get; set; }
 
         // Variable reference is actually a path for a visit (read) count
-        public Path pathForVisitCount { get; set; }
+        public Path pathForCount { get; set; }
+
+        // beat count or read count?
+        [JsonProperty("beat")]
+        public bool isBeatCount { get; set; }
 
         [JsonProperty("readCount")]
         [UniqueJsonIdentifier]
-        public string pathStringForVisitCount { 
+        public string pathStringForCount { 
             get {
-                if( pathForVisitCount == null )
+                if( pathForCount == null )
                     return null;
 
-                return pathForVisitCount.componentsString;
+                return pathForCount.componentsString;
             }
             set {
                 if (value == null)
-                    pathForVisitCount = null;
+                    pathForCount = null;
                 else
-                    pathForVisitCount = new Path (value);
+                    pathForCount = new Path (value);
             }
         }
 
@@ -39,7 +43,16 @@ namespace Inklewriter.Runtime
 
         public override string ToString ()
         {
-            return name;
+            if (name != null) {
+                return string.Format ("var({0})", name);
+            } else {
+                var pathStr = pathStringForCount;
+                if( isBeatCount ) {
+                    return string.Format("beats_since({0})", pathStr);
+                } else {
+                    return string.Format("read_count({0})", pathStr);
+                }
+            }
         }
     }
 }

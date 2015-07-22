@@ -399,10 +399,18 @@ namespace Inklewriter.Runtime
                 var varRef = (VariableReference)contentObj;
 
                 // Read/visit count
-                if (varRef.pathForVisitCount != null) {
-                    var container = ContentAtPath (varRef.pathForVisitCount) as Container;
-                    int visitCount = VisitCountForContainer (container);
-                    _evaluationStack.Add (new LiteralInt (visitCount));
+                if (varRef.pathForCount != null) {
+
+                    var container = ContentAtPath (varRef.pathForCount) as Container;
+
+                    int count;
+                    if (varRef.isBeatCount) {
+                        count = BeatCountForContainer (container);
+                    } else {
+                        count = VisitCountForContainer (container);
+                    }
+
+                    _evaluationStack.Add (new LiteralInt (count));
                 } 
 
                 // Normal variable reference
@@ -811,6 +819,12 @@ namespace Inklewriter.Runtime
             _visitCounts.TryGetValue (containerPathStr, out count);
             count++;
             _visitCounts [containerPathStr] = count;
+        }
+
+        int BeatCountForContainer(Container container)
+        {
+            #warning Implement this!
+            return -1;
         }
 
         // Note that this is O(n), since it re-evaluates the shuffle indices

@@ -17,17 +17,28 @@ namespace Inklewriter.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            // Built in function
-            if (name == "choice_count") {
+            switch (name) {
+            case "choice_count":
                 if (arguments.Count > 0)
                     Error ("The choice_count() function shouldn't take any arguments");
 
-                container.AddContent (Runtime.ControlCommand.ChoiceCount());
-            } 
+                container.AddContent (Runtime.ControlCommand.ChoiceCount ());
+                break;
+
+            case "beats_since":
+                if (arguments.Count != 1 || !(arguments [0] is VariableReference) ) {
+                    Error ("The beats_since() function should take one argument: the path to the target knot, stitch, gather or choice you want to check");
+                    return;
+                }
+                var targetPathVarRef = arguments [0] as VariableReference;
+                targetPathVarRef.isBeatCount = true;
+                targetPathVarRef.GenerateIntoContainer (container);
+                break;
 
             // Normal function call
-            else {
+            default:
                 container.AddContent (_proxyDivert.runtimeObject);
+                break;
             }
         }
 

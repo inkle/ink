@@ -15,6 +15,8 @@ namespace Inklewriter.Parsed
         
         public List<string> path;
 
+        public bool isBeatCount;
+
         public VariableReference (List<string> path)
         {
             this.path = path;
@@ -34,13 +36,16 @@ namespace Inklewriter.Parsed
             var parsedPath = new Path (path);
             var targetForReadCount = parsedPath.ResolveFromContext (this);
             if (targetForReadCount) {
-                _runtimeVarRef.pathForVisitCount = targetForReadCount.runtimePath;
+                _runtimeVarRef.pathForCount = targetForReadCount.runtimePath;
                 _runtimeVarRef.name = null;
+                if (isBeatCount) {
+                    _runtimeVarRef.isBeatCount = true;
+                }
                 return;
             } 
 
             // Definitely a read count, but wasn't found?
-            else if (path.Count > 1) {
+            else if (path.Count > 1 || isBeatCount) {
                 Error ("Could not find target for read count: " + parsedPath);
                 return;
             }
