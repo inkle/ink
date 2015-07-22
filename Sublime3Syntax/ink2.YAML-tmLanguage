@@ -2,7 +2,7 @@
 ---
 name: ink2
 scopeName: source.ink
-fileTypes: [ink]
+fileTypes: [ink, ink2]
 uuid: 5a0f60ba-87b8-4fa9-854c-6bf41f74bd98
 
 patterns:

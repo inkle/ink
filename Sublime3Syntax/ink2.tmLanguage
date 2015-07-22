@@ -5,6 +5,7 @@
 	<key>fileTypes</key>
 	<array>
 		<string>ink</string>
+		<string>ink2</string>
 	</array>
 	<key>name</key>
 	<string>ink2</string>
