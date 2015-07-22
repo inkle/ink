@@ -37,6 +37,12 @@ namespace Inklewriter.Parsed
                 _runtimeVarRef.pathForVisitCount = targetForReadCount.runtimePath;
                 _runtimeVarRef.name = null;
                 return;
+            } 
+
+            // Definitely a read count, but wasn't found?
+            else if (path.Count > 1) {
+                Error ("Could not find target for read count: " + parsedPath);
+                return;
             }
 
             if (!context.ResolveVariableWithName (this.name, fromNode: this)) {
