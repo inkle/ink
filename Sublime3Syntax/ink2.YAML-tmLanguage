@@ -170,9 +170,12 @@ repository:
         captures:
           '1': {name: keyword.control}
           '2': {name: string.unquoted.filename}
+      - match: (done|return)\s*(\([^\)]*\))?
+        name: entity.returnStatement
+        captures:
+          '1': {name: keyword.control}
+          '2': {name: variable.parameter}
       - {include: '#innerLogic'}
-      - match: done|return
-        name: keyword.control
 
   endOfSection:
     match: \s*(~\s*){2,}\s*

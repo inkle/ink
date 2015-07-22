@@ -464,14 +464,27 @@
 					<string>entity.include</string>
 				</dict>
 				<dict>
-					<key>include</key>
-					<string>#innerLogic</string>
+					<key>captures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control</string>
+						</dict>
+						<key>2</key>
+						<dict>
+							<key>name</key>
+							<string>variable.parameter</string>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>(done|return)\s*(\([^\)]*\))?</string>
+					<key>name</key>
+					<string>entity.returnStatement</string>
 				</dict>
 				<dict>
-					<key>match</key>
-					<string>done|return</string>
-					<key>name</key>
-					<string>keyword.control</string>
+					<key>include</key>
+					<string>#innerLogic</string>
 				</dict>
 			</array>
 		</dict>
