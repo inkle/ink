@@ -445,6 +445,25 @@
 					<string>meta.logic</string>
 				</dict>
 				<dict>
+					<key>captures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control</string>
+						</dict>
+						<key>2</key>
+						<dict>
+							<key>name</key>
+							<string>string.unquoted.filename</string>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>(include)\s+(.*)\s*$</string>
+					<key>name</key>
+					<string>entity.include</string>
+				</dict>
+				<dict>
 					<key>include</key>
 					<string>#innerLogic</string>
 				</dict>

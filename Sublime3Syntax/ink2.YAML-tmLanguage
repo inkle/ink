@@ -165,6 +165,11 @@ repository:
           '1': {name: storage.varDeclaration}
           '2': {name: storage}
           '3': {name: keyword.operator}
+      - match: (include)\s+(.*)\s*$
+        name: entity.include
+        captures:
+          '1': {name: keyword.control}
+          '2': {name: string.unquoted.filename}
       - {include: '#innerLogic'}
       - match: done|return
         name: keyword.control
