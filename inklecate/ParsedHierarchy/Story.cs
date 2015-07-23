@@ -116,6 +116,9 @@ namespace Inklewriter.Parsed
 			var runtimeStory = new Runtime.Story (rootContainer);
 			runtimeObject = runtimeStory;
 
+            if (CheckErrors ())
+                return null;
+
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
 			// resolve referenced symbols such as variables and paths.
@@ -126,19 +129,27 @@ namespace Inklewriter.Parsed
 			// we want the paths to be absolute)
 			ResolveReferences (this);
 
+            if (CheckErrors ())
+                return null;
+
+			return runtimeStory;
+		}
+
+        bool CheckErrors()
+        {
             // Print all warnings before all errors
             if (hadWarning) {
                 foreach (var w in _warnings) Console.WriteLine (w);
             }
 
-			// Don't successfully return the object if there was an error
+            // Don't successfully return the object if there was an error
             if (hadError) {
                 foreach (var e in _errors) Console.WriteLine (e);
-				return null;
-			}
+                return true;
+            }
 
-			return runtimeStory;
-		}
+            return false;
+        }
 
         public override void Error(string message, Parsed.Object source, bool isWarning)
 		{
