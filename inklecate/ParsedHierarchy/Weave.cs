@@ -252,6 +252,13 @@ namespace Inklewriter.Parsed
 
             // Current level choice
             else if (weavePoint is Choice) {
+
+                // Gathers that contain choices are no longer loose ends
+                // (same as when weave points get nested content)
+                if (previousWeavePoint is Gather) {
+                    looseEnds.Remove ((Parsed.Object)previousWeavePoint);
+                }
+
                 currentContainer.AddContent (((Choice)weavePoint).runtimeObject);
                 hasSeenChoiceInSection = true;
             }
@@ -386,8 +393,9 @@ namespace Inklewriter.Parsed
         // at the current indentation level:
         //  - to add ordinary content to be nested under it
         //  - to add nested content under it when it's indented
-        //  - to remove it from the list of loose ends when it has
-        //    indented content since it's no longer a loose end
+        //  - to remove it from the list of loose ends when
+        //     - it has indented content since it's no longer a loose end
+        //     - it's a gather and it has a choice added to it
         IWeavePoint previousWeavePoint = null;
         bool addContentToPreviousWeavePoint = false;
 

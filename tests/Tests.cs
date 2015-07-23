@@ -847,6 +847,25 @@ Default choice chosen.
             Assert.AreEqual (story.hasError, true);
         }
 
+        [Test ()]
+        public void TestShouldntGatherDueToChoice()
+        {
+            Story story = CompileString (@"
+* opt
+    - - text
+    * * {false} impossible
+- gather");
+            
+            story.Begin ();
+            story.ContinueWithChoiceIndex (0);
+
+            // Shouldn't go to "gather"
+            Assert.AreEqual (story.currentText, "opt\ntext\n");
+
+            // Should run out of content
+            Assert.IsTrue(story.hasError);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
