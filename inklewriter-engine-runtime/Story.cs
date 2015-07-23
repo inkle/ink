@@ -104,6 +104,8 @@ namespace Inklewriter.Runtime
             _evaluationStack = new List<Runtime.Object> ();
             _callStack = new CallStack ();
             _visitCounts = new Dictionary<string, int> ();
+            _beatIndices = new Dictionary<string, int> ();
+            _currentBeatIndex = -1;
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
             _storySeed = (new Random (timeSeed)).Next () % 100;
@@ -119,6 +121,8 @@ namespace Inklewriter.Runtime
 
 		public void Continue()
 		{
+            _currentBeatIndex++;
+
             try {
 
                 while( Step () || TryFollowDefaultInvisibleChoice() ) {}
@@ -404,8 +408,8 @@ namespace Inklewriter.Runtime
                     var container = ContentAtPath (varRef.pathForCount) as Container;
 
                     int count;
-                    if (varRef.isBeatCount) {
-                        count = BeatCountForContainer (container);
+                    if (varRef.isBeatsSince) {
+                        count = BeatsSinceForContainer (container);
                     } else {
                         count = VisitCountForContainer (container);
                     }
@@ -799,6 +803,8 @@ namespace Inklewriter.Runtime
             foreach (var c in newlyOpenContainers) {
                 if( c.visitsShouldBeCounted )
                     IncrementVisitCountForContainer (c);
+                if (c.beatIndexShouldBeCounted)
+                    RecordBeatIndexVisitToContainer (c);
             }
                 
             _openContainers = openContainersThisStep;
@@ -821,10 +827,20 @@ namespace Inklewriter.Runtime
             _visitCounts [containerPathStr] = count;
         }
 
-        int BeatCountForContainer(Container container)
+        void RecordBeatIndexVisitToContainer(Container container)
         {
-            #warning Implement this!
-            return -1;
+            var containerPathStr = container.path.ToString();
+            _beatIndices [containerPathStr] = _currentBeatIndex;
+        }
+
+        int BeatsSinceForContainer(Container container)
+        {
+            int index = 0;
+            var containerPathStr = container.path.ToString();
+            if (_beatIndices.TryGetValue (containerPathStr, out index))
+                return _currentBeatIndex - index;
+            else
+                return -1;
         }
 
         // Note that this is O(n), since it re-evaluates the shuffle indices
@@ -1014,6 +1030,8 @@ namespace Inklewriter.Runtime
         private CallStack _callStack;
 
         private Dictionary<string, int> _visitCounts;
+        private Dictionary<string, int> _beatIndices;
+        private int _currentBeatIndex;
         private int _storySeed;
 
         private List<Runtime.Object> _evaluationStack;

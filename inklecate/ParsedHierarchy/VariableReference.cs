@@ -34,12 +34,26 @@ namespace Inklewriter.Parsed
 
             // Is it a read count?
             var parsedPath = new Path (path);
-            var targetForReadCount = parsedPath.ResolveFromContext (this);
-            if (targetForReadCount) {
-                _runtimeVarRef.pathForCount = targetForReadCount.runtimePath;
+            Parsed.Object targetForCount = parsedPath.ResolveFromContext (this);
+            if (targetForCount) {
+
+                Runtime.Container countedContainer = null;
+                if (targetForCount is Choice) {
+                    var choiceTarget = (Choice)targetForCount;
+                    countedContainer = choiceTarget.runtimeContainer;
+                } else if (targetForCount is FlowBase || targetForCount is Gather) {
+                    countedContainer = targetForCount.runtimeObject as Runtime.Container;
+                } else {
+                    throw new System.Exception ("Unexpected object type");
+                }
+
+                _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;
                 if (isBeatCount) {
-                    _runtimeVarRef.isBeatCount = true;
+                    _runtimeVarRef.isBeatsSince = true;
+                    countedContainer.beatIndexShouldBeCounted = true;
+                } else {
+                    countedContainer.visitsShouldBeCounted = true;
                 }
                 return;
             } 

@@ -188,7 +188,11 @@ namespace Inklewriter.Parsed
         {
             var container = new Runtime.Container ();
             container.name = name;
-            container.visitsShouldBeCounted = true;
+
+            if (this.story.countAllVisits) {
+                container.visitsShouldBeCounted = true;
+                container.beatIndexShouldBeCounted = true;
+            }
 
             GenerateArgumentVariableAssignments (container);
 

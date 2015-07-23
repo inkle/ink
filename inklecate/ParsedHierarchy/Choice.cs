@@ -29,6 +29,7 @@ namespace Inklewriter.Parsed
         public int    indentationDepth { get; set; }// = 1;
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
+        // Required for IWeavePoint interface
         public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
 
         public bool   hasOwnContent {
@@ -134,7 +135,11 @@ namespace Inklewriter.Parsed
                     
                     
                     _weaveContentContainer.name = "c";
-                    _weaveContentContainer.visitsShouldBeCounted = true;
+
+                    if (this.story.countAllVisits) {
+                        _weaveContentContainer.visitsShouldBeCounted = true;
+                        _weaveContentContainer.beatIndexShouldBeCounted = true;
+                    }
 
                     if (this.explicitPath != null) {
                         _weaveContentEndDivert = new Runtime.Divert ();

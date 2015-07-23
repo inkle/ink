@@ -18,7 +18,11 @@ namespace Inklewriter.Parsed
         {
             var container = new Runtime.Container ();
             container.name = name;
-            container.visitsShouldBeCounted = true;
+
+            if (this.story.countAllVisits) {
+                container.visitsShouldBeCounted = true;
+                container.beatIndexShouldBeCounted = true;
+            }
 
             // A gather can have null content, e.g. it's just purely a line with "-"
             if (content != null) {

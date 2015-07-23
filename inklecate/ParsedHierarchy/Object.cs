@@ -25,6 +25,16 @@ namespace Inklewriter.Parsed
 		public Parsed.Object parent { get; set; }
         public List<Parsed.Object> content { get; protected set; }
 
+        public Parsed.Story story {
+            get {
+                Parsed.Object ancestor = this;
+                while (ancestor.parent) {
+                    ancestor = ancestor.parent;
+                }
+                return ancestor as Parsed.Story;
+            }
+        }
+
 		private Runtime.Object _runtimeObject;
 		public Runtime.Object runtimeObject
 		{

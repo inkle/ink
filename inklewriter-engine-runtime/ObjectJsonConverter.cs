@@ -125,6 +125,9 @@ namespace Inklewriter.Runtime
                     container.visitsShouldBeCounted = propToken.Value<bool> ();
                 }
 
+                if (jObject.TryGetValue ("beats", out propToken)) {
+                    container.beatIndexShouldBeCounted = propToken.Value<bool> ();
+                }
 
             } else {
                 serializer.Populate (jObject.CreateReader (), newObj);
@@ -215,6 +218,11 @@ namespace Inklewriter.Runtime
                     if (container.visitsShouldBeCounted) {
                         writer.WritePropertyName ("count");
                         writer.WriteValue (container.visitsShouldBeCounted);
+                    }
+
+                    if (container.beatIndexShouldBeCounted) {
+                        writer.WritePropertyName ("beats");
+                        writer.WriteValue (container.beatIndexShouldBeCounted);
                     }
 
                     writer.WriteEndObject ();

@@ -806,6 +806,31 @@ Default choice chosen.
             Assert.AreEqual (story.currentText, "36\n2\n3\n2\n2.333333\n8\n8\n");
         }
 
+        [Test ()]
+        public void TestBeatsSince()
+        {
+            Story story = CompileString (@"
+{ beats_since(test) }
+~ test()
+{ beats_since(test) }
+* [choice 1]
+- { beats_since(test) }
+* [choice 2]
+- { beats_since(test) }
+
+== test ==
+~ ~ ~
+");
+            story.Begin ();
+            Assert.AreEqual (story.currentText, "-1\n0\n");
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (story.currentText, "1\n");
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (story.currentText, "2\n");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

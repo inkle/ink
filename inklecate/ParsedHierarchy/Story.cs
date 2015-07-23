@@ -15,6 +15,15 @@ namespace Inklewriter.Parsed
         public List<string> errors { get { return _errors; } }
         public List<string> warnings { get { return _warnings; } }
 
+        // Build setting for exporting:
+        // When true, the visit count and beat index for *all* knots, stitches, choices,
+        // and gathers are counted. When false, only those that are referenced by
+        // a read count variable reference are stored.
+        // Storing all counts is more robust and future proof (updates to the story file
+        // that reference previously uncounted visits are possible, but generates a much 
+        // larger safe file, with a lot of potentially redundant counts.
+        public bool countAllVisits = false;
+
         public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
             // Don't do anything on construction, leave it lightweight until

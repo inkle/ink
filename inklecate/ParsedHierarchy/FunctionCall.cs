@@ -30,9 +30,9 @@ namespace Inklewriter.Parsed
                     Error ("The beats_since() function should take one argument: the path to the target knot, stitch, gather or choice you want to check");
                     return;
                 }
-                var targetPathVarRef = arguments [0] as VariableReference;
-                targetPathVarRef.isBeatCount = true;
-                targetPathVarRef.GenerateIntoContainer (container);
+                _beatCountTargetReference = arguments [0] as VariableReference;
+                _beatCountTargetReference.isBeatCount = true;
+                _beatCountTargetReference.GenerateIntoContainer (container);
                 break;
 
             // Normal function call
@@ -49,6 +49,7 @@ namespace Inklewriter.Parsed
         }
 
         Parsed.Divert _proxyDivert;
+        Parsed.VariableReference _beatCountTargetReference;
     }
 }
 

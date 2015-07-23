@@ -71,6 +71,10 @@ namespace Inklewriter.Runtime
         [DefaultValue(false)]
         public bool visitsShouldBeCounted { get; set; }
 
+        [JsonProperty(propertyName:"beats")]
+        [DefaultValue(false)]
+        public bool beatIndexShouldBeCounted { get; set; }
+
 		public bool hasValidName 
 		{
 			get { return name != null && name.Length > 0; }
