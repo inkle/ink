@@ -110,7 +110,7 @@ namespace Inklewriter
 //
 //                Console.WriteLine ("---------------------------------------------------");
 //
-//                var reloadedStory = new Runtime.Story (jsonStr);
+//                var reloadedStory = Runtime.Story.CreateWithJson (jsonStr);
 //                var newJsonStr = reloadedStory.ToJsonString (indented: true);
 //                Console.WriteLine (newJsonStr);
 //

@@ -2,12 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using Newtonsoft.Json;
 
 namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{
+        const int inkVersionCurrent = 1;
+
+        // Version numbers are for engine itself and story file, rather
+        // than the save format.
+        //  -- old engine, new format: always fail
+        //  -- new engine, old format: possibly cope, based on this number
+        // When incrementing the version number above, the question you
+        // should ask yourself is:
+        //  -- Will the engine be able to load an old story file from 
+        //     before I made these changes to the engine?
+        //     If possible, you should support it, though it's not as
+        //     critical as loading old save games, since it's an
+        //     in-development problem only.
+        const int inkVersionMinimumCompatible = 1;
+
         internal Path currentPath { 
             get { 
                 return _callStack.currentElement.path; 
@@ -62,17 +78,47 @@ namespace Inklewriter.Runtime
             Reset ();
 		}
 
-        public Story(string jsonString)
+        public static Story CreateWithJson(string jsonString)
         {
-            var settings = new JsonSerializerSettings { 
-                DefaultValueHandling = DefaultValueHandling.Ignore
-            };
+            JsonTextReader reader = new JsonTextReader(new StringReader(jsonString));
+            while (reader.Read ()) {
 
-            settings.Converters.Add(new ObjectJsonConverter());
+                if (reader.TokenType == JsonToken.PropertyName) {
 
-            _mainContentContainer = JsonConvert.DeserializeObject<Container> (jsonString, settings);
+                    var propName = reader.Value as string;
+                    if (propName == "inkVersion") {
+                        reader.Read ();
+                        int formatFromFile = System.Convert.ToInt32( reader.Value );
 
-            Reset ();
+                        if (formatFromFile > inkVersionCurrent) {
+                            throw new System.Exception ("Version of ink used to build story was newer than the current verison of the engine");
+                        } else if (formatFromFile < inkVersionMinimumCompatible) {
+                            throw new System.Exception ("Version of ink used to build story is too old to be loaded by this verison of the engine");
+                        } else if (formatFromFile != inkVersionCurrent) {
+                            Console.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
+                        }
+                    } 
+
+                    else if (propName == "root") {
+
+                        var settings = new JsonSerializerSettings { 
+                            DefaultValueHandling = DefaultValueHandling.Ignore
+                        };
+
+                        settings.Converters.Add(new ObjectJsonConverter());
+
+                        var serialiser = JsonSerializer.Create (settings);
+
+                        reader.Read ();
+
+                        var rootContainer = serialiser.Deserialize<Container> (reader);
+                        return new Story (rootContainer);
+                    }
+                }
+
+            }
+
+            throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
         }
 
         public string ToJsonString(bool indented = false)
@@ -84,7 +130,21 @@ namespace Inklewriter.Runtime
             };
             settings.Converters.Add (new JsonSimplificationConverter ());
 
-            return JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
+            var rootJsonString = JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
+
+            // Wrap root in an object 
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+            using (JsonWriter writer = new JsonTextWriter (sw)) {
+                writer.WriteStartObject();
+                writer.WritePropertyName("inkVersion");
+                writer.WriteValue(inkVersionCurrent);
+                writer.WritePropertyName("root");
+                writer.WriteRawValue (rootJsonString);
+                writer.WriteEndObject();
+            }
+                
+            return sb.ToString ();
         }
 
         internal Runtime.Object ContentAtPath(Path path)
