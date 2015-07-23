@@ -144,7 +144,7 @@ repository:
 
   innerLogic:
     patterns:
-      - match: '\bchoice_count\b\s*\(\s*\)'
+      - match: '\b(choice_count|beats_since)\b\s*\([^\)]*\)'
         name: support.function
       - match: \b\w+\b\s*\((?:[^\)]*)\)
         name: variable.parameter

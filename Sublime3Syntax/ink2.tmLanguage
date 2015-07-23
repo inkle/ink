@@ -385,7 +385,7 @@
 			<array>
 				<dict>
 					<key>match</key>
-					<string>\bchoice_count\b\s*\(\s*\)</string>
+					<string>\b(choice_count|beats_since)\b\s*\([^\)]*\)</string>
 					<key>name</key>
 					<string>support.function</string>
 				</dict>
