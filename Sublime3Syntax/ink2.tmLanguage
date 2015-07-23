@@ -255,7 +255,7 @@
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>(-&gt;|=&gt;|==&gt;)\s*(\w+)?</string>
+			<string>(-&gt;|=&gt;|==&gt;)\s*([\w\.]+)?</string>
 		</dict>
 		<key>endOfSection</key>
 		<dict>

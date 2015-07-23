@@ -19,7 +19,7 @@ There are two files in this directory:
 
 1. Install the AAAPackageDev file in Sublime Text
 2. Make edits to the ink2.YAML-tmLanguage file
-3. It should auto-detect the file type, so that when you build with CMD-B, it generates the compiled `.tmLanguage` file.
+3. CMD-B to build. The first time after opening the file, it'll ask you which file type to compile to - choose **Propery List**. It will then generate the compiled `.tmLanguage` file.
 
 Some helpful links:
 

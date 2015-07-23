@@ -183,7 +183,7 @@ repository:
     name: keyword.control
 
   divert:
-      match: '(->|=>|==>)\s*(\w+)?'
+      match: '(->|=>|==>)\s*([\w\.]+)?'
       captures:
         '1': {name: keyword.operator.divert}
         '2': {name: variable.parameter.divertTarget}
