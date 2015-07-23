@@ -6,7 +6,7 @@
     <SharedGUID>{DF1CA307-A546-48DF-8BDD-0BA6D8F38645}</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>inklewriter-engine-runtime</Import_RootNamespace>
+    <Import_RootNamespace>Inklewriter.Runtime</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Branch.cs" />
