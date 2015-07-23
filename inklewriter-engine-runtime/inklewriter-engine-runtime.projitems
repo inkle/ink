@@ -17,7 +17,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DebugMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Divert.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Error.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Glue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)INamedContent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Literal.cs" />

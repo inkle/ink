@@ -181,16 +181,22 @@ namespace Inklewriter.Runtime
 
 		public void Continue()
 		{
+            _didSafeExit = false;
             _currentBeatIndex++;
 
             try {
 
                 while( Step () || TryFollowDefaultInvisibleChoice() ) {}
 
+                if( currentChoices.Count == 0 && !_didSafeExit ) {
+                    Error("unexpectedly reached end of content. Do you need a '~ ~ ~' or '~ return'?");
+                }
+
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
             } finally {
                 _openContainers = null;
+                _didSafeExit = false;
             }
 		}
 
@@ -241,14 +247,6 @@ namespace Inklewriter.Runtime
             // the "content" itself, but we skip over it.
             if (currentContentObj is Container) {
                 shouldAddObject = false;
-            }
-
-            // Error?
-            if (currentContentObj is Error) {
-                var err = (Error)currentContentObj;
-                Error (err.message, err.useEndLineNumber);
-                currentPath = null;
-                return false;
             }
 
             // Content to add to evaluation stack or the output stream
@@ -406,6 +404,7 @@ namespace Inklewriter.Runtime
                         _callStack.Pop ();
                     } else {
                         stopFlow = true;
+                        _didSafeExit = true;
                     }
                     break;
 
@@ -434,6 +433,10 @@ namespace Inklewriter.Runtime
                 case ControlCommand.CommandType.SequenceShuffleIndex:
                     var shuffleIndex = NextSequenceShuffleIndex ();
                     PushEvaluationStack (new LiteralInt (shuffleIndex));
+                    break;
+
+                case ControlCommand.CommandType.SafeExit:
+                    _didSafeExit = true;
                     break;
 
                 default:
@@ -1086,6 +1089,7 @@ namespace Inklewriter.Runtime
 
         private Container _temporaryEvaluationContainer;
         private Path _divertedPath;
+        private bool _didSafeExit;
             
         private CallStack _callStack;
 

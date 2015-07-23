@@ -831,6 +831,22 @@ Default choice chosen.
             Assert.AreEqual (story.currentText, "2\n");
         }
 
+        [Test ()]
+        public void TestEndOfContent()
+        {
+            Story story = CompileString ("Hello world");
+            story.Begin ();
+            Assert.AreEqual (story.hasError, false);
+
+            story = CompileString ("== test ==\nContent\n~ ~ ~");
+            story.Begin ();
+            Assert.AreEqual (story.hasError, false);
+
+            story = CompileString ("== test ==\nContent");
+            story.Begin ();
+            Assert.AreEqual (story.hasError, true);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

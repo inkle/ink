@@ -84,38 +84,6 @@ namespace Inklewriter.Parsed
                 }
             }
 
-            // Will step into the own content of
-            bool willStepStraightIntoSubFlow = subFlowObjs.Count > 0 && weaveObjs.Count == 0;
-
-            // Add error if runtime gets to the end of content without a divert/return etc
-            if (!(this is Story) && !willStepStraightIntoSubFlow) {
-                
-                var lastWeaveObj = weaveObjs [weaveObjs.Count - 1];
-                if (!(lastWeaveObj is Parsed.Return)) {
-
-                    var runtimeError = new Runtime.Error ("unexpectedly reached end of content. Do you need a '~ ~ ~' or '~ return'?");
-                    var wrappedError = new Parsed.Wrap<Runtime.Error> (runtimeError);
-
-                    if (lastWeaveObj.debugMetadata != null) {
-
-                        int lineNumber = lastWeaveObj.debugMetadata.endLineNumber;
-
-                        // Steal debug metadata from the last content line 
-                        // of this FlowBase since the *lack* of content doesn't
-                        // have a line number!
-                        var dm = new Runtime.DebugMetadata ();
-                        dm.startLineNumber = lineNumber;
-                        dm.endLineNumber = lineNumber;
-                        dm.fileName = lastWeaveObj.debugMetadata.fileName;
-
-                        wrappedError.debugMetadata = dm;
-                    }
-
-                    weaveObjs.Add (wrappedError);
-                }
-
-            }
-
             var finalContent = new List<Parsed.Object> ();
             if (weaveObjs.Count > 0) {
                 _rootWeave = new Weave (weaveObjs, 0);
@@ -215,16 +183,16 @@ namespace Inklewriter.Parsed
 
                     var childFlow = (FlowBase)obj;
 
+                    var childFlowRuntime = childFlow.runtimeObject;
+
                     // First inner knot/stitch - automatically step into it
                     if (contentIdx == 0 && !childFlow.hasParameters) {
-                        container.AddContent (childFlow.runtimeObject);
-                    } 
-
-                    // All other knots/stitches are only accessible by name:
-                    // i.e. by explicit divert
-                    else {
-                        container.AddToNamedContentOnly ((Runtime.INamedContent) childFlow.runtimeObject);
+                        _startingSubFlowDivert = new Runtime.Divert ();
+                        container.AddContent(_startingSubFlowDivert);
+                        _startingSubFlowRuntime = childFlowRuntime;
                     }
+                        
+                    container.AddToNamedContentOnly ((Runtime.INamedContent) childFlowRuntime);
                 }
 
                 // Other content (including entire Weaves that were grouped in the constructor)
@@ -327,12 +295,18 @@ namespace Inklewriter.Parsed
                 }
             }
 
+            if (_startingSubFlowDivert) {
+                _startingSubFlowDivert.targetPath = _startingSubFlowRuntime.path;
+            }
+
             base.ResolveReferences(context);
         }
 
         Weave _rootWeave;
         Dictionary<string, FlowBase> _subFlowsByName;
         List<Runtime.Divert> _finalLooseEnds;
+        Runtime.Divert _startingSubFlowDivert;
+        Runtime.Object _startingSubFlowRuntime;
         Runtime.Object _finalLooseEndTarget;
             
 	}
