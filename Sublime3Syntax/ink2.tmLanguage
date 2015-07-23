@@ -45,81 +45,12 @@
 			<string>meta.knot.declaration</string>
 		</dict>
 		<dict>
-			<key>begin</key>
-			<string>^\s*((?:[\*\+]\s?)+)\s*(\(\s*(\w+)\s*\))?</string>
-			<key>beginCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>keyword.operator.choiceBullet</string>
-				</dict>
-				<key>3</key>
-				<dict>
-					<key>name</key>
-					<string>entity.name.function</string>
-				</dict>
-			</dict>
-			<key>end</key>
-			<string>$\n?</string>
-			<key>name</key>
-			<string>choice</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#comments</string>
-				</dict>
-				<dict>
-					<key>captures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>keyword.operator</string>
-						</dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>string.content</string>
-						</dict>
-						<key>3</key>
-						<dict>
-							<key>name</key>
-							<string>keyword.operator</string>
-						</dict>
-					</dict>
-					<key>match</key>
-					<string>(\[)([^\]]*)(\])</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#divert</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#mixedContent</string>
-				</dict>
-			</array>
+			<key>include</key>
+			<string>#choice</string>
 		</dict>
 		<dict>
-			<key>captures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>keyword.operator.gatherBullet</string>
-				</dict>
-				<key>2</key>
-				<dict>
-					<key>name</key>
-					<string>entity.name.function</string>
-				</dict>
-			</dict>
-			<key>match</key>
-			<string>^\s*((?:-\s?)+)\s*(?:\(\s*(\w+)\s*\))?</string>
-			<key>name</key>
-			<string>entity.gather</string>
+			<key>include</key>
+			<string>#gather</string>
 		</dict>
 		<dict>
 			<key>include</key>
@@ -265,6 +196,26 @@
 			<string>\s*(~\s*){2,}\s*</string>
 			<key>name</key>
 			<string>keyword.control</string>
+		</dict>
+		<key>gather</key>
+		<dict>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.operator.gatherBullet</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.function</string>
+				</dict>
+			</dict>
+			<key>match</key>
+			<string>^\s*((?:-\s*)+)\s*(?:\(\s*(\w+)\s*\))?</string>
+			<key>name</key>
+			<string>entity.gather</string>
 		</dict>
 		<key>inlineConditional</key>
 		<dict>
@@ -601,6 +552,10 @@
 				<dict>
 					<key>include</key>
 					<string>#choice</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#gather</string>
 				</dict>
 				<dict>
 					<key>include</key>

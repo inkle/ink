@@ -19,30 +19,9 @@ patterns:
   name: meta.knot.declaration
 
 
-# Choice lines
-- begin: ^\s*((?:[\*\+]\s?)+)\s*(\(\s*(\w+)\s*\))?
-  beginCaptures:
-    '1': {name: keyword.operator.choiceBullet}
-    '3': {name: entity.name.function}
-  end: $\n?
-  name: choice
-  patterns:
-    - {include: '#comments'}
-    - match: (\[)([^\]]*)(\])
-      captures:
-        '1': {name: keyword.operator}
-        '2': {name: string.content}
-        '3': {name: keyword.operator}
-    - {include: '#divert'}
-    - {include: '#mixedContent'}
-
-# Gather lines
-- match: ^\s*((?:-\s?)+)\s*(?:\(\s*(\w+)\s*\))?
-  captures:
-    '1': {name: keyword.operator.gatherBullet} 
-    '2': {name: entity.name.function}
-  name: entity.gather
-
+# Choice and gather lines
+- {include: '#choice'}
+- {include: '#gather'}
 
 - {include: '#statements'}
 
@@ -81,6 +60,13 @@ repository:
           '3': {name: keyword.operator}
       - {include: '#divert'}
       - {include: '#mixedContent'}
+
+  gather:
+    match: ^\s*((?:-\s*)+)\s*(?:\(\s*(\w+)\s*\))?
+    captures:
+      '1': {name: keyword.operator.gatherBullet} 
+      '2': {name: entity.name.function}
+    name: entity.gather
 
   multiLineLogic:
     begin: '^\s*(\{)([\w_\s\*\/\-\+\&\|\%\<\>]+(:))?(?=[^}]+$)'
@@ -203,6 +189,7 @@ repository:
     patterns:
       - {include: '#comments'}
       - {include: '#choice'}
+      - {include: '#gather'}
       - {include: '#multiLineLogic'}
       - {include: '#endOfSection'}
       - {include: '#logicLine'}
