@@ -190,6 +190,9 @@ namespace Inklewriter.Parsed
 			// Weave style choice - target own content container
             if (_weaveContentContainer) {
                 _runtimeChoice.pathOnChoice = _weaveContentContainer.path;
+
+                if (onceOnly)
+                    _weaveContentContainer.visitsShouldBeCounted = true;
             }
 
             // Resolve path that was explicitly specified (either at the end of the weave choice, or just as the normal choice path)

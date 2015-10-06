@@ -866,6 +866,45 @@ Default choice chosen.
             Assert.IsTrue(story.hasError);
         }
 
+        [Test ()]
+        public void TestOnceOnlyChoicesWithOwnContent()
+        {
+            Story story = CompileString (@"
+~ var times = 3
+==> home
+
+== home ==
+~ times = times - 1
+{times >= 0:==> eat}
+I've finished eating now.
+~ ~ ~
+
+== eat ==
+This is the {first|second|third} time.
+ * Eat ice-cream[]
+ * Drink coke[]
+ * Munch cookies[]
+-
+==> home
+");
+
+            story.Begin ();
+
+            Assert.AreEqual (story.currentChoices.Count, 3);
+
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual (story.currentChoices.Count, 2);
+
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual (story.currentChoices.Count, 1);
+
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual (story.currentChoices.Count, 0);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
