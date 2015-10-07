@@ -132,10 +132,12 @@ namespace Inklewriter
 
         protected Gather Gather()
         {
-            var dashes = Interleave<string>(OptionalExclude(Whitespace), String("-"));
-            if (dashes == null) {
+            object gatherDashCountObj = Parse(GatherDashes);
+            if (gatherDashCountObj == null) {
                 return null;
             }
+
+            int gatherDashCount = (int)gatherDashCountObj;
 
             // Optional name for the gather
             string optionalName = Parse(BracketedName);
@@ -143,7 +145,35 @@ namespace Inklewriter
             // Optional newline before gather's content begins
             Newline ();
 
-            return new Gather (optionalName, dashes.Count);
+            return new Gather (optionalName, gatherDashCount);
+        }
+
+        protected object GatherDashes()
+        {
+            Whitespace ();
+
+            int gatherDashCount = 0;
+
+            while (ParseDashNotArrow () != null) {
+                gatherDashCount++;
+                Whitespace ();
+            }
+
+            if (gatherDashCount == 0)
+                return null;
+
+            return gatherDashCount;
+        }
+
+        protected object ParseDashNotArrow()
+        {
+            var ruleId = BeginRule ();
+
+            if (ParseString ("->") == null && ParseSingleCharacter () == '-') {
+                return SucceedRule (ruleId);
+            } else {
+                return FailRule (ruleId);
+            }
         }
 
         protected string BracketedName()

@@ -132,29 +132,6 @@ namespace Inklewriter.Parsed
                 }
 
                 targetContent = target.ResolveFromContext (this);
-
-                if (targetContent == null) {
-
-                    Path alternativePath = null;
-                    targetContent = target.ResolveFromContext (this, forceSearchAnywhere:true);
-                    if (targetContent) {
-                        alternativePath = targetContent.PathRelativeTo (this);
-                    }
-
-                    if (targetContent) {
-                        Warning ("target not found: '" + target.ToString () + "'. Assuming you meant '"+alternativePath+"'");
-                        target = alternativePath;
-                    } else {
-                        var isWarning = target.baseTargetLevel == FlowLevel.Knot;
-                        Error ("target not found: '" + target.ToString () + "'", this, isWarning);
-                    }
-
-                    // Add name to the debugMetadata so that if we get a runtime error,
-                    // we have a human readable name for the original source target,
-                    // rather than a runtime path.
-                    debugMetadata.sourceName = target.ToString ();
-                }
-
             }
         }
 

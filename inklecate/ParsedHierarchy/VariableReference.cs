@@ -65,16 +65,7 @@ namespace Inklewriter.Parsed
             }
 
             if (!context.ResolveVariableWithName (this.name, fromNode: this)) {
-
-                var forcedResolveObject = parsedPath.ResolveFromContext (this, forceSearchAnywhere:true);
-                if (forcedResolveObject) {
-                    var suggestedDotSepReadPath = forcedResolveObject.PathRelativeTo (this).dotSeparatedComponents;
-                    Error ("Unresolved variable: " + this.ToString () + ". Did you mean '" + suggestedDotSepReadPath + "' (as a read count)?");
-                } else {
-                    Error("Unresolved variable: "+this.ToString()+" after searching: "+this.descriptionOfScope, this);
-                }
-
-
+                Error("Unresolved variable: "+this.ToString()+" after searching: "+this.descriptionOfScope, this);
             }
         }
 

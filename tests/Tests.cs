@@ -69,7 +69,7 @@ namespace Tests
 @"
 === firstKnot
     Hello!
-    ==> anotherKnot
+    -> anotherKnot
 
 === anotherKnot
     World.
@@ -157,7 +157,7 @@ namespace Tests
             var storyStr =
                 @"
 == knot 
-   *   option text[]. {true: Conditional bit.} ==> next
+   *   option text[]. {true: Conditional bit.} -> next
    ~ done
 
 == next
@@ -178,10 +178,10 @@ namespace Tests
                 @"
 === intro
 = top
-    { main: => done }
+    { main: -> done }
     ~ done
 = main 
-    => top 
+    -> top 
 = done 
     ~ done
                 ";
@@ -216,7 +216,7 @@ This is the main file.
 
 This is the main file
 
-==> knot_in_2
+-> knot_in_2
                 ";
 
             Story story = CompileString (storyStr);
@@ -307,7 +307,7 @@ This is the main file
 == test ==
 - start
  { 
-    - true: * go to a stitch => a_stitch
+    - true: * go to a stitch -> a_stitch
  }
 - gather shouldn't be seen
 ~ done
@@ -400,7 +400,7 @@ This is the main file
         {
             var storyStr =
                 @"
-==> knot.stitch.gather
+-> knot.stitch.gather
 
 == knot ==
 = stitch
@@ -411,7 +411,7 @@ This is the main file
   gather
 
   {stopping:
-    - ==> knot.stitch.choice
+    - -> knot.stitch.choice
     - second time round
   }
 
@@ -491,7 +491,7 @@ This is the main file
             var storyStr =
                 @"
 - (one) one -> two
-- (two) two --> three
+- (two) two -> three
 - (three) three
                 ";
 
@@ -557,15 +557,15 @@ Hello world
         [Test ()]
         public void TestCompareDivertTargets()
         {
-            var storyStr =  @"~ var to_one = ==> one
-~ var to_two = ==> two
+            var storyStr =  @"~ var to_one = -> one
+~ var to_two = -> two
 
 {to_one == to_two:same knot|different knot}
 {to_one == to_one:same knot|different knot}
 {to_two == to_two:same knot|different knot}
-{ ==> one == ==> two:same knot|different knot}
-{ ==> one == to_one:same knot|different knot}
-{ to_one == ==> one:same knot|different knot}
+{ -> one == -> two:same knot|different knot}
+{ -> one == to_one:same knot|different knot}
+{ to_one == -> one:same knot|different knot}
 
 == one
     One
@@ -577,24 +577,6 @@ Hello world
             story.Begin ();
 
             Assert.AreEqual (story.currentText, "different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n");
-        }
-
-        [Test ()]
-        public void TestSuggestedAlternateDivert()
-        {
-            var storyStr =  @"
-== test ==
-
-= another
-  ==> inner
-
-= inner
- Done
- ~~~";
-
-            var parsedStory = CompileStringWithoutRuntime (storyStr);
-            Assert.IsTrue (parsedStory.hadWarning);
-            Assert.AreEqual (parsedStory.warnings [0], "WARNING: Divert target not found: '==> inner'. Assuming you meant '=> inner' on line 5");
         }
 
         [Test ()]
@@ -742,8 +724,8 @@ hi
         public void TestChoiceCount()
         {
             Story story = CompileString (@"
-* one => end
-* two => end
+* one -> end
+* two -> end
 { choice_count() }
 
 = end
@@ -762,7 +744,7 @@ hi
 Some content.
 
 * {false} impossible choice
-* => default_target
+* -> default_target
 
 = default_target
 Default choice chosen.
@@ -871,11 +853,11 @@ Default choice chosen.
         {
             Story story = CompileString (@"
 ~ var times = 3
-==> home
+-> home
 
 == home ==
 ~ times = times - 1
-{times >= 0:==> eat}
+{times >= 0:-> eat}
 I've finished eating now.
 ~ ~ ~
 
@@ -885,7 +867,7 @@ This is the {first|second|third} time.
  * Drink coke[]
  * Munch cookies[]
 -
-==> home
+-> home
 ");
 
             story.Begin ();

@@ -63,26 +63,11 @@ namespace Inklewriter.Parsed
                 else
                     return "<invalid Path>";
             }
-
-            string baseArrowStr;
-            switch (baseTargetLevel) {
-            case FlowLevel.Knot:
-                baseArrowStr = "==>";
-                break;
-            case FlowLevel.Stitch:
-                baseArrowStr = "=>";
-                break;
-            case FlowLevel.WeavePoint:
-                baseArrowStr = "->";
-                break;
-            default:
-                return dotSeparatedComponents;
-            }
-
-            return baseArrowStr + " " + dotSeparatedComponents;
+             
+            return "-> " + dotSeparatedComponents;
 		}
-
-        public Parsed.Object ResolveFromContext(Parsed.Object context, bool forceSearchAnywhere=false)
+            
+        public Parsed.Object ResolveFromContext(Parsed.Object context)
         {
             if (_components == null || _components.Count == 0) {
                 return null;
@@ -90,7 +75,7 @@ namespace Inklewriter.Parsed
 
             // Find base target of path from current context. e.g.
             //   ==> BASE.sub.sub
-            var baseTargetObject = ResolveBaseTarget (context, _baseTargetLevel, forceSearchAnywhere);
+            var baseTargetObject = ResolveBaseTarget (context);
             if (baseTargetObject == null) {
                 return null;
 
@@ -107,17 +92,14 @@ namespace Inklewriter.Parsed
 
         // Find the root object from the base, i.e. root from:
         //    root.sub1.sub2
-        Parsed.Object ResolveBaseTarget(Parsed.Object context, FlowLevel? baseLevel, bool forceSearchAnywhere)
+        Parsed.Object ResolveBaseTarget(Parsed.Object context)
         {
             var firstComp = firstComponent;
-
-            if (forceSearchAnywhere)
-                baseLevel = null;
 
             // Work up the ancestry to find the node that has the named object
             while (context != null) {
 
-                var foundBase = TryGetChildFromContext (context, firstComp, baseLevel, forceSearchAnywhere);
+                var foundBase = TryGetChildFromContext (context, firstComp, null, forceDeepSearch:true);
                 if (foundBase != null)
                     return foundBase;
 
@@ -154,6 +136,7 @@ namespace Inklewriter.Parsed
         // See whether "context" contains a child with a given name at a given flow level
         // Can either be a named knot/stitch (a FlowBase) or a weave point within a Weave (Choice or Gather)
         // This function also ignores any other object types that are neither FlowBase nor Weave.
+        // Called from both ResolveBase (force deep) and ResolveTail for the individual components.
         Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? childLevel, bool forceDeepSearch = false)
         {
             // null childLevel means that we don't know where to find it

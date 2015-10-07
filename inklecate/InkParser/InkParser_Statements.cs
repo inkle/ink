@@ -19,8 +19,8 @@ namespace Inklewriter
 		{
             // Check for error: Should not be allowed gather dashes within an inner block
             if (level == StatementLevel.InnerBlock) {
-                var badGatherDashes = Interleave<string>(OptionalExclude (Whitespace), String ("-"));
-                if (badGatherDashes != null) {
+                object badGatherDashCount = Parse(GatherDashes);
+                if (badGatherDashCount != null) {
                     Error ("You can't use a gather (the dashes) within the { curly braces } context. For multi-line sequences and conditions, you should only use one dash.");
                 }
             }
@@ -114,7 +114,7 @@ namespace Inklewriter
 
                 // Breaking an inner block (like a multi-line condition statement)
                 if (level <= StatementLevel.InnerBlock) {
-                    breakingRules.Add (String ("-"));
+                    breakingRules.Add (ParseDashNotArrow);
                     breakingRules.Add (String ("}"));
                 }
 

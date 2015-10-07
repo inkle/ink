@@ -148,7 +148,7 @@ namespace Inklewriter
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
-            ParseRule nonTextRule = () => OneOf (DivertArrow, EndOfLine, Glue);
+            ParseRule nonTextRule = () => OneOf (ParseDivertArrow, EndOfLine, Glue);
 
             string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
             if (pureTextContent != null ) {

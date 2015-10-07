@@ -171,8 +171,16 @@ namespace Inklewriter
             return expr;
 		}
 
-		protected Expression ExpressionUnary()
+        protected Expression ExpressionUnary()
 		{
+            // Divert target is a special case - it can't have any other operators
+            // applied to it, and we also want to check for it first so that we don't
+            // confuse "->" for subtraction.
+            var divertTarget = Parse (ExpressionDivertTarget);
+            if (divertTarget != null) {
+                return divertTarget;
+            }
+
             var prefixOp = (string) OneOf (String ("-"), String ("!"));
 
             // Don't parse like the string rules above, in case its actually 
@@ -185,7 +193,7 @@ namespace Inklewriter
 
 			Whitespace ();
 
-            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionDivertTarget, ExpressionFunctionCall, ExpressionVariableName) as Expression;
+            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionFunctionCall, ExpressionVariableName) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
             if (expr == null && prefixOp != null) {
