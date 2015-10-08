@@ -68,8 +68,8 @@ namespace Inklewriter
             var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
 
             // Terminating divert?
-            var divert = Parse (Divert);
-            if (divert) {
+            var divertOrOnwards = OneOf (Divert, TunnelOnwards) as Parsed.Object;
+            if (divertOrOnwards) {
 
                 // May not have had any results at all if there's *only* a divert!
                 if (results == null)
@@ -77,9 +77,9 @@ namespace Inklewriter
 
                 TrimEndWhitespaceAndAddNewline (results);
 
-                results.Add (divert);
+                results.Add (divertOrOnwards);
             }
-
+                
             if (results == null)
                 return null;
 

@@ -15,7 +15,7 @@ namespace Inklewriter
 
             // Second arrow, i.e. "->->": the "onwards" instruction to return from a tunnel
             if (ParseDivertArrow () != null) {
-                Error ("Return from tunnel not yet implemented");
+                // Fail so that an onwards instruction can be parsed instead
                 return null;
             }
 
@@ -52,6 +52,17 @@ namespace Inklewriter
         protected string ParseDivertArrow()
         {
             return ParseString ("->");
+        }
+
+        protected Parsed.TunnelOnwards TunnelOnwards()
+        {
+            Whitespace ();
+
+            if ( ParseString ("->->") == null ) {
+                return null;
+            }
+
+            return new TunnelOnwards ();
         }
     }
 }
