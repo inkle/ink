@@ -56,6 +56,21 @@ namespace Inklewriter
             return diverts;
         }
 
+        protected Divert PasteDivert()
+        {
+            Whitespace ();
+
+            if (ParseString ("<-") == null)
+                return null;
+
+            Whitespace ();
+
+            var divert = Expect(DivertIdentifierWithArguments, "Expected target for paste divert") as Divert;
+            divert.isPaste = true;
+
+            return divert;
+        }
+
         protected Divert DivertIdentifierWithArguments()
         {
             Whitespace ();

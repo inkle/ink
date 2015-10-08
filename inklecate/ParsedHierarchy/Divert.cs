@@ -12,12 +12,12 @@ namespace Inklewriter.Parsed
         public bool isFunctionCall { get; set; }
         public bool isToGather { get; set; }
         public bool isTunnel { get; set; }
+        public bool isPaste { get; set; }
 
-        public Divert (Parsed.Path target, List<Expression> arguments = null, bool isTunnel = false)
+        public Divert (Parsed.Path target, List<Expression> arguments = null)
 		{
 			this.target = target;
             this.arguments = arguments;
-            this.isTunnel = isTunnel;
 
             if (arguments != null) {
                 AddContent (arguments.Cast<Parsed.Object> ().ToList ());
@@ -45,7 +45,7 @@ namespace Inklewriter.Parsed
 
             // Passing arguments to the knot
             bool requiresArgCodeGen = ResolveArguments();
-            if ( requiresArgCodeGen || isFunctionCall || isTunnel ) {
+            if ( requiresArgCodeGen || isFunctionCall || isTunnel || isPaste ) {
 
                 var container = new Runtime.Container ();
 
@@ -92,9 +92,9 @@ namespace Inklewriter.Parsed
                     }
                 }
                     
-                // If this divert is a function call or a tunnel, we push to the call stack
+                // If this divert is a function call, tunnel or paste, we push to the call stack
                 // so we can return again
-                if (isFunctionCall || isTunnel) {
+                if (isFunctionCall || isTunnel || isPaste) {
                     container.AddContent (Runtime.ControlCommand.StackPush());
                 }
 
