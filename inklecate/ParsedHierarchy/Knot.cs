@@ -6,7 +6,7 @@ namespace Inklewriter.Parsed
 	{
         public override FlowLevel flowLevel { get { return FlowLevel.Knot; } }
 
-        public Knot (string name, List<Parsed.Object> topLevelObjects, List<Argument> arguments) : base(name, topLevelObjects, arguments)
+        public Knot (string name, List<Parsed.Object> topLevelObjects, List<Argument> arguments, bool isFunction) : base(name, topLevelObjects, arguments, isFunction)
 		{
 		}
             

@@ -9,6 +9,7 @@ namespace Inklewriter
         {
             public string name;
             public List<FlowBase.Argument> arguments;
+            public bool isFunction;
         }
 
 		protected Knot KnotDefinition()
@@ -23,7 +24,7 @@ namespace Inklewriter
 
             var content = Expect (innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 			 
-            return new Knot (knotDecl.name, content, knotDecl.arguments);
+            return new Knot (knotDecl.name, content, knotDecl.arguments, knotDecl.isFunction);
 		}
 
         protected FlowDecl KnotDeclaration()
@@ -34,6 +35,11 @@ namespace Inklewriter
                 return null;
 
             Whitespace ();
+
+            bool isFunc = ParseString ("function") != null;
+            if (isFunc) {
+                Whitespace ();
+            }
 
             string knotName = Parse(Identifier);
             if (knotName == null)
@@ -48,7 +54,7 @@ namespace Inklewriter
             // Optional equals after name
             Parse(KnotTitleEquals);
 
-            return new FlowDecl () { name = knotName, arguments = parameterNames };
+            return new FlowDecl () { name = knotName, arguments = parameterNames, isFunction = isFunc };
         }
 
         protected string KnotTitleEquals()
@@ -74,7 +80,7 @@ namespace Inklewriter
 
             var content = Expect(innerStitchStatements, "at least one line within the stitch", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
 
-            return new Stitch (decl.name, content, decl.arguments);
+            return new Stitch (decl.name, content, decl.arguments, decl.isFunction );
 		}
 
         protected FlowDecl StitchDeclaration()
@@ -91,6 +97,12 @@ namespace Inklewriter
 
             Whitespace ();
 
+            // Stitches aren't allowed to be functions, but we parse it anyway and report the error later
+            bool isFunc = ParseString ("function") != null;
+            if ( isFunc ) {
+                Whitespace ();
+            }
+
             string stitchName = Parse(Identifier);
             if (stitchName == null)
                 return null;
@@ -101,7 +113,7 @@ namespace Inklewriter
 
             Whitespace ();
 
-            return new FlowDecl () { name = stitchName, arguments = flowArgs };
+            return new FlowDecl () { name = stitchName, arguments = flowArgs, isFunction = isFunc };
         }
 
 

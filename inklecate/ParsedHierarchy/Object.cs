@@ -271,9 +271,11 @@ namespace Inklewriter.Parsed
 				source = this;
 			}
 
-			if (this.parent) {
-				this.parent.Error (message, source, isWarning);
-			}
+            if (this.parent) {
+                this.parent.Error (message, source, isWarning);
+            } else {
+                System.Diagnostics.Debug.Fail ("No parent object to send error to: "+message);
+            }
 		}
 
         public void Warning(string message, Parsed.Object source = null)

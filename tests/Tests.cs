@@ -887,6 +887,39 @@ This is the {first|second|third} time.
             Assert.AreEqual (story.currentChoices.Count, 0);
         }
 
+        [Test ()]
+        public void TestFunctionPurityChecks()
+        {
+            Inklewriter.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
+-> test
+
+== test ==
+~ myFunc()
+= function myBadInnerFunc
+Not allowed!
+~ ~ ~
+
+
+== function myFunc ==
+Hello world
+* a choice
+* another choice
+-
+-> myFunc
+= testStitch
+    This is a stitch
+~ ~ ~
+");
+            var errors = parsedStory.errors;
+
+            Assert.AreEqual (errors.Count,5);
+            Assert.IsTrue(errors[0].Contains("Functions cannot be stitches"));
+            Assert.IsTrue(errors[1].Contains("Functions may not contain stitches"));
+            Assert.IsTrue(errors[2].Contains("Functions may not contain diverts"));
+            Assert.IsTrue(errors[3].Contains("Functions may not contain choices"));
+            Assert.IsTrue(errors[4].Contains("Functions may not contain choices"));
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

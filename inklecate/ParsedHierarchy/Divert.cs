@@ -224,6 +224,11 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public override string ToString ()
+        {
+            return target.ToString();
+        }
+
 	}
 }
 

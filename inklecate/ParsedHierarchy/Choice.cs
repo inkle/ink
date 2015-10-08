@@ -202,6 +202,15 @@ namespace Inklewriter.Parsed
 
             base.ResolveReferences (context);
 		}
+
+        public override string ToString ()
+        {
+            if (choiceOnlyText != null) {
+                return string.Format ("* {0}[{1}]...", startText, choiceOnlyText);
+            } else {
+                return string.Format ("* {0}...", startText);
+            }
+        }
             
         Runtime.Choice _runtimeChoice;
         Runtime.Container _weaveContentContainer;

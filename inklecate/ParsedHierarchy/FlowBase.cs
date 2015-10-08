@@ -16,8 +16,9 @@ namespace Inklewriter.Parsed
         public bool hasParameters { get { return arguments != null && arguments.Count > 0; } }
         public Dictionary<string, VariableAssignment> variableDeclarations;
         public abstract FlowLevel flowLevel { get; }
+        public bool isFunction { get; protected set; }
 
-        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null)
+        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null, bool isFunction = false)
 		{
 			this.name = name;
 
@@ -33,6 +34,7 @@ namespace Inklewriter.Parsed
             AddContent(topLevelObjects);
 
             this.arguments = arguments;
+            this.isFunction = isFunction;
 
             variableDeclarations = new Dictionary<string, VariableAssignment> ();
 
@@ -154,6 +156,10 @@ namespace Inklewriter.Parsed
             
         public override Runtime.Object GenerateRuntimeObject ()
         {
+            if (isFunction) {
+                CheckForDisallowedFunctionFlowControl ();
+            }
+
             var container = new Runtime.Container ();
             container.name = name;
 
@@ -300,6 +306,30 @@ namespace Inklewriter.Parsed
             }
 
             base.ResolveReferences(context);
+        }
+
+        void CheckForDisallowedFunctionFlowControl()
+        {
+            if (!(this is Knot)) {
+                Error ("Functions cannot be stitches - i.e. they should be defined as '== function myFunc ==' rather than internal to another knot.");
+            }
+
+            // Not allowed sub-flows
+            foreach (var subFlowAndName in _subFlowsByName) {
+                var name = subFlowAndName.Key;
+                var subFlow = subFlowAndName.Value;
+                Error ("Functions may not contain stitches, but saw '"+name+"' within the function '"+this.name+"'", subFlow);
+            }
+
+            var allDiverts = _rootWeave.FindAll<Divert> ();
+            foreach (var divert in allDiverts) {
+                Error ("Functions may not contain diverts, but saw '"+divert.ToString()+"'", divert);
+            }
+
+            var allChoices = _rootWeave.FindAll<Choice> ();
+            foreach (var choice in allChoices) {
+                Error ("Functions may not contain choices, but saw '"+choice.ToString()+"'", choice);
+            }
         }
 
         Weave _rootWeave;
