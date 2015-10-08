@@ -705,21 +705,20 @@ Hello world
         public void TestReadCountDotSeparatedPath()
         {
             Story story = CompileString (@"
--> hi
+-> hi ->
+-> hi ->
+-> hi ->
+
+{ hi.stitch_to_count }
 
 == hi ==
 = stitch_to_count
 hi
--> done
-~ ~ ~
-
-== done ==
-{ hi.stitch_to_count }
 ~ ~ ~
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "hi\n1\n");
+            Assert.AreEqual (story.currentText, "hi\nhi\nhi\n3\n");
         }
 
         [Test ()]
@@ -949,6 +948,22 @@ This is a normal knot.
             Assert.AreEqual (errors.Count,2);
             Assert.IsTrue(errors[0].Contains("hasn't been marked as a function"));
             Assert.IsTrue(errors[1].Contains("can only be called as a function"));
+        }
+
+        [Test ()]
+        public void TestBasicTunnel()
+        {
+            Story story = CompileString (@"
+-> f ->
+<> world
+
+== f ==
+Hello
+");
+
+            story.Begin ();
+
+            Assert.AreEqual (story.currentText, "Hello world\n");
         }
 
 		//------------------------------------------------------------------------

@@ -11,11 +11,13 @@ namespace Inklewriter.Parsed
 		public Runtime.Divert runtimeDivert { get; protected set; }
         public bool isFunctionCall { get; set; }
         public bool isToGather { get; set; }
+        public bool isTunnel { get; protected set; }
 
-        public Divert (Parsed.Path target, List<Expression> arguments = null)
+        public Divert (Parsed.Path target, List<Expression> arguments = null, bool isTunnel = false)
 		{
 			this.target = target;
             this.arguments = arguments;
+            this.isTunnel = isTunnel;
 
             if (arguments != null) {
                 AddContent (arguments.Cast<Parsed.Object> ().ToList ());
@@ -42,50 +44,57 @@ namespace Inklewriter.Parsed
             ResolveTargetContent ();
 
             // Passing arguments to the knot
-            if ( ResolveArguments() || isFunctionCall ) {
+            bool requiresArgCodeGen = ResolveArguments();
+            if ( requiresArgCodeGen || isFunctionCall || isTunnel ) {
 
                 var container = new Runtime.Container ();
 
-                if (!isFunctionCall) {
-                    container.AddContent (Runtime.ControlCommand.EvalStart());
-                }
+                // Generate code for argument evaluation?
+                if (requiresArgCodeGen) {
 
-                List<FlowBase.Argument> targetArguments = null;
-                if( targetContent )
-                    targetArguments = (targetContent as FlowBase).arguments;
+                    // Function calls already in an evaluation context
+                    if (!isFunctionCall) {
+                        container.AddContent (Runtime.ControlCommand.EvalStart());
+                    }
 
-                for (var i = 0; i < arguments.Count; ++i) {
-                    Expression argToPass = arguments [i];
-                    FlowBase.Argument argExpected = null; 
-                    if( targetArguments != null ) 
-                        argExpected = targetArguments [i];
+                    List<FlowBase.Argument> targetArguments = null;
+                    if( targetContent )
+                        targetArguments = (targetContent as FlowBase).arguments;
 
-                    // Pass by reference: argument needs to be a variable reference
-                    if (argExpected != null && argExpected.isByReference) {
+                    for (var i = 0; i < arguments.Count; ++i) {
+                        Expression argToPass = arguments [i];
+                        FlowBase.Argument argExpected = null; 
+                        if( targetArguments != null ) 
+                            argExpected = targetArguments [i];
 
-                        var varRef = argToPass as VariableReference;
-                        if (varRef == null) {
-                            Error ("Expected variable name to pass by reference to 'ref " + argExpected.name + "' but saw " + argToPass.ToString ());
-                            break;
+                        // Pass by reference: argument needs to be a variable reference
+                        if (argExpected != null && argExpected.isByReference) {
+
+                            var varRef = argToPass as VariableReference;
+                            if (varRef == null) {
+                                Error ("Expected variable name to pass by reference to 'ref " + argExpected.name + "' but saw " + argToPass.ToString ());
+                                break;
+                            }
+
+                            var varPointer = new Runtime.LiteralVariablePointer (varRef.name);
+                            container.AddContent (varPointer);
+                        } 
+
+                        // Normal value being passed: evaluate it as normal
+                        else {
+                            argToPass.GenerateIntoContainer (container);
                         }
+                    }
 
-                        var varPointer = new Runtime.LiteralVariablePointer (varRef.name);
-                        container.AddContent (varPointer);
-                    } 
-
-                    // Normal value being passed: evaluate it as normal
-                    else {
-                        argToPass.GenerateIntoContainer (container);
+                    // Function calls were already in an evaluation context
+                    if (!isFunctionCall) {
+                        container.AddContent (Runtime.ControlCommand.EvalEnd());
                     }
                 }
                     
-                if (!isFunctionCall) {
-                    container.AddContent (Runtime.ControlCommand.EvalEnd());
-                }
-
-                // If this divert is a function call, we push to the call stack
+                // If this divert is a function call or a tunnel, we push to the call stack
                 // so we can return again
-                if (isFunctionCall) {
+                if (isFunctionCall || isTunnel) {
                     container.AddContent (Runtime.ControlCommand.StackPush());
                 }
 
