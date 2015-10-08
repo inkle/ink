@@ -11,7 +11,7 @@ namespace Inklewriter.Parsed
 		public Runtime.Divert runtimeDivert { get; protected set; }
         public bool isFunctionCall { get; set; }
         public bool isToGather { get; set; }
-        public bool isTunnel { get; protected set; }
+        public bool isTunnel { get; set; }
 
         public Divert (Parsed.Path target, List<Expression> arguments = null, bool isTunnel = false)
 		{

@@ -246,7 +246,7 @@ namespace Inklewriter
         {
             Whitespace ();
 
-            var divert = Parse(Divert);
+            var divert = Parse(SingleDivert);
             if (divert == null)
                 return null;
 

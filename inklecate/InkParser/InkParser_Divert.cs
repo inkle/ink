@@ -6,22 +6,63 @@ namespace Inklewriter
 {
     internal partial class InkParser
     {
-        protected Divert Divert()
+        protected List<Divert> MultiStepTunnelDivert()
         {
             Whitespace ();
 
-            if (ParseDivertArrow() == null)
+            var arrowsAndDiverts = Interleave<object> (ParseDivertArrow, DivertIdentifierWithArguments);
+            if (arrowsAndDiverts == null)
                 return null;
 
-            // Second arrow, i.e. "->->": the "onwards" instruction to return from a tunnel
-            if (ParseDivertArrow () != null) {
-                // Fail so that an onwards instruction can be parsed instead
-                return null;
+            var diverts = new List<Divert> ();
+
+            // Divert arrow only: "->"
+            // Assume if there are no target components, it must be a divert to a gather point
+            if (arrowsAndDiverts.Count == 1) {
+
+                // Check whether we actually just accidentally parsed the onwards operator (->->)
+                if (ParseString ("->") != null) {
+                    return null;
+                }
+
+                var gatherDivert = new Divert ((Parsed.Object)null);
+                gatherDivert.isToGather = true;
+                diverts.Add (gatherDivert);
             }
 
-            // Should always have components here unless it's a divert to a gather point,
-            // in which case there isn't an explicit target, do we can't require them at parse time.
+            // Possible patterns:
+            //  -> div               -- normal divert
+            //  -> div ->            -- normal tunnel
+            //  -> div -> div        -- tunnel then divert
+            //  -> div -> div ->     -- tunnel then tunnel
+            //  -> div -> div -> div -- tunnel then tunnel then divert
+            // (etc)
+            else {
+
+                // Extract the diverts rather than the arrow strings
+                for (int divIdx = 1; divIdx < arrowsAndDiverts.Count; divIdx += 2) {
+                    var currentDivert = arrowsAndDiverts [divIdx] as Divert;
+
+                    // More to come? (further arrows)
+                    if (divIdx < arrowsAndDiverts.Count - 1) {
+                        currentDivert.isTunnel = true;
+                    }
+
+                    diverts.Add (currentDivert);
+                }
+
+            }
+
+            return diverts;
+        }
+
+        protected Divert DivertIdentifierWithArguments()
+        {
+            Whitespace ();
+
             List<string> targetComponents = Parse (DotSeparatedDivertPathComponents);
+            if (targetComponents == null)
+                return null;
 
             Whitespace ();
 
@@ -29,19 +70,27 @@ namespace Inklewriter
 
             Whitespace ();
 
-            // Assume if there are no target components, it must be a divert to a gather point
-            if (targetComponents == null) {
-                var gatherDivert = new Divert ((Parsed.Object)null);
-                gatherDivert.isToGather = true;
-                return gatherDivert;
-            } 
+            var targetPath = new Path (targetComponents);
+            return new Divert (targetPath, optionalArguments);
+        }
 
-            // Normal Divert to a normal Path
-            else {
-                var isTunnel = targetComponents != null && ParseDivertArrow () != null;
-                var targetPath = new Path (targetComponents);
-                return new Divert (targetPath, optionalArguments, isTunnel);
+        protected Divert SingleDivert()
+        {
+            var diverts = Parse (MultiStepTunnelDivert);
+            if (diverts == null)
+                return null;
+
+            if (diverts.Count != 1) {
+                Error ("Expected just one single divert");
             }
+
+            var divert = diverts [0];
+            if (divert.isTunnel) {
+                Error ("Didn't expect tunnel, but a normal divert");
+                divert.isTunnel = false;
+            }
+
+            return divert;
         }
 
         List<string> DotSeparatedDivertPathComponents()

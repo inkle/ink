@@ -66,7 +66,7 @@ namespace Inklewriter
                 
 			Whitespace ();
 
-            var divert =  Parse(Divert);
+            var divert =  Parse(SingleDivert);
 
             Whitespace ();
 
@@ -91,7 +91,7 @@ namespace Inklewriter
                 _choiceTextEndCharacters = new CharacterSet("[]={\n\r");
             }
 
-            return ParseUntil(Divert, pauseCharacters: _choiceTextPauseCharacters, endCharacters: _choiceTextEndCharacters);
+            return ParseUntil(SingleDivert, pauseCharacters: _choiceTextPauseCharacters, endCharacters: _choiceTextEndCharacters);
         }
 
 		private CharacterSet _choiceTextPauseCharacters;

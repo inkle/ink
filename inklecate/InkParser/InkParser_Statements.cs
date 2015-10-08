@@ -74,7 +74,7 @@ namespace Inklewriter
 
                 // Diverts can go anywhere
                 // (Check before KnotDefinition since possible "==>" has to be found before "== name ==")
-                rulesAtLevel.Add(Line(Divert));
+                rulesAtLevel.Add(Line(MultiStepTunnelDivert));
 
                 if (level >= StatementLevel.Top) {
 
