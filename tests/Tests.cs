@@ -90,13 +90,13 @@ namespace Tests
                    { six() + two() }
                     ~ done
 
-                === six
+                === function six
                     ~ return four() + two()
 
-                === four
+                === function four
                     ~ return two() + two()
 
-                === two
+                === function two
                     ~ return 2
                 ";
 
@@ -585,7 +585,7 @@ Hello world
             var storyStr =  @"
 { factorial(5) }
 
-== factorial(n) ==
+== function factorial(n) ==
  { n == 1:
     ~ return 1
  - else:
@@ -611,11 +611,11 @@ Hello world
 
 {x}
 
-== squaresquare(ref x) ==
+== function squaresquare(ref x) ==
  {square(x)} {square(x)}
  ~ ~ ~
 
-== square(ref x) ==
+== function square(ref x) ==
  ~ x = x * x
  ~ ~ ~
 ";
@@ -637,7 +637,7 @@ Hello world
 { result }
 
 
-== factorialByRef(ref r, n) ==
+== function factorialByRef(ref r, n) ==
 { r == 0:
     ~ r = 1
 }
@@ -660,7 +660,7 @@ Hello world
             var storyStr =  @"
 ~ f(1, 1)
 
-== f(x, y) ==
+== function f(x, y) ==
 { x == 1 and y == 1:
   ~ x = 2
   ~ f(y, x)
@@ -705,19 +705,21 @@ Hello world
         public void TestReadCountDotSeparatedPath()
         {
             Story story = CompileString (@"
-~ hi()
-~ hi()
-~ hi()
-{ hi.stitch_to_count }
+-> hi
 
 == hi ==
 = stitch_to_count
 hi
+-> done
+~ ~ ~
+
+== done ==
+{ hi.stitch_to_count }
 ~ ~ ~
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "hi\nhi\nhi\n3\n");
+            Assert.AreEqual (story.currentText, "hi\n1\n");
         }
 
         [Test ()]
@@ -800,7 +802,7 @@ Default choice chosen.
 * [choice 2]
 - { beats_since(test) }
 
-== test ==
+== function test ==
 ~ ~ ~
 ");
             story.Begin ();
@@ -918,6 +920,35 @@ Hello world
             Assert.IsTrue(errors[2].Contains("Functions may not contain diverts"));
             Assert.IsTrue(errors[3].Contains("Functions may not contain choices"));
             Assert.IsTrue(errors[4].Contains("Functions may not contain choices"));
+        }
+
+
+        [Test ()]
+        public void TestFunctionCallRestrictions()
+        {
+            Inklewriter.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
+// Allowed to do this
+~ myFunc()
+
+// Not allowed to to this
+~ aKnot()
+
+// Not allowed to do this
+-> myFunc
+
+== function myFunc ==
+This is a function.
+~ ~ ~
+
+== aKnot ==
+This is a normal knot.
+~ ~ ~
+");
+            var errors = parsedStory.errors;
+
+            Assert.AreEqual (errors.Count,2);
+            Assert.IsTrue(errors[0].Contains("hasn't been marked as a function"));
+            Assert.IsTrue(errors[1].Contains("can only be called as a function"));
         }
 
 		//------------------------------------------------------------------------

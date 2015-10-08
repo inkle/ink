@@ -323,7 +323,8 @@ namespace Inklewriter.Parsed
 
             var allDiverts = _rootWeave.FindAll<Divert> ();
             foreach (var divert in allDiverts) {
-                Error ("Functions may not contain diverts, but saw '"+divert.ToString()+"'", divert);
+                if( !divert.isFunctionCall )
+                    Error ("Functions may not contain diverts, but saw '"+divert.ToString()+"'", divert);
             }
 
             var allChoices = _rootWeave.FindAll<Choice> ();

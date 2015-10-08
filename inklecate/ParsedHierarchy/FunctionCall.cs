@@ -47,7 +47,7 @@ namespace Inklewriter.Parsed
             var strArgs = string.Join (", ", arguments);
             return string.Format ("{0}({1})", name, strArgs);
         }
-
+            
         Parsed.Divert _proxyDivert;
         Parsed.VariableReference _beatCountTargetReference;
     }

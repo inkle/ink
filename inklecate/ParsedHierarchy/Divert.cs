@@ -147,6 +147,16 @@ namespace Inklewriter.Parsed
 
             // Resolve children (the arguments)
             base.ResolveReferences (context);
+
+            // May be null if it's a built in function (e.g. beats_since)
+            var targetFlow = targetContent as FlowBase;
+            if (targetFlow) {
+                if (!targetFlow.isFunction && this.isFunctionCall) {
+                    base.Error (targetFlow.name+" hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function " + targetFlow.name + " =='?");
+                } else if (targetFlow.isFunction && !this.isFunctionCall) {
+                    base.Error (targetFlow.name+" can't be diverted to. It can only be called as a function since it's been marked as such: '" + targetFlow.name + "(...)'");
+                }
+            }
 		}
 
         // Returns true if arguments require code generation (as opposed to whether there's an error,
