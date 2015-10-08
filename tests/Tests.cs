@@ -59,7 +59,7 @@ namespace Tests
 		{
 			Story story = CompileString ("Hello world");
 			story.Begin ();
-			Assert.AreEqual (story.currentText, "Hello world\n");
+            Assert.AreEqual ("Hello world\n", story.currentText);
 		}
 
         [Test ()]
@@ -78,7 +78,7 @@ namespace Tests
             
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentText, "Hello!\nWorld.\n");
+            Assert.AreEqual ("Hello!\nWorld.\n", story.currentText);
         }
 
         [Test ()]
@@ -102,7 +102,7 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentText, "8\n");
+            Assert.AreEqual ("8\n", story.currentText);
         }
 
         [Test ()]
@@ -119,10 +119,10 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentChoices[0].choiceText, "Hello.");
+            Assert.AreEqual ("Hello.", story.currentChoices[0].choiceText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "Hello, world.\n");
+            Assert.AreEqual ("Hello, world.\n", story.currentText);
         }
 
         [Test ()]
@@ -144,11 +144,11 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentChoices.Count, 4);
-            Assert.AreEqual (story.currentChoices[0].choiceText, "one");
-            Assert.AreEqual (story.currentChoices[1].choiceText, "two");
-            Assert.AreEqual (story.currentChoices[2].choiceText, "three");
-            Assert.AreEqual (story.currentChoices[3].choiceText, "four");
+            Assert.AreEqual (4, story.currentChoices.Count);
+            Assert.AreEqual ("one", story.currentChoices[0].choiceText);
+            Assert.AreEqual ("two", story.currentChoices[1].choiceText);
+            Assert.AreEqual ("three", story.currentChoices[2].choiceText);
+            Assert.AreEqual ("four", story.currentChoices[3].choiceText);
         }
 
         [Test ()]
@@ -168,7 +168,7 @@ namespace Tests
             Story story = CompileString (storyStr);
             story.Begin ();
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "option text. Conditional bit.\nNext.\n");
+            Assert.AreEqual ("option text. Conditional bit.\nNext.\n", story.currentText);
         }
 
         [Test ()]
@@ -188,7 +188,7 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentText, "\n");
+            Assert.AreEqual ("\n", story.currentText);
         }
 
         [Test ()]
@@ -204,7 +204,7 @@ This is the main file.
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentText, "This is include 1.\nThis is include 2.\nThis is the main file.\n");
+            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.\n", story.currentText);
         }
 
         [Test ()]
@@ -221,7 +221,7 @@ This is the main file
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual (story.currentText, "The value of a variable in test file 2 is 5.\nThis is the main file\nThe value when accessed from knot_in_2 is 5.\n");
+            Assert.AreEqual ("The value of a variable in test file 2 is 5.\nThis is the main file\nThe value when accessed from knot_in_2 is 5.\n", story.currentText);
         }
 
         [Test ()]
@@ -260,7 +260,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "true\ntrue\ntrue\ntrue\ntrue\ngreat\nright?\n");
+            Assert.AreEqual ("true\ntrue\ntrue\ntrue\ntrue\ngreat\nright?\n", story.currentText);
         }
 
         public void TestElseBranches()
@@ -296,7 +296,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "other\nother\nother\nother\n");
+            Assert.AreEqual ("other\nother\nother\nother\n", story.currentText);
         }
 
         [Test ()]
@@ -322,12 +322,12 @@ This is the main file
 
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
-            Assert.AreEqual (story.currentText, "start\n\n");
-            Assert.AreEqual (story.currentChoices.Count, 1);
+            Assert.AreEqual ("start\n\n", story.currentText);
+            Assert.AreEqual (1, story.currentChoices.Count);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentText, "result\n");
+            Assert.AreEqual ("result\n", story.currentText);
         }
 
         [Test ()]
@@ -345,8 +345,8 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentChoices.Count, 1);
-            Assert.AreEqual (story.currentChoices[0].choiceText, "visible choice");
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("visible choice", story.currentChoices[0].choiceText);
         }
 
         [Test ()]
@@ -367,13 +367,13 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "first gather\n");
-            Assert.AreEqual (story.currentChoices.Count, 2);
+            Assert.AreEqual ("first gather\n", story.currentText);
+            Assert.AreEqual (2, story.currentChoices.Count);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentText, "option 1\nthe main gather\n");
-            Assert.AreEqual (story.currentChoices.Count, 0);
+            Assert.AreEqual ("option 1\nthe main gather\n", story.currentText);
+            Assert.AreEqual (0, story.currentChoices.Count);
         }
 
         [Test ()]
@@ -392,7 +392,7 @@ This is the main file
 
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
-            Assert.AreEqual (story.currentText, "\n5\n");
+            Assert.AreEqual ("\n5\n", story.currentText);
         }
 
         [Test ()]
@@ -421,7 +421,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "gather\ntest\nchoice content\ngather\nsecond time round\n");
+            Assert.AreEqual ("gather\ntest\nchoice content\ngather\nsecond time round\n", story.currentText);
         }
 
 
@@ -442,16 +442,16 @@ This is the main file
             Story story = CompileString (storyStr);
 
             story.Begin ();
-            Assert.AreEqual (story.currentChoices.Count, 2);
-            Assert.AreEqual (story.currentChoices[0].choiceText, "one");
-            Assert.AreEqual (story.currentChoices[1].choiceText, "four");
+            Assert.AreEqual (2, story.currentChoices.Count);
+            Assert.AreEqual ("one", story.currentChoices[0].choiceText);
+            Assert.AreEqual ("four", story.currentChoices[1].choiceText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentChoices.Count, 1);
-            Assert.AreEqual (story.currentChoices[0].choiceText, "two");
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("two", story.currentChoices[0].choiceText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "two\nthree\nsix\n");
+            Assert.AreEqual ("two\nthree\nsix\n", story.currentText);
         }
 
         [Test ()]
@@ -464,7 +464,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "nothing\n");
+            Assert.AreEqual ("nothing\n", story.currentText);
         }
 
         [Test ()]
@@ -477,12 +477,12 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentChoices.Count, 1);
-            Assert.AreEqual (story.currentChoices[0].choiceText, "Option");
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("Option", story.currentChoices[0].choiceText);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentText, "Text\n");
+            Assert.AreEqual ("Text\n", story.currentText);
         }
 
         [Test ()]
@@ -498,7 +498,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "one\ntwo\nthree\n");
+            Assert.AreEqual ("one\ntwo\nthree\n", story.currentText);
         }
             
         [Test ()]
@@ -509,11 +509,11 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentChoices [0].choiceText, "hello");
+            Assert.AreEqual ("hello", story.currentChoices [0].choiceText);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentChoices [0].choiceText, "world");
+            Assert.AreEqual ("world", story.currentChoices [0].choiceText);
         }
 
         [Test ()]
@@ -524,7 +524,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "Some content with glue.\n");
+            Assert.AreEqual ("Some content with glue.\n", story.currentText);
         }
 
         [Test ()]
@@ -536,7 +536,7 @@ This is the main file
             story.Begin ();
 
             // Unfortunate leading newline...
-            Assert.AreEqual (story.currentText, "this is a '|' character\n");
+            Assert.AreEqual ("this is a '|' character\n", story.currentText);
         }
 
         [Test ()]
@@ -551,7 +551,7 @@ Hello world
             story.Begin ();
 
             // Unfortunate leading newline...
-            Assert.AreEqual (story.currentText, "Hello world\n");
+            Assert.AreEqual ("Hello world\n", story.currentText);
         }
 
         [Test ()]
@@ -576,7 +576,7 @@ Hello world
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n");
+            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n", story.currentText);
         }
 
         [Test ()]
@@ -596,7 +596,7 @@ Hello world
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "120\n");
+            Assert.AreEqual ("120\n", story.currentText);
        }
 
         [Test ()]
@@ -624,7 +624,7 @@ Hello world
             story.Begin ();
 
             // Bloody whitespace
-            Assert.AreEqual (story.currentText, "5\n \n625\n");
+            Assert.AreEqual ("5\n \n625\n", story.currentText);
         }
 
 
@@ -651,7 +651,7 @@ Hello world
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "\n120\n");
+            Assert.AreEqual ("\n120\n", story.currentText);
         }
 
         [Test ()]
@@ -673,7 +673,7 @@ Hello world
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "1 2\n");
+            Assert.AreEqual ("1 2\n", story.currentText);
         }
 
         [Test ()]
@@ -682,7 +682,7 @@ Hello world
             Story story = CompileString (@"");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, string.Empty);
+            Assert.AreEqual (string.Empty, story.currentText);
         }
 
         [Test ()]
@@ -698,7 +698,7 @@ Hello world
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "6\n5\n");
+            Assert.AreEqual ("6\n5\n", story.currentText);
         }
 
         [Test ()]
@@ -718,7 +718,7 @@ hi
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "hi\nhi\nhi\n3\n");
+            Assert.AreEqual ("hi\nhi\nhi\n3\n", story.currentText);
         }
 
         [Test ()]
@@ -734,7 +734,7 @@ hi
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "2\n");
+            Assert.AreEqual ("2\n", story.currentText);
         }
 
 
@@ -753,7 +753,7 @@ Default choice chosen.
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "Some content.\nDefault choice chosen.\n");
+            Assert.AreEqual ("Some content.\nDefault choice chosen.\n", story.currentText);
         }
 
 
@@ -786,7 +786,7 @@ Default choice chosen.
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "36\n2\n3\n2\n2.333333\n8\n8\n");
+            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8\n", story.currentText);
         }
 
         [Test ()]
@@ -805,13 +805,13 @@ Default choice chosen.
 ~ ~ ~
 ");
             story.Begin ();
-            Assert.AreEqual (story.currentText, "-1\n0\n");
+            Assert.AreEqual ( "-1\n0\n", story.currentText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "1\n");
+            Assert.AreEqual ("1\n", story.currentText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (story.currentText, "2\n");
+            Assert.AreEqual ("2\n", story.currentText);
         }
 
         [Test ()]
@@ -819,15 +819,15 @@ Default choice chosen.
         {
             Story story = CompileString ("Hello world");
             story.Begin ();
-            Assert.AreEqual (story.hasError, false);
+            Assert.IsFalse (story.hasError);
 
             story = CompileString ("== test ==\nContent\n~ ~ ~");
             story.Begin ();
-            Assert.AreEqual (story.hasError, false);
+            Assert.IsFalse (story.hasError);
 
             story = CompileString ("== test ==\nContent");
             story.Begin ();
-            Assert.AreEqual (story.hasError, false);
+            Assert.IsFalse (story.hasError);
 
             // TODO: Revise what counts as an error!
         }
@@ -845,7 +845,7 @@ Default choice chosen.
             story.ContinueWithChoiceIndex (0);
 
             // Shouldn't go to "gather"
-            Assert.AreEqual (story.currentText, "opt\ntext\n");
+            Assert.AreEqual ("opt\ntext\n", story.currentText);
         }
 
         [Test ()]
@@ -872,19 +872,19 @@ This is the {first|second|third} time.
 
             story.Begin ();
 
-            Assert.AreEqual (story.currentChoices.Count, 3);
+            Assert.AreEqual (3, story.currentChoices.Count);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentChoices.Count, 2);
+            Assert.AreEqual (2, story.currentChoices.Count);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentChoices.Count, 1);
+            Assert.AreEqual (1, story.currentChoices.Count);
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual (story.currentChoices.Count, 0);
+            Assert.AreEqual (0, story.currentChoices.Count);
         }
 
         [Test ()]
@@ -912,7 +912,7 @@ Hello world
 ");
             var errors = parsedStory.errors;
 
-            Assert.AreEqual (errors.Count,5);
+            Assert.AreEqual (5,errors.Count);
             Assert.IsTrue(errors[0].Contains("Functions cannot be stitches"));
             Assert.IsTrue(errors[1].Contains("Functions may not contain stitches"));
             Assert.IsTrue(errors[2].Contains("Functions may not contain diverts"));
@@ -944,7 +944,7 @@ This is a normal knot.
 ");
             var errors = parsedStory.errors;
 
-            Assert.AreEqual (errors.Count,2);
+            Assert.AreEqual (2, errors.Count);
             Assert.IsTrue(errors[0].Contains("hasn't been marked as a function"));
             Assert.IsTrue(errors[1].Contains("can only be called as a function"));
         }
@@ -963,7 +963,7 @@ Hello
 
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "Hello world\n");
+            Assert.AreEqual ("Hello world\n", story.currentText);
         }
 
         [Test ()]
@@ -988,7 +988,7 @@ two ({num})
 ");
             story.Begin ();
 
-            Assert.AreEqual (story.currentText, "one (1)\none and a half (1.5)\ntwo (2)\nthree (3)\n");
+            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)\n", story.currentText);
         }
 
         [Test ()]
@@ -1018,14 +1018,14 @@ Done.
             story.Begin ();
 
             // Choices should be A, B
-            Assert.AreEqual (story.currentChoices.Count, 2);
+            Assert.AreEqual (2, story.currentChoices.Count);
             Assert.IsFalse (story.currentText.Contains ("Finished tunnel"));
 
             story.ContinueWithChoiceIndex (0);
 
             // Choices should be C, D, E
             Assert.IsTrue (story.currentText.Contains ("Finished tunnel"));
-            Assert.AreEqual (story.currentChoices.Count, 3);
+            Assert.AreEqual (3, story.currentChoices.Count);
 
             story.ContinueWithChoiceIndex (2);
 
