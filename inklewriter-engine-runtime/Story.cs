@@ -189,7 +189,13 @@ namespace Inklewriter.Runtime
                 while( Step () || TryFollowDefaultInvisibleChoice() ) {}
 
                 if( currentChoices.Count == 0 && !_didSafeExit ) {
-                    Error("unexpectedly reached end of content. Do you need a '~ ~ ~' or '~ return'?");
+                    if( _callStack.CanPop(asTunnel:true) ) {
+                        Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+                    } else if( _callStack.CanPop(asTunnel:false) ) {
+                        Error("unexpectedly reached end of content. Do you need a '~ ~ ~' or '~ return'?");
+                    } else {
+                        System.Diagnostics.Debug.Fail("Hmm, shouldn't we be doing something automatic here?");
+                    }
                 }
 
             } catch(StoryException e) {
@@ -266,9 +272,12 @@ namespace Inklewriter.Runtime
 
             // Any push to the call stack should be done after the increment to the content pointer,
             // so that when returning from the stack, it returns to the content after the push instruction
-            bool isStackPush = currentContentObj is ControlCommand && ((ControlCommand)currentContentObj).commandType == ControlCommand.CommandType.StackPush;
-            if (isStackPush) {
-                _callStack.Push ();
+            var controlCommand = currentContentObj as ControlCommand;
+            if( controlCommand != null ) {
+                if( controlCommand.commandType == ControlCommand.CommandType.StackPush )
+                    _callStack.Push (isTunnel:false);
+                else if( controlCommand.commandType == ControlCommand.CommandType.StackTunnelPush )
+                    _callStack.Push (isTunnel:true);
             }
 
             // Do we have somewhere valid to go?
@@ -397,16 +406,37 @@ namespace Inklewriter.Runtime
 
                 // Actual stack push/pop will be performed after Step in main loop
                 case ControlCommand.CommandType.StackPush:
+                case ControlCommand.CommandType.StackTunnelPush:
                     break;
 
                 case ControlCommand.CommandType.StackPop:
-                    if (_callStack.canPop) {
+
+                    if (_callStack.currentElement.isTunnel) {
+                        Error ("Found function return statement (~ ~ ~), when expected a tunnel onwards statement (->->)");
+                    }
+
+                    if (_callStack.CanPop(asTunnel:false) ) {
                         _callStack.Pop ();
                     } else {
                         stopFlow = true;
                         _didSafeExit = true;
                     }
                     break;
+
+                case ControlCommand.CommandType.StackTunnelPop:
+
+                    if (!_callStack.currentElement.isTunnel) {
+                        Error ("Found tunnel onwards statement (->->), but we're in a function or a paste?");
+                    }
+
+                    if (_callStack.CanPop(asTunnel:true) ) {
+                        _callStack.Pop ();
+                    } else {
+                        stopFlow = true;
+                        _didSafeExit = true;
+                    }
+                    break;
+
 
                 case ControlCommand.CommandType.NoOp:
                     break;
@@ -539,7 +569,7 @@ namespace Inklewriter.Runtime
         {
             int startCallStackHeight = _callStack.elements.Count;
 
-            _callStack.Push ();
+            _callStack.Push (isTunnel:false);
 
             _temporaryEvaluationContainer = exprContainer;
 
@@ -811,7 +841,7 @@ namespace Inklewriter.Runtime
 
 				// Failed to increment, so we've run out of content
 				// Try to pop call stack if possible
-				if ( _callStack.canPop ) {
+                if ( _callStack.CanPop(asTunnel:false) ) {
 
 					// Pop from the call stack
                     _callStack.Pop();

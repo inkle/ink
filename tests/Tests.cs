@@ -714,7 +714,7 @@ Hello world
 == hi ==
 = stitch_to_count
 hi
-~ ~ ~
+->->
 ");
             story.Begin ();
 
@@ -827,7 +827,9 @@ Default choice chosen.
 
             story = CompileString ("== test ==\nContent");
             story.Begin ();
-            Assert.AreEqual (story.hasError, true);
+            Assert.AreEqual (story.hasError, false);
+
+            // TODO: Revise what counts as an error!
         }
 
         [Test ()]
@@ -844,9 +846,6 @@ Default choice chosen.
 
             // Shouldn't go to "gather"
             Assert.AreEqual (story.currentText, "opt\ntext\n");
-
-            // Should run out of content
-            Assert.IsTrue(story.hasError);
         }
 
         [Test ()]
@@ -959,6 +958,7 @@ This is a normal knot.
 
 == f ==
 Hello
+->->
 ");
 
             story.Begin ();
@@ -989,6 +989,47 @@ two ({num})
             story.Begin ();
 
             Assert.AreEqual (story.currentText, "one (1)\none and a half (1.5)\ntwo (2)\nthree (3)\n");
+        }
+
+        [Test ()]
+        public void TestTunnelVsPasteBehaviour()
+        {
+            Story story = CompileString (@"
+-> knot_with_options ->
+Finished tunnel.
+
+Starting paste.
+<- paste_with_options
+* E
+-
+Done.
+
+
+== knot_with_options ==
+* A
+* B
+-
+->->
+
+== paste_with_options ==
+* C
+* D
+");
+            story.Begin ();
+
+            // Choices should be A, B
+            Assert.AreEqual (story.currentChoices.Count, 2);
+            Assert.IsFalse (story.currentText.Contains ("Finished tunnel"));
+
+            story.ContinueWithChoiceIndex (0);
+
+            // Choices should be C, D, E
+            Assert.IsTrue (story.currentText.Contains ("Finished tunnel"));
+            Assert.AreEqual (story.currentChoices.Count, 3);
+
+            story.ContinueWithChoiceIndex (2);
+
+            Assert.IsTrue (story.currentText.Contains ("Done."));
         }
 
 		//------------------------------------------------------------------------

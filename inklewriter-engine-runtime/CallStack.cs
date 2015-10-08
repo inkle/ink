@@ -11,8 +11,9 @@ namespace Inklewriter.Runtime
             public Path path;
             public bool inExpressionEvaluation;
             public Dictionary<string, Runtime.Object> variables;
+            public bool isTunnel;
 
-            public Element(Path initialPath = null, bool inExpressionEvaluation = false) {
+            public Element(Path initialPath = null, bool inExpressionEvaluation = false, bool isTunnel = false) {
                 if( initialPath == null ) {
                     initialPath = Path.ToFirstElement ();
                 }
@@ -20,6 +21,7 @@ namespace Inklewriter.Runtime
                 this.path = initialPath;
                 this.inExpressionEvaluation = inExpressionEvaluation;
                 this.variables = new Dictionary<string, Object>();
+                this.isTunnel = isTunnel;
             }
         }
 
@@ -35,6 +37,10 @@ namespace Inklewriter.Runtime
             } 
         }
 
+        public bool CanPop(bool asTunnel) {
+            return canPop && currentElement.isTunnel == asTunnel;
+        }
+
         public bool canPop {
             get {
                 return _callStack.Count > 1;
@@ -47,10 +53,10 @@ namespace Inklewriter.Runtime
             _callStack.Add (new Element ());
         }
 
-        public void Push()
+        public void Push(bool isTunnel)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
-            _callStack.Add (new Element(initialPath: currentElement.path, inExpressionEvaluation: false));
+            _callStack.Add (new Element(initialPath: currentElement.path, inExpressionEvaluation: false, isTunnel: isTunnel));
         }
 
         public void Pop()

@@ -4,7 +4,7 @@
     {
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            return Runtime.ControlCommand.StackPop ();
+            return Runtime.ControlCommand.StackTunnelPop ();
         }
     }
 }
