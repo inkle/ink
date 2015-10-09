@@ -727,7 +727,7 @@ hi
             Story story = CompileString (@"
 * one -> end
 * two -> end
-{ choice_count() }
+{ CHOICE_COUNT() }
 
 = end
 ~ ~ ~
@@ -793,13 +793,13 @@ Default choice chosen.
         public void TestBeatsSince()
         {
             Story story = CompileString (@"
-{ beats_since(test) }
+{ BEATS_SINCE(test) }
 ~ test()
-{ beats_since(test) }
+{ BEATS_SINCE(test) }
 * [choice 1]
-- { beats_since(test) }
+- { BEATS_SINCE(test) }
 * [choice 2]
-- { beats_since(test) }
+- { BEATS_SINCE(test) }
 
 == function test ==
 ~ ~ ~

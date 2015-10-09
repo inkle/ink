@@ -48,7 +48,7 @@ namespace Inklewriter.Runtime
             } else {
                 var pathStr = pathStringForCount;
                 if( isBeatsSince ) {
-                    return string.Format("beats_since({0})", pathStr);
+                    return string.Format("BEATS_SINCE({0})", pathStr);
                 } else {
                     return string.Format("read_count({0})", pathStr);
                 }
