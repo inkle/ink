@@ -129,6 +129,10 @@ namespace Inklewriter
         {
             Whitespace ();
 
+            // Make sure we're not accidentally parsing a divert
+            if (ParseString ("->") != null)
+                return null;
+
             if (ParseString ("-") == null)
                 return null;
 
