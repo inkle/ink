@@ -43,13 +43,22 @@ namespace Inklewriter.Parsed
             // generate here.
             ResolveTargetContent ();
 
+
+            CheckArgumentValidity ();
+
             // Passing arguments to the knot
-            bool requiresArgCodeGen = ResolveArguments();
+            bool requiresArgCodeGen = arguments != null && arguments.Count > 0;
             if ( requiresArgCodeGen || isFunctionCall || isTunnel || isPaste ) {
 
                 var container = new Runtime.Container ();
 
-                // Generate code for argument evaluation?
+                // Generate code for argument evaluation
+                // This argument generation is coded defensively - it should
+                // attempt to generate the code for all the parameters, even if
+                // they don't match the expected arguments. This is so that the
+                // parameter objects themselves are generated correctly and don't
+                // get into a state of attempting to resolve references etc
+                // without being generated.
                 if (requiresArgCodeGen) {
 
                     // Function calls already in an evaluation context
@@ -171,26 +180,30 @@ namespace Inklewriter.Parsed
             }
 		}
 
-        // Returns true if arguments require code generation (as opposed to whether there's an error,
-        // though that's related)
-        bool ResolveArguments()
+        // Returns false if there's an error
+        bool CheckArgumentValidity()
         {
             if (isToGather) 
-                return false;
-
-            if (targetContent == null)
-                return false;
+                return true;
 
             // Argument passing: Check for errors in number of arguments
             var numArgs = 0;
             if (arguments != null && arguments.Count > 0)
                 numArgs = arguments.Count;
 
+            // Missing content?
+            // Can't check arguments properly. It'll be due to some
+            // other error though, so although there's a problem and 
+            // we report false, we don't need to report a specific error.
+            if (targetContent == null) {
+                return false;
+            }
+
             FlowBase targetFlow = targetContent as FlowBase;
 
             // No error, crikey!
             if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
-                return false;
+                return true;
             }
 
             if (targetFlow == null && numArgs > 0) {

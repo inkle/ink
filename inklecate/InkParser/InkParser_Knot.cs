@@ -36,14 +36,17 @@ namespace Inklewriter
 
             Whitespace ();
 
-            bool isFunc = ParseString ("function") != null;
-            if (isFunc) {
-                Whitespace ();
-            }
 
-            string knotName = Parse(Identifier);
-            if (knotName == null)
-                return null;
+            string identifier = Parse(Identifier);
+            string knotName;
+
+            bool isFunc = identifier == "function";
+            if (isFunc) {
+                Expect (Whitespace, "whitespace after the 'function' keyword");
+                knotName = Expect (Identifier, "the name of the function") as string;
+            } else {
+                knotName = identifier;
+            }
 
             Whitespace ();
 
