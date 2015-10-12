@@ -119,6 +119,12 @@ namespace Inklewriter.Parsed
             if (CheckErrors ())
                 return null;
 
+            // Reset warnings, since they're now printed out
+            // (otherwise they print out twice!)
+            // TODO: Better way to mark them off as having been printed already?!
+            if( _warnings != null )
+                _warnings.Clear ();
+
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
 			// resolve referenced symbols such as variables and paths.

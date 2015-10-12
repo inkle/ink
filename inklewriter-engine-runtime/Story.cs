@@ -839,6 +839,8 @@ namespace Inklewriter.Runtime
 			currentPath = mainContentContainer.IncrementPath (currentPath);
 			if (currentPath == null) {
 
+                #warning TODO: Only allow auto-popping from a paste, where we can't automatically insert a "~ return"
+
 				// Failed to increment, so we've run out of content
 				// Try to pop call stack if possible
                 if ( _callStack.CanPop(asTunnel:false) ) {

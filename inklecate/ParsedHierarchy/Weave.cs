@@ -19,7 +19,8 @@ namespace Inklewriter.Parsed
                 return _rootContainer;
             }
         }
-        public Runtime.Container currentContainer { get; private set; }
+        Runtime.Container currentContainer { get; set; }
+
 		public int baseIndentIndex { get; private set; }
 
         // Loose ends are:
@@ -32,6 +33,32 @@ namespace Inklewriter.Parsed
         {
             public Runtime.Divert divert;
             public Runtime.Object targetRuntimeObj;
+        }
+
+        public Parsed.Object lastParsedObject
+        {
+            get {
+                if (content.Count > 0) {
+
+                    // Don't count extraneous newlines
+                    Parsed.Object lastObject = null;
+                    for (int i = content.Count - 1; i >= 0; --i) {
+                        lastObject = content [i];
+                        var lastText = lastObject as Parsed.Text;
+                        if (lastText == null || lastText.text != "\n") {
+                            break;
+                        }
+                    }
+
+                    var lastWeave = lastObject as Weave;
+                    if (lastWeave)
+                        return lastWeave.lastParsedObject;
+                    else
+                        return lastObject;
+                } else {
+                    return this;
+                }
+            }
         }
                         
         public Weave(List<Parsed.Object> cont, int indentIndex=-1) 

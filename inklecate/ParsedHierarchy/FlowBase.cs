@@ -156,6 +156,11 @@ namespace Inklewriter.Parsed
             
         public override Runtime.Object GenerateRuntimeObject ()
         {
+            // Check whether flow has a loose end:
+            //  - Most flows should end in a choice or a divert (otherwise issue a warning)
+            //  - Functions need a return, otherwise an implicit one is added
+            ValidateTermination();
+
             if (isFunction) {
                 CheckForDisallowedFunctionFlowControl ();
             }
@@ -331,6 +336,87 @@ namespace Inklewriter.Parsed
             foreach (var choice in allChoices) {
                 Error ("Functions may not contain choices, but saw '"+choice.ToString()+"'", choice);
             }
+        }
+
+        void ValidateTermination()
+        {
+            // Stories don't have to explicitly terminate
+            // Functions don't have to terimate - they simply drop out automatically
+            if (this is Story || this.isFunction)
+                return;
+
+            // Nothing in the main weave - probably a knot with stitches
+            if (_rootWeave == null) {
+                return;
+            }
+
+            if (_rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
+                foreach (var looseEndObj in _rootWeave.looseEnds) {
+                    Error ("Found loose end from weave structure", looseEndObj);
+                }
+                return;
+            }
+
+            // Knots/stitches have to terminate in a choice, a divert,
+            // a conditional that contains a choice or divert.
+            var lastObjectInFlow = _rootWeave.lastParsedObject;
+
+
+            #warning TODO: Turn this into -> DONE rather than ~ done
+            if (lastObjectInFlow is Return) {
+                return;
+            }
+
+            var terminatingDivert = lastObjectInFlow as Divert;
+            if (terminatingDivert) {
+                ValidateTerminatingDivert (terminatingDivert);
+                return;
+            }
+
+            if (lastObjectInFlow is TunnelOnwards) {
+                return;
+            }
+
+            if (lastObjectInFlow is Choice) {
+                return;
+            }
+
+            var innerDiverts = lastObjectInFlow.FindAll<Divert> ();
+            if (innerDiverts.Count > 0) {
+                var finalDivert = innerDiverts [innerDiverts.Count - 1];
+                ValidateTerminatingDivert (finalDivert);
+                return;
+            }
+
+            var innerChoices = lastObjectInFlow.FindAll<Choice> ();
+            if (innerChoices.Count > 0) {
+                return;
+            }
+
+            var innerTunnelOnwards = lastObjectInFlow.FindAll<TunnelOnwards> ();
+            if (innerTunnelOnwards.Count > 0) {
+                return;
+            }
+
+            WarningInTermination (lastObjectInFlow);
+        }
+
+        void ValidateTerminatingDivert(Divert terminatingDivert)
+        {
+            if (terminatingDivert.isFunctionCall) {
+                WarningInTermination (terminatingDivert);
+                return;
+            }
+
+            if (terminatingDivert.isTunnel) {
+                WarningInTermination (terminatingDivert, "When final tunnel to '"+terminatingDivert.target+" ->' returns it won't have anywhere to go.");
+            }
+        }
+
+        void WarningInTermination(Parsed.Object terminatingObject, string additionalExplanation = null)
+        {
+            string mainMessage = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
+            Warning (additionalExplanation == null ? mainMessage : mainMessage + " " + additionalExplanation, terminatingObject);
         }
 
         Weave _rootWeave;
