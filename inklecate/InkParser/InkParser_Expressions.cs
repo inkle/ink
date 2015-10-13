@@ -79,27 +79,13 @@ namespace Inklewriter
                 return false;
             }
         }
-
-        protected Parsed.Return ReturnOrSectionEnd()
-        {
-            return (Parsed.Return) OneOf (ReturnStatement, SectionEnd);
-        }
-
-        protected Parsed.Return SectionEnd()
-        {
-            var tildas = Interleave<string>(OptionalExclude(Whitespace), String ("~"));
-            if (tildas == null)
-                return null;
-
-            return new Return ();
-        }
-
+            
         protected Parsed.Return ReturnStatement()
         {
             Whitespace ();
 
             var returnOrDone = Parse(Identifier);
-            if (returnOrDone != "return" && returnOrDone != "done") {
+            if (returnOrDone != "return") {
                 return null;
             }
 

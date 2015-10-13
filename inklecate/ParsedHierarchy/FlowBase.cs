@@ -357,6 +357,15 @@ namespace Inklewriter.Parsed
                 return;
             }
 
+            var foundReturn = Find<Return> ();
+            if (foundReturn != null) {
+                Error ("Return statements can only be used in knots that are declared as functions: == function " + this.name + " ==", foundReturn);
+
+                // Don't continue finding warnings for missing control flow, since it's likely that a return
+                // statement has been used instead of a ->-> or something, or the writer failed to mark the knot as a function.
+                return;
+            }
+
             // Knots/stitches have to terminate in a choice, a divert,
             // a conditional that contains a choice or divert.
             var lastObjectInFlow = _rootWeave.lastParsedObject;

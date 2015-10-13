@@ -52,7 +52,7 @@ namespace Inklewriter.Parsed
             "true", "false",
             "on", "off",
             "yes", "no",
-            "return", "done",
+            "return",
             "else"
         });
     }

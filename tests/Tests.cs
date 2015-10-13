@@ -73,7 +73,7 @@ namespace Tests
 
 === anotherKnot
     World.
-    ~ done
+    -> DONE
 ";
             
             Story story = CompileString (storyStr);
@@ -88,7 +88,7 @@ namespace Tests
                 @"
                 === eight
                    { six() + two() }
-                    ~ done
+                    -> DONE
 
                 === function six
                     ~ return four() + two()
@@ -112,7 +112,7 @@ namespace Tests
                 @"
                     === test
                         * Hello[.], world.
-                        ~ done
+                        -> DONE
                 ";
 
 
@@ -158,11 +158,11 @@ namespace Tests
                 @"
 == knot 
    *   option text[]. {true: Conditional bit.} -> next
-   ~ done
+   -> DONE
 
 == next
     Next.
-    ~ done
+    -> DONE
                 ";
 
             Story story = CompileString (storyStr);
@@ -179,11 +179,11 @@ namespace Tests
 === intro
 = top
     { main: -> done }
-    ~ done
+    -> DONE
 = main 
     -> top 
 = done 
-    ~ done
+    -> DONE
                 ";
 
             Story story = CompileString (storyStr);
@@ -310,11 +310,11 @@ This is the main file
     - true: * go to a stitch -> a_stitch
  }
 - gather shouldn't be seen
-~ done
+-> DONE
 
 = a_stitch
     result
-    ~ done
+    -> DONE
                 ";
 
             Story story = CompileString (storyStr);
@@ -339,7 +339,7 @@ This is the main file
 * { test } visible choice
 
 == test ==
-~ done
+-> DONE
                 ";
 
             Story story = CompileString (storyStr);
@@ -415,7 +415,7 @@ This is the main file
     - second time round
   }
 
-~ done
+-> DONE
                 ";
 
             Story story = CompileString (storyStr);
@@ -540,21 +540,6 @@ This is the main file
         }
 
         [Test ()]
-        public void TestSectionEnd()
-        {
-            var storyStr =  @"
-== knot
-Hello world
- ~ ~ ~~";
-
-            Story story = CompileString (storyStr);
-            story.Begin ();
-
-            // Unfortunate leading newline...
-            Assert.AreEqual ("Hello world\n", story.currentText);
-        }
-
-        [Test ()]
         public void TestCompareDivertTargets()
         {
             var storyStr =  @"~ var to_one = -> one
@@ -613,11 +598,11 @@ Hello world
 
 == function squaresquare(ref x) ==
  {square(x)} {square(x)}
- ~ ~ ~
+ ~ return
 
 == function square(ref x) ==
  ~ x = x * x
- ~ ~ ~
+ ~ return
 ";
 
             Story story = CompileString (storyStr);
@@ -645,7 +630,7 @@ Hello world
     ~ r = r * n
     ~ factorialByRef(r, n-1)
 }
-~ ~ ~
+~ return
 ";
 
             Story story = CompileString (storyStr);
@@ -667,7 +652,7 @@ Hello world
 - else:
   {x} {y}
 }
-~ ~ ~
+~ return
 ";
 
             Story story = CompileString (storyStr);
@@ -730,7 +715,7 @@ hi
 { CHOICE_COUNT() }
 
 = end
-~ ~ ~
+-> DONE
 ");
             story.Begin ();
 
@@ -749,7 +734,7 @@ Some content.
 
 = default_target
 Default choice chosen.
-~ ~ ~
+-> DONE
 ");
             story.Begin ();
 
@@ -802,7 +787,7 @@ Default choice chosen.
 - { BEATS_SINCE(test) }
 
 == function test ==
-~ ~ ~
+~ return
 ");
             story.Begin ();
             Assert.AreEqual ( "-1\n0\n", story.currentText);
@@ -833,6 +818,14 @@ Default choice chosen.
             // Should have warning that there's no "-> DONE"
             var parsedStory = CompileStringWithoutRuntime ("== test ==\nContent");
             Assert.IsTrue (parsedStory.hadWarning);
+
+            parsedStory = CompileStringWithoutRuntime ("== test ==\n~return");
+            Assert.IsTrue (parsedStory.hadError);
+            parsedStory.errors [0].Contains ("Return statements can only be used in knots that are declared as functions");
+
+            parsedStory = CompileStringWithoutRuntime ("== function test ==\n-> DONE");
+            Assert.IsTrue (parsedStory.hadError);
+            parsedStory.errors [0].Contains ("Functions may not contain diverts");
         }
 
         [Test ()]
@@ -862,7 +855,7 @@ Default choice chosen.
 ~ times = times - 1
 {times >= 0:-> eat}
 I've finished eating now.
-~ ~ ~
+-> DONE
 
 == eat ==
 This is the {first|second|third} time.
@@ -900,7 +893,7 @@ This is the {first|second|third} time.
 ~ myFunc()
 = function myBadInnerFunc
 Not allowed!
-~ ~ ~
+~ return
 
 
 == function myFunc ==
@@ -911,16 +904,18 @@ Hello world
 -> myFunc
 = testStitch
     This is a stitch
-~ ~ ~
+~ return
 ");
             var errors = parsedStory.errors;
 
-            Assert.AreEqual (5,errors.Count);
-            Assert.IsTrue(errors[0].Contains("Functions cannot be stitches"));
-            Assert.IsTrue(errors[1].Contains("Functions may not contain stitches"));
-            Assert.IsTrue(errors[2].Contains("Functions may not contain diverts"));
-            Assert.IsTrue(errors[3].Contains("Functions may not contain choices"));
+            Assert.AreEqual (7,errors.Count);
+            Assert.IsTrue(errors[0].Contains("Return statements can only be used in knots that"));
+            Assert.IsTrue(errors[1].Contains("Functions cannot be stitches"));
+            Assert.IsTrue(errors[2].Contains("Functions may not contain stitches"));
+            Assert.IsTrue(errors[3].Contains("Functions may not contain diverts"));
             Assert.IsTrue(errors[4].Contains("Functions may not contain choices"));
+            Assert.IsTrue(errors[5].Contains("Functions may not contain choices"));
+            Assert.IsTrue(errors[6].Contains("Return statements can only be used in knots that"));
         }
 
 
@@ -939,11 +934,11 @@ Hello world
 
 == function myFunc ==
 This is a function.
-~ ~ ~
+~ return
 
 == aKnot ==
 This is a normal knot.
-~ ~ ~
+-> DONE
 ");
             var errors = parsedStory.errors;
 
