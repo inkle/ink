@@ -836,8 +836,8 @@ namespace Inklewriter.Runtime
 			if (currentPath == null) {
 
 				// Failed to increment, so we've run out of content
-				// Try to pop call stack if possible, in case we've run in a paste
-                if ( _callStack.CanPop(PushPop.Type.Paste) ) {
+				// Try to pop call stack if possible
+                if ( _callStack.CanPop(PushPop.Type.Paste) || _callStack.CanPop(PushPop.Type.Function) ) {
 
 					// Pop from the call stack
                     _callStack.Pop();
