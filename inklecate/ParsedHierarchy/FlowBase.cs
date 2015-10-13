@@ -202,8 +202,20 @@ namespace Inklewriter.Parsed
                         container.AddContent(_startingSubFlowDivert);
                         _startingSubFlowRuntime = childFlowRuntime;
                     }
+
+                    // Check for duplicate knots/stitches with same name
+                    var namedChild = (Runtime.INamedContent)childFlowRuntime;
+                    Runtime.INamedContent existingChild = null;
+                    if (container.namedContent.TryGetValue(namedChild.name, out existingChild) ) {
+                        var errorMsg = string.Format ("{0} already contains flow named '{1}' (at {2})", 
+                            this.GetType().Name, 
+                            namedChild.name, 
+                            (existingChild as Runtime.Object).debugMetadata);
                         
-                    container.AddToNamedContentOnly ((Runtime.INamedContent) childFlowRuntime);
+                        Error (errorMsg, childFlow);
+                    }
+                        
+                    container.AddToNamedContentOnly (namedChild);
                 }
 
                 // Other content (including entire Weaves that were grouped in the constructor)
