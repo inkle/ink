@@ -36,7 +36,7 @@ namespace Inklewriter
             // ...since it's bad practice, and won't do what they expect if
             // they're expecting C's lazy evaluation.
             if (result is Expression && !(result is FunctionCall || result is IncDecExpression) ) {
-                Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ include ...\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()\n\t~ ~ ~");
+                Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ include ...\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
             }
 
             return result as Parsed.Object;
