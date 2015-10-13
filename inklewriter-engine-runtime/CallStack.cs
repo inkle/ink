@@ -11,9 +11,9 @@ namespace Inklewriter.Runtime
             public Path path;
             public bool inExpressionEvaluation;
             public Dictionary<string, Runtime.Object> variables;
-            public bool isTunnel;
+            public PushPop.Type type;
 
-            public Element(Path initialPath = null, bool inExpressionEvaluation = false, bool isTunnel = false) {
+            public Element(PushPop.Type type, Path initialPath = null, bool inExpressionEvaluation = false) {
                 if( initialPath == null ) {
                     initialPath = Path.ToFirstElement ();
                 }
@@ -21,7 +21,7 @@ namespace Inklewriter.Runtime
                 this.path = initialPath;
                 this.inExpressionEvaluation = inExpressionEvaluation;
                 this.variables = new Dictionary<string, Object>();
-                this.isTunnel = isTunnel;
+                this.type = type;
             }
         }
 
@@ -37,8 +37,8 @@ namespace Inklewriter.Runtime
             } 
         }
 
-        public bool CanPop(bool asTunnel) {
-            return canPop && currentElement.isTunnel == asTunnel;
+        public bool CanPop(PushPop.Type type) {
+            return canPop && currentElement.type == type;
         }
 
         public bool canPop {
@@ -50,13 +50,13 @@ namespace Inklewriter.Runtime
         public CallStack ()
         {
             _callStack = new List<Element> ();
-            _callStack.Add (new Element ());
+            _callStack.Add (new Element (PushPop.Type.Tunnel));
         }
 
-        public void Push(bool isTunnel)
+        public void Push(PushPop.Type type)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
-            _callStack.Add (new Element(initialPath: currentElement.path, inExpressionEvaluation: false, isTunnel: isTunnel));
+            _callStack.Add (new Element(type, initialPath: currentElement.path, inExpressionEvaluation: false));
         }
 
         public void Pop()

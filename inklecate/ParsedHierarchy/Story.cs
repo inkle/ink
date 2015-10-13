@@ -119,11 +119,9 @@ namespace Inklewriter.Parsed
             if (CheckErrors ())
                 return null;
 
-            // Reset warnings, since they're now printed out
-            // (otherwise they print out twice!)
-            // TODO: Better way to mark them off as having been printed already?!
+            int earlyWarningCount = 0;
             if( _warnings != null )
-                _warnings.Clear ();
+                earlyWarningCount = _warnings.Count;
 
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
@@ -135,17 +133,19 @@ namespace Inklewriter.Parsed
 			// we want the paths to be absolute)
 			ResolveReferences (this);
 
-            if (CheckErrors ())
+            if (CheckErrors (earlyWarningCount))
                 return null;
 
 			return runtimeStory;
 		}
 
-        bool CheckErrors()
+        bool CheckErrors(int previouslyPrintedWarnings = 0)
         {
             // Print all warnings before all errors
             if (hadWarning) {
-                foreach (var w in _warnings) Console.WriteLine (w);
+                for (int i = previouslyPrintedWarnings; i < _warnings.Count; ++i) {
+                    Console.WriteLine (_warnings [i]);
+                }
             }
 
             // Don't successfully return the object if there was an error

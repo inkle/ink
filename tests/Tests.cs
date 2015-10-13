@@ -821,15 +821,18 @@ Default choice chosen.
             story.Begin ();
             Assert.IsFalse (story.hasError);
 
-            story = CompileString ("== test ==\nContent\n~ ~ ~");
+            story = CompileString ("== test ==\nContent\n-> DONE");
             story.Begin ();
             Assert.IsFalse (story.hasError);
 
+            // No errors, but should have warning (see below)
             story = CompileString ("== test ==\nContent");
             story.Begin ();
             Assert.IsFalse (story.hasError);
 
-            // TODO: Revise what counts as an error!
+            // Should have warning that there's no "-> DONE"
+            var parsedStory = CompileStringWithoutRuntime ("== test ==\nContent");
+            Assert.IsTrue (parsedStory.hadWarning);
         }
 
         [Test ()]

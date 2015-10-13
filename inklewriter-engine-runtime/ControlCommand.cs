@@ -11,10 +11,6 @@ namespace Inklewriter.Runtime
             EvalStart,
             EvalOutput,
             EvalEnd,
-            StackPush,
-            StackPop,
-            StackTunnelPush,
-            StackTunnelPop,
             Duplicate,
             PopEvaluatedValue,
             NoOp,
@@ -59,22 +55,6 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand EvalEnd() {
             return new ControlCommand(CommandType.EvalEnd);
-        }
-
-        public static ControlCommand StackPush() {
-            return new ControlCommand(CommandType.StackPush);
-        }
-
-        public static ControlCommand StackPop() {
-            return new ControlCommand(CommandType.StackPop);
-        }
-
-        public static ControlCommand StackTunnelPush() {
-            return new ControlCommand(CommandType.StackTunnelPush);
-        }
-
-        public static ControlCommand StackTunnelPop() {
-            return new ControlCommand(CommandType.StackTunnelPop);
         }
 
         public static ControlCommand Duplicate() {

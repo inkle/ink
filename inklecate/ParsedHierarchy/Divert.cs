@@ -113,10 +113,17 @@ namespace Inklewriter.Parsed
                 // If this divert is a function call, tunnel or paste, we push to the call stack
                 // so we can return again
                 if (isFunctionCall || isTunnel || isPaste) {
-                    if( isTunnel )
-                        container.AddContent (Runtime.ControlCommand.StackTunnelPush());
+
+                    Runtime.PushPop.Type pushPopType;
+
+                    if (isFunctionCall)
+                        pushPopType = Runtime.PushPop.Type.Function;
+                    else if (isTunnel)
+                        pushPopType = Runtime.PushPop.Type.Tunnel;
                     else
-                        container.AddContent (Runtime.ControlCommand.StackPush());
+                        pushPopType = Runtime.PushPop.Type.Paste;
+
+                    container.AddContent(new Runtime.PushPop(pushPopType, Runtime.PushPop.Direction.Push));
                 }
 
                 // Jump into the "function" (knot/stitch)

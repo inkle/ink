@@ -30,7 +30,7 @@
 
             // Then pop the call stack
             // (the evaluated expression will leave the return value on the evaluation stack)
-            container.AddContent (Runtime.ControlCommand.StackPop()); 
+            container.AddContent (new Runtime.PushPop(Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Pop)); 
 
             return container;
         }

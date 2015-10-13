@@ -31,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)VariableAssignment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VariableReference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Void.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PushPop.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />
