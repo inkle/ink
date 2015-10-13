@@ -192,9 +192,9 @@ namespace Inklewriter.Runtime
                     if( _callStack.CanPop(PushPop.Type.Tunnel) ) {
                         Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
                     } else if( _callStack.CanPop(PushPop.Type.Function) ) {
-                        Error("unexpectedly reached end of content. Do you need a '~ ~ ~' or '~ return'?");
+                        Error("unexpectedly reached end of content. Do you need a '~ return'?");
                     } else {
-                        System.Diagnostics.Debug.Fail("Hmm, shouldn't we be doing something automatic here?");
+                        Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
                     }
                 }
 
