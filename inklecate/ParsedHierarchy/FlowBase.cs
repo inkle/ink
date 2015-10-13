@@ -214,7 +214,7 @@ namespace Inklewriter.Parsed
                         
                         Error (errorMsg, childFlow);
                     }
-                        
+
                     container.AddToNamedContentOnly (namedChild);
                 }
 
@@ -433,6 +433,12 @@ namespace Inklewriter.Parsed
         {
             string mainMessage = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
             Warning (additionalExplanation == null ? mainMessage : mainMessage + " " + additionalExplanation, terminatingObject);
+        }
+
+        protected Dictionary<string, FlowBase> subFlowsByName {
+            get {
+                return _subFlowsByName;
+            }
         }
 
         Weave _rootWeave;
