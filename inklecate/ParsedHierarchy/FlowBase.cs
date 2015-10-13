@@ -362,11 +362,6 @@ namespace Inklewriter.Parsed
             var lastObjectInFlow = _rootWeave.lastParsedObject;
 
 
-            #warning TODO: Turn this into -> DONE rather than ~ done
-            if (lastObjectInFlow is Return) {
-                return;
-            }
-
             var terminatingDivert = lastObjectInFlow as Divert;
             if (terminatingDivert) {
                 ValidateTerminatingDivert (terminatingDivert);

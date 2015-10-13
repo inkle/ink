@@ -21,7 +21,8 @@ namespace Inklewriter.Runtime
             ChoiceCount,
             VisitIndex,
             SequenceShuffleIndex,
-            SafeExit
+            SafeExit,
+            Stop
         }
             
         public CommandType commandType { get; protected set; }
@@ -102,6 +103,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand SafeExit() {
             return new ControlCommand (CommandType.SafeExit);
+        }
+
+        public static ControlCommand Stop() {
+            return new ControlCommand (CommandType.Stop);
         }
 
         public override string ToString ()

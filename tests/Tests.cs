@@ -1032,6 +1032,38 @@ Done.
             Assert.IsTrue (story.currentText.Contains ("Done."));
         }
 
+
+
+        [Test ()]
+        public void TestStop()
+        {
+            Story story = CompileString (@"
+hello
+-> DONE
+world
+");
+            story.Begin ();
+
+            Assert.AreEqual ("hello\n", story.currentText);
+        }
+
+
+        [Test ()]
+        public void TestStop2()
+        {
+            Story story = CompileString (@"
+-> test
+
+== test ==
+hello
+-> DONE
+world
+");
+            story.Begin ();
+
+            Assert.AreEqual ("hello\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

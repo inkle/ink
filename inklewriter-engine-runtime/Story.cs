@@ -231,6 +231,10 @@ namespace Inklewriter.Runtime
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out stopFlow);
             if (stopFlow) {
                 currentPath = null;
+
+                while (_callStack.canPop)
+                    _callStack.Pop ();
+
                 return false;
             }
 
@@ -467,6 +471,10 @@ namespace Inklewriter.Runtime
 
                 case ControlCommand.CommandType.SafeExit:
                     _didSafeExit = true;
+                    break;
+
+                case ControlCommand.CommandType.Stop:
+                    stopFlow = true;
                     break;
 
                 default:

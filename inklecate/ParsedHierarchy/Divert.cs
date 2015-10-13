@@ -13,6 +13,11 @@ namespace Inklewriter.Parsed
         public bool isToGather { get; set; }
         public bool isTunnel { get; set; }
         public bool isPaste { get; set; }
+        public bool isDone { 
+            get {
+                return target != null && target.dotSeparatedComponents == "DONE";
+            }
+        }
 
         public Divert (Parsed.Path target, List<Expression> arguments = null)
 		{
@@ -31,6 +36,10 @@ namespace Inklewriter.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
+            if (isDone) {
+                return Runtime.ControlCommand.Stop ();
+            }
+
             runtimeDivert = new Runtime.Divert ();
 
             // Normally we resolve the target content during the
@@ -134,7 +143,7 @@ namespace Inklewriter.Parsed
 
         void ResolveTargetContent()
         {
-            if (isToGather) {
+            if (isToGather || isDone) {
                 return;
             }
 
@@ -158,7 +167,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences(Story context)
 		{
-            if (isToGather) {
+            if (isToGather || isDone) {
                 return;
             }
 
