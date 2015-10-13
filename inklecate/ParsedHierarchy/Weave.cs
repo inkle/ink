@@ -354,6 +354,8 @@ namespace Inklewriter.Parsed
             foreach(var gatherPoint in gatherPointsToResolve) {
                 gatherPoint.divert.targetPath = gatherPoint.targetRuntimeObj.path;
             }
+                
+            CheckForWeavePointNamingCollisions ();
         }
 
         public IWeavePoint WeavePointNamed(string name)
@@ -414,7 +416,45 @@ namespace Inklewriter.Parsed
             }
         }
 
+        // Enforce rule that weave points must not have the same
+        // name as any stitches or knots upwards in the hierarchy
+        void CheckForWeavePointNamingCollisions()
+        {
+            if (_namedWeavePoints == null)
+                return;
+            
+            var ancestorFlows = new List<FlowBase> ();
+            foreach (var obj in this.ancestry) {
+                var flow = obj as FlowBase;
+                if (flow)
+                    ancestorFlows.Add (flow);
+                else
+                    break;
+            }
 
+
+            foreach (var namedWeavePointPair in _namedWeavePoints) {
+                var weavePointName = namedWeavePointPair.Key;
+                var weavePoint = (Parsed.Object) namedWeavePointPair.Value;
+
+                foreach(var flow in ancestorFlows) {
+
+                    // Shallow search
+                    var otherContentWithName = flow.ContentWithNameAtLevel (weavePointName);
+
+                    if (otherContentWithName && otherContentWithName != weavePoint) {
+                        var errorMsg = string.Format ("{0} '{1}' has the same label name as a {2} (on {3})", 
+                            weavePoint.GetType().Name, 
+                            weavePointName, 
+                            otherContentWithName.GetType().Name, 
+                            otherContentWithName.debugMetadata);
+
+                        Error(errorMsg, (Parsed.Object) weavePoint);
+                    }
+
+                }
+            }
+        }
 
         // Keep track of previous weave point (Choice or Gather)
         // at the current indentation level:
