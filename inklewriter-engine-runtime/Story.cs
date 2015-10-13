@@ -193,6 +193,8 @@ namespace Inklewriter.Runtime
                         Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
                     } else if( _callStack.CanPop(PushPop.Type.Function) ) {
                         Error("unexpectedly reached end of content. Do you need a '~ return'?");
+                    } else if( !_callStack.canPop ) {
+                        Error("ran out of content. Do you need a '-> DONE'?");
                     } else {
                         Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
                     }
@@ -458,12 +460,9 @@ namespace Inklewriter.Runtime
                     PushEvaluationStack (new LiteralInt (shuffleIndex));
                     break;
 
-                case ControlCommand.CommandType.SafeExit:
-                    _didSafeExit = true;
-                    break;
-
                 case ControlCommand.CommandType.Stop:
                     stopFlow = true;
+                    _didSafeExit = true;
                     break;
 
                 default:

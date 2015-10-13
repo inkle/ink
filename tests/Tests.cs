@@ -810,10 +810,11 @@ Default choice chosen.
             story.Begin ();
             Assert.IsFalse (story.hasError);
 
-            // No errors, but should have warning (see below)
+            // Should have runtime error due to running out of content
+            // (needs a -> DONE)
             story = CompileString ("== test ==\nContent");
             story.Begin ();
-            Assert.IsFalse (story.hasError);
+            Assert.IsTrue (story.hasError);
 
             // Should have warning that there's no "-> DONE"
             var parsedStory = CompileStringWithoutRuntime ("== test ==\nContent");

@@ -17,7 +17,6 @@ namespace Inklewriter.Runtime
             ChoiceCount,
             VisitIndex,
             SequenceShuffleIndex,
-            SafeExit,
             Stop
         }
             
@@ -79,10 +78,6 @@ namespace Inklewriter.Runtime
             
         public static ControlCommand SequenceShuffleIndex() {
             return new ControlCommand(CommandType.SequenceShuffleIndex);
-        }
-
-        public static ControlCommand SafeExit() {
-            return new ControlCommand (CommandType.SafeExit);
         }
 
         public static ControlCommand Stop() {
