@@ -15,6 +15,7 @@ namespace Inklewriter
 			public string inputFile;
             public string outputFile;
             public bool indentedJson;
+            public bool countAllVisits;
 		}
 
 		public static int ExitCodeError = 1;
@@ -29,6 +30,8 @@ namespace Inklewriter
             Console.WriteLine (
                 "Usage: inklecate2 <options> <ink file> \n"+
                 "   -o <filename>:  Output file name\n"+
+                "   -c:             Count all visits to knots, stitches and weave points, not\n" +
+                "                   just those referenced by BEATS_SINCE and read counts.\n" +
                 "   -p:             Play mode\n"+
                 "   -i:             Use indentation in output JSON\n"+
                 "   -v:             Verbose mode - print compilation timings\n"+
@@ -93,6 +96,10 @@ namespace Inklewriter
 
             if (parsedStory == null) {
                 Environment.Exit (ExitCodeError);
+            }
+
+            if (opts.countAllVisits) {
+                parsedStory.countAllVisits = true;
             }
 
             TimeOperation ("Exporting runtime", () => {
@@ -187,6 +194,9 @@ namespace Inklewriter
                             break;
                         case 'i':
                             opts.indentedJson = true;
+                            break;
+                        case 'c':
+                            opts.countAllVisits = true;
                             break;
                         default:
                             Console.WriteLine ("Unsupported argument type: '{0}'", argChar);

@@ -32,6 +32,10 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
+            if (isBeatCount) {
+                _runtimeVarRef.isBeatsSince = true;
+
+            }
             // Is it a read count?
             var parsedPath = new Path (path);
             Parsed.Object targetForCount = parsedPath.ResolveFromContext (this);
@@ -59,7 +63,7 @@ namespace Inklewriter.Parsed
             } 
 
             // Definitely a read count, but wasn't found?
-            else if (path.Count > 1 || isBeatCount) {
+            else if (path.Count > 1) {
                 Error ("Could not find target for read count: " + parsedPath);
                 return;
             }

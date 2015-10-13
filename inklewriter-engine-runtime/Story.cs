@@ -491,10 +491,43 @@ namespace Inklewriter.Runtime
             else if( contentObj is VariableReference ) {
                 var varRef = (VariableReference)contentObj;
 
-                // Read/visit count
-                if (varRef.pathForCount != null) {
+                Path pathForCount = null;
 
-                    var container = ContentAtPath (varRef.pathForCount) as Container;
+                // Explicit literal read/beats count
+                if (varRef.pathForCount != null) {
+                    pathForCount = varRef.pathForCount;
+                }
+
+                // Some kind of variable reference (though might be a variable that
+                // contains a path to beat count still!)
+                else {
+
+                    var varContents = _callStack.GetVariableWithName (varRef.name);
+                    if (varContents == null) {
+                        Error("Uninitialised variable: " + varRef.name);
+                        varContents = new LiteralInt (0);
+                    }
+
+                    // Variable reference to path that needs a beat count
+                    // It can't be a normal read count since this:
+                    //  ~ var myDivert = -> target
+                    // ... would then get a read count rather than the divert itself!
+                    var divertTarget = varContents as LiteralDivertTarget;
+                    if (varRef.isBeatsSince && divertTarget) {                        
+                        pathForCount = divertTarget.targetPath;
+                    } 
+
+                    // Normal variable reference
+                    else {
+                        _evaluationStack.Add( varContents );
+                    }
+
+                }
+
+                // Read/visit count
+                if (pathForCount != null) {
+
+                    var container = ContentAtPath (pathForCount) as Container;
 
                     int count;
                     if (varRef.isBeatsSince) {
@@ -505,17 +538,6 @@ namespace Inklewriter.Runtime
 
                     _evaluationStack.Add (new LiteralInt (count));
                 } 
-
-                // Normal variable reference
-                else {
-                    var varContents = _callStack.GetVariableWithName (varRef.name);
-                    if (varContents == null) {
-                        Error("Uninitialised variable: " + varRef.name);
-                        varContents = new LiteralInt (0);
-                    }
-
-                    _evaluationStack.Add( varContents );
-                }
 
                 return true;
             }
@@ -901,6 +923,11 @@ namespace Inklewriter.Runtime
 
         int VisitCountForContainer(Container container)
         {
+            if( !container.visitsShouldBeCounted ) {
+                Error ("Read count for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+                return 0;
+            }
+
             int count = 0;
             var containerPathStr = container.path.ToString();
             _visitCounts.TryGetValue (containerPathStr, out count);
@@ -924,12 +951,17 @@ namespace Inklewriter.Runtime
 
         int BeatsSinceForContainer(Container container)
         {
+            if( !container.beatIndexShouldBeCounted ) {
+                Error ("BEATS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+            }
+
             int index = 0;
             var containerPathStr = container.path.ToString();
-            if (_beatIndices.TryGetValue (containerPathStr, out index))
+            if (_beatIndices.TryGetValue (containerPathStr, out index)) {
                 return _currentBeatIndex - index;
-            else
-                return -1;
+            } else {
+                return int.MaxValue;
+            }
         }
 
         // Note that this is O(n), since it re-evaluates the shuffle indices

@@ -11,7 +11,11 @@ namespace Inklewriter.Parsed
         public VariableAssignment (string variableName, Expression assignedExpression, bool isNewDeclaration)
         {
             this.variableName = variableName;
-            this.expression = AddContent(assignedExpression);
+
+            // Defensive programming in case parsing of assignedExpression failed
+            if( assignedExpression )
+                this.expression = AddContent(assignedExpression);
+            
             this.isNewDeclaration = isNewDeclaration;
         }
 
