@@ -32,7 +32,7 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\x86\Test</OutputPath>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-tp</Commandlineparameters>
+    <Commandlineparameters>-tpc</Commandlineparameters>
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>DEBUG;</DefineConstants>
