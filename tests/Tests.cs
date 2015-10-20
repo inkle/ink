@@ -73,7 +73,7 @@ namespace Tests
 
 === anotherKnot
     World.
-    -> DONE
+    -> END
 ";
             
             Story story = CompileString (storyStr);
@@ -88,7 +88,7 @@ namespace Tests
                 @"
                 === eight
                    { six() + two() }
-                    -> DONE
+                    -> END
 
                 === function six
                     ~ return four() + two()
@@ -112,7 +112,7 @@ namespace Tests
                 @"
                     === test
                         * Hello[.], world.
-                        -> DONE
+                        -> END
                 ";
 
 
@@ -158,11 +158,11 @@ namespace Tests
                 @"
 == knot 
    *   option text[]. {true: Conditional bit.} -> next
-   -> DONE
+   -> END
 
 == next
     Next.
-    -> DONE
+    -> END
                 ";
 
             Story story = CompileString (storyStr);
@@ -179,11 +179,11 @@ namespace Tests
 === intro
 = top
     { main: -> done }
-    -> DONE
+    -> END
 = main 
     -> top 
 = done 
-    -> DONE
+    -> END
                 ";
 
             Story story = CompileString (storyStr);
@@ -310,11 +310,11 @@ This is the main file
     - true: * go to a stitch -> a_stitch
  }
 - gather shouldn't be seen
--> DONE
+-> END
 
 = a_stitch
     result
-    -> DONE
+    -> END
                 ";
 
             Story story = CompileString (storyStr);
@@ -339,7 +339,7 @@ This is the main file
 * { test } visible choice
 
 == test ==
--> DONE
+-> END
                 ";
 
             Story story = CompileString (storyStr);
@@ -415,7 +415,7 @@ This is the main file
     - second time round
   }
 
--> DONE
+-> END
                 ";
 
             Story story = CompileString (storyStr);
@@ -715,7 +715,7 @@ hi
 { CHOICE_COUNT() }
 
 = end
--> DONE
+-> END
 ");
             story.Begin ();
 
@@ -734,7 +734,7 @@ Some content.
 
 = default_target
 Default choice chosen.
--> DONE
+-> END
 ");
             story.Begin ();
 
@@ -806,17 +806,17 @@ Default choice chosen.
             story.Begin ();
             Assert.IsFalse (story.hasError);
 
-            story = CompileString ("== test ==\nContent\n-> DONE");
+            story = CompileString ("== test ==\nContent\n-> END");
             story.Begin ();
             Assert.IsFalse (story.hasError);
 
             // Should have runtime error due to running out of content
-            // (needs a -> DONE)
+            // (needs a -> END)
             story = CompileString ("== test ==\nContent");
             story.Begin ();
             Assert.IsTrue (story.hasError);
 
-            // Should have warning that there's no "-> DONE"
+            // Should have warning that there's no "-> END"
             var parsedStory = CompileStringWithoutRuntime ("== test ==\nContent");
             Assert.IsTrue (parsedStory.hadWarning);
 
@@ -824,7 +824,7 @@ Default choice chosen.
             Assert.IsTrue (parsedStory.hadError);
             parsedStory.errors [0].Contains ("Return statements can only be used in knots that are declared as functions");
 
-            parsedStory = CompileStringWithoutRuntime ("== function test ==\n-> DONE");
+            parsedStory = CompileStringWithoutRuntime ("== function test ==\n-> END");
             Assert.IsTrue (parsedStory.hadError);
             parsedStory.errors [0].Contains ("Functions may not contain diverts");
         }
@@ -856,7 +856,7 @@ Default choice chosen.
 ~ times = times - 1
 {times >= 0:-> eat}
 I've finished eating now.
--> DONE
+-> END
 
 == eat ==
 This is the {first|second|third} time.
@@ -939,7 +939,7 @@ This is a function.
 
 == aKnot ==
 This is a normal knot.
--> DONE
+-> END
 ");
             var errors = parsedStory.errors;
 
@@ -1038,7 +1038,7 @@ Done.
         {
             Story story = CompileString (@"
 hello
--> DONE
+-> END
 world
 ");
             story.Begin ();
@@ -1055,7 +1055,7 @@ world
 
 == test ==
 hello
--> DONE
+-> END
 world
 ");
             story.Begin ();

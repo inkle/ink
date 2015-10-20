@@ -13,9 +13,9 @@ namespace Inklewriter.Parsed
         public bool isToGather { get; set; }
         public bool isTunnel { get; set; }
         public bool isPaste { get; set; }
-        public bool isDone { 
+        public bool isEnd { 
             get {
-                return target != null && target.dotSeparatedComponents == "DONE";
+                return target != null && target.dotSeparatedComponents == "END";
             }
         }
 
@@ -36,7 +36,7 @@ namespace Inklewriter.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
-            if (isDone) {
+            if (isEnd) {
                 return Runtime.ControlCommand.Stop ();
             }
 
@@ -150,7 +150,7 @@ namespace Inklewriter.Parsed
 
         void ResolveTargetContent()
         {
-            if (isToGather || isDone) {
+            if (isToGather || isEnd) {
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences(Story context)
 		{
-            if (isToGather || isDone) {
+            if (isToGather || isEnd) {
                 return;
             }
 
