@@ -377,18 +377,21 @@ namespace Inklewriter.Runtime
                 // Push is handled in main Step function
                 if (pushPop.direction == PushPop.Direction.Pop) {
 
-                    if (_callStack.currentElement.type != pushPop.type) {
+                    if (_callStack.currentElement.type != pushPop.type || !_callStack.canPop) {
 
                         var names = new Dictionary<PushPop.Type, string> ();
                         names [PushPop.Type.Function] = "function return statement (~ ~ ~)";
                         names [PushPop.Type.Tunnel] = "tunnel onwards statement (->->)";
-                        names [PushPop.Type.Paste] = "natural end of flow due to paste";
+                        names [PushPop.Type.Paste] = "end of paste flow (natural or -> DONE)";
 
-                        var errorMsg = string.Format ("Found {0}, when expected {1}", names [pushPop.type], names [_callStack.currentElement.type]);
+                        string expected = names [_callStack.currentElement.type];
+                        if (!_callStack.canPop) {
+                            expected = "end of flow (-> END or choice)";
+                        }
+
+                        var errorMsg = string.Format ("Found {0}, when expected {1}", names [pushPop.type], expected);
 
                         Error (errorMsg);
-                    } else if (!_callStack.canPop) {
-                        Error ("Unbalanced push/pop!");
                     } else {
                         _callStack.Pop ();
                     }

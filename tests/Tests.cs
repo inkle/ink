@@ -1063,6 +1063,26 @@ world
             Assert.AreEqual ("hello\n", story.currentText);
         }
 
+        [Test ()]
+        public void TestPasteDone()
+        {
+            Story story = CompileString (@"
+This is a paste example
+<- example_paste
+The example is now complete.
+
+
+== example_paste ==
+Hello.
+-> DONE
+World.
+-> DONE
+");
+            story.Begin ();
+
+            Assert.AreEqual ("This is a paste example\nHello.\nThe example is now complete.\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

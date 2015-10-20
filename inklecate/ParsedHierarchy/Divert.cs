@@ -18,6 +18,11 @@ namespace Inklewriter.Parsed
                 return target != null && target.dotSeparatedComponents == "END";
             }
         }
+        public bool isDone { 
+            get {
+                return target != null && target.dotSeparatedComponents == "DONE";
+            }
+        }
 
         public Divert (Parsed.Path target, List<Expression> arguments = null)
 		{
@@ -38,6 +43,13 @@ namespace Inklewriter.Parsed
 		{
             if (isEnd) {
                 return Runtime.ControlCommand.Stop ();
+            }
+
+            // Done = return from paste
+            if (isDone) {
+                return new Runtime.PushPop (
+                    Runtime.PushPop.Type.Paste, 
+                    Runtime.PushPop.Direction.Pop);
             }
 
             runtimeDivert = new Runtime.Divert ();
