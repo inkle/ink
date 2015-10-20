@@ -53,6 +53,12 @@ namespace Inklewriter.Runtime
             _callStack.Add (new Element (PushPop.Type.Tunnel));
         }
 
+        public CallStack Copy()
+        {
+            #warning TODO
+            return null;
+        }
+
         public void Push(PushPop.Type type)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default

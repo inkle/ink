@@ -1,9 +1,13 @@
-﻿~ var x = 5
+﻿=== knot 
+    <- pasteA 
+    Print this
+    -> END
 
-The initial value of x is {x}.
-~ increase(x)
-The final value of x is {x}.
+=== pasteA 
+    -> tunnel ->
+    -> DONE
 
-== function increase(ref y) ==
- ~ y = y + 1
- ~ return
+=== tunnel
+    -   I’m in a tunnel 
+    *   I’m an option   
+    -   ->->

@@ -45,7 +45,8 @@ namespace Inklewriter.Runtime
 		{
 			get 
 			{
-                return CurrentOutput<Choice> (c => !c.isInvisibleDefault);
+                var choiceInstances = CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
+                return choiceInstances.ConvertAll<Choice> (c => c.choice);
 			}
 		}
 
@@ -252,6 +253,12 @@ namespace Inklewriter.Runtime
                     var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
                     var visitCount = VisitCountForContainer (choiceTargetContainer);
                     shouldAddObject = visitCount == 0;
+                }
+                if (shouldAddObject) {
+                    var choiceInstance = new ChoiceInstance (choice);
+                    choiceInstance.hasBeenChosen = false;
+                    choiceInstance.callStackAtGeneration = _callStack.Copy ();
+                    currentContentObj = choiceInstance;
                 }
             }
 
@@ -560,12 +567,14 @@ namespace Inklewriter.Runtime
 
         // TODO: Add choice marker is a hack, do it a better way!
         // The problem is that ContinueFromPath may be called externally,
-        // and if it is then it wouldn't have a ChosenChoice to mark where
+        // and if it is then it wouldn't have a ChoiceInstance to mark where
         // the last chunk of content ended
         internal void ContinueFromPath(Path path, bool addChoiceMarker = true)
 		{
             if (addChoiceMarker) {
-                outputStream.Add (new ChosenChoice (null));
+                var choiceMarker = new ChoiceInstance (null);
+                choiceMarker.hasBeenChosen = true;
+                outputStream.Add (choiceMarker);
             }
 
             _previousPath = currentPath;
@@ -579,11 +588,11 @@ namespace Inklewriter.Runtime
 			var choices = this.currentChoices;
 			Assert (choiceIdx >= 0 && choiceIdx < choices.Count, "choice out of range");
 
-			var choice = choices [choiceIdx];
+            var choiceInstance = new ChoiceInstance (choices [choiceIdx]);
+            choiceInstance.hasBeenChosen = true;
+            outputStream.Add (choiceInstance);
 
-			outputStream.Add (new ChosenChoice (choice));
-
-			ContinueFromPath (choice.pathOnChoice, addChoiceMarker:false);
+            ContinueFromPath (choiceInstance.choice.pathOnChoice, addChoiceMarker:false);
 		}
 
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
@@ -804,8 +813,8 @@ namespace Inklewriter.Runtime
 				object outputObj = outputStream [i];
 
 				// "Current" is defined as "since last chosen choice"
-                var chosenChoice = outputObj as ChosenChoice;
-                if (chosenChoice) {
+                var chosenInstance = outputObj as ChoiceInstance;
+                if (chosenInstance && chosenInstance.hasBeenChosen) {
 					break;
 				}
 

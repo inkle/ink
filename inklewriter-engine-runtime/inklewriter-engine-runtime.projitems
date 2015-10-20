@@ -12,7 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Branch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CallStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Choice.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ChosenChoice.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Container.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DebugMetadata.cs" />
@@ -32,6 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)VariableReference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Void.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PushPop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ChoiceInstance.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />
