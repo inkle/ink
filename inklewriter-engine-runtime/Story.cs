@@ -945,16 +945,16 @@ namespace Inklewriter.Runtime
             
         bool TryFollowDefaultInvisibleChoice()
         {
-            var invisibleChoices = CurrentOutput<ChoiceInstance> (c => c.choice.isInvisibleDefault).ConvertAll(c => c.choice);
-            if (invisibleChoices.Count == 0)
+            var invisibleChoiceInstances = CurrentOutput<ChoiceInstance> (c => c.choice.isInvisibleDefault);
+            if (invisibleChoiceInstances.Count == 0)
                 return false;
 
             // Silently consume the invisible choice so that it doesn't
             // get used twice in the same call to Continue
-            var choice = invisibleChoices [0];
-            outputStream.Remove (choice);
+            var choiceInstance = invisibleChoiceInstances [0];
+            outputStream.Remove (choiceInstance);
 
-            currentPath = choice.pathOnChoice;
+            currentPath = choiceInstance.choice.pathOnChoice;
 
             return true;
         }
