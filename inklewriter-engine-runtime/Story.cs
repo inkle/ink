@@ -189,6 +189,10 @@ namespace Inklewriter.Runtime
 
                 while( Step () || TryFollowDefaultInvisibleChoice() ) {}
 
+                if( _callStack.canPopThread ) {
+                    Error("Thread available to pop, threads should always be flat by the end of evaluation?");
+                }
+
                 if( currentChoices.Count == 0 && !_didSafeExit ) {
                     if( _callStack.CanPop(PushPop.Type.Tunnel) ) {
                         Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
@@ -257,7 +261,7 @@ namespace Inklewriter.Runtime
                 if (shouldAddObject) {
                     var choiceInstance = new ChoiceInstance (choice);
                     choiceInstance.hasBeenChosen = false;
-                    choiceInstance.callStackAtGeneration = _callStack.Copy ();
+                    choiceInstance.threadAtGeneration = _callStack.currentThread.Copy ();
                     currentContentObj = choiceInstance;
                 }
             }
@@ -287,7 +291,12 @@ namespace Inklewriter.Runtime
             // so that when returning from the stack, it returns to the content after the push instruction
             var pushPop = currentContentObj as PushPop;
             if( pushPop != null && pushPop.direction == PushPop.Direction.Push ) {
-                _callStack.Push (pushPop.type);
+
+                if (pushPop.type == PushPop.Type.Paste) {
+                    _callStack.PushThread ();
+                } else {
+                    _callStack.Push (pushPop.type);
+                }
             }
 
             // Do we have somewhere valid to go?
@@ -384,7 +393,19 @@ namespace Inklewriter.Runtime
                 // Push is handled in main Step function
                 if (pushPop.direction == PushPop.Direction.Pop) {
 
-                    if (_callStack.currentElement.type != pushPop.type || !_callStack.canPop) {
+                    if (pushPop.type == PushPop.Type.Paste) {
+
+                        // Thread pop may exist in the context of the initial
+                        // act of creating the thread, or in the context of
+                        // evaluating the content  
+                        if (_callStack.canPopThread) {
+                            _callStack.PopThread ();
+                        } else {
+                            _didSafeExit = true;
+                        }
+                    } 
+
+                    else if (_callStack.currentElement.type != pushPop.type || !_callStack.canPop) {
 
                         var names = new Dictionary<PushPop.Type, string> ();
                         names [PushPop.Type.Function] = "function return statement (~ ~ ~)";
@@ -399,7 +420,9 @@ namespace Inklewriter.Runtime
                         var errorMsg = string.Format ("Found {0}, when expected {1}", names [pushPop.type], expected);
 
                         Error (errorMsg);
-                    } else {
+                    } 
+
+                    else {
                         _callStack.Pop ();
                     }
                 }
@@ -585,14 +608,23 @@ namespace Inklewriter.Runtime
 
 		public void ContinueWithChoiceIndex(int choiceIdx)
 		{
-			var choices = this.currentChoices;
-			Assert (choiceIdx >= 0 && choiceIdx < choices.Count, "choice out of range");
+            var choiceInstances = CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
+            Assert (choiceIdx >= 0 && choiceIdx < choiceInstances.Count, "choice out of range");
 
-            var choiceInstance = new ChoiceInstance (choices [choiceIdx]);
-            choiceInstance.hasBeenChosen = true;
-            outputStream.Add (choiceInstance);
+            // Replace callstack with the one at the choosing point, so that
+            // we can jump into the right place in the flow.
+            // This is important in case the flow was forked by a paste, which
+            // can create multiple leading edges for the story, each of
+            // which has its own context.
+            var instanceToChoose = choiceInstances [choiceIdx];
+            _callStack.currentThread = instanceToChoose.threadAtGeneration;
 
-            ContinueFromPath (choiceInstance.choice.pathOnChoice, addChoiceMarker:false);
+            // Create new instance as marker
+            var chosenMarker = new ChoiceInstance (instanceToChoose.choice);
+            chosenMarker.hasBeenChosen = true;
+            outputStream.Add (chosenMarker);
+
+            ContinueFromPath (chosenMarker.choice.pathOnChoice, addChoiceMarker:false);
 		}
 
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
@@ -867,14 +899,17 @@ namespace Inklewriter.Runtime
 
 			// Can we increment successfully?
 			currentPath = mainContentContainer.IncrementPath (currentPath);
+
+            // Ran out of content? Try to auto-exit from a function,
+            // or finish evaluating the content of a thread
 			if (currentPath == null) {
 
-				// Failed to increment, so we've run out of content
-				// Try to pop call stack if possible
-                if ( _callStack.CanPop(PushPop.Type.Paste) || _callStack.CanPop(PushPop.Type.Function) ) {
+                bool didPop = false;
 
-					// Pop from the call stack
-                    _callStack.Pop();
+                if (_callStack.CanPop (PushPop.Type.Function)) {
+                    
+                    // Pop from the call stack
+                    _callStack.Pop (PushPop.Type.Function);
 
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it
@@ -882,17 +917,26 @@ namespace Inklewriter.Runtime
                         PushEvaluationStack (new Runtime.Void ());
                     }
 
-					// Step past the point where we last called out
-                    if (currentPath != null) {
-                        NextContent ();
-                    }
-				}
+                    didPop = true;
+
+                } 
+
+                else if (_callStack.canPopThread) {
+                    _callStack.PopThread ();
+
+                    didPop = true;
+                }
+
+                // Step past the point where we last called out
+                if (didPop && currentPath != null) {
+                    NextContent ();
+                }
 			}
 		}
-
+            
         bool TryFollowDefaultInvisibleChoice()
         {
-            var invisibleChoices = CurrentOutput<Choice> (c => c.isInvisibleDefault);
+            var invisibleChoices = CurrentOutput<ChoiceInstance> (c => c.choice.isInvisibleDefault).ConvertAll(c => c.choice);
             if (invisibleChoices.Count == 0)
                 return false;
 

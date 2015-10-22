@@ -23,53 +23,123 @@ namespace Inklewriter.Runtime
                 this.variables = new Dictionary<string, Object>();
                 this.type = type;
             }
+
+            public Element Copy()
+            {
+                var copy = new Element (this.type, this.path, this.inExpressionEvaluation);
+                copy.variables = this.variables;
+                return copy;
+            }
+        }
+
+        internal class Thread
+        {
+            public List<Element> callstack;
+
+            public Thread() {
+                callstack = new List<Element>();
+            }
+
+            public Thread(Thread threadToCopy) : this() {
+                foreach(var e in threadToCopy.callstack) {
+                    callstack.Add(e.Copy());
+                }
+            }
+
+            public Thread Copy() {
+                return new Thread (this);
+            }
         }
 
         public List<Element> elements {
             get {
-                return _callStack;
+                return callStack;
             }
         }
 
         public Element currentElement { 
             get { 
-                return _callStack.Last (); 
+                return callStack.Last (); 
             } 
         }
 
-        public bool CanPop(PushPop.Type type) {
-            return canPop && currentElement.type == type;
+        public Thread currentThread
+        {
+            get {
+                return _allCallStackThreads [_allCallStackThreads.Count - 1];
+            }
+            set {
+                Debug.Assert (_allCallStackThreads.Count == 1, "Shouldn't be directly setting the current thread when we have a stack of them");
+                _allCallStackThreads.Clear ();
+                _allCallStackThreads.Add (value);
+            }
         }
 
         public bool canPop {
             get {
-                return _callStack.Count > 1;
+                return callStack.Count > 1;
             }
         }
 
         public CallStack ()
         {
-            _callStack = new List<Element> ();
-            _callStack.Add (new Element (PushPop.Type.Tunnel));
+            _allCallStackThreads = new List<Thread> ();
+            _allCallStackThreads.Add (new Thread ());
+
+            callStack.Add (new Element (PushPop.Type.Tunnel));
         }
 
-        public CallStack Copy()
+        public void PushThread()
         {
-            #warning TODO
-            return null;
+            _allCallStackThreads.Add (new Thread (currentThread));
+        }
+
+        public void PopThread()
+        {
+            if (canPopThread) {
+                _allCallStackThreads.Remove (currentThread);
+            } else {
+                Debug.Fail ("Can't pop thread");
+            }
+        }
+
+        public bool canPopThread
+        {
+            get {
+                return _allCallStackThreads.Count > 1;
+            }
         }
 
         public void Push(PushPop.Type type)
         {
+            Debug.Assert (type != PushPop.Type.Paste);
+
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
-            _callStack.Add (new Element(type, initialPath: currentElement.path, inExpressionEvaluation: false));
+            callStack.Add (new Element(type, initialPath: currentElement.path, inExpressionEvaluation: false));
         }
 
-        public void Pop()
+        public bool CanPop(PushPop.Type? type = null) {
+
+            Debug.Assert (type != PushPop.Type.Paste);
+
+            if (!canPop)
+                return false;
+            
+            if (type == null)
+                return true;
+            
+            return currentElement.type == type;
+        }
+            
+        public void Pop(PushPop.Type? type = null)
         {
-            Debug.Assert (canPop);
-            if (canPop) {
-                _callStack.RemoveAt (_callStack.Count - 1);
+            Debug.Assert (type != PushPop.Type.Paste);
+
+            if (CanPop (type)) {
+                callStack.RemoveAt (callStack.Count - 1);
+                return;
+            } else {
+                Debug.Fail ("Mismatched push/pop in Callstack");
             }
         }
 
@@ -82,7 +152,7 @@ namespace Inklewriter.Runtime
             // Get value from pointer?
             var varPointer = varValue as LiteralVariablePointer;
             if (varPointer) {
-                var variablePointerContextEl = _callStack [varPointer.resolvedCallstackElementIndex];
+                var variablePointerContextEl = callStack [varPointer.resolvedCallstackElementIndex];
                 varValue = variablePointerContextEl.variables [varPointer.variableName];
             }
 
@@ -95,8 +165,8 @@ namespace Inklewriter.Runtime
             Runtime.Object varValue = null;
 
             // Search down the scope stack for a variable with this value
-            for (int elIdx = _callStack.Count - 1; elIdx >= 0; --elIdx) {
-                var element = _callStack [elIdx];
+            for (int elIdx = callStack.Count - 1; elIdx >= 0; --elIdx) {
+                var element = callStack [elIdx];
 
                 if (element.variables.TryGetValue (name, out varValue)) {
                     foundInStackElIdx = elIdx;
@@ -113,7 +183,7 @@ namespace Inklewriter.Runtime
             if (declareNew) {
                 Element el;
                 if (prioritiseHigherInCallStack) {
-                    el = _callStack.First ();
+                    el = callStack.First ();
                 } else {
                     el = currentElement;
                 }
@@ -129,11 +199,9 @@ namespace Inklewriter.Runtime
                 return;
             }
 
-            new List<Element> (_callStack);
-
             // Search down the scope stack for the variable to assign to
-            for (int elIdx = _callStack.Count - 1; elIdx >= 0; --elIdx) {
-                var element = _callStack [elIdx];
+            for (int elIdx = callStack.Count - 1; elIdx >= 0; --elIdx) {
+                var element = callStack [elIdx];
 
                 Runtime.Object existingValue = null;
                 if (element.variables.TryGetValue (name, out existingValue)) {
@@ -142,7 +210,7 @@ namespace Inklewriter.Runtime
                     while (existingValue is LiteralVariablePointer) {
                         var varPointer = (LiteralVariablePointer) existingValue;
                         name = varPointer.variableName;
-                        element = _callStack [varPointer.resolvedCallstackElementIndex];
+                        element = callStack [varPointer.resolvedCallstackElementIndex];
                         existingValue = element.variables [name];
                     }
 
@@ -179,7 +247,14 @@ namespace Inklewriter.Runtime
             return clone;
         }
 
-        private List<Element> _callStack;
+        private List<Element> callStack
+        {
+            get {
+                return currentThread.callstack;
+            }
+        }
+
+        private List<Thread> _allCallStackThreads;
     }
 }
 
