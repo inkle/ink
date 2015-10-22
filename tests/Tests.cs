@@ -1083,6 +1083,102 @@ World.
             Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.\n", story.currentText);
         }
 
+
+        [Test ()]
+        public void TestMultiThread()
+        {
+            Story story = CompileString (@"
+== start ==
+-> tunnel ->
+The end
+-> END
+
+== tunnel ==
+<- place1
+<- place2
+-> DONE
+
+== place1 ==
+This is place 1.
+* choice in place 1
+- ->->
+
+== place2 ==
+This is place 2.
+* choice in place 2
+- ->->
+");
+            story.Begin ();
+            Assert.AreEqual ("This is place 1.\nThis is place 2.\n", story.currentText);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual ("choice in place 1\nThe end\n", story.currentText);
+            Assert.IsFalse (story.hasError);
+        }
+
+        public void TestKnotThreadInteraction()
+        {
+            Story story = CompileString (@"
+=== knot 
+    <- threadB
+    -> tunnel -> 
+    THE END
+    -> END
+
+=== tunnel 
+    - blah blah 
+    * wigwag
+    - ->->
+
+=== threadB
+    *   option 
+    -   something
+        -> DONE
+");
+            
+            story.Begin ();
+            Assert.AreEqual ("blah blah\n", story.currentText);
+            Assert.AreEqual (2, story.currentChoices.Count);
+            Assert.IsTrue(story.currentChoices[0].choiceText.Contains("option"));
+            Assert.IsTrue(story.currentChoices[1].choiceText.Contains("wigwag"));
+
+            story.ContinueWithChoiceIndex (1);
+            Assert.AreEqual ("wigwag\nTHE END\n", story.currentText);
+            Assert.IsFalse (story.hasError);
+        }
+
+
+        public void TestKnotThreadInteraction2()
+        {
+            Story story = CompileString (@"
+=== knot 
+    <- threadA 
+    When should this get printed?
+    -> END
+
+=== threadA 
+    -> tunnel ->
+    Finishing thread.
+    -> DONE
+
+
+=== tunnel
+    -   I’m in a tunnel 
+    *   I’m an option   
+    -   ->->
+
+");
+
+            story.Begin ();
+            Assert.AreEqual ("I’m in a tunnel\nWhen should this get printed?\n", story.currentText);
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual(story.currentChoices[0].choiceText, "I’m an option");
+
+            story.ContinueWithChoiceIndex (1);
+            Assert.AreEqual ("I’m an option\nFinishing thread.\n", story.currentText);
+            Assert.IsFalse (story.hasError);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

@@ -1,10 +1,11 @@
 ﻿=== knot 
-    <- pasteA 
+    <- threadA 
     Print this
     -> END
 
-=== pasteA 
+=== threadA 
     -> tunnel ->
+    End of thread.
     -> DONE
 
 === tunnel
