@@ -397,6 +397,12 @@ namespace Inklewriter.Parsed
                 return;
             }
 
+            // Author has left a note to self here - clearly we don't need
+            // to leave them with another warning since they know what they're doing.
+            if (lastObjectInFlow is AuthorWarning) {
+                return;
+            }
+
             var innerDiverts = lastObjectInFlow.FindAll<Divert> ();
             if (innerDiverts.Count > 0) {
                 var finalDivert = innerDiverts [innerDiverts.Count - 1];

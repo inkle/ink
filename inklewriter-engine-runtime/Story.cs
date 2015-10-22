@@ -199,7 +199,7 @@ namespace Inklewriter.Runtime
                     } else if( _callStack.CanPop(PushPop.Type.Function) ) {
                         Error("unexpectedly reached end of content. Do you need a '~ return'?");
                     } else if( !_callStack.canPop ) {
-                        Error("ran out of content. Do you need a '-> END'?");
+                        Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
                     } else {
                         Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
                     }

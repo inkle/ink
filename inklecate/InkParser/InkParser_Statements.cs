@@ -85,6 +85,8 @@ namespace Inklewriter
 
                 rulesAtLevel.Add(Line(Choice));
 
+                rulesAtLevel.Add(Line(AuthorWarning));
+
                 // Gather lines would be confused with multi-line block separators, like
                 // within a multi-line if statement
                 if (level > StatementLevel.InnerBlock) {

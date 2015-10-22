@@ -323,6 +323,11 @@ namespace Inklewriter.Parsed
         // unless there hasn't been one yet.
         void AddGeneralRuntimeContent(Runtime.Object content)
         {
+            // Content is allowed to evaluate runtimeObject to null
+            // (e.g. AuthorWarning, which doesn't make it into the runtime)
+            if (content == null)
+                return;
+            
             if (addContentToPreviousWeavePoint) {
                 previousWeavePoint.runtimeContainer.AddContent (content);
             } else {
