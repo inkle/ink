@@ -234,11 +234,14 @@ namespace Inklewriter.Runtime
             //  - Or a logic/flow statement - if so, do it
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
-            bool stopFlow;
-            bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out stopFlow);
-            if (stopFlow) {
+            bool endFlow;
+            bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out endFlow);
+            if (endFlow) {
                 currentPath = null;
 
+                while (_callStack.canPopThread)
+                    _callStack.PopThread ();
+                
                 while (_callStack.canPop)
                     _callStack.Pop ();
 
@@ -328,9 +331,9 @@ namespace Inklewriter.Runtime
         /// </summary>
         /// <returns><c>true</c> if object was logic or flow control, <c>false</c> if it's normal content.</returns>
         /// <param name="contentObj">Content object.</param>
-        private bool PerformLogicAndFlowControl(Runtime.Object contentObj, out bool stopFlow)
+        private bool PerformLogicAndFlowControl(Runtime.Object contentObj, out bool endFlow)
         {
-            stopFlow = false;
+            endFlow = false;
 
             if( contentObj == null ) {
                 return false;
@@ -499,8 +502,8 @@ namespace Inklewriter.Runtime
 
                     break;
 
-                case ControlCommand.CommandType.Stop:
-                    stopFlow = true;
+                case ControlCommand.CommandType.End:
+                    endFlow = true;
                     _didSafeExit = true;
                     break;
 

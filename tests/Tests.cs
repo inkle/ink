@@ -1034,7 +1034,7 @@ Done.
 
 
         [Test ()]
-        public void TestStop()
+        public void TestEnd()
         {
             Story story = CompileString (@"
 hello
@@ -1048,7 +1048,7 @@ world
 
 
         [Test ()]
-        public void TestStop2()
+        public void TestEnd2()
         {
             Story story = CompileString (@"
 -> test

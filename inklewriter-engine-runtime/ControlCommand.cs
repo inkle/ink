@@ -19,7 +19,7 @@ namespace Inklewriter.Runtime
             SequenceShuffleIndex,
             StartThread,
             Done,
-            Stop
+            End
         }
             
         public CommandType commandType { get; protected set; }
@@ -90,8 +90,8 @@ namespace Inklewriter.Runtime
             return new ControlCommand (CommandType.Done);
         }
 
-        public static ControlCommand Stop() {
-            return new ControlCommand (CommandType.Stop);
+        public static ControlCommand End() {
+            return new ControlCommand (CommandType.End);
         }
 
         public override string ToString ()

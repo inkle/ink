@@ -42,7 +42,7 @@ namespace Inklewriter.Parsed
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
             if (isEnd) {
-                return Runtime.ControlCommand.Stop ();
+                return Runtime.ControlCommand.End ();
             }
 
             // Done = return from thread or instruct the flow that it's safe to exit
