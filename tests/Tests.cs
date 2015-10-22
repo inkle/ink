@@ -991,14 +991,14 @@ two ({num})
         }
 
         [Test ()]
-        public void TestTunnelVsPasteBehaviour()
+        public void TestTunnelVsThreadBehaviour()
         {
             Story story = CompileString (@"
 -> knot_with_options ->
 Finished tunnel.
 
-Starting paste.
-<- paste_with_options
+Starting thread.
+<- thread_with_options
 * E
 -
 Done.
@@ -1010,7 +1010,7 @@ Done.
 -
 ->->
 
-== paste_with_options ==
+== thread_with_options ==
 * C
 * D
 ");
@@ -1064,15 +1064,15 @@ world
         }
 
         [Test ()]
-        public void TestPasteDone()
+        public void TestThreadDone()
         {
             Story story = CompileString (@"
-This is a paste example
-<- example_paste
+This is a thread example
+<- example_thread
 The example is now complete.
 
 
-== example_paste ==
+== example_thread ==
 Hello.
 -> DONE
 World.
@@ -1080,7 +1080,7 @@ World.
 ");
             story.Begin ();
 
-            Assert.AreEqual ("This is a paste example\nHello.\nThe example is now complete.\n", story.currentText);
+            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.\n", story.currentText);
         }
 
 		//------------------------------------------------------------------------

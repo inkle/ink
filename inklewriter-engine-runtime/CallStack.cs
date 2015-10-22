@@ -40,14 +40,12 @@ namespace Inklewriter.Runtime
                 callstack = new List<Element>();
             }
 
-            public Thread(Thread threadToCopy) : this() {
-                foreach(var e in threadToCopy.callstack) {
-                    callstack.Add(e.Copy());
-                }
-            }
-
             public Thread Copy() {
-                return new Thread (this);
+                var copy = new Thread ();
+                foreach(var e in callstack) {
+                    copy.callstack.Add(e.Copy());
+                }
+                return copy;
             }
         }
 
@@ -66,12 +64,12 @@ namespace Inklewriter.Runtime
         public Thread currentThread
         {
             get {
-                return _allCallStackThreads [_allCallStackThreads.Count - 1];
+                return _threads [_threads.Count - 1];
             }
             set {
-                Debug.Assert (_allCallStackThreads.Count == 1, "Shouldn't be directly setting the current thread when we have a stack of them");
-                _allCallStackThreads.Clear ();
-                _allCallStackThreads.Add (value);
+                Debug.Assert (_threads.Count == 1, "Shouldn't be directly setting the current thread when we have a stack of them");
+                _threads.Clear ();
+                _threads.Add (value);
             }
         }
 
@@ -83,21 +81,21 @@ namespace Inklewriter.Runtime
 
         public CallStack ()
         {
-            _allCallStackThreads = new List<Thread> ();
-            _allCallStackThreads.Add (new Thread ());
+            _threads = new List<Thread> ();
+            _threads.Add (new Thread ());
 
-            callStack.Add (new Element (PushPop.Type.Tunnel));
+            _threads [0].callstack.Add (new Element (PushPop.Type.Tunnel));
         }
 
         public void PushThread()
         {
-            _allCallStackThreads.Add (new Thread (currentThread));
+            _threads.Add (currentThread.Copy());
         }
 
         public void PopThread()
         {
             if (canPopThread) {
-                _allCallStackThreads.Remove (currentThread);
+                _threads.Remove (currentThread);
             } else {
                 Debug.Fail ("Can't pop thread");
             }
@@ -106,21 +104,17 @@ namespace Inklewriter.Runtime
         public bool canPopThread
         {
             get {
-                return _allCallStackThreads.Count > 1;
+                return _threads.Count > 1;
             }
         }
 
         public void Push(PushPop.Type type)
         {
-            Debug.Assert (type != PushPop.Type.Paste);
-
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
             callStack.Add (new Element(type, initialPath: currentElement.path, inExpressionEvaluation: false));
         }
 
         public bool CanPop(PushPop.Type? type = null) {
-
-            Debug.Assert (type != PushPop.Type.Paste);
 
             if (!canPop)
                 return false;
@@ -133,8 +127,6 @@ namespace Inklewriter.Runtime
             
         public void Pop(PushPop.Type? type = null)
         {
-            Debug.Assert (type != PushPop.Type.Paste);
-
             if (CanPop (type)) {
                 callStack.RemoveAt (callStack.Count - 1);
                 return;
@@ -254,7 +246,7 @@ namespace Inklewriter.Runtime
             }
         }
 
-        private List<Thread> _allCallStackThreads;
+        private List<Thread> _threads;
     }
 }
 

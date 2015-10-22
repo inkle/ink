@@ -12,7 +12,7 @@ namespace Inklewriter.Parsed
         public bool isFunctionCall { get; set; }
         public bool isToGather { get; set; }
         public bool isTunnel { get; set; }
-        public bool isPaste { get; set; }
+        public bool isThread { get; set; }
         public bool isEnd { 
             get {
                 return target != null && target.dotSeparatedComponents == "END";
@@ -45,11 +45,9 @@ namespace Inklewriter.Parsed
                 return Runtime.ControlCommand.Stop ();
             }
 
-            // Done = return from paste
+            // Done = return from thread or instruct the flow that it's safe to exit
             if (isDone) {
-                return new Runtime.PushPop (
-                    Runtime.PushPop.Type.Paste, 
-                    Runtime.PushPop.Direction.Pop);
+                return Runtime.ControlCommand.Done ();
             }
 
             runtimeDivert = new Runtime.Divert ();
@@ -69,7 +67,7 @@ namespace Inklewriter.Parsed
 
             // Passing arguments to the knot
             bool requiresArgCodeGen = arguments != null && arguments.Count > 0;
-            if ( requiresArgCodeGen || isFunctionCall || isTunnel || isPaste ) {
+            if ( requiresArgCodeGen || isFunctionCall || isTunnel || isThread ) {
 
                 var container = new Runtime.Container ();
 
@@ -122,19 +120,17 @@ namespace Inklewriter.Parsed
                     }
                 }
                     
-                // If this divert is a function call, tunnel or paste, we push to the call stack
+
+                // Starting a thread? A bit like a push to the call stack below... but not.
+                // It sort of puts the call stack on a thread stack (argh!) - forks the full flow.
+                if (isThread) {
+                    container.AddContent(Runtime.ControlCommand.StartThread());
+                }
+
+                // If this divert is a function call, tunnel, we push to the call stack
                 // so we can return again
-                if (isFunctionCall || isTunnel || isPaste) {
-
-                    Runtime.PushPop.Type pushPopType;
-
-                    if (isFunctionCall)
-                        pushPopType = Runtime.PushPop.Type.Function;
-                    else if (isTunnel)
-                        pushPopType = Runtime.PushPop.Type.Tunnel;
-                    else
-                        pushPopType = Runtime.PushPop.Type.Paste;
-
+                else if (isFunctionCall || isTunnel) {
+                    Runtime.PushPop.Type pushPopType = isFunctionCall ? Runtime.PushPop.Type.Function : Runtime.PushPop.Type.Tunnel;
                     container.AddContent(new Runtime.PushPop(pushPopType, Runtime.PushPop.Direction.Push));
                 }
 

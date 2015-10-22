@@ -17,6 +17,8 @@ namespace Inklewriter.Runtime
             ChoiceCount,
             VisitIndex,
             SequenceShuffleIndex,
+            StartThread,
+            Done,
             Stop
         }
             
@@ -78,6 +80,14 @@ namespace Inklewriter.Runtime
             
         public static ControlCommand SequenceShuffleIndex() {
             return new ControlCommand(CommandType.SequenceShuffleIndex);
+        }
+
+        public static ControlCommand StartThread() {
+            return new ControlCommand (CommandType.StartThread);
+        }
+
+        public static ControlCommand Done() {
+            return new ControlCommand (CommandType.Done);
         }
 
         public static ControlCommand Stop() {

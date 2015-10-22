@@ -56,7 +56,7 @@ namespace Inklewriter
             return diverts;
         }
 
-        protected Divert PasteDivert()
+        protected Divert StartThread()
         {
             Whitespace ();
 
@@ -65,8 +65,8 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var divert = Expect(DivertIdentifierWithArguments, "Expected target for paste divert") as Divert;
-            divert.isPaste = true;
+            var divert = Expect(DivertIdentifierWithArguments, "Expected target for new thread") as Divert;
+            divert.isThread = true;
 
             return divert;
         }

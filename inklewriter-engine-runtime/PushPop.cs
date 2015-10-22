@@ -9,7 +9,6 @@ namespace Inklewriter.Runtime
         public enum Type
         {
             Tunnel,
-            Paste,
             Function
         }
 

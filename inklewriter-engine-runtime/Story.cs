@@ -291,12 +291,11 @@ namespace Inklewriter.Runtime
             // so that when returning from the stack, it returns to the content after the push instruction
             var pushPop = currentContentObj as PushPop;
             if( pushPop != null && pushPop.direction == PushPop.Direction.Push ) {
-
-                if (pushPop.type == PushPop.Type.Paste) {
-                    _callStack.PushThread ();
-                } else {
-                    _callStack.Push (pushPop.type);
-                }
+                _callStack.Push (pushPop.type);
+            }
+            var controlCmd = currentContentObj as ControlCommand;
+            if (controlCmd && controlCmd.commandType == ControlCommand.CommandType.StartThread) {
+                _callStack.PushThread ();
             }
 
             // Do we have somewhere valid to go?
@@ -393,24 +392,11 @@ namespace Inklewriter.Runtime
                 // Push is handled in main Step function
                 if (pushPop.direction == PushPop.Direction.Pop) {
 
-                    if (pushPop.type == PushPop.Type.Paste) {
-
-                        // Thread pop may exist in the context of the initial
-                        // act of creating the thread, or in the context of
-                        // evaluating the content  
-                        if (_callStack.canPopThread) {
-                            _callStack.PopThread ();
-                        } else {
-                            _didSafeExit = true;
-                        }
-                    } 
-
-                    else if (_callStack.currentElement.type != pushPop.type || !_callStack.canPop) {
+                    if (_callStack.currentElement.type != pushPop.type || !_callStack.canPop) {
 
                         var names = new Dictionary<PushPop.Type, string> ();
                         names [PushPop.Type.Function] = "function return statement (~ ~ ~)";
                         names [PushPop.Type.Tunnel] = "tunnel onwards statement (->->)";
-                        names [PushPop.Type.Paste] = "end of paste flow (natural or -> DONE)";
 
                         string expected = names [_callStack.currentElement.type];
                         if (!_callStack.canPop) {
@@ -491,6 +477,26 @@ namespace Inklewriter.Runtime
                 case ControlCommand.CommandType.SequenceShuffleIndex:
                     var shuffleIndex = NextSequenceShuffleIndex ();
                     PushEvaluationStack (new LiteralInt (shuffleIndex));
+                    break;
+
+                case ControlCommand.CommandType.StartThread:
+                    // Handled in main step function
+                    break;
+
+                case ControlCommand.CommandType.Done:
+                    
+                    // We may exist in the context of the initial
+                    // act of creating the thread, or in the context of
+                    // evaluating the content.
+                    if (_callStack.canPopThread) {
+                        _callStack.PopThread ();
+                    } 
+
+                    // In normal flow - allow safe exit without warning
+                    else {
+                        _didSafeExit = true;
+                    }
+
                     break;
 
                 case ControlCommand.CommandType.Stop:
@@ -611,9 +617,9 @@ namespace Inklewriter.Runtime
             var choiceInstances = CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
             Assert (choiceIdx >= 0 && choiceIdx < choiceInstances.Count, "choice out of range");
 
-            // Replace callstack with the one at the choosing point, so that
-            // we can jump into the right place in the flow.
-            // This is important in case the flow was forked by a paste, which
+            // Replace callstack with the one from the thread at the choosing point, 
+            // so that we can jump into the right place in the flow.
+            // This is important in case the flow was forked by a new thread, which
             // can create multiple leading edges for the story, each of
             // which has its own context.
             var instanceToChoose = choiceInstances [choiceIdx];
