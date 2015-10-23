@@ -62,7 +62,8 @@ namespace Inklewriter
                 assignedExpression = new Number (0);
             }
 
-            var result = new VariableAssignment (varName, assignedExpression, isNewDeclaration);
+            var result = new VariableAssignment (varName, assignedExpression);
+            result.isNewProceduralDeclaration = true;
             return result;
         }
 

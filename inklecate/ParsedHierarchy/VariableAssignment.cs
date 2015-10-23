@@ -6,27 +6,34 @@ namespace Inklewriter.Parsed
     {
         public string variableName { get; protected set; }
         public Expression expression { get; protected set; }
-        public bool isNewDeclaration { get; protected set; }
 
-        public VariableAssignment (string variableName, Expression assignedExpression, bool isNewDeclaration)
+        public bool isGlobalDeclaration { get; set; }
+        public bool isNewProceduralDeclaration { get; set; }
+
+        public VariableAssignment (string variableName, Expression assignedExpression)
         {
             this.variableName = variableName;
 
             // Defensive programming in case parsing of assignedExpression failed
             if( assignedExpression )
                 this.expression = AddContent(assignedExpression);
-            
-            this.isNewDeclaration = isNewDeclaration;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
+            // Global declarations don't generate actual procedural
+            // runtime objects, but instead add a global variable to the story itself
+            if (isGlobalDeclaration) {
+                story.TryAddNewVariableDeclaration (this);
+                return null;
+            }
+
             var container = new Runtime.Container ();
 
             // The expression's runtimeObject is actually another nested container
             container.AddContent (expression.runtimeObject);
 
-            container.AddContent (new Runtime.VariableAssignment (variableName, isNewDeclaration));
+            container.AddContent (new Runtime.VariableAssignment (variableName, isNewProceduralDeclaration));
 
             return container;
         }
@@ -35,7 +42,7 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
-            if (!this.isNewDeclaration) {
+            if (!this.isNewProceduralDeclaration) {
                 if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
                     Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
                 }

@@ -163,6 +163,7 @@ namespace Inklewriter.Runtime
             _visitCounts = new Dictionary<string, int> ();
             _beatIndices = new Dictionary<string, int> ();
             _currentBeatIndex = -1;
+
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
             _storySeed = (new Random (timeSeed)).Next () % 100;

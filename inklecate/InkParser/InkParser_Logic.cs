@@ -65,7 +65,8 @@ namespace Inklewriter
                 Error ("initial value for a variable must be a number or divert target");
             }
 
-            var result = new VariableAssignment (varName, expr, isNewDeclaration:true);
+            var result = new VariableAssignment (varName, expr);
+            result.isGlobalDeclaration = true;
             return result;
         }
 
