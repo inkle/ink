@@ -267,7 +267,7 @@ This is the main file
         {
             var storyStr =
                 @"
-~ var x = 3
+VAR x = 3
 
 { 
     - x == 1: one
@@ -381,8 +381,9 @@ This is the main file
         {
             var storyStr =
                 @"
+VAR x = 0
 {true:
-    - ~ var x = 5
+    - ~ x = 5
 }
 {x}
                 ";
@@ -542,8 +543,9 @@ This is the main file
         [Test ()]
         public void TestCompareDivertTargets()
         {
-            var storyStr =  @"~ var to_one = -> one
-~ var to_two = -> two
+            var storyStr =  @"
+VAR to_one = -> one
+VAR to_two = -> two
 
 {to_one == to_two:same knot|different knot}
 {to_one == to_one:same knot|different knot}
@@ -588,7 +590,7 @@ This is the main file
         public void TestNestedPassByReference()
         {
             var storyStr =  @"
-~ var x = 5
+VAR x = 5
 
 {x}
 
@@ -617,7 +619,7 @@ This is the main file
         public void TestFactorialByReference()
         {
             var storyStr =  @"
-~ var result
+VAR result
 ~ factorialByRef(result, 5)
 { result }
 
@@ -674,7 +676,7 @@ This is the main file
         public void TestIncrement()
         {
             Story story = CompileString (@"
-~ var x = 5
+VAR x = 5
 ~ x++
 {x}
 
@@ -849,7 +851,7 @@ Default choice chosen.
         public void TestOnceOnlyChoicesWithOwnContent()
         {
             Story story = CompileString (@"
-~ var times = 3
+VAR times = 3
 -> home
 
 == home ==

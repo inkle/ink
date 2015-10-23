@@ -105,7 +105,7 @@ namespace Inklewriter.Parsed
 
         }
 
-        public bool HasVariableWithName(string varName)
+        public bool HasGlobalVariableWithName(string varName)
         {
             return globalVariables.ContainsKey (varName);
         }

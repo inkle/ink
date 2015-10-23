@@ -78,28 +78,26 @@ namespace Inklewriter.Parsed
 
         public bool ResolveVariableWithName(string varName, Parsed.Object fromNode)
         {
-//            if (fromNode == null) {
-//                fromNode = this;
-//            }
+            if (fromNode == null) {
+                fromNode = this;
+            }
                 
-//            var ancestor = fromNode;
-//            while (ancestor) {
-//
-//                if (ancestor is FlowBase) {
-//                    var ancestorFlow = (FlowBase)ancestor;
-//
-//                    if( ancestorFlow.HasVariableWithName(varName) ) {
-//                        return true;
-//                    }
-//                }
-//
-//                ancestor = ancestor.parent;
-//            }
+            var ancestor = fromNode;
+            while (ancestor) {
+
+                if (ancestor is FlowBase) {
+                    var ancestorFlow = (FlowBase)ancestor;
+
+                    if( ancestorFlow.HasArgumentWithName(varName) ) {
+                        return true;
+                    }
+                }
+
+                ancestor = ancestor.parent;
+            }
 
             // TODO: Make temporary variables work again
-            return story.HasVariableWithName (varName);
-                
-            //return false;
+            return story.HasGlobalVariableWithName (varName);
         }
             
         public bool HasArgumentWithName(string varName)
