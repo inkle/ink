@@ -24,7 +24,7 @@ namespace Inklewriter
 			}
 		}
 
-        protected Parsed.Object VariableDeclarationOrAssignment()
+        protected Parsed.Object ProceduralVarDeclarationOrAssignment()
         {
             Whitespace ();
 
