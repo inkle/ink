@@ -10,7 +10,7 @@ namespace Inklewriter.Runtime
         {
             public Path path;
             public bool inExpressionEvaluation;
-            public Dictionary<string, Runtime.Object> variables;
+            public Dictionary<string, Runtime.Object> temporaryVariables;
             public PushPop.Type type;
 
             public Element(PushPop.Type type, Path initialPath = null, bool inExpressionEvaluation = false) {
@@ -20,14 +20,14 @@ namespace Inklewriter.Runtime
 
                 this.path = initialPath;
                 this.inExpressionEvaluation = inExpressionEvaluation;
-                this.variables = new Dictionary<string, Object>();
+                this.temporaryVariables = new Dictionary<string, Object>();
                 this.type = type;
             }
 
             public Element Copy()
             {
                 var copy = new Element (this.type, this.path, this.inExpressionEvaluation);
-                copy.variables = this.variables;
+                copy.temporaryVariables = this.temporaryVariables;
                 return copy;
             }
         }
@@ -136,23 +136,23 @@ namespace Inklewriter.Runtime
         }
 
         // Get variable value, dereferencing a variable pointer if necessary
-        public Runtime.Object GetVariableWithName(string name)
+        public Runtime.Object GetTemporaryVariableWithName(string name)
         {
             int unusedStackIdx;
-            var varValue = GetRawVariableWithName (name, out unusedStackIdx);
+            var varValue = GetRawTemporaryVariableWithName (name, out unusedStackIdx);
 
             // Get value from pointer?
             var varPointer = varValue as LiteralVariablePointer;
             if (varPointer) {
                 var variablePointerContextEl = callStack [varPointer.resolvedCallstackElementIndex];
-                varValue = variablePointerContextEl.variables [varPointer.variableName];
+                varValue = variablePointerContextEl.temporaryVariables [varPointer.variableName];
             }
 
             return varValue;
         }
 
         // Raw, in that it could be a variable pointer, in which case it doesn't de-reference it
-        Runtime.Object GetRawVariableWithName(string name, out int foundInStackElIdx)
+        Runtime.Object GetRawTemporaryVariableWithName(string name, out int foundInStackElIdx)
         {
             Runtime.Object varValue = null;
 
@@ -160,7 +160,7 @@ namespace Inklewriter.Runtime
             for (int elIdx = callStack.Count - 1; elIdx >= 0; --elIdx) {
                 var element = callStack [elIdx];
 
-                if (element.variables.TryGetValue (name, out varValue)) {
+                if (element.temporaryVariables.TryGetValue (name, out varValue)) {
                     foundInStackElIdx = elIdx;
                     return varValue;
                 }
@@ -170,7 +170,7 @@ namespace Inklewriter.Runtime
             return null;
         }
 
-        public void SetVariable(string name, Runtime.Object value, bool declareNew, bool prioritiseHigherInCallStack = false)
+        public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew, bool prioritiseHigherInCallStack = false)
         {
             if (declareNew) {
                 Element el;
@@ -183,11 +183,11 @@ namespace Inklewriter.Runtime
                 if (declareNew && value is LiteralVariablePointer) {
                     var varPointer = value as LiteralVariablePointer;
                     if (varPointer) {
-                        value = ResolveVariablePointer (varPointer);
+                        value = ResolveTemporaryVariablePointer (varPointer);
                     }
                 }
 
-                el.variables [name] = value;
+                el.temporaryVariables [name] = value;
                 return;
             }
 
@@ -196,17 +196,17 @@ namespace Inklewriter.Runtime
                 var element = callStack [elIdx];
 
                 Runtime.Object existingValue = null;
-                if (element.variables.TryGetValue (name, out existingValue)) {
+                if (element.temporaryVariables.TryGetValue (name, out existingValue)) {
 
                     // Resolve variable pointer to assign to
                     while (existingValue is LiteralVariablePointer) {
                         var varPointer = (LiteralVariablePointer) existingValue;
                         name = varPointer.variableName;
                         element = callStack [varPointer.resolvedCallstackElementIndex];
-                        existingValue = element.variables [name];
+                        existingValue = element.temporaryVariables [name];
                     }
 
-                    element.variables [name] = value;
+                    element.temporaryVariables [name] = value;
 
                     return;
                 }
@@ -219,10 +219,10 @@ namespace Inklewriter.Runtime
         // Takes:   variable pointer where only the name of the variable is known
         // Returns: variable pointer with additional information to pinpoint the
         //          precise instance of a variable with that name on the callstack
-        LiteralVariablePointer ResolveVariablePointer(LiteralVariablePointer varPointer)
+        LiteralVariablePointer ResolveTemporaryVariablePointer(LiteralVariablePointer varPointer)
         {
             int stackIdx;
-            var varValue = GetRawVariableWithName (varPointer.variableName, out stackIdx);
+            var varValue = GetRawTemporaryVariableWithName (varPointer.variableName, out stackIdx);
 
             // Extra layer of indirection:
             // When accessing a pointer to a pointer (e.g. when calling nested or 

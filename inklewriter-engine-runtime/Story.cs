@@ -37,7 +37,7 @@ namespace Inklewriter.Runtime
 
         public Dictionary<string, Runtime.Object> variables { 
             get { 
-                return _callStack.currentElement.variables; 
+                return _callStack.currentElement.temporaryVariables; 
             } 
         }
 
@@ -345,7 +345,7 @@ namespace Inklewriter.Runtime
                 Divert currentDivert = (Divert)contentObj;
                 if (currentDivert.hasVariableTarget) {
                     var varName = currentDivert.variableDivertName;
-                    var varContents = _callStack.GetVariableWithName (varName);
+                    var varContents = _callStack.GetTemporaryVariableWithName (varName);
 
                     if (!(varContents is LiteralDivertTarget)) {
                         string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it contained '" + varContents + "'.";
@@ -524,7 +524,7 @@ namespace Inklewriter.Runtime
                 // the temporary context, but attempt to create them globally
                 var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
 
-                _callStack.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration, prioritiseHigherInCallStack);
+                _callStack.SetTemporaryVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration, prioritiseHigherInCallStack);
 
                 return true;
             }
@@ -544,7 +544,7 @@ namespace Inklewriter.Runtime
                 // contains a path to beat count still!)
                 else {
 
-                    var varContents = _callStack.GetVariableWithName (varRef.name);
+                    var varContents = _callStack.GetTemporaryVariableWithName (varRef.name);
                     if (varContents == null) {
                         Error("Uninitialised variable: " + varRef.name);
                         varContents = new LiteralInt (0);
