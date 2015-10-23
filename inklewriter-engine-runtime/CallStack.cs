@@ -138,105 +138,22 @@ namespace Inklewriter.Runtime
         // Get variable value, dereferencing a variable pointer if necessary
         public Runtime.Object GetTemporaryVariableWithName(string name)
         {
-            int unusedStackIdx;
-            var varValue = GetRawTemporaryVariableWithName (name, out unusedStackIdx);
-
-            // Get value from pointer?
-            var varPointer = varValue as LiteralVariablePointer;
-            if (varPointer) {
-                var variablePointerContextEl = callStack [varPointer.resolvedCallstackElementIndex];
-                varValue = variablePointerContextEl.temporaryVariables [varPointer.variableName];
-            }
-
-            return varValue;
-        }
-
-        // Raw, in that it could be a variable pointer, in which case it doesn't de-reference it
-        Runtime.Object GetRawTemporaryVariableWithName(string name, out int foundInStackElIdx)
-        {
             Runtime.Object varValue = null;
 
-            // Search down the scope stack for a variable with this value
-            for (int elIdx = callStack.Count - 1; elIdx >= 0; --elIdx) {
-                var element = callStack [elIdx];
-
-                if (element.temporaryVariables.TryGetValue (name, out varValue)) {
-                    foundInStackElIdx = elIdx;
-                    return varValue;
-                }
+            if (this.currentElement.temporaryVariables.TryGetValue (name, out varValue)) {
+                return varValue;
+            } else {
+                return null;
             }
-
-            foundInStackElIdx = -1;
-            return null;
         }
-
-        public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew, bool prioritiseHigherInCallStack = false)
+            
+        public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew)
         {
-            if (declareNew) {
-                Element el;
-                if (prioritiseHigherInCallStack) {
-                    el = callStack.First ();
-                } else {
-                    el = currentElement;
-                }
-
-                if (declareNew && value is LiteralVariablePointer) {
-                    var varPointer = value as LiteralVariablePointer;
-                    if (varPointer) {
-                        value = ResolveTemporaryVariablePointer (varPointer);
-                    }
-                }
-
-                el.temporaryVariables [name] = value;
-                return;
+            if (!declareNew && !currentElement.temporaryVariables.ContainsKey(name)) {
+                throw new StoryException ("Could not find temporary variable to set: " + name);
             }
 
-            // Search down the scope stack for the variable to assign to
-            for (int elIdx = callStack.Count - 1; elIdx >= 0; --elIdx) {
-                var element = callStack [elIdx];
-
-                Runtime.Object existingValue = null;
-                if (element.temporaryVariables.TryGetValue (name, out existingValue)) {
-
-                    // Resolve variable pointer to assign to
-                    while (existingValue is LiteralVariablePointer) {
-                        var varPointer = (LiteralVariablePointer) existingValue;
-                        name = varPointer.variableName;
-                        element = callStack [varPointer.resolvedCallstackElementIndex];
-                        existingValue = element.temporaryVariables [name];
-                    }
-
-                    element.temporaryVariables [name] = value;
-
-                    return;
-                }
-
-            }
-
-            throw new StoryException ("Could not find variable to set: " + name);
-        }
-
-        // Takes:   variable pointer where only the name of the variable is known
-        // Returns: variable pointer with additional information to pinpoint the
-        //          precise instance of a variable with that name on the callstack
-        LiteralVariablePointer ResolveTemporaryVariablePointer(LiteralVariablePointer varPointer)
-        {
-            int stackIdx;
-            var varValue = GetRawTemporaryVariableWithName (varPointer.variableName, out stackIdx);
-
-            // Extra layer of indirection:
-            // When accessing a pointer to a pointer (e.g. when calling nested or 
-            // recursive functions that take a variable references, ensure we don't create
-            // a chain of indirection by just returning the final target.
-            var existingPointer = varValue as LiteralVariablePointer;
-            if (existingPointer && existingPointer.resolvedCallstackElementIndex >= 0) {
-                return existingPointer;
-            }
-
-            // Return clone so we're not attempting to modify the source runtime
-            var clone = new LiteralVariablePointer (varPointer.variableName);
-            clone.resolvedCallstackElementIndex = stackIdx;
-            return clone;
+            currentElement.temporaryVariables [name] = value;
         }
 
         private List<Element> callStack

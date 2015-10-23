@@ -35,11 +35,6 @@ namespace Inklewriter.Runtime
 
         public List<Runtime.Object> outputStream;
 
-        public Dictionary<string, Runtime.Object> variables { 
-            get { 
-                return _callStack.currentElement.temporaryVariables; 
-            } 
-        }
 
 		public List<Choice> currentChoices
 		{
@@ -164,6 +159,7 @@ namespace Inklewriter.Runtime
             outputStream = new List<Runtime.Object> ();
             _evaluationStack = new List<Runtime.Object> ();
             _callStack = new CallStack ();
+            _variablesState = new VariablesState (_callStack);
             _visitCounts = new Dictionary<string, int> ();
             _beatIndices = new Dictionary<string, int> ();
             _currentBeatIndex = -1;
@@ -345,12 +341,13 @@ namespace Inklewriter.Runtime
                 Divert currentDivert = (Divert)contentObj;
                 if (currentDivert.hasVariableTarget) {
                     var varName = currentDivert.variableDivertName;
-                    var varContents = _callStack.GetTemporaryVariableWithName (varName);
+
+                    var varContents = _variablesState.GetVariableWithName (varName);
 
                     if (!(varContents is LiteralDivertTarget)) {
                         string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it contained '" + varContents + "'.";
                         if (varContents is LiteralInt)
-                            errorMessage += " Did you accidentally miss a divert arrow '==>', and accidentally get the read count of the target instead?";
+                            errorMessage += " Did you accidentally miss a divert arrow '->', and accidentally get the read count of the target instead?";
                         Error (errorMessage);
                     }
 
@@ -522,9 +519,9 @@ namespace Inklewriter.Runtime
 
                 // When in temporary evaluation, don't create new variables purely within
                 // the temporary context, but attempt to create them globally
-                var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
+                //var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
 
-                _callStack.SetTemporaryVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration, prioritiseHigherInCallStack);
+                _variablesState.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration);
 
                 return true;
             }
@@ -544,7 +541,8 @@ namespace Inklewriter.Runtime
                 // contains a path to beat count still!)
                 else {
 
-                    var varContents = _callStack.GetTemporaryVariableWithName (varRef.name);
+                    var varContents = _variablesState.GetVariableWithName (varRef.name);
+
                     if (varContents == null) {
                         Error("Uninitialised variable: " + varRef.name);
                         varContents = new LiteralInt (0);
@@ -1215,6 +1213,7 @@ namespace Inklewriter.Runtime
         private bool _didSafeExit;
             
         private CallStack _callStack;
+        private VariablesState _variablesState;
 
         private Dictionary<string, int> _visitCounts;
         private Dictionary<string, int> _beatIndices;
