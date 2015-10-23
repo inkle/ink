@@ -182,7 +182,7 @@ namespace Inklewriter.Parsed
 
         public override void ResolveReferences(Story context)
 		{
-            if (isToGather || isEnd) {
+            if (isToGather || isEnd || isDone) {
                 return;
             }
 
@@ -197,10 +197,21 @@ namespace Inklewriter.Parsed
             var targetFlow = targetContent as FlowBase;
             if (targetFlow) {
                 if (!targetFlow.isFunction && this.isFunctionCall) {
-                    base.Error (targetFlow.name+" hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function " + targetFlow.name + " =='?");
+                    base.Error (targetFlow.name + " hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function " + targetFlow.name + " =='?");
                 } else if (targetFlow.isFunction && !this.isFunctionCall) {
-                    base.Error (targetFlow.name+" can't be diverted to. It can only be called as a function since it's been marked as such: '" + targetFlow.name + "(...)'");
+                    base.Error (targetFlow.name + " can't be diverted to. It can only be called as a function since it's been marked as such: '" + targetFlow.name + "(...)'");
                 }
+            } 
+
+            // Check validity of target content
+            if (targetContent == null) {
+                if (target.numberOfComponents == 1 && FunctionCall.IsValidName (target.firstComponent)) {
+                    if (!isFunctionCall)
+                        base.Error(target.firstComponent+" must be called as a function: ~ "+target.firstComponent+"()");
+                        return;
+                }
+
+                Error ("target not found: '" + target + "'");
             }
 		}
 
