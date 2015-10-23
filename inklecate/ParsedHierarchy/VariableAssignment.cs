@@ -8,7 +8,13 @@ namespace Inklewriter.Parsed
         public Expression expression { get; protected set; }
 
         public bool isGlobalDeclaration { get; set; }
-        public bool isNewProceduralDeclaration { get; set; }
+        public bool isNewTemporaryDeclaration { get; set; }
+
+        public bool isDeclaration {
+            get {
+                return isGlobalDeclaration || isNewTemporaryDeclaration;
+            }
+        }
 
         public VariableAssignment (string variableName, Expression assignedExpression)
         {
@@ -33,7 +39,7 @@ namespace Inklewriter.Parsed
             // The expression's runtimeObject is actually another nested container
             container.AddContent (expression.runtimeObject);
 
-            container.AddContent (new Runtime.VariableAssignment (variableName, isNewProceduralDeclaration));
+            container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
 
             return container;
         }
@@ -42,14 +48,21 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
-            if (!this.isNewProceduralDeclaration) {
-                if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
-                    Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
-                }
+            Expression existingGlobalExpr = null;
+            if (this.isNewTemporaryDeclaration && story.globalVariables.TryGetValue(variableName, out existingGlobalExpr) ) {
+                Error ("global variable '"+variableName+"' already exists with the same name (declared on " + existingGlobalExpr.debugMetadata + ")");
+                return;
             }
 
             if (IsReservedKeyword (variableName)) {
                 Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
+                return;
+            }
+
+            if (!this.isNewTemporaryDeclaration) {
+                if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
+                    Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
+                }
             }
         }
 

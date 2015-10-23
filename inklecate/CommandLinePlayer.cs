@@ -85,7 +85,7 @@ namespace Inklewriter
                             // so that we don't get an error message during reference resolution
                             if( evaluatedInput is Parsed.VariableAssignment ) {
                                 var varAssign = (Parsed.VariableAssignment) evaluatedInput;
-                                if( varAssign.isNewProceduralDeclaration ) {
+                                if( varAssign.isNewTemporaryDeclaration ) {
                                     parsedStory.TryAddNewVariableDeclaration(varAssign);
                                 }
                             }

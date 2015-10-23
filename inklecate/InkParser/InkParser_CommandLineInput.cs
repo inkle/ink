@@ -34,7 +34,7 @@ namespace Inklewriter
 
         object UserImmediateModeStatement()
         {
-            return OneOf (SingleDivert, ProceduralVarDeclarationOrAssignment, Expression);
+            return OneOf (SingleDivert, TempDeclarationOrAssignment, Expression);
         }
     }
 }

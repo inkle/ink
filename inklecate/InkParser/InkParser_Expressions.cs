@@ -24,11 +24,11 @@ namespace Inklewriter
 			}
 		}
 
-        protected Parsed.Object ProceduralVarDeclarationOrAssignment()
+        protected Parsed.Object TempDeclarationOrAssignment()
         {
             Whitespace ();
 
-            bool isNewDeclaration = ParseVarKeyword();
+            bool isNewDeclaration = ParseTempKeyword();
 
             Whitespace ();
 
@@ -48,7 +48,7 @@ namespace Inklewriter
             // Optional assignment
             Expression assignedExpression = null;
             if (ParseString ("=") != null) {
-                assignedExpression = (Expression)Expect (Expression, "value expression to be assigned to variable");
+                assignedExpression = (Expression)Expect (Expression, "value expression to be assigned to temporary variable");
             }
 
             // If it's neither an assignment nor a new declaration,
@@ -63,16 +63,16 @@ namespace Inklewriter
             }
 
             var result = new VariableAssignment (varName, assignedExpression);
-            result.isNewProceduralDeclaration = true;
+            result.isNewTemporaryDeclaration = true;
             return result;
         }
 
 
-        protected bool ParseVarKeyword()
+        protected bool ParseTempKeyword()
         {
             var ruleId = BeginRule ();
 
-            if (Parse (Identifier) == "var") {
+            if (Parse (Identifier) == "temp") {
                 SucceedRule (ruleId);
                 return true;
             } else {

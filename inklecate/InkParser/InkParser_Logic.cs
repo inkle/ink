@@ -18,14 +18,14 @@ namespace Inklewriter
             Whitespace ();
 
             // Some example lines we need to be able to distinguish between:
-            // ~ var x = 5  -- var decl + assign
-            // ~ var x      -- var decl
-            // ~ x = 5      -- var assign
-            // ~ x          -- expr (not var decl or assign)
-            // ~ f()        -- expr
+            // ~ temp x = 5  -- var decl + assign
+            // ~ temp x      -- var decl
+            // ~ x = 5       -- var assign
+            // ~ x           -- expr (not var decl or assign)
+            // ~ f()         -- expr
             // We don't treat variable decl/assign as an expression since we don't want an assignment
             // to have a return value, or to be used in compound expressions.
-            ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, ProceduralVarDeclarationOrAssignment, Expression);
+            ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, TempDeclarationOrAssignment, Expression);
 
             var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
 
