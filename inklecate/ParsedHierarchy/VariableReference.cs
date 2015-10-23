@@ -69,7 +69,7 @@ namespace Inklewriter.Parsed
             }
 
             if (!context.ResolveVariableWithName (this.name, fromNode: this)) {
-                Error("Unresolved variable: "+this.ToString()+" after searching: "+this.descriptionOfScope, this);
+                Error("Unresolved variable: "+this.ToString(), this);
             }
         }
 

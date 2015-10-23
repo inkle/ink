@@ -15,6 +15,8 @@ namespace Inklewriter.Parsed
         public List<string> errors { get { return _errors; } }
         public List<string> warnings { get { return _warnings; } }
 
+        public Dictionary<string, VariableAssignment> variableDeclarations;
+
         // Build setting for exporting:
         // When true, the visit count and beat index for *all* knots, stitches, choices,
         // and gathers are counted. When false, only those that are referenced by
@@ -103,8 +105,38 @@ namespace Inklewriter.Parsed
 
         }
 
+        public bool HasVariableWithName(string varName)
+        {
+            return variableDeclarations.ContainsKey (varName);
+        }
+
+        public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
+        {
+            var varName = varDecl.variableName;
+            if (variableDeclarations.ContainsKey (varName)) {
+
+                var prevDeclError = "";
+                var debugMetadata = variableDeclarations [varName].debugMetadata;
+                if (debugMetadata != null) {
+                    prevDeclError = " ("+variableDeclarations [varName].debugMetadata+")";
+                }
+                Error("found declaration variable '"+varName+"' that was already declared"+prevDeclError, varDecl, false);
+
+                return;
+            }
+
+            variableDeclarations [varDecl.variableName] = varDecl;
+        }
+
 		public Runtime.Story ExportRuntime()
 		{
+            // Find all variable declarations
+            variableDeclarations = new Dictionary<string, VariableAssignment> ();
+            var newVarDecls = FindAll<VariableAssignment> (v => v.isNewDeclaration);
+            foreach (var varDecl in newVarDecls) {
+                TryAddNewVariableDeclaration (varDecl);
+            }
+
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 
