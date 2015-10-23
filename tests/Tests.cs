@@ -1179,6 +1179,21 @@ This is place 2.
             Assert.IsFalse (story.hasError);
         }
 
+
+        public void TestDivertNotFoundError()
+        {
+            var parsedStory = CompileStringWithoutRuntime (@"
+-> knot
+
+== knot ==
+Knot.
+-> next
+");
+
+            Assert.IsTrue (parsedStory.hadError);
+            Assert.IsTrue(parsedStory.errors[0].Contains("not found"));
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

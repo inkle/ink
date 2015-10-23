@@ -42,6 +42,11 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public static bool IsValidName(string name) 
+        {
+            return name == "CHOICE_COUNT" || name == "BEATS_SINCE";
+        }
+
         public override string ToString ()
         {
             var strArgs = string.Join (", ", arguments);

@@ -30,6 +30,12 @@ namespace Inklewriter.Parsed
             }
         }
 
+        public int numberOfComponents {
+            get {
+                return _components.Count;
+            }
+        }
+
         public string dotSeparatedComponents {
             get {
                 return string.Join (".", _components);
