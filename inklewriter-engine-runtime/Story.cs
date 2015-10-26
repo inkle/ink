@@ -35,11 +35,6 @@ namespace Inklewriter.Runtime
 
         public List<Runtime.Object> outputStream;
 
-        public Dictionary<string, Runtime.Object> variables { 
-            get { 
-                return _callStack.currentElement.variables; 
-            } 
-        }
 
 		public List<Choice> currentChoices
 		{
@@ -164,9 +159,11 @@ namespace Inklewriter.Runtime
             outputStream = new List<Runtime.Object> ();
             _evaluationStack = new List<Runtime.Object> ();
             _callStack = new CallStack ();
+            _variablesState = new VariablesState (_callStack);
             _visitCounts = new Dictionary<string, int> ();
             _beatIndices = new Dictionary<string, int> ();
             _currentBeatIndex = -1;
+
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
             _storySeed = (new Random (timeSeed)).Next () % 100;
@@ -235,6 +232,7 @@ namespace Inklewriter.Runtime
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
             bool endFlow;
+
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out endFlow);
             if (endFlow) {
                 currentPath = null;
@@ -277,6 +275,15 @@ namespace Inklewriter.Runtime
 
             // Content to add to evaluation stack or the output stream
             if (!isLogicOrFlowControl && shouldAddObject) {
+
+                // If we're pushing a variable pointer onto the evaluation stack, ensure that it's specific
+                // to our current (possibly temporary) context index. And make a copy of the pointer
+                // so that we're not editing the original runtime object.
+                var varPointer = currentContentObj as LiteralVariablePointer;
+                if (varPointer && varPointer.contextIndex == -1) {
+                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, _callStack.currentElementIndex);
+                }
+
                 // Expression evaluation content
                 if (inExpressionEvaluation) {
                     PushEvaluationStack (currentContentObj);
@@ -345,12 +352,13 @@ namespace Inklewriter.Runtime
                 Divert currentDivert = (Divert)contentObj;
                 if (currentDivert.hasVariableTarget) {
                     var varName = currentDivert.variableDivertName;
-                    var varContents = _callStack.GetVariableWithName (varName);
+
+                    var varContents = _variablesState.GetVariableWithName (varName);
 
                     if (!(varContents is LiteralDivertTarget)) {
                         string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it contained '" + varContents + "'.";
                         if (varContents is LiteralInt)
-                            errorMessage += " Did you accidentally miss a divert arrow '==>', and accidentally get the read count of the target instead?";
+                            errorMessage += " Did you accidentally miss a divert arrow '->', and accidentally get the read count of the target instead?";
                         Error (errorMessage);
                     }
 
@@ -522,9 +530,9 @@ namespace Inklewriter.Runtime
 
                 // When in temporary evaluation, don't create new variables purely within
                 // the temporary context, but attempt to create them globally
-                var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
+                //var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
 
-                _callStack.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration, prioritiseHigherInCallStack);
+                _variablesState.Assign (varAss, assignedVal);
 
                 return true;
             }
@@ -544,7 +552,8 @@ namespace Inklewriter.Runtime
                 // contains a path to beat count still!)
                 else {
 
-                    var varContents = _callStack.GetVariableWithName (varRef.name);
+                    var varContents = _variablesState.GetVariableWithName (varRef.name);
+
                     if (varContents == null) {
                         Error("Uninitialised variable: " + varRef.name);
                         varContents = new LiteralInt (0);
@@ -1215,6 +1224,7 @@ namespace Inklewriter.Runtime
         private bool _didSafeExit;
             
         private CallStack _callStack;
+        private VariablesState _variablesState;
 
         private Dictionary<string, int> _visitCounts;
         private Dictionary<string, int> _beatIndices;

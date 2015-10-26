@@ -138,11 +138,15 @@ namespace Inklewriter.Runtime
         public string variableName { get { return this.value; } set { this.value = value; } }
         public override LiteralType literalType { get { return LiteralType.VariablePointer; } }
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a variable pointer"); } }
-        public int resolvedCallstackElementIndex { get; set; }
 
-        public LiteralVariablePointer(string variableName) : base(variableName)
+        // Where the variable is located
+        // 0  = in global scope
+        // 1+ = callstack element index
+        public int contextIndex { get; set; }
+
+        public LiteralVariablePointer(string variableName, int contextIndex = -1) : base(variableName)
         {
-            resolvedCallstackElementIndex = -1;
+            this.contextIndex = contextIndex;
         }
 
         public LiteralVariablePointer() : this(null)

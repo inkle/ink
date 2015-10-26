@@ -14,6 +14,10 @@ namespace Inklewriter.Runtime
         [DefaultValue(false)]
         public bool isNewDeclaration { get; protected set; }
 
+        [JsonProperty("global")]
+        [DefaultValue(false)]
+        public bool isGlobal { get; set; }
+
         public VariableAssignment (string variableName, bool isNewDeclaration)
         {
             this.variableName = variableName;

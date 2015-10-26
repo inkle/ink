@@ -6,27 +6,49 @@ namespace Inklewriter.Parsed
     {
         public string variableName { get; protected set; }
         public Expression expression { get; protected set; }
-        public bool isNewDeclaration { get; protected set; }
 
-        public VariableAssignment (string variableName, Expression assignedExpression, bool isNewDeclaration)
+        public bool isGlobalDeclaration { get; set; }
+        public bool isNewTemporaryDeclaration { get; set; }
+
+        public bool isDeclaration {
+            get {
+                return isGlobalDeclaration || isNewTemporaryDeclaration;
+            }
+        }
+
+        public VariableAssignment (string variableName, Expression assignedExpression)
         {
             this.variableName = variableName;
 
             // Defensive programming in case parsing of assignedExpression failed
             if( assignedExpression )
                 this.expression = AddContent(assignedExpression);
-            
-            this.isNewDeclaration = isNewDeclaration;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
+            FlowBase newDeclScope = null;
+            if (isGlobalDeclaration) {
+                newDeclScope = story;
+            } else if(isNewTemporaryDeclaration) {
+                newDeclScope = ClosestFlowBase ();
+            }
+
+            if( newDeclScope )
+                newDeclScope.TryAddNewVariableDeclaration (this);
+
+            // Global declarations don't generate actual procedural
+            // runtime objects, but instead add a global variable to the story itself.
+            // The story then initialises them all in one go at the start of the game.
+            if( newDeclScope == story )
+                return null;
+
             var container = new Runtime.Container ();
 
             // The expression's runtimeObject is actually another nested container
             container.AddContent (expression.runtimeObject);
 
-            container.AddContent (new Runtime.VariableAssignment (variableName, isNewDeclaration));
+            container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
 
             return container;
         }
@@ -35,14 +57,21 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
-            if (!this.isNewDeclaration) {
-                if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
-                    Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
-                }
+            VariableAssignment existingGlobalDecl = null;
+            if (this.isNewTemporaryDeclaration && story.variableDeclarations.TryGetValue(variableName, out existingGlobalDecl) ) {
+                Error ("global variable '"+variableName+"' already exists with the same name (declared on " + existingGlobalDecl.debugMetadata + ")");
+                return;
             }
 
             if (IsReservedKeyword (variableName)) {
                 Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
+                return;
+            }
+
+            if (!this.isNewTemporaryDeclaration) {
+                if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
+                    Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
+                }
             }
         }
 

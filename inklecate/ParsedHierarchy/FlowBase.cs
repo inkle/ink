@@ -15,6 +15,7 @@ namespace Inklewriter.Parsed
         public List<Argument> arguments { get; protected set; }
         public bool hasParameters { get { return arguments != null && arguments.Count > 0; } }
         public Dictionary<string, VariableAssignment> variableDeclarations;
+
         public abstract FlowLevel flowLevel { get; }
         public bool isFunction { get; protected set; }
 
@@ -35,38 +36,8 @@ namespace Inklewriter.Parsed
 
             this.arguments = arguments;
             this.isFunction = isFunction;
-
-            variableDeclarations = new Dictionary<string, VariableAssignment> ();
-
-            TryAddNewVariableDeclarationsFrom (this);
+            this.variableDeclarations = new Dictionary<string, VariableAssignment> ();
 		}
-
-        void TryAddNewVariableDeclarationsFrom(Parsed.Object inObject)
-        {
-            if (inObject.content == null)
-                return;
-
-            foreach (var obj in inObject.content) {
-
-                if (obj is VariableAssignment) {
-                    var varDecl = (VariableAssignment)obj;
-                    if (varDecl && varDecl.isNewDeclaration) {
-                        TryAddNewVariableDeclaration (varDecl);
-                    }
-                } 
-
-                // Other FlowBases handle their own declarations
-                else if (obj is FlowBase) {
-                    continue;
-                } 
-
-                // Recursive search into other objects (weaves, conditionals, etc)
-                else {
-                    TryAddNewVariableDeclarationsFrom (obj);
-                }
-            }
-        }
-
 
         List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs)
         {
@@ -98,19 +69,7 @@ namespace Inklewriter.Parsed
             return finalContent;
         }
 
-        public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
-        {
-            if (variableDeclarations.ContainsKey (varDecl.variableName)) {
-                Error("found declaration variable '"+varDecl.variableName+"' that was already declared", varDecl);
 
-                var debugMetadata = variableDeclarations [varDecl.variableName].debugMetadata;
-                if (debugMetadata != null) {
-                    Error ("(previous declaration: " + debugMetadata + ")");
-                }
-            }
-
-            variableDeclarations [varDecl.variableName] = varDecl;
-        }
 
         protected virtual void PreProcessTopLevelObjects(List<Parsed.Object> topLevelObjects)
         {
@@ -122,7 +81,7 @@ namespace Inklewriter.Parsed
             if (fromNode == null) {
                 fromNode = this;
             }
-
+                
             var ancestor = fromNode;
             while (ancestor) {
 
@@ -136,22 +95,38 @@ namespace Inklewriter.Parsed
 
                 ancestor = ancestor.parent;
             }
-                
-            return false;
+
+            // TODO: Make temporary variables work again
+            return story.HasVariableWithName (varName);
         }
             
         public bool HasVariableWithName(string varName)
         {
-            if (variableDeclarations.ContainsKey (varName))
-                return true;
-
             if (arguments != null ) {
                 foreach (var arg in arguments) {
                     if( arg.name.Equals(varName) ) return true;
                 }
             }
 
-            return false;
+            return variableDeclarations.ContainsKey (varName);
+        }
+
+        public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
+        {
+            var varName = varDecl.variableName;
+            if (variableDeclarations.ContainsKey (varName)) {
+
+                var prevDeclError = "";
+                var debugMetadata = variableDeclarations [varName].debugMetadata;
+                if (debugMetadata != null) {
+                    prevDeclError = " ("+variableDeclarations [varName].debugMetadata+")";
+                }
+                Error("found declaration variable '"+varName+"' that was already declared"+prevDeclError, varDecl, false);
+
+                return;
+            }
+
+            variableDeclarations [varDecl.variableName] = varDecl;
         }
             
         public override Runtime.Object GenerateRuntimeObject ()

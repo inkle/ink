@@ -98,6 +98,9 @@ namespace Inklewriter
                     rulesAtLevel.Add (StitchDefinition);
                 }
 
+                // Global variable declarations can go anywhere
+                rulesAtLevel.Add(Line(VariableDeclaration));
+
                 // Normal logic / text can go anywhere
                 rulesAtLevel.Add(LogicLine);
                 rulesAtLevel.Add(LineOfMixedTextAndLogic);
