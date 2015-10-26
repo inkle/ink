@@ -232,6 +232,7 @@ namespace Inklewriter.Runtime
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
             bool endFlow;
+
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out endFlow);
             if (endFlow) {
                 currentPath = null;
@@ -522,7 +523,7 @@ namespace Inklewriter.Runtime
                 // the temporary context, but attempt to create them globally
                 //var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
 
-                _variablesState.SetVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration);
+                _variablesState.Assign (varAss, assignedVal);
 
                 return true;
             }

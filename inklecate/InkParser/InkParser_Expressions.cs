@@ -63,7 +63,7 @@ namespace Inklewriter
             }
 
             var result = new VariableAssignment (varName, assignedExpression);
-            result.isNewTemporaryDeclaration = true;
+            result.isNewTemporaryDeclaration = isNewDeclaration;
             return result;
         }
 

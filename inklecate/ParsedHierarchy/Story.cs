@@ -144,7 +144,9 @@ namespace Inklewriter.Parsed
                 var varName = strExpressionPair.Key;
                 Expression varExpr = strExpressionPair.Value;
                 varExpr.GenerateIntoContainer (variableInitialisation);
-                variableInitialisation.AddContent (new Runtime.VariableAssignment (varName, true));
+                var runtimeVarAss = new Runtime.VariableAssignment (varName, true);
+                runtimeVarAss.isGlobal = true;
+                variableInitialisation.AddContent (runtimeVarAss);
             }
 
             variableInitialisation.AddContent (Runtime.ControlCommand.EvalEnd ());

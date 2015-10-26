@@ -56,7 +56,7 @@ namespace Inklewriter
 
             Whitespace ();
 
-            Expect (String ("="), "the '=' for an assignment of a value, e.g. '= 5'");
+            Expect (String ("="), "the '=' for an assignment of a value, e.g. '= 5' (initial values are mandatory)");
 
             Whitespace ();
 

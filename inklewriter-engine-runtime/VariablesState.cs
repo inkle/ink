@@ -12,12 +12,15 @@ namespace Inklewriter.Runtime
 
         internal Runtime.Object GetVariableWithName(string name)
         {
-            Runtime.Object value = null;
-            if (_globalVariables.TryGetValue (name, out value)) {
-                return value;
-            } else {
-                return _callStack.GetTemporaryVariableWithName (name);
+            Runtime.Object varValue = GetRawVariableWithName (name);
+
+            // Get value from pointer?
+            var varPointer = varValue as LiteralVariablePointer;
+            if (varPointer) {
+                varValue = GetVariableWithName (varPointer.value);
             }
+
+            return varValue;
         }
 
         Runtime.Object GetRawVariableWithName(string name)
@@ -26,44 +29,70 @@ namespace Inklewriter.Runtime
             if (_globalVariables.TryGetValue (name, out value)) {
                 return value;
             } else {
-                return null;
+                return _callStack.GetTemporaryVariableWithName (name);
             }
         }
 
-        internal void SetVariable(string name, Runtime.Object value, bool isNewDeclaration)
+        internal void Assign(VariableAssignment varAss, Runtime.Object value)
         {
-            // TODO: Do stuff with temporaries?
-            //_callStack.SetTemporaryVariable (varAss.variableName, assignedVal, varAss.isNewDeclaration, prioritiseHigherInCallStack);
+            var name = varAss.variableName;
 
-            if (!isNewDeclaration && !_globalVariables.ContainsKey (name)) {
-                throw new StoryException ("Could not find variable to set: " + name);
+            // Are we assigning to a global variable?
+            bool setGlobal = false;
+            if (varAss.isNewDeclaration) {
+                setGlobal = varAss.isGlobal;
+            } else {
+                setGlobal = _globalVariables.ContainsKey (name);
             }
 
-            if (isNewDeclaration && value is LiteralVariablePointer) {
+            // Constructing new variable pointer reference
+            if (varAss.isNewDeclaration) {
                 var varPointer = value as LiteralVariablePointer;
                 if (varPointer) {
 
-                    var varValue = GetRawVariableWithName (varPointer.variableName);
-                    if (!varValue) {
-                        throw new StoryException ("Could not variable to reference: " + varPointer.variableName);
-                    }
+                    var valueOfVariablePointedTo = GetRawVariableWithName (varPointer.variableName);
 
                     // Extra layer of indirection:
                     // When accessing a pointer to a pointer (e.g. when calling nested or 
                     // recursive functions that take a variable references, ensure we don't create
                     // a chain of indirection by just returning the final target.
-                    if (varValue is LiteralVariablePointer) {
-                        value = varValue;
-                    } else {
-                        
-                        // Create new pointer to the value so that we're not attempting to use
-                        // a runtime object direct from the story data itself.
-                        value = new LiteralVariablePointer (varPointer.variableName);
+                    var doubleRedirectionPointer = valueOfVariablePointedTo as LiteralVariablePointer;
+                    if (doubleRedirectionPointer) {
+                        varPointer = doubleRedirectionPointer;
+                    } 
+
+                    // Make copy of the variable pointer so we're not using the value direct from
+                    // the runtime.
+                    else {
+                        varPointer = new LiteralVariablePointer (varPointer.variableName);
                     }
+
+                    value = varPointer;
                 }
+
+            } 
+
+            // Assign to existing variable pointer?
+            // Then assign to the variable that the pointer is pointing to by name.
+            else {
+
+                // De-reference variable reference to point to
+                LiteralVariablePointer existingPointer = null;
+                do {
+                    existingPointer = GetRawVariableWithName (name) as LiteralVariablePointer;
+                    if (existingPointer) {
+                        name = existingPointer.variableName;
+                        setGlobal = true;
+                    }
+                } while(existingPointer);
             }
 
-            _globalVariables [name] = value;
+
+            if (setGlobal) {
+                _globalVariables [name] = value;
+            } else {
+                _callStack.SetTemporaryVariable (name, value, varAss.isNewDeclaration);
+            }
         }
 
         Dictionary<string, Runtime.Object> _globalVariables;
