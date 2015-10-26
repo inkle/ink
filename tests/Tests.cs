@@ -619,7 +619,7 @@ VAR x = 5
         public void TestFactorialByReference()
         {
             var storyStr =  @"
-VAR result
+VAR result = 0
 ~ factorialByRef(result, 5)
 { result }
 
