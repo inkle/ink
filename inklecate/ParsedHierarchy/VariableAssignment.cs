@@ -32,6 +32,8 @@ namespace Inklewriter.Parsed
             if (isGlobalDeclaration) {
                 story.TryAddNewVariableDeclaration (this);
                 return null;
+            } else if(isNewTemporaryDeclaration) {
+                ClosestFlowBase ().TryAddNewTemporaryDeclaration (this);
             }
 
             var container = new Runtime.Container ();

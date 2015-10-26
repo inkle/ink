@@ -14,6 +14,7 @@ namespace Inklewriter.Parsed
 		public string name { get; set; }
         public List<Argument> arguments { get; protected set; }
         public bool hasParameters { get { return arguments != null && arguments.Count > 0; } }
+        public Dictionary<string, Expression> temporaryVariables;
 
         public abstract FlowLevel flowLevel { get; }
         public bool isFunction { get; protected set; }
@@ -35,8 +36,7 @@ namespace Inklewriter.Parsed
 
             this.arguments = arguments;
             this.isFunction = isFunction;
-
-
+            this.temporaryVariables = new Dictionary<string, Expression> ();
 		}
 
         List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs)
@@ -88,7 +88,7 @@ namespace Inklewriter.Parsed
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
 
-                    if( ancestorFlow.HasArgumentWithName(varName) ) {
+                    if( ancestorFlow.HasArgumentWithName(varName) || ancestorFlow.HasTemporaryWithName(varName) ) {
                         return true;
                     }
                 }
@@ -109,6 +109,29 @@ namespace Inklewriter.Parsed
             }
 
             return false;
+        }
+
+        public bool HasTemporaryWithName(string varName)
+        {
+            return temporaryVariables.ContainsKey (varName);
+        }
+
+        public void TryAddNewTemporaryDeclaration(VariableAssignment varDecl)
+        {
+            var varName = varDecl.variableName;
+            if (temporaryVariables.ContainsKey (varName)) {
+
+                var prevDeclError = "";
+                var debugMetadata = temporaryVariables [varName].debugMetadata;
+                if (debugMetadata != null) {
+                    prevDeclError = " ("+temporaryVariables [varName].debugMetadata+")";
+                }
+                Error("found declaration variable '"+varName+"' that was already declared"+prevDeclError, varDecl, false);
+
+                return;
+            }
+
+            temporaryVariables [varDecl.variableName] = varDecl.expression;
         }
             
         public override Runtime.Object GenerateRuntimeObject ()
