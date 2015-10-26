@@ -4,9 +4,9 @@
 
 Pre-requisites:
 
- * Install and Xamarin
+ * Install Xamarin
  * Install Xcode, and run, make sure it installs command line tools
- * Unfortunately you seem to open up the .sln and build the Release configuration before the install script works, initially? TODO: Fix this!
+ * Unfortunately you seem to open up the `.sln` and build the Release configuration before the install script works, initially? TODO: Fix this!
 
 Run the `build_and_install_inklecate2.command` script. This will do two things:
 
