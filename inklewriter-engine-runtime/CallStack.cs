@@ -61,6 +61,12 @@ namespace Inklewriter.Runtime
             } 
         }
 
+        public int currentElementIndex {
+            get {
+                return callStack.Count - 1;
+            }
+        }
+
         public Thread currentThread
         {
             get {
@@ -136,24 +142,34 @@ namespace Inklewriter.Runtime
         }
 
         // Get variable value, dereferencing a variable pointer if necessary
-        public Runtime.Object GetTemporaryVariableWithName(string name)
+        public Runtime.Object GetTemporaryVariableWithName(string name, int contextIndex = -1)
         {
+            if (contextIndex == -1)
+                contextIndex = currentElementIndex;
+            
             Runtime.Object varValue = null;
 
-            if (this.currentElement.temporaryVariables.TryGetValue (name, out varValue)) {
+            var contextElement = callStack [contextIndex];
+
+            if (contextElement.temporaryVariables.TryGetValue (name, out varValue)) {
                 return varValue;
             } else {
                 return null;
             }
         }
             
-        public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew)
+        public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew, int contextIndex = -1)
         {
-            if (!declareNew && !currentElement.temporaryVariables.ContainsKey(name)) {
+            if (contextIndex == -1)
+                contextIndex = currentElementIndex;
+
+            var contextElement = callStack [contextIndex];
+            
+            if (!declareNew && !contextElement.temporaryVariables.ContainsKey(name)) {
                 throw new StoryException ("Could not find temporary variable to set: " + name);
             }
 
-            currentElement.temporaryVariables [name] = value;
+            contextElement.temporaryVariables [name] = value;
         }
 
         private List<Element> callStack

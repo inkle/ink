@@ -275,6 +275,15 @@ namespace Inklewriter.Runtime
 
             // Content to add to evaluation stack or the output stream
             if (!isLogicOrFlowControl && shouldAddObject) {
+
+                // If we're pushing a variable pointer onto the evaluation stack, ensure that it's specific
+                // to our current (possibly temporary) context index. And make a copy of the pointer
+                // so that we're not editing the original runtime object.
+                var varPointer = currentContentObj as LiteralVariablePointer;
+                if (varPointer && varPointer.contextIndex == -1) {
+                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, _callStack.currentElementIndex);
+                }
+
                 // Expression evaluation content
                 if (inExpressionEvaluation) {
                     PushEvaluationStack (currentContentObj);

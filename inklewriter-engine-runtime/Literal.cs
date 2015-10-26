@@ -142,11 +142,11 @@ namespace Inklewriter.Runtime
         // Where the variable is located
         // 0  = in global scope
         // 1+ = callstack element index
-        #warning todo: re-implement context index
         public int contextIndex { get; set; }
 
-        public LiteralVariablePointer(string variableName) : base(variableName)
+        public LiteralVariablePointer(string variableName, int contextIndex = -1) : base(variableName)
         {
+            this.contextIndex = contextIndex;
         }
 
         public LiteralVariablePointer() : this(null)
