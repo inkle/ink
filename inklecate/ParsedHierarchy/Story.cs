@@ -181,7 +181,9 @@ namespace Inklewriter.Parsed
         public override void Error(string message, Parsed.Object source, bool isWarning)
 		{
             var sb = new StringBuilder ();
-            if (isWarning) {
+            if (source is AuthorWarning) {
+                sb.Append ("TODO: ");
+            } else if (isWarning) {
                 sb.Append ("WARNING: ");
             } else {
                 sb.Append ("ERROR: ");

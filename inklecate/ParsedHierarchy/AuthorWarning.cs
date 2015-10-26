@@ -12,7 +12,7 @@ namespace Inklewriter.Parsed
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            Warning (string.Format("\"{0}\"", warningMessage));
+            Warning (warningMessage+" --");
             return null;
         }
     }
