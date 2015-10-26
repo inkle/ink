@@ -1,5 +1,7 @@
 # inklecate2
 
+NOTE: BUILDING REQUIRES XAMARIN
+
 ## Installing the compiler
 
 Run the `build_and_install_inklecate2.command` script. This will do two things:
@@ -11,3 +13,4 @@ Run the `build_and_install_inklecate2.command` script. This will do two things:
 ## Building the runtime DLL (for Unity)
 
 Run the `build-runtime-dll.command` script. This will build a DLL file and place it in `RuntimeDLL/inklewriter-engine.dll`.
+
