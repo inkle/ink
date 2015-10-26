@@ -15,8 +15,6 @@ namespace Inklewriter.Parsed
         public List<string> errors { get { return _errors; } }
         public List<string> warnings { get { return _warnings; } }
 
-        public Dictionary<string, Expression> globalVariables;
-
         // Build setting for exporting:
         // When true, the visit count and beat index for *all* knots, stitches, choices,
         // and gathers are counted. When false, only those that are referenced by
@@ -105,33 +103,8 @@ namespace Inklewriter.Parsed
 
         }
 
-        public bool HasGlobalVariableWithName(string varName)
-        {
-            return globalVariables.ContainsKey (varName);
-        }
-
-        public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
-        {
-            var varName = varDecl.variableName;
-            if (globalVariables.ContainsKey (varName)) {
-
-                var prevDeclError = "";
-                var debugMetadata = globalVariables [varName].debugMetadata;
-                if (debugMetadata != null) {
-                    prevDeclError = " ("+globalVariables [varName].debugMetadata+")";
-                }
-                Error("found declaration variable '"+varName+"' that was already declared"+prevDeclError, varDecl, false);
-
-                return;
-            }
-
-            globalVariables [varDecl.variableName] = varDecl.expression;
-        }
-
 		public Runtime.Story ExportRuntime()
 		{
-            globalVariables = new Dictionary<string, Expression> ();
-
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 
@@ -140,13 +113,16 @@ namespace Inklewriter.Parsed
             var variableInitialisation = new Runtime.Container ();
             variableInitialisation.AddContent (Runtime.ControlCommand.EvalStart ());
 
-            foreach (var strExpressionPair in globalVariables) {
-                var varName = strExpressionPair.Key;
-                Expression varExpr = strExpressionPair.Value;
-                varExpr.GenerateIntoContainer (variableInitialisation);
-                var runtimeVarAss = new Runtime.VariableAssignment (varName, true);
-                runtimeVarAss.isGlobal = true;
-                variableInitialisation.AddContent (runtimeVarAss);
+            // Global variables are those that are local to the story and marked as global
+            foreach (var nameDeclPair in variableDeclarations) {
+                var varName = nameDeclPair.Key;
+                var varDecl = nameDeclPair.Value;
+                if (varDecl.isGlobalDeclaration) {
+                    varDecl.expression.GenerateIntoContainer (variableInitialisation);
+                    var runtimeVarAss = new Runtime.VariableAssignment (varName, isNewDeclaration:true);
+                    runtimeVarAss.isGlobal = true;
+                    variableInitialisation.AddContent (runtimeVarAss);
+                }
             }
 
             variableInitialisation.AddContent (Runtime.ControlCommand.EvalEnd ());

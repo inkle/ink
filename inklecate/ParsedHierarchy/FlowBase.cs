@@ -14,7 +14,7 @@ namespace Inklewriter.Parsed
 		public string name { get; set; }
         public List<Argument> arguments { get; protected set; }
         public bool hasParameters { get { return arguments != null && arguments.Count > 0; } }
-        public Dictionary<string, Expression> temporaryVariables;
+        public Dictionary<string, VariableAssignment> variableDeclarations;
 
         public abstract FlowLevel flowLevel { get; }
         public bool isFunction { get; protected set; }
@@ -36,7 +36,7 @@ namespace Inklewriter.Parsed
 
             this.arguments = arguments;
             this.isFunction = isFunction;
-            this.temporaryVariables = new Dictionary<string, Expression> ();
+            this.variableDeclarations = new Dictionary<string, VariableAssignment> ();
 		}
 
         List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs)
@@ -88,7 +88,7 @@ namespace Inklewriter.Parsed
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
 
-                    if( ancestorFlow.HasArgumentWithName(varName) || ancestorFlow.HasTemporaryWithName(varName) ) {
+                    if( ancestorFlow.HasVariableWithName(varName) ) {
                         return true;
                     }
                 }
@@ -97,10 +97,10 @@ namespace Inklewriter.Parsed
             }
 
             // TODO: Make temporary variables work again
-            return story.HasGlobalVariableWithName (varName);
+            return story.HasVariableWithName (varName);
         }
             
-        public bool HasArgumentWithName(string varName)
+        public bool HasVariableWithName(string varName)
         {
             if (arguments != null ) {
                 foreach (var arg in arguments) {
@@ -108,30 +108,25 @@ namespace Inklewriter.Parsed
                 }
             }
 
-            return false;
+            return variableDeclarations.ContainsKey (varName);
         }
 
-        public bool HasTemporaryWithName(string varName)
-        {
-            return temporaryVariables.ContainsKey (varName);
-        }
-
-        public void TryAddNewTemporaryDeclaration(VariableAssignment varDecl)
+        public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
         {
             var varName = varDecl.variableName;
-            if (temporaryVariables.ContainsKey (varName)) {
+            if (variableDeclarations.ContainsKey (varName)) {
 
                 var prevDeclError = "";
-                var debugMetadata = temporaryVariables [varName].debugMetadata;
+                var debugMetadata = variableDeclarations [varName].debugMetadata;
                 if (debugMetadata != null) {
-                    prevDeclError = " ("+temporaryVariables [varName].debugMetadata+")";
+                    prevDeclError = " ("+variableDeclarations [varName].debugMetadata+")";
                 }
                 Error("found declaration variable '"+varName+"' that was already declared"+prevDeclError, varDecl, false);
 
                 return;
             }
 
-            temporaryVariables [varDecl.variableName] = varDecl.expression;
+            variableDeclarations [varDecl.variableName] = varDecl;
         }
             
         public override Runtime.Object GenerateRuntimeObject ()

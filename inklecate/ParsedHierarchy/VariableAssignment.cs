@@ -27,14 +27,21 @@ namespace Inklewriter.Parsed
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            // Global declarations don't generate actual procedural
-            // runtime objects, but instead add a global variable to the story itself
+            FlowBase newDeclScope = null;
             if (isGlobalDeclaration) {
-                story.TryAddNewVariableDeclaration (this);
-                return null;
+                newDeclScope = story;
             } else if(isNewTemporaryDeclaration) {
-                ClosestFlowBase ().TryAddNewTemporaryDeclaration (this);
+                newDeclScope = ClosestFlowBase ();
             }
+
+            if( newDeclScope )
+                newDeclScope.TryAddNewVariableDeclaration (this);
+
+            // Global declarations don't generate actual procedural
+            // runtime objects, but instead add a global variable to the story itself.
+            // The story then initialises them all in one go at the start of the game.
+            if( newDeclScope == story )
+                return null;
 
             var container = new Runtime.Container ();
 
@@ -50,9 +57,9 @@ namespace Inklewriter.Parsed
         {
             base.ResolveReferences (context);
 
-            Expression existingGlobalExpr = null;
-            if (this.isNewTemporaryDeclaration && story.globalVariables.TryGetValue(variableName, out existingGlobalExpr) ) {
-                Error ("global variable '"+variableName+"' already exists with the same name (declared on " + existingGlobalExpr.debugMetadata + ")");
+            VariableAssignment existingGlobalDecl = null;
+            if (this.isNewTemporaryDeclaration && story.variableDeclarations.TryGetValue(variableName, out existingGlobalDecl) ) {
+                Error ("global variable '"+variableName+"' already exists with the same name (declared on " + existingGlobalDecl.debugMetadata + ")");
                 return;
             }
 
