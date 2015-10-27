@@ -1196,6 +1196,24 @@ Knot.
             Assert.IsTrue(parsedStory.errors[0].Contains("not found"));
         }
 
+        public void TestVariableDivertTarget()
+        {
+            var story = CompileString (@"
+VAR x = -> here
+
+-> there
+
+== there ==
+-> x
+
+== here ==
+Here.
+-> DONE
+");
+            story.Begin ();
+            Assert.AreEqual ("Here.\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

@@ -211,6 +211,10 @@ namespace Inklewriter.Parsed
                         return;
                 }
 
+                // Variable target?
+                if (runtimeDivert.variableDivertName != null)
+                    return;
+
                 Error ("target not found: '" + target + "'");
             }
 		}
