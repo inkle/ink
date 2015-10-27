@@ -10,7 +10,7 @@ namespace Inklewriter
         {
             Whitespace ();
 
-            if (ParseString ("TODO") == null)
+            if (Parse (Identifier) != "TODO")
                 return null;
 
             Whitespace ();
