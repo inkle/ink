@@ -86,7 +86,7 @@ namespace Inklewriter.Runtime
 				if (content.Count > 0) {
 					Path path = Path.ToFirstElement();
 					var subContainer = content.First () as Container;
-					if (subContainer) {
+                    if (subContainer && subContainer.content.Count > 0) {
 						Path tailPath = subContainer.pathToFirstLeafContent;
 						path = path.PathByAppendingPath (tailPath);
 					}
