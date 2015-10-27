@@ -14,6 +14,7 @@ namespace Inklewriter
 			public bool playMode;
 			public string inputFile;
             public string outputFile;
+            public string workingDirectory;
             public bool indentedJson;
             public bool countAllVisits;
 		}
@@ -30,6 +31,7 @@ namespace Inklewriter
             Console.WriteLine (
                 "Usage: inklecate2 <options> <ink file> \n"+
                 "   -o <filename>:  Output file name\n"+
+                "   -d <path>:      Working directory (for includes)\n"+
                 "   -c:             Count all visits to knots, stitches and weave points, not\n" +
                 "                   just those referenced by BEATS_SINCE and read counts.\n" +
                 "   -p:             Play mode\n"+
@@ -60,6 +62,10 @@ namespace Inklewriter
             }
 
             string inputString = null;
+            string rootDirectory = System.IO.Directory.GetCurrentDirectory();
+            if (opts.workingDirectory != null) {
+                rootDirectory = opts.workingDirectory;
+            }
 
             if (opts.stressTest) {
 
@@ -74,7 +80,12 @@ namespace Inklewriter
 
             } else {
                 try {
-                    inputString = File.ReadAllText(opts.inputFile);
+                    string fullFilename = opts.inputFile;
+                    if(!Path.IsPathRooted(fullFilename)) {
+                        fullFilename = Path.Combine(rootDirectory, fullFilename);
+                    }
+
+                    inputString = File.ReadAllText(fullFilename);
                 }
                 catch {
                     Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
@@ -87,7 +98,7 @@ namespace Inklewriter
             Runtime.Story story = null;
 
             TimeOperation ("Creating parser", () => {
-                parser = new InkParser (inputString, opts.inputFile);
+                parser = new InkParser (inputString, opts.inputFile, rootDirectory);
             });
 
             TimeOperation ("Parsing", () => {
@@ -145,7 +156,7 @@ namespace Inklewriter
                     Environment.Exit (ExitCodeError);
                 }
             }
-		}
+        }
 
         bool ProcessArguments(string[] args)
 		{
@@ -157,6 +168,7 @@ namespace Inklewriter
 			opts = new Options();
 
             bool nextArgIsOutputFilename = false;
+            bool nextArgIsWorkingDir = false;
 
 			// Process arguments
             int argIdx = 0;
@@ -165,6 +177,9 @@ namespace Inklewriter
                 if (nextArgIsOutputFilename) {
                     opts.outputFile = arg;
                     nextArgIsOutputFilename = false;
+                } else if (nextArgIsWorkingDir) {
+                    opts.workingDirectory = arg;
+                    nextArgIsWorkingDir = false;
                 }
 
 				// Options
@@ -197,6 +212,9 @@ namespace Inklewriter
                             break;
                         case 'c':
                             opts.countAllVisits = true;
+                            break;
+                        case 'd':
+                            nextArgIsWorkingDir = true;
                             break;
                         default:
                             Console.WriteLine ("Unsupported argument type: '{0}'", argChar);

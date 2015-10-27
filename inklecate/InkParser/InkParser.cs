@@ -5,8 +5,9 @@ namespace Inklewriter
 {
 	internal partial class InkParser : StringParser
 	{
-        public InkParser(string str, string filenameForMetadata = null) : base(str) { 
+        public InkParser(string str, string filenameForMetadata = null, string rootDirectory = null) : base(str) { 
             _filename = filenameForMetadata;
+            _rootDirectory = rootDirectory;
 			RegisterExpressionOperators ();
             GenerateStatementLevelRules ();
             this.errorHandler = OnError;
@@ -54,6 +55,7 @@ namespace Inklewriter
         }
 
         string _filename;
+        string _rootDirectory;
 	}
 }
 

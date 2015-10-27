@@ -80,11 +80,16 @@ namespace Inklewriter
             var filename = (string) Expect(() => ParseUntilCharactersFromString ("\n\r"), "filename for include statement");
             filename = filename.TrimEnd (' ', '\t');
 
+            var fullFilename = filename;
+            if (_rootDirectory != null) {
+                fullFilename = System.IO.Path.Combine (_rootDirectory, filename);
+            }
+
             Parsed.Story includedStory = null;
             try {
-                string includedString = System.IO.File.ReadAllText(filename);
+                string includedString = System.IO.File.ReadAllText(fullFilename);
 
-                InkParser parser = new InkParser(includedString, filename);
+                InkParser parser = new InkParser(includedString, filename, _rootDirectory);
                 includedStory = parser.Parse();
 
                 if( includedStory == null ) {
@@ -92,13 +97,16 @@ namespace Inklewriter
                     // returned, then it should've been due to some error that
                     // has already been reported, so this is a last resort.
                     if( !parser.hadError ) {
-                        Error ("Failed to parse included file '" + filename + "'");
+                        Error ("Failed to parse included file '" + filename);
                     }
                 }
 
             }
             catch {
-                Error ("Included file not found: " + filename);
+                string message = "Included file not found: " + filename;
+                if (_rootDirectory != null)
+                    message += "' (searching in " + _rootDirectory + ")";
+                Error (message);
             }
 
             // Return valid IncludedFile object even when story failed to parse and we have a null story:
