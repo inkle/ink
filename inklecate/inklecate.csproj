@@ -95,6 +95,7 @@
     <Compile Include="ParsedHierarchy\TunnelOnwards.cs" />
     <Compile Include="InkParser\InkParser_AuthorWarning.cs" />
     <Compile Include="ParsedHierarchy\AuthorWarning.cs" />
+    <Compile Include="ParsedHierarchy\ConstantDeclaration.cs" />
   </ItemGroup>
   <Import Project="..\inklewriter-engine-runtime\inklewriter-engine-runtime.projitems" Label="Shared" Condition="Exists('..\inklewriter-engine-runtime\inklewriter-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

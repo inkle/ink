@@ -60,13 +60,41 @@ namespace Inklewriter
 
             Whitespace ();
 
-            var expr = Expect (Expression, "initial value for variable") as Parsed.Expression;
-            if (!(expr is Number || expr is DivertTarget)) {
-                Error ("initial value for a variable must be a number or divert target");
+            var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
+            if (!(expr is Number || expr is DivertTarget || expr is VariableReference)) {
+                Error ("initial value for a variable must be a number, constant, or divert target");
             }
 
             var result = new VariableAssignment (varName, expr);
             result.isGlobalDeclaration = true;
+            return result;
+        }
+
+
+        protected Parsed.Object ConstDeclaration()
+        {
+            Whitespace ();
+
+            var id = Parse (Identifier);
+            if (id != "CONST")
+                return null;
+
+            Whitespace ();
+
+            var varName = Expect (Identifier, "constant name") as string;
+
+            Whitespace ();
+
+            Expect (String ("="), "the '=' for an assignment of a value, e.g. '= 5' (initial values are mandatory)");
+
+            Whitespace ();
+
+            var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
+            if (!(expr is Number || expr is DivertTarget)) {
+                Error ("initial value for a constant must be a number or divert target");
+            }
+
+            var result = new ConstantDeclaration (varName, expr);
             return result;
         }
 

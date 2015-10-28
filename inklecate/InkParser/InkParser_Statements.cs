@@ -100,6 +100,7 @@ namespace Inklewriter
 
                 // Global variable declarations can go anywhere
                 rulesAtLevel.Add(Line(VariableDeclaration));
+                rulesAtLevel.Add(Line(ConstDeclaration));
 
                 // Normal logic / text can go anywhere
                 rulesAtLevel.Add(LogicLine);

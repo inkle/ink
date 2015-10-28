@@ -1214,6 +1214,19 @@ Here.
             Assert.AreEqual ("Here.\n", story.currentText);
         }
 
+        public void TestConst()
+        {
+            var story = CompileString (@"
+VAR x = c
+
+CONST c = 5
+
+{x}
+");
+            story.Begin ();
+            Assert.AreEqual ("5\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

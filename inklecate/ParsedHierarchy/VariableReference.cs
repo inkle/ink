@@ -17,6 +17,9 @@ namespace Inklewriter.Parsed
 
         public bool isBeatCount;
 
+        // Only known after GenerateIntoContainer has run
+        public bool isConstantReference;
+
         public VariableReference (List<string> path)
         {
             this.path = path;
@@ -24,13 +27,29 @@ namespace Inklewriter.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            _runtimeVarRef = new Runtime.VariableReference (name);
-            container.AddContent(_runtimeVarRef);
+            Expression constantValue = null;
+
+            // Name can be null if it's actually a path to a knot/stitch etc for a read count
+            var varName = name;
+
+            // If it's a constant reference, just generate the literal expression value
+            if ( varName != null && story.constants.TryGetValue (varName, out constantValue) ) {
+                constantValue.GenerateIntoContainer (container);
+                isConstantReference = true;
+            } else {
+                _runtimeVarRef = new Runtime.VariableReference (name);
+                container.AddContent(_runtimeVarRef);
+            }
         }
 
         public override void ResolveReferences (Story context)
         {
             base.ResolveReferences (context);
+
+            // Work is already done if it's a constant reference
+            if (isConstantReference) {
+                return;
+            }
 
             if (isBeatCount) {
                 _runtimeVarRef.isBeatsSince = true;

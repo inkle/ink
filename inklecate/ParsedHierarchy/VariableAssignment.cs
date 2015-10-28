@@ -63,6 +63,13 @@ namespace Inklewriter.Parsed
                 return;
             }
 
+            if (this.isGlobalDeclaration) {
+                var variableReference = expression as VariableReference;
+                if (variableReference && !variableReference.isConstantReference) {
+                    Error ("global variable assignments cannot refer to other variables, only literal values and constants");
+                }       
+            }
+
             if (IsReservedKeyword (variableName)) {
                 Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
                 return;
@@ -70,13 +77,18 @@ namespace Inklewriter.Parsed
 
             if (!this.isNewTemporaryDeclaration) {
                 if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
-                    Error ("variable could not be found to assign to: '" + this.variableName + "'", this);
+                    if (story.constants.ContainsKey (variableName)) {
+                        Error ("Can't re-assign to a constant (do you need to use VAR when declaring '" + this.variableName + "'?)", this);
+                    } else {
+                        Error ("Variable could not be found to assign to: '" + this.variableName + "'", this);
+                    }
+
                 }
             }
         }
 
         // TODO: Move this somewhere more general?
-        bool IsReservedKeyword(string name)
+        public static bool IsReservedKeyword(string name)
         {
             return _reservedKeywords.Contains (name);
         }

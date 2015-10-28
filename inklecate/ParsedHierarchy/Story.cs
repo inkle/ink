@@ -15,6 +15,8 @@ namespace Inklewriter.Parsed
         public List<string> errors { get { return _errors; } }
         public List<string> warnings { get { return _warnings; } }
 
+        public Dictionary<string, Expression> constants;
+
         // Build setting for exporting:
         // When true, the visit count and beat index for *all* knots, stitches, choices,
         // and gathers are counted. When false, only those that are referenced by
@@ -26,7 +28,7 @@ namespace Inklewriter.Parsed
 
         public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
 		{
-            // Don't do anything on construction, leave it lightweight until
+            // Don't do anything much on construction, leave it lightweight until
             // the ExportRuntime method is called.
 		}
 
@@ -105,6 +107,13 @@ namespace Inklewriter.Parsed
 
 		public Runtime.Story ExportRuntime()
 		{
+            // Find all constants before main export begins, so that VariableReferences know
+            // whether to generate a runtime variable reference or the literal value
+            constants = new Dictionary<string, Expression> ();
+            foreach (var constDecl in FindAll<ConstantDeclaration> ()) {
+                constants [constDecl.constantName] = constDecl.expression;
+            }
+
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 
