@@ -52,7 +52,7 @@ namespace Inklewriter
                             var elseBranch = Parse(SingleMultilineCondition);
                             if (elseBranch) {
                                 if (!elseBranch.alwaysMatch) {
-                                    Error ("Expected an '- else:' clause here rather than an extra condition");
+                                    ErrorWithParsedObject ("Expected an '- else:' clause here rather than an extra condition", elseBranch);
                                     elseBranch.alwaysMatch = true;
                                 }
                                 alternatives.Add (elseBranch);

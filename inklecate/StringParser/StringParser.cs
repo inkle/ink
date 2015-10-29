@@ -132,14 +132,24 @@ namespace Inklewriter
 
         protected void Error(string message, bool isWarning = false)
 		{
+            ErrorOnLine (message, lineIndex + 1, isWarning);
+		}
+
+        protected void ErrorWithParsedObject(string message, Parsed.Object result, bool isWarning = false)
+        {
+            ErrorOnLine (message, result.debugMetadata.startLineNumber, isWarning);
+        }
+
+        protected void ErrorOnLine(string message, int lineNumber, bool isWarning)
+        {
             if ( !state.errorReportedAlreadyInScope ) {
 
                 var errorType = isWarning ? "Warning" : "Error";
-                
+
                 if (errorHandler == null) {
-                    Console.WriteLine (errorType+" on line " + (lineIndex+1) + ": " + message);
+                    Console.WriteLine (errorType+" on line " + lineNumber + ": " + message);
                 } else {
-                    errorHandler (message, index, lineIndex, isWarning);
+                    errorHandler (message, index, lineNumber-1, isWarning);
                 }
 
                 state.NoteErrorReported ();
@@ -147,7 +157,7 @@ namespace Inklewriter
 
             if( !isWarning )
                 hadError = true;
-		}
+        }
 
         protected void Warning(string message)
         {
