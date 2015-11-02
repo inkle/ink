@@ -1291,6 +1291,30 @@ In second.
             Assert.AreEqual ("more stuff\n1 = 1\n", story.currentText);
         }
 
+
+        public void TestEmptySequenceContent()
+        {
+            var story = CompileString (@"
+-> thing ->
+-> thing ->
+-> thing ->
+-> thing ->
+-> thing ->
+Done.
+
+== thing ==
+{once:
+  - Wait for it....
+  -
+  -
+  -  Surprise!
+}
+->->
+");
+            story.Begin ();
+            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

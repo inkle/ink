@@ -138,10 +138,11 @@ namespace Inklewriter
 
             Whitespace ();
 
+
             List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
-            if (content == null) {
-                Error ("expected content for the sequence element following '-'");
-            }
+
+            if( content == null ) 
+                MultilineWhitespace ();
 
             return new ContentList (content);
         }

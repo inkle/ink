@@ -12,7 +12,8 @@ namespace Inklewriter.Parsed
 
         public ContentList (List<Parsed.Object> objects)
         {
-            AddContent (objects);
+            if( objects != null )
+                AddContent (objects);
         }
 
         public ContentList()
