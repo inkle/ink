@@ -121,12 +121,8 @@ namespace Inklewriter.Runtime
                     container.name = propToken.Value<string>();
                 }
 
-                if (jObject.TryGetValue ("count", out propToken)) {
-                    container.visitsShouldBeCounted = propToken.Value<bool> ();
-                }
-
-                if (jObject.TryGetValue ("turns", out propToken)) {
-                    container.turnIndexShouldBeCounted = propToken.Value<bool> ();
+                if (jObject.TryGetValue ("cntFlags", out propToken)) {
+                    container.countFlags = propToken.Value<int> ();
                 }
 
             } else {
@@ -215,14 +211,9 @@ namespace Inklewriter.Runtime
                         t.WriteTo (writer);
                     }
 
-                    if (container.visitsShouldBeCounted) {
-                        writer.WritePropertyName ("count");
-                        writer.WriteValue (container.visitsShouldBeCounted);
-                    }
-
-                    if (container.turnIndexShouldBeCounted) {
-                        writer.WritePropertyName ("turns");
-                        writer.WriteValue (container.turnIndexShouldBeCounted);
+                    if (container.visitsShouldBeCounted || container.turnIndexShouldBeCounted) {
+                        writer.WritePropertyName ("cntFlags");
+                        writer.WriteValue (container.countFlags);
                     }
 
                     writer.WriteEndObject ();

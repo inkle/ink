@@ -220,7 +220,7 @@ namespace Inklewriter.Runtime
             // Convert path to get first leaf content
             Container currentContainer = currentContentObj as Container;
             if (currentContainer && currentContainer.content.Count > 0) {
-                currentPath = currentPath.PathByAppendingPath (currentContainer.pathToFirstLeafContent);
+                currentPath = currentContainer.pathToFirstLeafContent;
                 currentContentObj = ContentAtPath (currentPath);
             }
 
@@ -311,7 +311,6 @@ namespace Inklewriter.Runtime
             // Do we have somewhere valid to go?
             return currentPath != null;
         }
-
 
         // Does the expression result represented by this object evaluate to true?
         // e.g. is it a Number that's not equal to 1?
@@ -980,8 +979,27 @@ namespace Inklewriter.Runtime
                 var ancestor = callstackElementCurrentObject;
                 while (ancestor) {
                     var c = ancestor as Container;
-                    if( c != null && (c.visitsShouldBeCounted || c.turnIndexShouldBeCounted) )
-                        openContainersThisStep.Add ((Container)ancestor);
+                    if (c != null && (c.visitsShouldBeCounted || c.turnIndexShouldBeCounted)) {
+
+                        bool shouldCount = false;
+
+                        // Knots and stitches are "full" containers - any entry to them, even
+                        // half way through via a labelled choice or gather count as a visit.
+                        // By contrast, gathers and choices only count as being visited
+                        // if you enter them at the start. This is mainly for directing
+                        // to the nested content - the choice or gather point isn't counted
+                        // as having been visited if you've seen a nested choice for example.
+                        if (c.countingAtStartOnly) {
+                            shouldCount = el.path.Equals( c.pathToFirstLeafContent );
+                        } else {
+                            shouldCount = true;
+                        }
+
+                        if (shouldCount) {
+                            openContainersThisStep.Add ((Container)ancestor);
+                        }
+
+                    }
                     
                     ancestor = ancestor.parent;
                 }

@@ -141,6 +141,8 @@ namespace Inklewriter.Parsed
                         _weaveContentContainer.turnIndexShouldBeCounted = true;
                     }
 
+                    _weaveContentContainer.countingAtStartOnly = true;
+
                     if (this.explicitPath != null) {
                         _weaveContentEndDivert = new Runtime.Divert ();
                         _weaveContentContainer.AddContent (_weaveContentEndDivert);

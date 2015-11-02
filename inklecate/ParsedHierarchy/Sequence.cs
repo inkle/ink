@@ -43,6 +43,7 @@ namespace Inklewriter.Parsed
         {
             var container = new Runtime.Container ();
             container.visitsShouldBeCounted = true;
+            container.countingAtStartOnly = true;
 
             _sequenceDivertsToResove = new List<SequenceDivertToResolve> ();
 

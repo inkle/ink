@@ -24,6 +24,8 @@ namespace Inklewriter.Parsed
                 container.turnIndexShouldBeCounted = true;
             }
 
+            container.countingAtStartOnly = true;
+
             // A gather can have null content, e.g. it's just purely a line with "-"
             if (content != null) {
                 foreach (var c in content) {

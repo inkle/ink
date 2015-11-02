@@ -1265,6 +1265,32 @@ In second.
             Assert.AreEqual ("1\n1\n", story.currentText);
         }
 
+
+        public void TestTurnsSinceNested()
+        {
+            var story = CompileString (@"
+=== empty_world ===
+    {TURNS_SINCE(then)}  = -1
+    * (then) stuff
+        {TURNS_SINCE(then)} = 0
+        * * (next) more stuff
+            {TURNS_SINCE(then)} = 1
+        -> DONE
+");
+            story.Begin ();
+            Assert.AreEqual ("-1 = -1\n", story.currentText);
+
+            Assert.AreEqual (1, story.currentChoices.Count);
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual ("stuff\n0 = 0\n", story.currentText);
+
+            Assert.AreEqual (1, story.currentChoices.Count);
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual ("more stuff\n1 = 1\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

@@ -196,10 +196,23 @@ namespace Inklewriter.Runtime
         public override bool Equals (object obj)
         {
             var otherPath = obj as Path;
-            if( otherPath != null )
-                return otherPath.components.SequenceEqual(this.components);
+            if (otherPath == null)
+                return false;
 
-            return false;
+            if (otherPath.components.Count != this.components.Count)
+                return false;
+
+            // This function call doesn't seem to be equivalent - not sure why not?
+            //return otherPath.components.SequenceEqual (this.components);
+            for (int i = 0; i < this.components.Count; ++i) {
+                var c1 = this.components [i];
+                var c2 = otherPath.components [i];
+                if (!c1.Equals (c2)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public override int GetHashCode ()

@@ -88,6 +88,16 @@ namespace Inklewriter.Runtime
                 if (visitsShouldBeCounted)    flags |= CountFlags.Visits;
                 if (turnIndexShouldBeCounted) flags |= CountFlags.Turns;
                 if (countingAtStartOnly)      flags |= CountFlags.CountStartOnly;
+
+                // If we're only storing CountStartOnly, it serves no purpose,
+                // since it's dependent on the other two to be used at all.
+                // (e.g. for setting the fact that *if* a gather or choice's
+                // content is counted, then is should only be counter at the start)
+                // So this is just an optimisation for storage.
+                if (flags == CountFlags.CountStartOnly) {
+                    flags = 0;
+                }
+
                 return (int)flags;
             }
             set {
@@ -106,19 +116,26 @@ namespace Inklewriter.Runtime
 		public Path pathToFirstLeafContent
 		{
 			get {
-				if (content.Count > 0) {
-					Path path = Path.ToFirstElement();
-					var subContainer = content.First () as Container;
-                    if (subContainer && subContainer.content.Count > 0) {
-						Path tailPath = subContainer.pathToFirstLeafContent;
-						path = path.PathByAppendingPath (tailPath);
-					}
-					return path;
-				}
-
-				return null;
+                return path.PathByAppendingPath (internalPathToFirstLeafContent);
 			}
 		}
+
+        Path internalPathToFirstLeafContent
+        {
+            get {
+                if (content.Count > 0) {
+                    Path path = Path.ToFirstElement();
+                    var subContainer = content.First () as Container;
+                    if (subContainer && subContainer.content.Count > 0) {
+                        Path tailPath = subContainer.internalPathToFirstLeafContent;
+                        path = path.PathByAppendingPath (tailPath);
+                    }
+                    return path;
+                }
+
+                return null;
+            }
+        }
 
         public Path pathToEnd
         {
