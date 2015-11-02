@@ -66,14 +66,37 @@ namespace Inklewriter.Runtime
                 }
             }
         }
-
-        [JsonProperty(propertyName:"count")]
-        [DefaultValue(false)]
+            
         public bool visitsShouldBeCounted { get; set; }
-
-        [JsonProperty(propertyName:"turns")]
-        [DefaultValue(false)]
         public bool turnIndexShouldBeCounted { get; set; }
+        public bool countingAtStartOnly { get; set; }
+
+        [Flags]
+        public enum CountFlags
+        {
+            Visits         = 1,
+            Turns          = 2,
+            CountStartOnly = 4
+        }
+
+        [JsonProperty(propertyName:"cntFlgs")]
+        [DefaultValue(0)]
+        public int countFlags
+        {
+            get {
+                CountFlags flags = 0;
+                if (visitsShouldBeCounted)    flags |= CountFlags.Visits;
+                if (turnIndexShouldBeCounted) flags |= CountFlags.Turns;
+                if (countingAtStartOnly)      flags |= CountFlags.CountStartOnly;
+                return (int)flags;
+            }
+            set {
+                var flag = (CountFlags)value;
+                if ((flag & CountFlags.Visits) > 0) visitsShouldBeCounted = true;
+                if ((flag & CountFlags.Turns) > 0)  turnIndexShouldBeCounted = true;
+                if ((flag & CountFlags.CountStartOnly) > 0) countingAtStartOnly = true;
+            }
+        }
 
 		public bool hasValidName 
 		{
