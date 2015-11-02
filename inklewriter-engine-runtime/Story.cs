@@ -9,7 +9,7 @@ namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        const int inkVersionCurrent = 2;
+        const int inkVersionCurrent = 3;
 
         // Version numbers are for engine itself and story file, rather
         // than the save format.
@@ -22,7 +22,7 @@ namespace Inklewriter.Runtime
         //     If possible, you should support it, though it's not as
         //     critical as loading old save games, since it's an
         //     in-development problem only.
-        const int inkVersionMinimumCompatible = 2;
+        const int inkVersionMinimumCompatible = 3;
 
         internal Path currentPath { 
             get { 
@@ -1037,7 +1037,7 @@ namespace Inklewriter.Runtime
             if (_turnIndices.TryGetValue (containerPathStr, out index)) {
                 return _currentTurnIndex - index;
             } else {
-                return int.MaxValue;
+                return -1;
             }
         }
 

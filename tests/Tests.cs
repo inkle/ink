@@ -792,7 +792,7 @@ Default choice chosen.
 ~ return
 ");
             story.Begin ();
-            Assert.AreEqual ( "2147483647\n0\n", story.currentText);
+            Assert.AreEqual ( "-1\n0\n", story.currentText);
 
             story.ContinueWithChoiceIndex (0);
             Assert.AreEqual ("1\n", story.currentText);
