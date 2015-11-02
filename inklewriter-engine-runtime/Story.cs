@@ -205,7 +205,7 @@ namespace Inklewriter.Runtime
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
             } finally {
-                _openContainers = null;
+                _callStack.currentThread.ResetOpenContainers ();
                 _didSafeExit = false;
             }
 		}
@@ -970,20 +970,25 @@ namespace Inklewriter.Runtime
 
         void IncrementVisitCountForActiveContainers (Object currentContentObj)
         {
+            // Find all open containers (runtime version of knots and stitches) across
+            // all stack elements within the current thread.
+            // We will then see which ones are new compared to last step.
             var openContainersThisStep = new HashSet<Container> ();
-            var ancestor = currentContentObj;
-            while (ancestor) {
-                if (ancestor is Container)
-                    openContainersThisStep.Add ((Container)ancestor);
-                ancestor = ancestor.parent;
-            }
+            foreach (CallStack.Element el in _callStack.elements) {
+                var callstackElementCurrentObject = ContentAtPath (el.path);
 
-            var newlyOpenContainers = new HashSet<Container> (openContainersThisStep);
-            if (_openContainers != null) {
-                foreach (var c in _openContainers) {
-                    newlyOpenContainers.Remove (c);
+                var ancestor = callstackElementCurrentObject;
+                while (ancestor) {
+                    var c = ancestor as Container;
+                    if( c != null && (c.visitsShouldBeCounted || c.beatIndexShouldBeCounted) )
+                        openContainersThisStep.Add ((Container)ancestor);
+                    
+                    ancestor = ancestor.parent;
                 }
             }
+
+            // Ask thread which containers are new, and increment read / beat counts for those.
+            var newlyOpenContainers = _callStack.currentThread.UpdateOpenContainers (openContainersThisStep);
 
             foreach (var c in newlyOpenContainers) {
                 if( c.visitsShouldBeCounted )
@@ -991,8 +996,6 @@ namespace Inklewriter.Runtime
                 if (c.beatIndexShouldBeCounted)
                     RecordBeatIndexVisitToContainer (c);
             }
-                
-            _openContainers = openContainersThisStep;
         }
 
         int VisitCountForContainer(Container container)
@@ -1240,7 +1243,7 @@ namespace Inklewriter.Runtime
         // Keep track of the current set of containers up the nested chain,
         // so that as we move between the containers, we know which ones are
         // being newly visited, and therefore increment their visit counts.
-        private HashSet<Container> _openContainers;
+        //private HashSet<Container> _openContainers;
 
         private bool inExpressionEvaluation {
             get {

@@ -45,8 +45,39 @@ namespace Inklewriter.Runtime
                 foreach(var e in callstack) {
                     copy.callstack.Add(e.Copy());
                 }
+                if (_openContainers != null) {
+                    copy._openContainers = new HashSet<Container> (_openContainers);
+                }
                 return copy;
             }
+
+            public void ResetOpenContainers()
+            {
+                _openContainers = null;
+            }
+
+            // Story tells CallStack when the set of containers changes for this thread.
+            // CallStack passes back which ones are new, for incrementing of read and beat counts.
+            public HashSet<Container> UpdateOpenContainers(HashSet<Container> openContainers)
+            {
+                var newlyOpenContainers = new HashSet<Container> (openContainers);
+                if (_openContainers != null) {
+                    foreach (var c in _openContainers) {
+                        newlyOpenContainers.Remove (c);
+                    }
+                }
+
+                _openContainers = openContainers;
+
+                return newlyOpenContainers;
+            }
+
+            // For tracking of read counts and beats counts:
+            // Keep track of which containers (runtime equivalent of knots and stitches)
+            // are "open" right now - which containers is the runtime currently inside.
+            // e.g. can be currently inside a stitch, within a knot.
+            // As these change, the story increments a counter for them.
+            HashSet<Container> _openContainers;
         }
 
         public List<Element> elements {

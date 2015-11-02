@@ -1227,6 +1227,44 @@ CONST c = 5
             Assert.AreEqual ("5\n", story.currentText);
         }
 
+        public void TestReadCountAcrossCallstack()
+        {
+            var story = CompileString (@"
+-> first
+
+== first ==
+1) Seen first {first} times.
+-> second ->
+2) Seen first {first} times.
+-> DONE
+
+== second ==
+In second.
+->->
+");
+            story.Begin ();
+            Assert.AreEqual ("1) Seen first 1 times.\nIn second.\n2) Seen first 1 times.\n", story.currentText);
+        }
+
+        public void TestReadCountAcrossThreads()
+        {
+            var story = CompileString (@"
+=== empty_world ===
+    -> top
+
+= top 
+    {top}
+    <- aside
+    {top}
+    -> DONE
+
+= aside 
+    * {false} DONE
+");
+            story.Begin ();
+            Assert.AreEqual ("1\n1\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
