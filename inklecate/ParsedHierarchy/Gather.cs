@@ -21,7 +21,7 @@ namespace Inklewriter.Parsed
 
             if (this.story.countAllVisits) {
                 container.visitsShouldBeCounted = true;
-                container.beatIndexShouldBeCounted = true;
+                container.turnIndexShouldBeCounted = true;
             }
 
             // A gather can have null content, e.g. it's just purely a line with "-"

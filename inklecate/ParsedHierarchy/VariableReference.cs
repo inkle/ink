@@ -15,7 +15,7 @@ namespace Inklewriter.Parsed
         
         public List<string> path;
 
-        public bool isBeatCount;
+        public bool isTurnCount;
 
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
@@ -51,8 +51,8 @@ namespace Inklewriter.Parsed
                 return;
             }
 
-            if (isBeatCount) {
-                _runtimeVarRef.isBeatsSince = true;
+            if (isTurnCount) {
+                _runtimeVarRef.isTurnsSince = true;
 
             }
             // Is it a read count?
@@ -72,9 +72,9 @@ namespace Inklewriter.Parsed
 
                 _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;
-                if (isBeatCount) {
-                    _runtimeVarRef.isBeatsSince = true;
-                    countedContainer.beatIndexShouldBeCounted = true;
+                if (isTurnCount) {
+                    _runtimeVarRef.isTurnsSince = true;
+                    countedContainer.turnIndexShouldBeCounted = true;
                 } else {
                     countedContainer.visitsShouldBeCounted = true;
                 }

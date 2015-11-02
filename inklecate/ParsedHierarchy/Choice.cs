@@ -138,7 +138,7 @@ namespace Inklewriter.Parsed
 
                     if (this.story.countAllVisits) {
                         _weaveContentContainer.visitsShouldBeCounted = true;
-                        _weaveContentContainer.beatIndexShouldBeCounted = true;
+                        _weaveContentContainer.turnIndexShouldBeCounted = true;
                     }
 
                     if (this.explicitPath != null) {

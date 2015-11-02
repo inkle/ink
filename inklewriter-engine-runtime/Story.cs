@@ -9,7 +9,7 @@ namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        const int inkVersionCurrent = 1;
+        const int inkVersionCurrent = 2;
 
         // Version numbers are for engine itself and story file, rather
         // than the save format.
@@ -22,7 +22,7 @@ namespace Inklewriter.Runtime
         //     If possible, you should support it, though it's not as
         //     critical as loading old save games, since it's an
         //     in-development problem only.
-        const int inkVersionMinimumCompatible = 1;
+        const int inkVersionMinimumCompatible = 2;
 
         internal Path currentPath { 
             get { 
@@ -161,8 +161,8 @@ namespace Inklewriter.Runtime
             _callStack = new CallStack ();
             _variablesState = new VariablesState (_callStack);
             _visitCounts = new Dictionary<string, int> ();
-            _beatIndices = new Dictionary<string, int> ();
-            _currentBeatIndex = -1;
+            _turnIndices = new Dictionary<string, int> ();
+            _currentTurnIndex = -1;
 
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
@@ -180,7 +180,7 @@ namespace Inklewriter.Runtime
 		public void Continue()
 		{
             _didSafeExit = false;
-            _currentBeatIndex++;
+            _currentTurnIndex++;
 
             try {
 
@@ -543,13 +543,13 @@ namespace Inklewriter.Runtime
 
                 Path pathForCount = null;
 
-                // Explicit literal read/beats count
+                // Explicit literal read/turn count
                 if (varRef.pathForCount != null) {
                     pathForCount = varRef.pathForCount;
                 }
 
                 // Some kind of variable reference (though might be a variable that
-                // contains a path to beat count still!)
+                // contains a path to turn count still!)
                 else {
 
                     var varContents = _variablesState.GetVariableWithName (varRef.name);
@@ -559,12 +559,12 @@ namespace Inklewriter.Runtime
                         varContents = new LiteralInt (0);
                     }
 
-                    // Variable reference to path that needs a beat count
+                    // Variable reference to path that needs a turn count
                     // It can't be a normal read count since this:
                     //  ~ var myDivert = -> target
                     // ... would then get a read count rather than the divert itself!
                     var divertTarget = varContents as LiteralDivertTarget;
-                    if (varRef.isBeatsSince && divertTarget) {                        
+                    if (varRef.isTurnsSince && divertTarget) {                        
                         pathForCount = divertTarget.targetPath;
                     } 
 
@@ -581,8 +581,8 @@ namespace Inklewriter.Runtime
                     var container = ContentAtPath (pathForCount) as Container;
 
                     int count;
-                    if (varRef.isBeatsSince) {
-                        count = BeatsSinceForContainer (container);
+                    if (varRef.isTurnsSince) {
+                        count = TurnsSinceForContainer (container);
                     } else {
                         count = VisitCountForContainer (container);
                     }
@@ -980,21 +980,21 @@ namespace Inklewriter.Runtime
                 var ancestor = callstackElementCurrentObject;
                 while (ancestor) {
                     var c = ancestor as Container;
-                    if( c != null && (c.visitsShouldBeCounted || c.beatIndexShouldBeCounted) )
+                    if( c != null && (c.visitsShouldBeCounted || c.turnIndexShouldBeCounted) )
                         openContainersThisStep.Add ((Container)ancestor);
                     
                     ancestor = ancestor.parent;
                 }
             }
 
-            // Ask thread which containers are new, and increment read / beat counts for those.
+            // Ask thread which containers are new, and increment read / turn counts for those.
             var newlyOpenContainers = _callStack.currentThread.UpdateOpenContainers (openContainersThisStep);
 
             foreach (var c in newlyOpenContainers) {
                 if( c.visitsShouldBeCounted )
                     IncrementVisitCountForContainer (c);
-                if (c.beatIndexShouldBeCounted)
-                    RecordBeatIndexVisitToContainer (c);
+                if (c.turnIndexShouldBeCounted)
+                    RecordTurnIndexVisitToContainer (c);
             }
         }
 
@@ -1020,22 +1020,22 @@ namespace Inklewriter.Runtime
             _visitCounts [containerPathStr] = count;
         }
 
-        void RecordBeatIndexVisitToContainer(Container container)
+        void RecordTurnIndexVisitToContainer(Container container)
         {
             var containerPathStr = container.path.ToString();
-            _beatIndices [containerPathStr] = _currentBeatIndex;
+            _turnIndices [containerPathStr] = _currentTurnIndex;
         }
 
-        int BeatsSinceForContainer(Container container)
+        int TurnsSinceForContainer(Container container)
         {
-            if( !container.beatIndexShouldBeCounted ) {
-                Error ("BEATS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+            if( !container.turnIndexShouldBeCounted ) {
+                Error ("TURNS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
             }
 
             int index = 0;
             var containerPathStr = container.path.ToString();
-            if (_beatIndices.TryGetValue (containerPathStr, out index)) {
-                return _currentBeatIndex - index;
+            if (_turnIndices.TryGetValue (containerPathStr, out index)) {
+                return _currentTurnIndex - index;
             } else {
                 return int.MaxValue;
             }
@@ -1230,8 +1230,8 @@ namespace Inklewriter.Runtime
         private VariablesState _variablesState;
 
         private Dictionary<string, int> _visitCounts;
-        private Dictionary<string, int> _beatIndices;
-        private int _currentBeatIndex;
+        private Dictionary<string, int> _turnIndices;
+        private int _currentTurnIndex;
         private int _storySeed;
 
         private List<Runtime.Object> _evaluationStack;

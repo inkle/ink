@@ -25,14 +25,14 @@ namespace Inklewriter.Parsed
                 container.AddContent (Runtime.ControlCommand.ChoiceCount ());
                 break;
 
-            case "BEATS_SINCE":
+            case "TURNS_SINCE":
                 if (arguments.Count != 1 || !(arguments [0] is VariableReference) ) {
-                    Error ("The BEATS_SINCE() function should take one argument: the path to the target knot, stitch, gather or choice you want to check");
+                    Error ("The TURNS_SINCE() function should take one argument: the path to the target knot, stitch, gather or choice you want to check");
                     return;
                 }
-                _beatCountTargetReference = arguments [0] as VariableReference;
-                _beatCountTargetReference.isBeatCount = true;
-                _beatCountTargetReference.GenerateIntoContainer (container);
+                _turnCountTargetReference = arguments [0] as VariableReference;
+                _turnCountTargetReference.isTurnCount = true;
+                _turnCountTargetReference.GenerateIntoContainer (container);
                 break;
 
             // Normal function call
@@ -44,7 +44,7 @@ namespace Inklewriter.Parsed
 
         public static bool IsValidName(string name) 
         {
-            return name == "CHOICE_COUNT" || name == "BEATS_SINCE";
+            return name == "CHOICE_COUNT" || name == "TURNS_SINCE";
         }
 
         public override string ToString ()
@@ -54,7 +54,7 @@ namespace Inklewriter.Parsed
         }
             
         Parsed.Divert _proxyDivert;
-        Parsed.VariableReference _beatCountTargetReference;
+        Parsed.VariableReference _turnCountTargetReference;
     }
 }
 

@@ -57,7 +57,7 @@ namespace Inklewriter.Runtime
             }
 
             // Story tells CallStack when the set of containers changes for this thread.
-            // CallStack passes back which ones are new, for incrementing of read and beat counts.
+            // CallStack passes back which ones are new, for incrementing of read and turn counts.
             public HashSet<Container> UpdateOpenContainers(HashSet<Container> openContainers)
             {
                 var newlyOpenContainers = new HashSet<Container> (openContainers);
@@ -72,7 +72,7 @@ namespace Inklewriter.Runtime
                 return newlyOpenContainers;
             }
 
-            // For tracking of read counts and beats counts:
+            // For tracking of read counts and turn counts:
             // Keep track of which containers (runtime equivalent of knots and stitches)
             // are "open" right now - which containers is the runtime currently inside.
             // e.g. can be currently inside a stitch, within a knot.

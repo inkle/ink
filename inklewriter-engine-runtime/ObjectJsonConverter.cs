@@ -125,8 +125,8 @@ namespace Inklewriter.Runtime
                     container.visitsShouldBeCounted = propToken.Value<bool> ();
                 }
 
-                if (jObject.TryGetValue ("beats", out propToken)) {
-                    container.beatIndexShouldBeCounted = propToken.Value<bool> ();
+                if (jObject.TryGetValue ("turns", out propToken)) {
+                    container.turnIndexShouldBeCounted = propToken.Value<bool> ();
                 }
 
             } else {
@@ -220,9 +220,9 @@ namespace Inklewriter.Runtime
                         writer.WriteValue (container.visitsShouldBeCounted);
                     }
 
-                    if (container.beatIndexShouldBeCounted) {
-                        writer.WritePropertyName ("beats");
-                        writer.WriteValue (container.beatIndexShouldBeCounted);
+                    if (container.turnIndexShouldBeCounted) {
+                        writer.WritePropertyName ("turns");
+                        writer.WriteValue (container.turnIndexShouldBeCounted);
                     }
 
                     writer.WriteEndObject ();

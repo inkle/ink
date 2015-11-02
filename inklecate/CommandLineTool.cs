@@ -33,7 +33,7 @@ namespace Inklewriter
                 "   -o <filename>:  Output file name\n"+
                 "   -d <path>:      Working directory (for includes)\n"+
                 "   -c:             Count all visits to knots, stitches and weave points, not\n" +
-                "                   just those referenced by BEATS_SINCE and read counts.\n" +
+                "                   just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:             Play mode\n"+
                 "   -i:             Use indentation in output JSON\n"+
                 "   -v:             Verbose mode - print compilation timings\n"+

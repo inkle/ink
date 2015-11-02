@@ -777,16 +777,16 @@ Default choice chosen.
         }
 
         [Test ()]
-        public void TestBeatsSince()
+        public void TestTurnsSince()
         {
             Story story = CompileString (@"
-{ BEATS_SINCE(test) }
+{ TURNS_SINCE(test) }
 ~ test()
-{ BEATS_SINCE(test) }
+{ TURNS_SINCE(test) }
 * [choice 1]
-- { BEATS_SINCE(test) }
+- { TURNS_SINCE(test) }
 * [choice 2]
-- { BEATS_SINCE(test) }
+- { TURNS_SINCE(test) }
 
 == function test ==
 ~ return

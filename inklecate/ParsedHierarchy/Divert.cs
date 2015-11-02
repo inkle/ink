@@ -193,7 +193,7 @@ namespace Inklewriter.Parsed
             // Resolve children (the arguments)
             base.ResolveReferences (context);
 
-            // May be null if it's a built in function (e.g. beats_since)
+            // May be null if it's a built in function (e.g. TURNS_SINCE)
             var targetFlow = targetContent as FlowBase;
             if (targetFlow) {
                 if (!targetFlow.isFunction && this.isFunctionCall) {

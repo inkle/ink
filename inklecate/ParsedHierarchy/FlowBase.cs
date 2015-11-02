@@ -145,7 +145,7 @@ namespace Inklewriter.Parsed
 
             if (this.story.countAllVisits) {
                 container.visitsShouldBeCounted = true;
-                container.beatIndexShouldBeCounted = true;
+                container.turnIndexShouldBeCounted = true;
             }
 
             GenerateArgumentVariableAssignments (container);
