@@ -355,9 +355,16 @@ namespace Inklewriter.Runtime
                     var varContents = _variablesState.GetVariableWithName (varName);
 
                     if (!(varContents is LiteralDivertTarget)) {
-                        string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it contained '" + varContents + "'.";
-                        if (varContents is LiteralInt)
-                            errorMessage += " Did you accidentally miss a divert arrow '->', and accidentally get the read count of the target instead?";
+
+                        var intContent = varContents as LiteralInt;
+
+                        string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it ";
+                        if (intContent && intContent.value == 0) {
+                            errorMessage += "was empty/null (the value 0).";
+                        } else {
+                            errorMessage += "contained '" + varContents + "'.";
+                        }
+
                         Error (errorMessage);
                     }
 
