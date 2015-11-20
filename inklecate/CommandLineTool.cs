@@ -97,25 +97,38 @@ namespace Inklewriter
             Parsed.Story parsedStory = null;
             Runtime.Story story = null;
 
-            TimeOperation ("Creating parser", () => {
-                parser = new InkParser (inputString, opts.inputFile, rootDirectory);
-            });
+            var inputIsJson = opts.inputFile.EndsWith (".json");
 
-            TimeOperation ("Parsing", () => {
-                parsedStory = parser.Parse();
-            });
+            // Loading a normal ink file (as opposed to an already compiled json file)
+            if (!inputIsJson) {
+                TimeOperation ("Creating parser", () => {
+                    parser = new InkParser (inputString, opts.inputFile, rootDirectory);
+                });
 
-            if (parsedStory == null) {
-                Environment.Exit (ExitCodeError);
+                TimeOperation ("Parsing", () => {
+                    parsedStory = parser.Parse ();
+                });
+
+                if (parsedStory == null) {
+                    Environment.Exit (ExitCodeError);
+                }
+
+                if (opts.countAllVisits) {
+                    parsedStory.countAllVisits = true;
+                }
+
+                TimeOperation ("Exporting runtime", () => {
+                    story = parsedStory.ExportRuntime ();
+                });
+            } 
+
+            // Opening up a compiled json file for playing
+            else {
+                story = Runtime.Story.CreateWithJson (inputString);
+
+                // No purpose for loading an already compiled file other than to play it
+                opts.playMode = true;
             }
-
-            if (opts.countAllVisits) {
-                parsedStory.countAllVisits = true;
-            }
-
-            TimeOperation ("Exporting runtime", () => {
-                story = parsedStory.ExportRuntime ();
-            });
 
 			if (story == null) {
 				Environment.Exit (ExitCodeError);
