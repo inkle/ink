@@ -198,7 +198,7 @@ namespace Inklewriter.Parsed
             if (targetFlow) {
                 if (!targetFlow.isFunction && this.isFunctionCall) {
                     base.Error (targetFlow.name + " hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function " + targetFlow.name + " =='?");
-                } else if (targetFlow.isFunction && !this.isFunctionCall) {
+                } else if (targetFlow.isFunction && !this.isFunctionCall && !(this.parent is DivertTarget)) {
                     base.Error (targetFlow.name + " can't be diverted to. It can only be called as a function since it's been marked as such: '" + targetFlow.name + "(...)'");
                 }
             } 

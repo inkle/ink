@@ -15,6 +15,7 @@ namespace Inklewriter.Runtime
             PopEvaluatedValue,
             NoOp,
             ChoiceCount,
+            TurnsSince,
             VisitIndex,
             SequenceShuffleIndex,
             StartThread,
@@ -72,6 +73,10 @@ namespace Inklewriter.Runtime
 
         public static ControlCommand ChoiceCount() {
             return new ControlCommand(CommandType.ChoiceCount);
+        }
+
+        public static ControlCommand TurnsSince() {
+            return new ControlCommand(CommandType.TurnsSince);
         }
 
         public static ControlCommand VisitIndex() {

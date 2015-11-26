@@ -15,10 +15,10 @@ namespace Inklewriter.Parsed
         
         public List<string> path;
 
-        public bool isTurnCount;
-
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
+
+        public Runtime.VariableReference runtimeVarRef { get { return _runtimeVarRef; } }
 
         public VariableReference (List<string> path)
         {
@@ -50,11 +50,7 @@ namespace Inklewriter.Parsed
             if (isConstantReference) {
                 return;
             }
-
-            if (isTurnCount) {
-                _runtimeVarRef.isTurnsSince = true;
-
-            }
+                
             // Is it a read count?
             var parsedPath = new Path (path);
             Parsed.Object targetForCount = parsedPath.ResolveFromContext (this);
@@ -72,12 +68,8 @@ namespace Inklewriter.Parsed
 
                 _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;
-                if (isTurnCount) {
-                    _runtimeVarRef.isTurnsSince = true;
-                    countedContainer.turnIndexShouldBeCounted = true;
-                } else {
-                    countedContainer.visitsShouldBeCounted = true;
-                }
+
+                countedContainer.visitsShouldBeCounted = true;
                 return;
             } 
 

@@ -780,13 +780,13 @@ Default choice chosen.
         public void TestTurnsSince()
         {
             Story story = CompileString (@"
-{ TURNS_SINCE(test) }
+{ TURNS_SINCE(-> test) }
 ~ test()
-{ TURNS_SINCE(test) }
+{ TURNS_SINCE(-> test) }
 * [choice 1]
-- { TURNS_SINCE(test) }
+- { TURNS_SINCE(-> test) }
 * [choice 2]
-- { TURNS_SINCE(test) }
+- { TURNS_SINCE(-> test) }
 
 == function test ==
 ~ return
@@ -1313,6 +1313,30 @@ Done.
 ");
             story.Begin ();
             Assert.AreEqual ("Wait for it....\nSurprise!\nDone.\n", story.currentText);
+        }
+
+        public void TestTurnsSinceWithVariableTarget()
+        {
+            var story = CompileString (@"
+-> start
+
+
+=== start ===
+    {beats(-> start)}
+    {beats(-> start)}
+    *   Choice  -> next 
+= next 
+    {beats(-> start)}
+    -> END
+
+=== function beats(x) ===
+    ~ return TURNS_SINCE(x)
+");
+            story.Begin ();
+            Assert.AreEqual ("0\n0\n", story.currentText);
+
+            story.ContinueWithChoiceIndex(0);
+            Assert.AreEqual ("1\n", story.currentText);
         }
 
 		//------------------------------------------------------------------------

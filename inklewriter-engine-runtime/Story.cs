@@ -9,7 +9,7 @@ namespace Inklewriter.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        const int inkVersionCurrent = 4;
+        const int inkVersionCurrent = 5;
 
         // Version numbers are for engine itself and story file, rather
         // than the save format.
@@ -22,7 +22,7 @@ namespace Inklewriter.Runtime
         //     If possible, you should support it, though it's not as
         //     critical as loading old save games, since it's an
         //     in-development problem only.
-        const int inkVersionMinimumCompatible = 4;
+        const int inkVersionMinimumCompatible = 5;
 
         internal Path currentPath { 
             get { 
@@ -485,6 +485,22 @@ namespace Inklewriter.Runtime
                     PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
                     break;
 
+                case ControlCommand.CommandType.TurnsSince:
+                    var target = PopEvaluationStack();
+                    if( !(target is LiteralDivertTarget) ) {
+                        string extraNote = "";
+                        if( target is LiteralInt )
+                            extraNote = ". Did you accidentally pass a read count ('knot_name') instead of a target ('-> knot_name')?";
+                        Error("TURNS_SINCE expected a divert target (knot, stitch, label name), but saw "+target+extraNote);
+                        break;
+                    }
+                        
+                    var divertTarget = target as LiteralDivertTarget;
+                    var container = ContentAtPath (divertTarget.targetPath) as Container;
+                    int turnCount = TurnsSinceForContainer (container);
+                    PushEvaluationStack (new LiteralInt (turnCount));
+                    break;
+
                 case ControlCommand.CommandType.VisitIndex:
                     var currentContainer = ClosestContainerAtPath (currentPath);
                     var count = VisitCountForContainer(currentContainer) - 1; // index not count
@@ -546,55 +562,31 @@ namespace Inklewriter.Runtime
             // Variable reference
             else if( contentObj is VariableReference ) {
                 var varRef = (VariableReference)contentObj;
+                Runtime.Object foundValue = null;
 
                 Path pathForCount = null;
 
-                // Explicit literal read/turn count
+                // Explicit literal read count
                 if (varRef.pathForCount != null) {
                     pathForCount = varRef.pathForCount;
-                }
-
-                // Some kind of variable reference (though might be a variable that
-                // contains a path to turn count still!)
-                else {
-
-                    var varContents = _variablesState.GetVariableWithName (varRef.name);
-
-                    if (varContents == null) {
-                        Error("Uninitialised variable: " + varRef.name);
-                        varContents = new LiteralInt (0);
-                    }
-
-                    // Variable reference to path that needs a turn count
-                    // It can't be a normal read count since this:
-                    //  ~ var myDivert = -> target
-                    // ... would then get a read count rather than the divert itself!
-                    var divertTarget = varContents as LiteralDivertTarget;
-                    if (varRef.isTurnsSince && divertTarget) {                        
-                        pathForCount = divertTarget.targetPath;
-                    } 
-
-                    // Normal variable reference
-                    else {
-                        _evaluationStack.Add( varContents );
-                    }
-
-                }
-
-                // Read/visit count
-                if (pathForCount != null) {
 
                     var container = ContentAtPath (pathForCount) as Container;
+                    int count = VisitCountForContainer (container);
+                    foundValue = new LiteralInt (count);
+                }
 
-                    int count;
-                    if (varRef.isTurnsSince) {
-                        count = TurnsSinceForContainer (container);
-                    } else {
-                        count = VisitCountForContainer (container);
+                // Normal variable reference
+                else {
+
+                    foundValue = _variablesState.GetVariableWithName (varRef.name);
+
+                    if (foundValue == null) {
+                        Error("Uninitialised variable: " + varRef.name);
+                        foundValue = new LiteralInt (0);
                     }
+                }
 
-                    _evaluationStack.Add (new LiteralInt (count));
-                } 
+                _evaluationStack.Add( foundValue );
 
                 return true;
             }

@@ -53,6 +53,13 @@ namespace Inklewriter.Parsed
                     }
                     foundUsage = true;
                 } 
+                else if( usageParent is FunctionCall ) {
+                    var funcCall = usageParent as FunctionCall;
+                    if( !funcCall.isTurnsSince ) {
+                        badUsage = true;
+                    }
+                    foundUsage = true;
+                }
                 else if (usageParent is Expression) {
                     badUsage = true;
                     foundUsage = true;
