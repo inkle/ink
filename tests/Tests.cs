@@ -1118,6 +1118,7 @@ This is place 2.
             Assert.IsFalse (story.hasError);
         }
 
+        [Test ()]
         public void TestKnotThreadInteraction()
         {
             Story story = CompileString (@"
@@ -1149,7 +1150,7 @@ This is place 2.
             Assert.IsFalse (story.hasError);
         }
 
-
+        [Test ()]
         public void TestKnotThreadInteraction2()
         {
             Story story = CompileString (@"
@@ -1181,7 +1182,7 @@ This is place 2.
             Assert.IsFalse (story.hasError);
         }
 
-
+        [Test ()]
         public void TestDivertNotFoundError()
         {
             var parsedStory = CompileStringWithoutRuntime (@"
@@ -1196,6 +1197,7 @@ Knot.
             Assert.IsTrue(parsedStory.errors[0].Contains("not found"));
         }
 
+        [Test ()]
         public void TestVariableDivertTarget()
         {
             var story = CompileString (@"
@@ -1214,6 +1216,7 @@ Here.
             Assert.AreEqual ("Here.\n", story.currentText);
         }
 
+        [Test ()]
         public void TestConst()
         {
             var story = CompileString (@"
@@ -1227,6 +1230,7 @@ CONST c = 5
             Assert.AreEqual ("5\n", story.currentText);
         }
 
+        [Test ()]
         public void TestReadCountAcrossCallstack()
         {
             var story = CompileString (@"
@@ -1246,6 +1250,7 @@ In second.
             Assert.AreEqual ("1) Seen first 1 times.\nIn second.\n2) Seen first 1 times.\n", story.currentText);
         }
 
+        [Test ()]
         public void TestReadCountAcrossThreads()
         {
             var story = CompileString (@"
@@ -1266,6 +1271,7 @@ In second.
         }
 
 
+        [Test ()]
         public void TestTurnsSinceNested()
         {
             var story = CompileString (@"
@@ -1292,6 +1298,7 @@ In second.
         }
 
 
+        [Test ()]
         public void TestEmptySequenceContent()
         {
             var story = CompileString (@"
@@ -1315,6 +1322,7 @@ Done.
             Assert.AreEqual ("Wait for it....\nSurprise!\nDone.\n", story.currentText);
         }
 
+        [Test ()]
         public void TestTurnsSinceWithVariableTarget()
         {
             var story = CompileString (@"
@@ -1340,6 +1348,7 @@ Done.
         }
 
 
+        [Test ()]
         public void TestLiteralUnary()
         {
             var story = CompileString (@"
