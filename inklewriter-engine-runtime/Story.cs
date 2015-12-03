@@ -66,6 +66,13 @@ namespace Inklewriter.Runtime
                 return _currentErrors != null && _currentErrors.Count > 0;
             }
         }
+
+        public VariablesState variablesState
+        {
+            get {
+                return _variablesState;
+            }
+        }
             
         internal Story (Container contentContainer)
 		{

@@ -2,8 +2,21 @@
 
 namespace Inklewriter.Runtime
 {
-    internal class VariablesState
+    public class VariablesState
     {
+
+        public object this[string variableName]
+        {
+            get {
+                Runtime.Literal varContents = GetVariableWithName(variableName) as Runtime.Literal;
+                return varContents.valueObject;
+            }
+            set {
+                var literal = Runtime.Literal.Create(value);
+                _globalVariables [variableName] = literal;
+            }
+        }
+
         internal VariablesState (CallStack callStack)
         {
             _globalVariables = new Dictionary<string, Object> ();

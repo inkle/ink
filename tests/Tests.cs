@@ -1355,6 +1355,42 @@ VAR negativeLiteral3 = !(0)
             Assert.AreEqual ("-1\n0\n1\n", story.currentText);
         }
 
+        [Test ()]
+        public void TestVariableGetSetAPI()
+        {
+            var story = CompileString (@"
+VAR x = 5
+{x}
+
+* [choice]
+-
+{x}
+
+* [choice]
+-
+
+{x}
+
+-> DONE
+");
+            story.Begin ();
+
+            // Initial state
+            Assert.AreEqual ("5\n", story.currentText);
+            Assert.AreEqual (5, story.variablesState["x"]);
+
+            story.variablesState["x"] = 10;
+            story.ContinueWithChoiceIndex(0);
+            Assert.AreEqual ("10\n", story.currentText);
+            Assert.AreEqual (10, story.variablesState["x"]);
+
+            story.variablesState["x"] = 8.5f;
+            story.ContinueWithChoiceIndex(0);
+            Assert.AreEqual ("8.5\n", story.currentText);
+            Assert.AreEqual (8.5f, story.variablesState["x"]);
+//
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
