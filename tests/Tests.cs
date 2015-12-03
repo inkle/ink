@@ -1390,6 +1390,9 @@ VAR x = 5
             Assert.AreEqual (8.5f, story.variablesState["x"]);
 
             Assert.AreEqual (null, story.variablesState["z"]);
+            Assert.Throws<StoryException>(() => {
+                story.variablesState["x"] = "strings not allowed";
+            });
 //
         }
 

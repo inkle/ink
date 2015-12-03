@@ -16,7 +16,14 @@ namespace Inklewriter.Runtime
             }
             set {
                 var literal = Runtime.Literal.Create(value);
-                System.Diagnostics.Debug.Assert (literal != null, "Invalid value passed to VariableState");
+                if (literal == null) {
+                    if (value == null) {
+                        throw new StoryException ("Cannot pass null to VariableState");
+                    } else {
+                        throw new StoryException ("Invalid value passed to VariableState: "+value.ToString());
+                    }
+                    return;
+                }
 
                 _globalVariables [variableName] = literal;
             }
