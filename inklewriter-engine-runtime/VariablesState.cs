@@ -8,11 +8,16 @@ namespace Inklewriter.Runtime
         public object this[string variableName]
         {
             get {
-                Runtime.Literal varContents = GetVariableWithName(variableName) as Runtime.Literal;
-                return varContents.valueObject;
+                Runtime.Object varContents;
+                if ( _globalVariables.TryGetValue (variableName, out varContents) )
+                    return (varContents as Runtime.Literal).valueObject;
+                else
+                    return null;
             }
             set {
                 var literal = Runtime.Literal.Create(value);
+                System.Diagnostics.Debug.Assert (literal != null, "Invalid value passed to VariableState");
+
                 _globalVariables [variableName] = literal;
             }
         }

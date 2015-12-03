@@ -1388,6 +1388,8 @@ VAR x = 5
             story.ContinueWithChoiceIndex(0);
             Assert.AreEqual ("8.5\n", story.currentText);
             Assert.AreEqual (8.5f, story.variablesState["x"]);
+
+            Assert.AreEqual (null, story.variablesState["z"]);
 //
         }
 
