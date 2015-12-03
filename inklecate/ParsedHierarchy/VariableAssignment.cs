@@ -97,6 +97,7 @@ namespace Inklewriter.Parsed
             "true", "false",
             "on", "off",
             "yes", "no",
+            "not",
             "return",
             "else"
         });

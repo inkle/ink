@@ -191,7 +191,7 @@ namespace Inklewriter
                 return null;
 
             if (prefixOp != null) {
-                expr = new UnaryExpression (expr, prefixOp);
+                expr = UnaryExpression.WithInner(expr, prefixOp);
 			}
 
             Whitespace ();
@@ -313,7 +313,7 @@ namespace Inklewriter
         {
             List<string> path = Interleave<string> (Identifier, Exclude (Spaced (String ("."))));
             
-            if (path == null)
+            if (path == null || VariableAssignment.IsReservedKeyword (path[0]) )
                 return null;
             
             return new VariableReference (path);

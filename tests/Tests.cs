@@ -1339,6 +1339,22 @@ Done.
             Assert.AreEqual ("1\n", story.currentText);
         }
 
+
+        public void TestLiteralUnary()
+        {
+            var story = CompileString (@"
+VAR negativeLiteral = -1
+VAR negativeLiteral2 = not not false
+VAR negativeLiteral3 = !(0)
+
+{negativeLiteral}
+{negativeLiteral2}
+{negativeLiteral3}
+");
+            story.Begin ();
+            Assert.AreEqual ("-1\n0\n1\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
