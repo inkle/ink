@@ -20,17 +20,28 @@ namespace Tests
         }
         TestMode _mode;
 
+        protected void CheckParsedStoryForErrors(Inklewriter.Parsed.Story story) {
+            if (story.hadError) {
+                foreach (string error in story.errors) {
+                    Assert.Fail ("Story compilation error: " + error);
+                }
+            }
+        }
+
 		// Helper compile function
-		protected Story CompileString(string str)
+        protected Story CompileString(string str, bool countAllVisits=false)
 		{
 			InkParser parser = new InkParser(str);
             parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
                 Assert.Fail(message + " on line " + lineIndex);
             };
 			var parsedStory = parser.Parse();
-            Assert.IsFalse (parsedStory.hadError);
+            parsedStory.countAllVisits = countAllVisits;
+            CheckParsedStoryForErrors (parsedStory);
                 
 			Story story = parsedStory.ExportRuntime ();
+            CheckParsedStoryForErrors (parsedStory);
+            Assert.AreNotEqual (null, story);
 
             // Convert to json and back again
             if (_mode == TestMode.JsonRoundTrip) {
@@ -1325,6 +1336,7 @@ Done.
         [Test ()]
         public void TestTurnsSinceWithVariableTarget()
         {
+            // Count all visits must be switched on for variable count targets
             var story = CompileString (@"
 -> start
 
@@ -1339,7 +1351,8 @@ Done.
 
 === function beats(x) ===
     ~ return TURNS_SINCE(x)
-");
+", countAllVisits:true);
+            
             story.Begin ();
             Assert.AreEqual ("0\n0\n", story.currentText);
 
