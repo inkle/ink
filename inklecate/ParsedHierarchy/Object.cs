@@ -63,6 +63,17 @@ namespace Inklewriter.Parsed
             }
         }
 
+        // When counting visits and turns since, different object
+        // types may have different containers that needs to be counted.
+        // For most it'll just be the object's main runtime object,
+        // but for e.g. choices, it'll be the target container.
+        public virtual Runtime.Container containerForCounting
+        {
+            get {
+                return this.runtimeObject as Runtime.Container;
+            }
+        }
+
         public Parsed.Path PathRelativeTo(Parsed.Object otherObj)
         {
             var ownAncestry = ancestry;

@@ -86,8 +86,7 @@ namespace Inklewriter.Parsed
                         Error("Failed to find target for TURNS_SINCE: '"+divert.target+"'");
                     }
                 } else {
-                    var targetContainer = targetObject.runtimeObject as Runtime.Container;
-                    targetContainer.turnIndexShouldBeCounted = true;
+                    targetObject.containerForCounting.turnIndexShouldBeCounted = true;
                 }
             }
 

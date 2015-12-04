@@ -1177,7 +1177,7 @@ This is place 2.
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual(story.currentChoices[0].choiceText, "I’m an option");
 
-            story.ContinueWithChoiceIndex (1);
+            story.ContinueWithChoiceIndex (0);
             Assert.AreEqual ("I’m an option\nFinishing thread.\n", story.currentText);
             Assert.IsFalse (story.hasError);
         }
@@ -1276,11 +1276,11 @@ In second.
         {
             var story = CompileString (@"
 === empty_world ===
-    {TURNS_SINCE(then)}  = -1
+    {TURNS_SINCE(-> then)} = -1
     * (then) stuff
-        {TURNS_SINCE(then)} = 0
+        {TURNS_SINCE(-> then)} = 0
         * * (next) more stuff
-            {TURNS_SINCE(then)} = 1
+            {TURNS_SINCE(-> then)} = 1
         -> DONE
 ");
             story.Begin ();

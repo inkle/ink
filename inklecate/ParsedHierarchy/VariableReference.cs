@@ -56,20 +56,15 @@ namespace Inklewriter.Parsed
             Parsed.Object targetForCount = parsedPath.ResolveFromContext (this);
             if (targetForCount) {
 
-                Runtime.Container countedContainer = null;
-                if (targetForCount is Choice) {
-                    var choiceTarget = (Choice)targetForCount;
-                    countedContainer = choiceTarget.runtimeContainer;
-                } else if (targetForCount is FlowBase || targetForCount is Gather) {
-                    countedContainer = targetForCount.runtimeObject as Runtime.Container;
-                } else {
-                    throw new System.Exception ("Unexpected object type");
+                Runtime.Container countedContainer = targetForCount.containerForCounting;
+                if (countedContainer == null) {
+                    throw new System.Exception ("Container for counting not found");
                 }
+                countedContainer.visitsShouldBeCounted = true;
 
                 _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;
 
-                countedContainer.visitsShouldBeCounted = true;
                 return;
             } 
 

@@ -32,6 +32,12 @@ namespace Inklewriter.Parsed
         // Required for IWeavePoint interface
         public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
 
+        public override Runtime.Container containerForCounting {
+            get {
+                return runtimeContainer;
+            }
+        }
+
         public bool   hasOwnContent {
             get {
                 return hasWeaveStyleInlineBrackets || this.explicitPath == null;
