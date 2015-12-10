@@ -7,12 +7,15 @@ There are two files in this directory:
 
 ### To install
 
-1. Make sure you have *Sublime Text 3* from <http://www.sublimetext.com/3>
-2. Open it and navigate to:
+Run (double click) the `install_for_sublime2and3.command` script.
 
-	Sublime Text 3 > Preferences > Browse Packages...
+Or, manually:
+
+1. Open Sublime Text 2 or 3, and navigate to:
+
+	Sublime Text > Preferences > Browse Packages...
 	
-3. Copy the `ink2.tmLanguage` file into the User directory
+2. Copy the `ink2.tmLanguage` file into the User directory
 
 
 ### Editing the syntax file

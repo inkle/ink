@@ -21,18 +21,3 @@ mkbundle ./inklecate/bin/Release/inklecate.exe --deps --static -o ./ReleaseBinar
 # Install
 # Rename to inklecate2 to avoid possible collision with old inklecate
 sudo cp ./ReleaseBinary/inklecate /usr/local/bin/inklecate2
-
-# Copy latest syntax highlighting grammar into place for Sublime Text 2 and 3
-sublime2Folder="$HOME/Library/Application Support/Sublime Text 2"
-if [ -d "$sublime2Folder" ]; then
-    sublime2Packages="$sublime2Folder/Packages/User"
-    mkdir -p "$sublime2Packages"
-    cp ./Sublime3Syntax/ink2.tmLanguage "$sublime2Packages"
-fi
-
-sublime3Folder="$HOME/Library/Application Support/Sublime Text 3"
-if [ -d "$sublime3Folder" ]; then
-    sublime3Packages="$sublime3Folder/Packages/User"
-    mkdir -p "$sublime3Packages"
-    cp ./Sublime3Syntax/ink2.tmLanguage "$sublime3Packages"
-fi
