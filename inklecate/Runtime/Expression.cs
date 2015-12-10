@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
 //    public class Expression : Container
 //    {

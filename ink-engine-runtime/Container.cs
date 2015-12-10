@@ -6,7 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using System.ComponentModel;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
 	internal class Container : Runtime.Object, INamedContent

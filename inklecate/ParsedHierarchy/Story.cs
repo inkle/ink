@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("tests")]
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
 	internal class Story : FlowBase
     {

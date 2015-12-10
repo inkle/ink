@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Inklewriter
+namespace Ink
 {
 	internal partial class InkParser : StringParser
 	{

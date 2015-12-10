@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
     internal class PushPop : Runtime.Object

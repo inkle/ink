@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
     // Used by the FlowBase when constructing the weave flow from
     // a flat list of content objects.

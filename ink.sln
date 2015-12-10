@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inklecate", "inklecate\inkl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{C48016BB-CF8B-4357-B052-E4DC63AED06B}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "inklewriter-engine-runtime", "inklewriter-engine-runtime\inklewriter-engine-runtime.shproj", "{DF1CA307-A546-48DF-8BDD-0BA6D8F38645}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ink-engine-runtime", "ink-engine-runtime\ink-engine-runtime.shproj", "{DF1CA307-A546-48DF-8BDD-0BA6D8F38645}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

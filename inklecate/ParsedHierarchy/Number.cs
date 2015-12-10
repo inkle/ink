@@ -1,5 +1,5 @@
 ﻿
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
 	internal class Number : Parsed.Expression
 	{

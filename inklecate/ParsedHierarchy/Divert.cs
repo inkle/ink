@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
 	internal class Divert : Parsed.Object
 	{

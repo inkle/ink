@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
 	internal abstract class Expression : Parsed.Object
 	{

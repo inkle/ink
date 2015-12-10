@@ -1,4 +1,4 @@
-﻿namespace Inklewriter.Runtime
+﻿namespace Ink.Runtime
 {
     internal class StoryException : System.Exception
     {

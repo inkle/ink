@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Newtonsoft.Json;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal class Branch : Runtime.Object
     {

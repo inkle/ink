@@ -1,8 +1,8 @@
-﻿using Inklewriter.Parsed;
+﻿using Ink.Parsed;
 using System.Text;
 using System.Collections.Generic;
 
-namespace Inklewriter
+namespace Ink
 {
     internal partial class InkParser
     {

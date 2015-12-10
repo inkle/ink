@@ -1,4 +1,4 @@
-﻿namespace Inklewriter.Parsed
+﻿namespace Ink.Parsed
 {
     internal class Return : Parsed.Object
     {

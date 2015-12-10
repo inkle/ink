@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal enum LiteralType
     {

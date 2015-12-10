@@ -13,5 +13,5 @@
 {
 	"version": "0.1.0",
 	"command": "xbuild",
-	"args": ["inklewriter.sln"]
+	"args": ["ink.sln"]
 }

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Inklewriter
+namespace Ink
 {
     internal class StressTestContentGenerator
     {

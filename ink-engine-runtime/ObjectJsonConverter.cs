@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal class ObjectJsonConverter : JsonConverter
     {
@@ -96,7 +96,7 @@ namespace Inklewriter.Runtime
             else if (!_typesByCustomName.TryGetValue (runtimeObjTypeName, out type)) {
 
                 // No custom type name: Assume it must be using a built in class name
-                type = Type.GetType ("Inklewriter.Runtime." + runtimeObjTypeName);
+                type = Type.GetType ("Ink.Runtime." + runtimeObjTypeName);
             }
 
             var newObj = (Runtime.Object) System.Activator.CreateInstance (type);

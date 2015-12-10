@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Inklewriter.Runtime;
+using Ink.Runtime;
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
     internal class Conditional : Parsed.Object
     {

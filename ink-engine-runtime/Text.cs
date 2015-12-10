@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     public class Text : Runtime.Object
 	{

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Inklewriter.Parsed;
+using Ink.Parsed;
 
-namespace Inklewriter
+namespace Ink
 {
     internal partial class InkParser
     {
@@ -177,7 +177,7 @@ namespace Inklewriter
                 Error ("expected content for the conditional branch following '-'");
 
                 // Recover
-                content = new List<Inklewriter.Parsed.Object> ();
+                content = new List<Ink.Parsed.Object> ();
                 content.Add (new Text (""));
             }
 

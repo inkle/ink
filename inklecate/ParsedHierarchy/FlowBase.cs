@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
 	// Base class for Knots and Stitches
     internal abstract class FlowBase : Parsed.Object, INamedContent
@@ -210,7 +210,7 @@ namespace Inklewriter.Parsed
                     if (looseEnd is Divert) {
                         
                         if (_finalLooseEnds == null) {
-                            _finalLooseEnds = new List<Inklewriter.Runtime.Divert> ();
+                            _finalLooseEnds = new List<Ink.Runtime.Divert> ();
                             _finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
                             container.AddContent (_finalLooseEndTarget);
                         }

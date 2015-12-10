@@ -1,5 +1,5 @@
 ﻿
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
     internal class AuthorWarning : Parsed.Object
     {

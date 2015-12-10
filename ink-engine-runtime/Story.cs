@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
 	public class Story : Runtime.Object
 	{

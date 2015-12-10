@@ -1,7 +1,7 @@
 ﻿
 using System.Collections.Generic;
 
-namespace Inklewriter.Parsed
+namespace Ink.Parsed
 {
     internal class ConditionalSingleBranch : Parsed.Object
     {

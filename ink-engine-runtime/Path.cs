@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using Inklewriter.Runtime;
+using Ink.Runtime;
 using Newtonsoft.Json;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
 	internal class Path

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal static class StringExt
     {

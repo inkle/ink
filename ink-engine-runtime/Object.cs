@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
 	public /* TODO: abstract */ class Object

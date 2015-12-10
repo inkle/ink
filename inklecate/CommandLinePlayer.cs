@@ -1,7 +1,7 @@
 ﻿using System;
-using Inklewriter.Runtime;
+using Ink.Runtime;
 
-namespace Inklewriter
+namespace Ink
 {
 	internal class CommandLinePlayer
 	{

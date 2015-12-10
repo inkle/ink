@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal class ControlCommand : Runtime.Object
     {

@@ -1,5 +1,5 @@
 ﻿
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal class Glue : Runtime.Object
     {

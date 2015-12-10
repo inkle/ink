@@ -1,5 +1,5 @@
 ﻿
-namespace Inklewriter
+namespace Ink
 {
 	internal class StringParserState
 	{

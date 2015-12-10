@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
 	public class Choice : Runtime.Object
 	{

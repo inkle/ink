@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal class VariableReference : Runtime.Object
     {

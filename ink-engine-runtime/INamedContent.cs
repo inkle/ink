@@ -1,5 +1,5 @@
 ﻿
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
 	internal interface INamedContent
 	{

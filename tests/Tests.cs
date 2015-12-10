@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
-using Inklewriter;
-using Inklewriter.Runtime;
+using Ink;
+using Ink.Runtime;
 
 namespace Tests
 {
@@ -20,7 +20,7 @@ namespace Tests
         }
         TestMode _mode;
 
-        protected void CheckParsedStoryForErrors(Inklewriter.Parsed.Story story) {
+        protected void CheckParsedStoryForErrors(Ink.Parsed.Story story) {
             if (story.hadError) {
                 foreach (string error in story.errors) {
                     Assert.Fail ("Story compilation error: " + error);
@@ -52,7 +52,7 @@ namespace Tests
 			return story;
 		}
 
-        protected Inklewriter.Parsed.Story CompileStringWithoutRuntime(string str)
+        protected Ink.Parsed.Story CompileStringWithoutRuntime(string str)
         {
             InkParser parser = new InkParser(str);
             parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
@@ -900,7 +900,7 @@ This is the {first|second|third} time.
         [Test ()]
         public void TestFunctionPurityChecks()
         {
-            Inklewriter.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
+            Ink.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
 -> test
 
 == test ==
@@ -936,7 +936,7 @@ Hello world
         [Test ()]
         public void TestFunctionCallRestrictions()
         {
-            Inklewriter.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
+            Ink.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
 // Allowed to do this
 ~ myFunc()
 

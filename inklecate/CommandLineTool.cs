@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Diagnostics;
 
-namespace Inklewriter
+namespace Ink
 {
 	class CommandLineTool
 	{

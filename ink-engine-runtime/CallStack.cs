@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Diagnostics;
 
-namespace Inklewriter.Runtime
+namespace Ink.Runtime
 {
     internal class CallStack
     {
