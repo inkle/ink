@@ -298,6 +298,26 @@ namespace Ink.Parsed
             }
 
             base.ResolveReferences(context);
+
+            // Check validity of parameter names
+            if (arguments != null) {
+                foreach (var arg in arguments) {
+
+                    // Does argument conflict with a knot/stitch/label?
+                    var pathOfTheoreticalTarget = new Path (arg.name);
+                    Parsed.Object target = pathOfTheoreticalTarget.ResolveFromContext (this);
+                    if (target) {
+                        Error ("Argument '" + arg.name + "' conflicts with a " + target.GetType().Name + " on " + target.debugMetadata + ", ");
+                        continue;
+                    }
+
+                    // Does argument conflict with another variable name?
+                    if (context.ResolveVariableWithName (arg.name, fromNode: this.parent)) {
+                        Error("Argument '"+ arg.name + "' conflicts with existing variable definition at higher scope.");
+                        continue;
+                    }
+                }
+            }
         }
 
         void CheckForDisallowedFunctionFlowControl()
