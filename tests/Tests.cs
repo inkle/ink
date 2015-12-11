@@ -740,18 +740,28 @@ hi
         public void TestDefaultChoices()
         {
             Story story = CompileString (@"
-Some content.
+ - (start)
+ * [Choice 1]
+ * [Choice 2]
+ * {false} Impossible choice
+ * -> default
+ - After choice
+ -> start
 
-* {false} impossible choice
-* -> default_target
-
-= default_target
-Default choice chosen.
--> END
+== default ==
+This is default.
+-> DONE
 ");
             story.Begin ();
+            Assert.AreEqual (2, story.currentChoices.Count);
+            Assert.AreEqual ("", story.currentText);
 
-            Assert.AreEqual ("Some content.\nDefault choice chosen.\n", story.currentText);
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual ("After choice\n", story.currentText);
+            Assert.AreEqual (1, story.currentChoices.Count);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual ("After choice\nThis is default.\n", story.currentText);
         }
 
 

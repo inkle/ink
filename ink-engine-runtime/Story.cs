@@ -959,8 +959,9 @@ namespace Ink.Runtime
             
         bool TryFollowDefaultInvisibleChoice()
         {
-            var invisibleChoiceInstances = CurrentOutput<ChoiceInstance> (c => c.choice.isInvisibleDefault);
-            if (invisibleChoiceInstances.Count == 0)
+            var allChoices = CurrentOutput<ChoiceInstance> ();
+            var invisibleChoiceInstances = allChoices.Where (c => c.choice.isInvisibleDefault).ToList();
+            if (invisibleChoiceInstances.Count == 0 || allChoices.Count > invisibleChoiceInstances.Count)
                 return false;
 
             // Silently consume the invisible choice so that it doesn't
