@@ -1,4 +1,5 @@
 ﻿using Ink.Parsed;
+using System.Diagnostics;
 
 namespace Ink
 {
@@ -23,21 +24,35 @@ namespace Ink
 
             Whitespace ();
 
+            // Optional condition for whether the choice should be shown to the player
             Expression conditionExpr = Parse(ChoiceCondition);
 
-            // Condition
-
             Whitespace ();
+
+            // Ordinarily we avoid parser state variables like these, since
+            // nesting would require us to store them in a stack. But since you should
+            // never be able to nest choices within choice content, it's fine here.
+            Debug.Assert(_parsingChoice == false, "Already parsing a choice - shouldn't have nested choices");
+            _parsingChoice = true;
                 
-            string startText = Parse (ChoiceText);
-            string optionOnlyText = null;
+            ContentList startContent = null;
+            var startTextAndLogic = Parse (MixedTextAndLogic);
+            if (startTextAndLogic != null)
+                startContent = new ContentList (startTextAndLogic);
+
+
+            ContentList optionOnlyContent = null;
             ContentList innerContent = null;
 
             // Check for a the weave style format:
             //   * "Hello[."]," he said.
             bool hasWeaveStyleInlineBrackets = ParseString("[") != null;
             if (hasWeaveStyleInlineBrackets) {
-                optionOnlyText = Parse (ChoiceText);
+
+                var optionOnlyTextAndLogic = Parse (MixedTextAndLogic);
+                if (optionOnlyTextAndLogic != null)
+                    optionOnlyContent = new ContentList (optionOnlyTextAndLogic);
+                
 
                 Expect (String("]"), "closing ']' for weave-style option");
 
@@ -45,24 +60,18 @@ namespace Ink
                 if( innerTextAndLogic != null )
                     innerContent = new ContentList (innerTextAndLogic);
             }
+
+            _parsingChoice = false;
              
             // Trim
-            if (innerContent) {
-                innerContent.TrimTrailingWhitespace ();
-                if (innerContent.content.Count == 0) {
-                    innerContent = null;
-                } else { 
-                    // Inner content of a choice counts as full line 
-                    // unless there's glue   
-                    innerContent.AddContent (new Text ("\n"));
-                }
-            } else if( startText != null ) {
-                startText = startText.TrimEnd (' ', '\t');
-                if (startText.Length == 0)
-                    startText = null;
+            TrimChoiceContent (ref startContent);
+            TrimChoiceContent (ref optionOnlyContent);
+            TrimChoiceContent (ref innerContent);
+            if (innerContent != null) {
+                innerContent.AddContent (new Text ("\n"));
             }
 
-            bool isDefaultChoice = startText == null && optionOnlyText == null;
+            bool isDefaultChoice = startContent == null && optionOnlyContent == null;
                 
 			Whitespace ();
 
@@ -70,7 +79,7 @@ namespace Ink
 
             Whitespace ();
 
-            var choice = new Choice (startText, optionOnlyText, innerContent, divert);
+            var choice = new Choice (startContent, optionOnlyContent, innerContent, divert);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
@@ -82,21 +91,16 @@ namespace Ink
 
 		}
 
-        protected string ChoiceText()
+        void TrimChoiceContent(ref ContentList content)
         {
-            if( _choiceTextPauseCharacters == null ) {
-                _choiceTextPauseCharacters = new CharacterSet ("-");
+            if (content != null) {
+                content.TrimTrailingWhitespace ();
+                if (content.content.Count == 0) {
+                    content = null;
+                }
             }
-            if (_choiceTextEndCharacters == null) {
-                _choiceTextEndCharacters = new CharacterSet("[]={\n\r");
-            }
-
-            return ParseUntil(SingleDivert, pauseCharacters: _choiceTextPauseCharacters, endCharacters: _choiceTextEndCharacters);
         }
-
-		private CharacterSet _choiceTextPauseCharacters;
-		private CharacterSet _choiceTextEndCharacters;
-
+            
         protected Expression ChoiceCondition()
         {
             var conditions = Interleave<Expression> (ChoiceSingleCondition, ChoiceConditionsSpace);
@@ -193,6 +197,8 @@ namespace Ink
 
             return name;
         }
+
+        bool _parsingChoice;
 	}
 }
 

@@ -22,7 +22,6 @@ namespace Ink.Runtime
                     } else {
                         throw new StoryException ("Invalid value passed to VariableState: "+value.ToString());
                     }
-                    return;
                 }
 
                 _globalVariables [variableName] = literal;

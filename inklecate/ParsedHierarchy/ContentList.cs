@@ -27,8 +27,8 @@ namespace Ink.Parsed
                 if (text == null)
                     break;
 
-                var trimmedText = text.text.TrimEnd (' ', '\t');
-                if (trimmedText.Length == 0)
+                text.text = text.text.TrimEnd (' ', '\t');
+                if (text.text.Length == 0)
                     this.content.RemoveAt (i);
                 else
                     break;

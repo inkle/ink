@@ -4,8 +4,8 @@ namespace Ink.Parsed
 {
     internal class Choice : Parsed.Object, IWeavePoint, INamedContent
 	{
-        public string startText { get; protected set; }
-        public string choiceOnlyText { get; protected set; }
+        public ContentList startContent { get; protected set; }
+        public ContentList choiceOnlyContent { get; protected set; }
         public ContentList innerContent { get; protected set; }
 
         public string name { get; set; }
@@ -60,12 +60,18 @@ namespace Ink.Parsed
             }
         }
 
-        public Choice (string startText, string choiceOnlyText, ContentList innerContent, Divert divert)
+        public Choice (ContentList startContent, ContentList choiceOnlyContent, ContentList innerContent, Divert divert)
 		{
-            this.startText = startText;
-            this.choiceOnlyText = choiceOnlyText;
+            this.startContent = startContent;
+            this.choiceOnlyContent = choiceOnlyContent;
             this.innerContent = innerContent;
 			this.indentationDepth = 1;
+
+            if (startContent)
+                AddContent (this.startContent);
+
+            if (choiceOnlyContent)
+                AddContent (this.choiceOnlyContent);
 
             if( innerContent )
                 AddContent (this.innerContent);
@@ -86,19 +92,37 @@ namespace Ink.Parsed
         {
             // Choice Text
             var choiceTextSB = new StringBuilder ();
-            if (startText != null) {
-                choiceTextSB.Append (startText);
+            var startTextSB = new StringBuilder ();
+            if (startContent != null) {
+
+                // TODO: Compile to proper content
+                foreach (var c in startContent.content) {
+                    var txt = c as Text;
+                    if (txt) {
+                        startTextSB.Append (txt.text);
+                        choiceTextSB.Append (txt.text);
+                    }
+                }
             }
-            if (choiceOnlyText != null) {
-                choiceTextSB.Append (choiceOnlyText);
+
+
+            if (choiceOnlyContent != null) {
+
+                // TODO: Compile to proper content
+                foreach (var c in choiceOnlyContent.content) {
+                    var txt = c as Text;
+                    if (txt) {
+                        choiceTextSB.Append (txt.text);
+                    }
+                }
             }
 
             // Content (Weave style choices)
             var onChoosingContent = new ContentList ();
             AddContent (onChoosingContent);
             if (hasOwnContent) {
-                if (startText != null) {
-                    onChoosingContent.AddContent (new Parsed.Text(startText));
+                if (startContent != null) {
+                    onChoosingContent.AddContent (new Parsed.Text(startTextSB.ToString()));
                 }
                 if (innerContent != null) {
                     onChoosingContent.AddContent (innerContent);
@@ -213,10 +237,10 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            if (choiceOnlyText != null) {
-                return string.Format ("* {0}[{1}]...", startText, choiceOnlyText);
+            if (choiceOnlyContent != null) {
+                return string.Format ("* {0}[{1}]...", startContent, choiceOnlyContent);
             } else {
-                return string.Format ("* {0}...", startText);
+                return string.Format ("* {0}...", startContent);
             }
         }
             

@@ -68,20 +68,26 @@ namespace Ink
             var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
 
             // Terminating divert?
-            var divertsOrOnwards = OneOf(MultiStepTunnelDivert, TunnelOnwards);
-            if (divertsOrOnwards != null) {
+            // (When parsing content for the text of a choice, diverts aren't allowed.
+            //  The divert on the end of the body of a choice is handled specially.)
+            if (!_parsingChoice) {
 
-                // May not have had any results at all if there's *only* a divert!
-                if (results == null)
-                    results = new List<Parsed.Object> ();
+                var divertsOrOnwards = OneOf(MultiStepTunnelDivert, TunnelOnwards);
+                if (divertsOrOnwards != null) {
 
-                TrimEndWhitespaceAndAddNewline (results);
+                    // May not have had any results at all if there's *only* a divert!
+                    if (results == null)
+                        results = new List<Parsed.Object> ();
 
-                var diverts = divertsOrOnwards as List<Divert>;
-                if (diverts != null)
-                    results.AddRange (diverts);
-                else
-                    results.Add (divertsOrOnwards as TunnelOnwards);
+                    TrimEndWhitespaceAndAddNewline (results);
+
+                    var diverts = divertsOrOnwards as List<Divert>;
+                    if (diverts != null)
+                        results.AddRange (diverts);
+                    else
+                        results.Add (divertsOrOnwards as TunnelOnwards);
+                }
+
             }
                 
             if (results == null)
@@ -138,10 +144,10 @@ namespace Ink
         {
             // Eat through text, pausing at the following characters, and
             // attempt to parse the nonTextRule.
-            // "-", "=": possible start of divert or start of gather
+            // "-": possible start of divert or start of gather
             // "<": possible start of glue
             if (_nonTextPauseCharacters == null) {
-                _nonTextPauseCharacters = new CharacterSet ("-=<");
+                _nonTextPauseCharacters = new CharacterSet ("-<");
             }
 
             // If we hit any of these characters, we stop *immediately* without bothering to even check the nonTextRule
@@ -149,12 +155,16 @@ namespace Ink
             // "|" for mid logic branch
             if (_nonTextEndCharacters == null) {
                 _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\");
+                _notTextEndCharactersChoice = new CharacterSet (_nonTextEndCharacters);
+                _notTextEndCharactersChoice.AddCharacters ("[]");
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
             ParseRule nonTextRule = () => OneOf (ParseDivertArrow, EndOfLine, Glue);
 
-            string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, _nonTextEndCharacters);
+            var endChars = _parsingChoice ? _notTextEndCharactersChoice : _nonTextEndCharacters;
+
+            string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, endChars);
             if (pureTextContent != null ) {
                 return pureTextContent;
 
@@ -163,8 +173,12 @@ namespace Ink
             }
 
         }
-        private CharacterSet _nonTextPauseCharacters;
-        private CharacterSet _nonTextEndCharacters;
+
+        CharacterSet _nonTextPauseCharacters;
+        CharacterSet _nonTextEndCharacters;
+        CharacterSet _notTextEndCharactersChoice;
+
+
 
     }
 }
