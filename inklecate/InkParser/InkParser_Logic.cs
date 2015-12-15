@@ -27,7 +27,7 @@ namespace Ink
             // to have a return value, or to be used in compound expressions.
             ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, TempDeclarationOrAssignment, Expression);
 
-            var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine);
+            var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine) as Parsed.Object;
 
             // Parse all expressions, but tell the writer off if they did something useless like:
             //  ~ 5 + 4
@@ -37,6 +37,14 @@ namespace Ink
             // they're expecting C's lazy evaluation.
             if (result is Expression && !(result is FunctionCall || result is IncDecExpression) ) {
                 Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ include ...\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
+            }
+
+            // A function call on its own line could result in a text side effect, in which case
+            // it needs a newline on the end. e.g.
+            //  ~ printMyName()
+            // If no text gets printed, then the extra newline will have to be culled later.
+            if (result is FunctionCall) {
+                result = new ContentList (result, new Parsed.Text ("\n"));
             }
 
             return result as Parsed.Object;

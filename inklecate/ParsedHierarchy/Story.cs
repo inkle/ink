@@ -77,6 +77,9 @@ namespace Ink.Parsed
                                 }
                             }
 
+                            // Add newline on the end of the include
+                            nonFlowContent.Add (new Parsed.Text ("\n"));
+
                             // Add contents of the file in its place
                             topLevelContent.InsertRange (i, nonFlowContent);
 

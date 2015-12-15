@@ -70,7 +70,7 @@ namespace Tests
 		{
 			Story story = CompileString ("Hello world");
 			story.Begin ();
-            Assert.AreEqual ("Hello world\n", story.currentText);
+            Assert.AreEqual ("Hello world", story.currentText);
 		}
 
         [Test ()]
@@ -215,7 +215,7 @@ This is the main file.
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.\n", story.currentText);
+            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.", story.currentText);
         }
 
         [Test ()]
@@ -404,7 +404,7 @@ VAR x = 0
 
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
-            Assert.AreEqual ("\n5\n", story.currentText);
+            Assert.AreEqual ("\n5", story.currentText);
         }
 
         [Test ()]
@@ -463,7 +463,7 @@ VAR x = 0
             Assert.AreEqual ("two", story.currentChoices[0].choiceText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("two\nthree\nsix\n", story.currentText);
+            Assert.AreEqual ("two\nthree\nsix", story.currentText);
         }
 
         [Test ()]
@@ -494,7 +494,7 @@ VAR x = 0
 
             story.ContinueWithChoiceIndex (0);
 
-            Assert.AreEqual ("Text\n", story.currentText);
+            Assert.AreEqual ("Text", story.currentText);
         }
 
         [Test ()]
@@ -510,7 +510,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("one\ntwo\nthree\n", story.currentText);
+            Assert.AreEqual ("one\ntwo\nthree", story.currentText);
         }
             
         [Test ()]
@@ -536,7 +536,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("Some content with glue.\n", story.currentText);
+            Assert.AreEqual ("Some content with glue.", story.currentText);
         }
 
         [Test ()]
@@ -548,7 +548,7 @@ VAR x = 0
             story.Begin ();
 
             // Unfortunate leading newline...
-            Assert.AreEqual ("this is a '|' character\n", story.currentText);
+            Assert.AreEqual ("this is a '|' character", story.currentText);
         }
 
         [Test ()]
@@ -574,7 +574,7 @@ VAR to_two = -> two
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n", story.currentText);
+            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot", story.currentText);
         }
 
         [Test ()]
@@ -594,7 +594,7 @@ VAR to_two = -> two
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("120\n", story.currentText);
+            Assert.AreEqual ("120", story.currentText);
        }
 
         [Test ()]
@@ -622,7 +622,7 @@ VAR globalVal = 5
             story.Begin ();
 
             // Bloody whitespace
-            Assert.AreEqual ("5\n \n625\n", story.currentText);
+            Assert.AreEqual ("5\n \n625", story.currentText);
         }
 
 
@@ -649,7 +649,7 @@ VAR result = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("\n120\n", story.currentText);
+            Assert.AreEqual ("\n120", story.currentText);
         }
 
         [Test ()]
@@ -696,7 +696,7 @@ VAR x = 5
 ");
             story.Begin ();
 
-            Assert.AreEqual ("6\n5\n", story.currentText);
+            Assert.AreEqual ("6\n5", story.currentText);
         }
 
         [Test ()]
@@ -716,7 +716,7 @@ hi
 ");
             story.Begin ();
 
-            Assert.AreEqual ("hi\nhi\nhi\n3\n", story.currentText);
+            Assert.AreEqual ("hi\nhi\nhi\n3", story.currentText);
         }
 
         [Test ()]
@@ -732,7 +732,7 @@ hi
 ");
             story.Begin ();
 
-            Assert.AreEqual ("2\n", story.currentText);
+            Assert.AreEqual ("2", story.currentText);
         }
 
 
@@ -794,7 +794,7 @@ This is default.
 ");
             story.Begin ();
 
-            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8\n", story.currentText);
+            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8", story.currentText);
         }
 
         [Test ()]
@@ -819,7 +819,7 @@ This is default.
             Assert.AreEqual ("1\n", story.currentText);
 
             story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("2\n", story.currentText);
+            Assert.AreEqual ("2", story.currentText);
         }
 
         [Test ()]
@@ -985,7 +985,7 @@ Hello
 
             story.Begin ();
 
-            Assert.AreEqual ("Hello world\n", story.currentText);
+            Assert.AreEqual ("Hello world", story.currentText);
         }
 
         [Test ()]
@@ -1010,7 +1010,7 @@ two ({num})
 ");
             story.Begin ();
 
-            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)\n", story.currentText);
+            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)", story.currentText);
         }
 
         [Test ()]
@@ -1103,7 +1103,7 @@ World.
 ");
             story.Begin ();
 
-            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.\n", story.currentText);
+            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.", story.currentText);
         }
 
 
@@ -1248,7 +1248,7 @@ CONST c = 5
 {x}
 ");
             story.Begin ();
-            Assert.AreEqual ("5\n", story.currentText);
+            Assert.AreEqual ("5", story.currentText);
         }
 
         [Test ()]
@@ -1340,7 +1340,7 @@ Done.
 ->->
 ");
             story.Begin ();
-            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.\n", story.currentText);
+            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.", story.currentText);
         }
 
         [Test ()]
@@ -1384,7 +1384,7 @@ VAR negativeLiteral3 = !(0)
 {negativeLiteral3}
 ");
             story.Begin ();
-            Assert.AreEqual ("-1\n0\n1\n", story.currentText);
+            Assert.AreEqual ("-1\n0\n1", story.currentText);
         }
 
         [Test ()]
@@ -1467,7 +1467,7 @@ VAR global_var = 5
 -> DONE
 
 == function name ==
-Joe<>
+Joe
 ");
 
             story.Begin ();

@@ -17,6 +17,14 @@ namespace Ink.Parsed
                 AddContent (objects);
         }
 
+        public ContentList (params Parsed.Object[] objects)
+        {
+            if (objects != null) {
+                var objList = new List<Parsed.Object> (objects);
+                AddContent (objList);
+            }
+        }
+            
         public ContentList()
         {
         }
