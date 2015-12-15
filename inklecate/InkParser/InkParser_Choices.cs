@@ -64,9 +64,13 @@ namespace Ink
             _parsingChoice = false;
              
             // Trim
-            TrimChoiceContent (ref startContent);
-            TrimChoiceContent (ref optionOnlyContent);
-            TrimChoiceContent (ref innerContent);
+            if( innerContent )
+                TrimChoiceContent (ref innerContent);
+            else if( optionOnlyContent )
+                TrimChoiceContent (ref optionOnlyContent);
+            else 
+                TrimChoiceContent (ref startContent);
+
             if (innerContent != null) {
                 innerContent.AddContent (new Text ("\n"));
             }

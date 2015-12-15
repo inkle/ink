@@ -1457,6 +1457,27 @@ VAR global_var = 5
 
         }
 
+
+
+        [Test ()]
+        public void TestLogicInChoices()
+        {
+            var story = CompileString (@"
+* 'Hello {name()}[, your name is {name()}.'],' I said, knowing full well that his name was {name()}.
+-> DONE
+
+== function name ==
+Joe<>
+");
+
+            story.Begin ();
+
+            Assert.AreEqual ("'Hello Joe, your name is Joe.'", story.currentChoices[0].choiceText);
+            story.ContinueWithChoiceIndex (0);
+
+            Assert.AreEqual ("'Hello Joe,' I said, knowing full well that his name was Joe.\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
