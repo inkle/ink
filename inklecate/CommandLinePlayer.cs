@@ -49,7 +49,7 @@ namespace Ink
                     SetConsoleTextColour (ConsoleColour.Blue);
 
 					int i = 1;
-					foreach (Choice choice in choices) {
+					foreach (ChoiceInstance choice in choices) {
 						Console.WriteLine ("{0}: {1}", i, choice.choiceText);
 						i++;
 					}

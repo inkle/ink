@@ -13,6 +13,8 @@ namespace Ink.Runtime
             EvalEnd,
             Duplicate,
             PopEvaluatedValue,
+            BeginChoiceStartContent,
+            BeginChoiceOnlyContent,
             NoOp,
             ChoiceCount,
             TurnsSince,
@@ -65,6 +67,14 @@ namespace Ink.Runtime
 
         public static ControlCommand PopEvaluatedValue() {
             return new ControlCommand (CommandType.PopEvaluatedValue);
+        }
+
+        public static ControlCommand BeginChoiceStartContent() {
+            return new ControlCommand (CommandType.BeginChoiceStartContent);
+        }
+
+        public static ControlCommand BeginChoiceOnlyContent() {
+            return new ControlCommand (CommandType.BeginChoiceOnlyContent);
         }
 
         public static ControlCommand NoOp() {

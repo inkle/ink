@@ -1,16 +1,19 @@
 ﻿
 namespace Ink.Runtime
 {
-	internal class ChoiceInstance : Runtime.Object
+	public class ChoiceInstance : Runtime.Object
 	{
-		public Choice choice { get; private set; }
-        public bool hasBeenChosen { get; set; }
-        public CallStack.Thread threadAtGeneration { get; set; }
+        public string choiceText { get; internal set; }
 
-		public ChoiceInstance (Choice choice)
+        internal bool hasBeenChosen { get; set; }
+		internal Choice choice { get; private set; }
+        internal CallStack.Thread threadAtGeneration { get; set; }
+
+		internal ChoiceInstance (Choice choice)
 		{
 			this.choice = choice;
 		}
+
 	}
 }
 

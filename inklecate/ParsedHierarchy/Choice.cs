@@ -30,7 +30,7 @@ namespace Ink.Parsed
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
         // Required for IWeavePoint interface
-        public Runtime.Container runtimeContainer { get { return _weaveContentContainer; } }
+        public Runtime.Container runtimeContainer { get { return _innerContentContainer; } }
 
         public override Runtime.Container containerForCounting {
             get {
@@ -40,7 +40,20 @@ namespace Ink.Parsed
 
         public bool   hasOwnContent {
             get {
-                return hasWeaveStyleInlineBrackets || this.explicitPath == null;
+                // Note that the simple case of both:
+                //   * a choice -> target
+                // and
+                //   * a choice
+                // have their own content, since "a choice" is re-printed on
+                // the output
+                //
+                // Also, a simple case of:
+                //   * [choice]
+                //    ...
+                // Looks like it has no content, but it should be capable of having
+                // content added to it, since the Weave structure will append
+                // content within the weave choice's inner container.
+                return startContent || innerContent || this.explicitPath == null;
             }
         }
 
@@ -50,8 +63,8 @@ namespace Ink.Parsed
         public override Runtime.Path runtimePath
         {
             get {
-                if (_weaveContentContainer) {
-                    return _weaveContentContainer.path;
+                if (_innerContentContainer) {
+                    return _innerContentContainer.path;
                 } else {
                     // This Choice may or may not have been resolved already
                     ResolveExplicitPathIfNecessary ();
@@ -90,105 +103,115 @@ namespace Ink.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject ()
         {
-            // Choice Text
-            var choiceTextSB = new StringBuilder ();
-            var startTextSB = new StringBuilder ();
-            if (startContent != null) {
+            _outerContainer = new Runtime.Container ();
 
-                // TODO: Compile to proper content
-                foreach (var c in startContent.content) {
-                    var txt = c as Text;
-                    if (txt) {
-                        startTextSB.Append (txt.text);
-                        choiceTextSB.Append (txt.text);
-                    }
-                }
+            // Content names for different types of choice:
+            //  * start content [choice only content] inner content
+            //  * start content   -> divert
+            //  * start content
+            //  * [choice only content]
+
+            // Hmm, this structure has become slightly insane!
+            //
+            // [
+            //     BeginChoiceStartContent
+            //     PUSH (function)
+            //     -> s
+            //     BeginChoiceOnlyContent
+            //     ... choice only content
+            //     Condition expression
+            //     choice: -> "c"
+            //     (s) = [
+            //         start content
+            //     ]
+            //     (c) = [
+            //         PUSH (function)
+            //         -> s
+            //         inner content
+            //     ]
+            // ]
+
+            // Start content is put into a named container that's referenced both
+            // when displaying the choice initially, and when generating the text
+            // when the choice is chosen.
+            if (startContent) {
+
+                // Mark the start of the choice text generation, so that the runtime
+                // knows where to rewind to to extract the content from the output stream.
+                _outerContainer.AddContent (Runtime.ControlCommand.BeginChoiceStartContent ());
+
+                // "Function call" to generate start content
+                _divertToStartContentOuter = new Runtime.Divert ();
+                _outerContainer.AddContent (new Runtime.PushPop (Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Push));
+                _outerContainer.AddContent (_divertToStartContentOuter);
+
+                // Start content itself in a named container
+                _startContentRuntimeContainer = startContent.GenerateRuntimeObject () as Runtime.Container;
+                _startContentRuntimeContainer.name = "s";
+                _outerContainer.AddToNamedContentOnly (_startContentRuntimeContainer);
             }
 
-
-            if (choiceOnlyContent != null) {
-
-                // TODO: Compile to proper content
-                foreach (var c in choiceOnlyContent.content) {
-                    var txt = c as Text;
-                    if (txt) {
-                        choiceTextSB.Append (txt.text);
-                    }
-                }
-            }
-
-            // Content (Weave style choices)
-            var onChoosingContent = new ContentList ();
-            AddContent (onChoosingContent);
-            if (hasOwnContent) {
-                if (startContent != null) {
-                    onChoosingContent.AddContent (new Parsed.Text(startTextSB.ToString()));
-                }
-                if (innerContent != null) {
-                    onChoosingContent.AddContent (innerContent);
-                }
-
-                // Add newline on the end of the choice's own line of text (if it actually has any)
-                if( onChoosingContent.content != null )
-                    onChoosingContent.AddContent (new Text ("\n"));
+            // Choice only content - mark the start, then generate it directly into the outer container
+            if (choiceOnlyContent) {
+                _outerContainer.AddContent (Runtime.ControlCommand.BeginChoiceOnlyContent ());
+                var choiceOnlyRuntimeContent = choiceOnlyContent.GenerateRuntimeObject () as Runtime.Container;
+                _outerContainer.AddContentsOfContainer (choiceOnlyRuntimeContent);
             }
 
             // Build choice itself
-            _runtimeChoice = new Runtime.Choice (choiceTextSB.ToString(), onceOnly);
+            _runtimeChoice = new Runtime.Choice (onceOnly);
             _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
 
-            // Nested content like this:
-            // [
-            //     choice: -> "c"
-            //     (c) = [
-            //         weave content
-            //     ]
-            // ]
-            if ( hasOwnContent || condition ) {
-
-                _weaveOuterContainer = new Runtime.Container ();
-
-                if (condition) {
-                    var exprContainer = (Runtime.Container) condition.runtimeObject;
-                    _weaveOuterContainer.AddContentsOfContainer (exprContainer);
-                    _runtimeChoice.hasCondition = true;
-                }
-
-                _weaveOuterContainer.AddContent (_runtimeChoice);
-
-                if( hasOwnContent ) {
-
-                    if (onChoosingContent != null && onChoosingContent.content != null)
-                        _weaveContentContainer = onChoosingContent.runtimeContainer;
-                    else
-                        _weaveContentContainer = new Runtime.Container ();
-                    
-                    
-                    _weaveContentContainer.name = "c";
-
-                    if (this.story.countAllVisits) {
-                        _weaveContentContainer.visitsShouldBeCounted = true;
-                        _weaveContentContainer.turnIndexShouldBeCounted = true;
-                    }
-
-                    _weaveContentContainer.countingAtStartOnly = true;
-
-                    if (this.explicitPath != null) {
-                        _weaveContentEndDivert = new Runtime.Divert ();
-                        _weaveContentContainer.AddContent (_weaveContentEndDivert);
-                    }
-
-                    _weaveOuterContainer.AddToNamedContentOnly (_weaveContentContainer);
-
-                }
-
-                return _weaveOuterContainer;
-            } 
-
-            // Simple/normal choice
-            else {
-                return _runtimeChoice;
+            // Generate any condition for this choice
+            if (condition) {
+                var exprContainer = (Runtime.Container) condition.runtimeObject;
+                _outerContainer.AddContentsOfContainer (exprContainer);
+                _runtimeChoice.hasCondition = true;
             }
+
+            _outerContainer.AddContent (_runtimeChoice);
+
+            // When choice is chosen, does this choice have its own container of content to divert to?
+            if( hasOwnContent ) {
+
+                _innerContentContainer = new Runtime.Container ();
+
+                // Repeat start content by diverting to its container
+                if (startContent) {
+                    _divertToStartContentInner = new Runtime.Divert ();
+                    _innerContentContainer.AddContent (new Runtime.PushPop (Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Push));
+                    _innerContentContainer.AddContent (_divertToStartContentInner);
+                }
+
+                // Choice's own inner content
+                if (innerContent) {
+                    var choiceOnlyContent = innerContent.GenerateRuntimeObject () as Runtime.Container;
+                    _innerContentContainer.AddContentsOfContainer (choiceOnlyContent);
+                }
+
+                // Fully parsed choice will be a full line, so it needs to be terminated
+                if (startContent || innerContent) {
+                    _innerContentContainer.AddContent(new Runtime.Text("\n"));
+                }
+
+                _innerContentContainer.name = "c";
+                _outerContainer.AddToNamedContentOnly (_innerContentContainer);
+
+                if (this.story.countAllVisits) {
+                    _innerContentContainer.visitsShouldBeCounted = true;
+                    _innerContentContainer.turnIndexShouldBeCounted = true;
+                }
+
+                _innerContentContainer.countingAtStartOnly = true;
+
+                // Does this choice end in an explicit divert?
+                if (this.explicitPath != null) {
+                    _weaveContentEndDivert = new Runtime.Divert ();
+                    _innerContentContainer.AddContent (_weaveContentEndDivert);
+                }
+            }
+
+            return _outerContainer;
 		}
 
         void ResolveExplicitPathIfNecessary()
@@ -220,12 +243,18 @@ namespace Ink.Parsed
         public override void ResolveReferences(Story context)
 		{
 			// Weave style choice - target own content container
-            if (_weaveContentContainer) {
-                _runtimeChoice.pathOnChoice = _weaveContentContainer.path;
+            if (_innerContentContainer) {
+                _runtimeChoice.pathOnChoice = _innerContentContainer.path;
 
                 if (onceOnly)
-                    _weaveContentContainer.visitsShouldBeCounted = true;
+                    _innerContentContainer.visitsShouldBeCounted = true;
             }
+
+            if( _divertToStartContentOuter )
+                _divertToStartContentOuter.targetPath = _startContentRuntimeContainer.path;
+
+            if( _divertToStartContentInner )
+                _divertToStartContentInner.targetPath = _startContentRuntimeContainer.path;
 
             // Resolve path that was explicitly specified (either at the end of the weave choice, or just as the normal choice path)
             if (explicitPath != null) {
@@ -243,11 +272,14 @@ namespace Ink.Parsed
                 return string.Format ("* {0}...", startContent);
             }
         }
-            
+
         Runtime.Choice _runtimeChoice;
-        Runtime.Container _weaveContentContainer;
-        Runtime.Container _weaveOuterContainer;
+        Runtime.Container _innerContentContainer;
+        Runtime.Container _outerContainer;
         Runtime.Divert _weaveContentEndDivert;
+        Runtime.Container _startContentRuntimeContainer;
+        Runtime.Divert _divertToStartContentOuter;
+        Runtime.Divert _divertToStartContentInner;
         Runtime.Path _resolvedExplicitPath;
         Expression _condition;
 	}

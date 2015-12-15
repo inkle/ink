@@ -9,7 +9,7 @@ namespace Ink.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        const int inkVersionCurrent = 5;
+        const int inkVersionCurrent = 7;
 
         // Version numbers are for engine itself and story file, rather
         // than the save format.
@@ -22,7 +22,7 @@ namespace Ink.Runtime
         //     If possible, you should support it, though it's not as
         //     critical as loading old save games, since it's an
         //     in-development problem only.
-        const int inkVersionMinimumCompatible = 5;
+        const int inkVersionMinimumCompatible = 7;
 
         internal Path currentPath { 
             get { 
@@ -36,12 +36,11 @@ namespace Ink.Runtime
         public List<Runtime.Object> outputStream;
 
 
-		public List<Choice> currentChoices
+        public List<ChoiceInstance> currentChoices
 		{
 			get 
 			{
-                var choiceInstances = CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
-                return choiceInstances.ConvertAll<Choice> (c => c.choice);
+                return CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
 			}
 		}
 
@@ -257,21 +256,9 @@ namespace Ink.Runtime
             bool shouldAddObject = true;
             var choice = currentContentObj as Choice;
             if (choice) {
-                if (choice.hasCondition) {
-                    var conditionValue = PopEvaluationStack ();
-                    shouldAddObject = IsTruthy (conditionValue);
-                }
-                if (choice.onceOnly && shouldAddObject) {
-                    var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
-                    var visitCount = VisitCountForContainer (choiceTargetContainer);
-                    shouldAddObject = visitCount == 0;
-                }
-                if (shouldAddObject) {
-                    var choiceInstance = new ChoiceInstance (choice);
-                    choiceInstance.hasBeenChosen = false;
-                    choiceInstance.threadAtGeneration = _callStack.currentThread.Copy ();
-                    currentContentObj = choiceInstance;
-                }
+                var choiceInstance = ProcessChoice (choice);
+                currentContentObj = choiceInstance;
+                shouldAddObject = currentContentObj != null;
             }
 
             // If the container has no content, then it will be
@@ -317,6 +304,90 @@ namespace Ink.Runtime
 
             // Do we have somewhere valid to go?
             return currentPath != null;
+        }
+
+        ChoiceInstance ProcessChoice(Choice choice)
+        {
+            bool showChoice = true;
+
+            // Don't create choice instance if choice doesn't pass conditional
+            if (choice.hasCondition) {
+                var conditionValue = PopEvaluationStack ();
+                if (!IsTruthy (conditionValue)) {
+                    showChoice = false;
+                }
+            }
+
+            // Don't create choice instance if player has already read this content
+            if (choice.onceOnly) {
+                var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
+                var visitCount = VisitCountForContainer (choiceTargetContainer);
+                if (visitCount > 0) {
+                    showChoice = false;
+                }
+            }
+                
+            var choiceInstance = new ChoiceInstance (choice);
+            choiceInstance.hasBeenChosen = false;
+            choiceInstance.threadAtGeneration = _callStack.currentThread.Copy ();
+
+            // Choice's text (if any) has been created on the output stream,
+            // so we need to find it and consume it.
+            string startText = "";
+            string choiceOnlyText = "";
+            for (int i = outputStream.Count - 1; i >= 0; --i) {
+                object outputObj = outputStream [i];
+
+                // "Current" is defined as "since last chosen choice"
+                var chosenInstance = outputObj as ChoiceInstance;
+                if (chosenInstance && chosenInstance.hasBeenChosen) {
+                    break;
+                }
+
+                // Now we're looking for the ControlCommands that signal
+                // where we began evaluating choice content.
+                var command = outputObj as ControlCommand;
+                if (command == null)
+                    continue;
+
+                // Two different possible types of choice content based on original weave syntax.
+                //   * start content [choice only content] ...
+                bool isStartContent = command.commandType == ControlCommand.CommandType.BeginChoiceStartContent;
+                bool isChoiceOnlyContent = command.commandType == ControlCommand.CommandType.BeginChoiceOnlyContent;
+                if ( isStartContent || isChoiceOnlyContent ) {
+
+                    var sb = new StringBuilder ();
+                    for (int j = i+1; j < outputStream.Count; ++j) {
+                        var obj = outputStream [j];
+                        Assert (obj is Runtime.Text || obj is Glue, "Should only have text within choice content");
+                        if (obj is Runtime.Text) {
+                            sb.Append (obj.ToString ());
+                        }
+                    }
+
+                    // Consumed these objects from the stream for the purposes of the choice content now
+                    outputStream.RemoveRange (i, outputStream.Count - i);
+
+                    if (isStartContent) {
+                        startText = sb.ToString ();
+                    } else {
+                        choiceOnlyText = sb.ToString ();
+                    }
+
+                }
+            }
+
+            // We go through the full process of creating the choice above so
+            // that we consume the content for it, since otherwise it'll
+            // be shown on the output stream.
+            if (!showChoice) {
+                return null;
+            }
+
+            // Set final text for the choice instance
+            choiceInstance.choiceText = startText + choiceOnlyText;
+
+            return choiceInstance;
         }
 
         // Does the expression result represented by this object evaluate to true?
@@ -470,7 +541,7 @@ namespace Ink.Runtime
                             // only problem is when exporting text for viewing, it skips over numbers etc.
                             var text = new Text (output.ToString ());
 
-                            outputStream.Add (text);
+                            PushToOutputStream (text);
                         }
 
                     }
@@ -485,6 +556,11 @@ namespace Ink.Runtime
 
                 case ControlCommand.CommandType.PopEvaluatedValue:
                     PopEvaluationStack ();
+                    break;
+
+                case ControlCommand.CommandType.BeginChoiceStartContent:
+                case ControlCommand.CommandType.BeginChoiceOnlyContent:
+                    outputStream.Add (evalCommand);
                     break;
 
                 case ControlCommand.CommandType.ChoiceCount:

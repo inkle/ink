@@ -8,9 +8,6 @@ namespace Ink.Runtime
         [JsonProperty("path")]
 		internal Path pathOnChoice { get; set; }
 
-        [JsonProperty("txt")]
-		public string choiceText { get; set; }
-
         [JsonProperty("hasCond")]
         internal bool hasCondition { get; set; }
 
@@ -21,14 +18,13 @@ namespace Ink.Runtime
         [JsonProperty("default")]
         internal bool isInvisibleDefault { get; set; }
 
-        internal Choice (string choiceText, bool onceOnly)
+        internal Choice (bool onceOnly)
 		{
-			this.choiceText = choiceText;
             this.onceOnly = onceOnly;
 		}
 
         // Require default constructor for serialisation
-        public Choice() : this(null, true) {}
+        public Choice() : this(true) {}
 
         public override string ToString ()
         {
@@ -39,7 +35,7 @@ namespace Ink.Runtime
                 targetString = " line " + targetLineNum;
             } 
 
-            return "Choice: '" + choiceText + "' -> " + targetString;
+            return "Choice: -> " + targetString;
         }
 	}
 }

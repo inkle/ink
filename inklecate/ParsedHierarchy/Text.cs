@@ -14,6 +14,11 @@ namespace Ink.Parsed
 		{
 			return new Runtime.Text(this.text);
 		}
+
+        public override string ToString ()
+        {
+            return this.text;
+        }
 	}
 }
 

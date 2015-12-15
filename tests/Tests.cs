@@ -318,7 +318,7 @@ VAR x = 3
 == test ==
 - start
  { 
-    - true: * go to a stitch -> a_stitch
+    - true: * [go to a stitch] -> a_stitch
  }
 - gather shouldn't be seen
 -> END
@@ -1354,7 +1354,7 @@ Done.
 === start ===
     {beats(-> start)}
     {beats(-> start)}
-    *   Choice  -> next 
+    *   [Choice]  -> next 
 = next 
     {beats(-> start)}
     -> END
