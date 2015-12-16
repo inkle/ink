@@ -4,7 +4,22 @@ namespace Ink.Runtime
 {
 	internal class Divert : Runtime.Object
 	{
-		public Path targetPath { get; set; }
+        public Path targetPath { 
+            get { 
+                // Resolve any relative paths to global ones as we come across them
+                if (_targetPath != null && _targetPath.isRelative) {
+                    var targetObj = ResolvePath (_targetPath);
+                    if (targetObj) {
+                        _targetPath = targetObj.path;
+                    }
+                }
+                return _targetPath;
+            }
+            set {
+                _targetPath = value;
+            } 
+        }
+        Path _targetPath;
 
         [JsonProperty("div")]
         [UniqueJsonIdentifier]
@@ -12,14 +27,15 @@ namespace Ink.Runtime
             get {
                 if (targetPath == null)
                     return null;
-                
-                return targetPath.componentsString;
+
+                return CompactPathString (targetPath);
             }
             set {
-                if (value == null)
+                if (value == null) {
                     targetPath = null;
-                else 
+                } else {
                     targetPath = new Path (value);
+                }
             }
         }
 

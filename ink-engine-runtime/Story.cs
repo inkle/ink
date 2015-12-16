@@ -1045,7 +1045,7 @@ namespace Ink.Runtime
             var choiceInstance = invisibleChoiceInstances [0];
             outputStream.Remove (choiceInstance);
 
-            currentPath = choiceInstance.choice.pathOnChoice;
+            currentPath = choiceInstance.choice.choiceTarget.path;
 
             return true;
         }
