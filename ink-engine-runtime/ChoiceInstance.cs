@@ -9,6 +9,10 @@ namespace Ink.Runtime
 		internal Choice choice { get; private set; }
         internal CallStack.Thread threadAtGeneration { get; set; }
 
+        public ChoiceInstance()
+        {
+        }
+
 		internal ChoiceInstance (Choice choice)
 		{
 			this.choice = choice;
