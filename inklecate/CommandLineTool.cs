@@ -64,7 +64,7 @@ namespace Ink
             string inputString = null;
             string rootDirectory = System.IO.Directory.GetCurrentDirectory();
             if (opts.workingDirectory != null) {
-                rootDirectory = opts.workingDirectory;
+                rootDirectory = Path.GetFullPath(opts.workingDirectory);
             }
 
             if (opts.stressTest) {
