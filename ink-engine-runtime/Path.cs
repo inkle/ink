@@ -9,11 +9,18 @@ namespace Ink.Runtime
     [JsonObject(MemberSerialization.OptIn)]
 	internal class Path
 	{
+        static string parentId = "^";
+
 		internal class Component
 		{
 			public int index { get; set; }
 			public string name { get; set; }
 			public bool isIndex { get { return index >= 0; } }
+            public bool isParent {
+                get {
+                    return name == Path.parentId;
+                }
+            }
 
 			public Component(int index)
 			{
@@ -28,6 +35,11 @@ namespace Ink.Runtime
 				this.name = name;
 				this.index = -1;
 			}
+
+            public static Component ToParent()
+            {
+                return new Component (parentId);
+            }
 
 			public override string ToString ()
 			{
@@ -62,6 +74,8 @@ namespace Ink.Runtime
 		}
 
 		public List<Component> components { get; private set; }
+
+        public bool isRelative { get; set; }
 
 		public Component head 
 		{ 
@@ -137,15 +151,36 @@ namespace Ink.Runtime
 
 		public Path PathByAppendingPath(Path pathToAppend)
 		{
-			Path p = new Path (this.components);
-			p.components.AddRange (pathToAppend.components);
+            Path p = new Path ();
+
+            int upwardMoves = 0;
+            for (int i = 0; i < pathToAppend.components.Count; ++i) {
+                if (pathToAppend.components [i].isParent) {
+                    upwardMoves++;
+                } else {
+                    break;
+                }
+            }
+
+            for (int i = 0; i < this.components.Count - upwardMoves; ++i) {
+                p.components.Add (this.components [i]);
+            }
+
+            for(int i=upwardMoves; i<pathToAppend.components.Count; ++i) {
+                p.components.Add (pathToAppend.components [i]);
+            }
+
 			return p;
 		}
 
 		public Path PathByAppendingElementWithName(string name)
 		{
 			Path p = new Path (this.components);
-			p.components.Add (new Component (name));
+            if (name == Path.parentId) {
+                p.components.RemoveAt (p.components.Count - 1);
+            } else {
+                p.components.Add (new Component (name));
+            }
 			return p;
 		}
 
@@ -159,12 +194,27 @@ namespace Ink.Runtime
         [JsonProperty("p")]
         public string componentsString {
             get {
-                return StringExt.Join (".", components);
+                var compsStr = StringExt.Join (".", components);
+                if (isRelative)
+                    return "." + compsStr;
+                else
+                    return compsStr;
             }
             set {
                 components.Clear ();
 
-                var componentStrings = value.Split('.');
+                var componentsStr = value;
+
+                // When components start with ".", it indicates a relative path, e.g.
+                //   .^.^.hello.5
+                // is equivalent to file system style path:
+                //  ../../hello/5
+                if (componentsStr [0] == '.') {
+                    isRelative = true;
+                    componentsStr = componentsStr.Substring (1);
+                }
+
+                var componentStrings = componentsStr.Split('.');
                 foreach (var str in componentStrings) {
                     int index;
                     if (int.TryParse (str , out index)) {
@@ -200,6 +250,9 @@ namespace Ink.Runtime
                 return false;
 
             if (otherPath.components.Count != this.components.Count)
+                return false;
+
+            if (otherPath.isRelative != this.isRelative)
                 return false;
 
             // This function call doesn't seem to be equivalent - not sure why not?

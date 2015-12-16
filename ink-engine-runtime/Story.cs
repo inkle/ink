@@ -320,7 +320,7 @@ namespace Ink.Runtime
 
             // Don't create choice instance if player has already read this content
             if (choice.onceOnly) {
-                var choiceTargetContainer = ClosestContainerAtPath (choice.pathOnChoice);
+                var choiceTargetContainer = ClosestContainerToObject (choice.choiceTarget);
                 var visitCount = VisitCountForContainer (choiceTargetContainer);
                 if (visitCount > 0) {
                     showChoice = false;
@@ -723,7 +723,7 @@ namespace Ink.Runtime
             chosenMarker.hasBeenChosen = true;
             outputStream.Add (chosenMarker);
 
-            ContinueFromPath (chosenMarker.choice.pathOnChoice, addChoiceMarker:false);
+            ContinueFromPath (chosenMarker.choice.choiceTarget.path, addChoiceMarker:false);
 		}
 
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
@@ -1194,6 +1194,11 @@ namespace Ink.Runtime
         Runtime.Container ClosestContainerAtPath(Path path)
         {
             var content = ContentAtPath (path);
+            return ClosestContainerToObject (content);
+        }
+
+        Runtime.Container ClosestContainerToObject(Runtime.Object content)
+        {
             while (content && !(content is Container)) {
                 content = content.parent;
             }

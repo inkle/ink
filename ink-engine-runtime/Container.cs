@@ -211,19 +211,25 @@ namespace Ink.Runtime
 
 		protected Runtime.Object ContentWithPathComponent(Path.Component component)
 		{
-			if( component.isIndex ) {
+            if (component.isIndex) {
 
-				if( component.index >= 0 && component.index < content.Count ) {
-					return content[component.index];
-				}
+                if (component.index >= 0 && component.index < content.Count) {
+                    return content [component.index];
+                }
 
 				// When path is out of range, quietly return nil
 				// (useful as we step/increment forwards through content)
 				else {
-					return null;
-				}
+                    return null;
+                }
 
-			} else {
+            } 
+
+            else if (component.isParent) {
+                return this.parent;
+            }
+
+            else {
 				return (Runtime.Object) namedContent[component.name];
 			}
 		}

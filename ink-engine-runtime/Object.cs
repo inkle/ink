@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Newtonsoft.Json;
 
 namespace Ink.Runtime
@@ -104,6 +105,86 @@ namespace Ink.Runtime
 				}
 			}
 		}
+
+        internal Runtime.Object ResolvePath(Path path)
+        {
+            if (path.isRelative) {
+
+                Container nearestContainer = this as Container;
+                if (!nearestContainer) {
+                    Debug.Assert (this.parent != null, "Can't resolve relative path because we don't have a parent");
+                    nearestContainer = this.parent as Container;
+                    Debug.Assert (nearestContainer != null, "Expected parent to be a container");
+                    Debug.Assert (path.components [0].isParent);
+                    path = path.tail;
+                }
+
+                return nearestContainer.ContentAtPath (path);
+            } else {
+                return this.rootContentContainer.ContentAtPath (path);
+            }
+        }
+
+        internal Path ConvertPathToRelative(Path globalPath)
+        {
+            // 1. Find last shared ancestor
+            // 2. Drill up using ".." style (actually represented as "^")
+            // 3. Re-build downward chain from common ancestor
+
+            var ownPath = this.path;
+
+            int minPathLength = Math.Min (globalPath.components.Count, ownPath.components.Count);
+            int lastSharedPathCompIndex = -1;
+
+            for (int i = 0; i < minPathLength; ++i) {
+                var ownComp = ownPath.components [i];
+                var otherComp = globalPath.components [i];
+
+                if (ownComp.Equals (otherComp)) {
+                    lastSharedPathCompIndex = i;
+                } else {
+                    break;
+                }
+            }
+
+            // No shared path components, so just use global path
+            if (lastSharedPathCompIndex == -1)
+                return globalPath;
+
+            int numUpwardsMoves = (ownPath.components.Count-1) - lastSharedPathCompIndex;
+
+            var newPathComps = new List<Path.Component> ();
+
+            for(int up=0; up<numUpwardsMoves; ++up)
+                newPathComps.Add (Path.Component.ToParent ());
+
+            for (int down = lastSharedPathCompIndex + 1; down < globalPath.components.Count; ++down)
+                newPathComps.Add (globalPath.components [down]);
+
+            var relativePath = new Path (newPathComps);
+            relativePath.isRelative = true;
+            return relativePath;
+        }
+
+        // Find most compact representation for a path, whether relative or global
+        internal string CompactPathString(Path otherPath)
+        {
+            string globalPathStr = null;
+            string relativePathStr = null;
+            if (otherPath.isRelative) {
+                relativePathStr = otherPath.componentsString;
+                globalPathStr = this.path.PathByAppendingPath(otherPath).componentsString;
+            } else {
+                var relativePath = ConvertPathToRelative (otherPath);
+                relativePathStr = relativePath.componentsString;
+                globalPathStr = otherPath.componentsString;
+            }
+
+            if (relativePathStr.Length < globalPathStr.Length) 
+                return relativePathStr;
+            else
+                return globalPathStr;
+        }
 
         internal Container rootContentContainer
         {

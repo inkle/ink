@@ -5,8 +5,23 @@ namespace Ink.Runtime
 {
 	public class Choice : Runtime.Object
 	{
+        internal Path pathOnChoice { get; set; }
+
+        internal Container choiceTarget {
+            get {
+                return this.ResolvePath (pathOnChoice) as Container;
+            }
+        }
+
         [JsonProperty("path")]
-		internal Path pathOnChoice { get; set; }
+        string pathStringOnChoice {
+            get {
+                return CompactPathString (pathOnChoice);
+            }
+            set {
+                pathOnChoice = new Path (value);
+            }
+        }
 
         [JsonProperty("hasCond")]
         internal bool hasCondition { get; set; }
