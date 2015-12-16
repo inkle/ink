@@ -3,7 +3,7 @@ namespace Ink.Runtime
 {
 	public class ChoiceInstance : Runtime.Object
 	{
-        public string choiceText { get; internal set; }
+        public string choiceText { get; set; }
 
         internal bool hasBeenChosen { get; set; }
 		internal Choice choice { get; private set; }
