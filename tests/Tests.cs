@@ -1478,6 +1478,31 @@ Joe
             Assert.AreEqual ("'Hello Joe,' I said, knowing full well that his name was Joe.\n", story.currentText);
         }
 
+        [Test ()]
+        public void TestOnceOnlyChoicesCanLinkBackToSelf()
+        {
+            var story = CompileString (@"
+= opts
+*   (firstOpt) [First choice]   ->  opts
+*   {firstOpt} [Second choice]  ->  opts
+* -> end
+
+- (end)
+    -> END
+");
+
+            story.Begin ();
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("First choice", story.currentChoices[0].choiceText);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("Second choice", story.currentChoices[0].choiceText);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (null, story.currentErrors);
+       }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

@@ -56,11 +56,7 @@ namespace Ink.Parsed
             Parsed.Object targetForCount = parsedPath.ResolveFromContext (this);
             if (targetForCount) {
 
-                Runtime.Container countedContainer = targetForCount.containerForCounting;
-                if (countedContainer == null) {
-                    throw new System.Exception ("Container for counting not found");
-                }
-                countedContainer.visitsShouldBeCounted = true;
+                targetForCount.containerForCounting.visitsShouldBeCounted = true;
 
                 _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;

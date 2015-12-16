@@ -30,30 +30,14 @@ namespace Ink.Parsed
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
         // Required for IWeavePoint interface
+        // Choice's target container. Used by weave to append any extra
+        // nested weave content into.
         public Runtime.Container runtimeContainer { get { return _innerContentContainer; } }
+
 
         public override Runtime.Container containerForCounting {
             get {
-                return runtimeContainer;
-            }
-        }
-
-        public bool   hasOwnContent {
-            get {
-                // Note that the simple case of both:
-                //   * a choice -> target
-                // and
-                //   * a choice
-                // have their own content, since "a choice" is re-printed on
-                // the output
-                //
-                // Also, a simple case of:
-                //   * [choice]
-                //    ...
-                // Looks like it has no content, but it should be capable of having
-                // content added to it, since the Weave structure will append
-                // content within the weave choice's inner container.
-                return startContent || innerContent || this.explicitPath == null;
+                return _innerContentContainer;
             }
         }
 
@@ -171,44 +155,42 @@ namespace Ink.Parsed
 
             _outerContainer.AddContent (_runtimeChoice);
 
-            // When choice is chosen, does this choice have its own container of content to divert to?
-            if( hasOwnContent ) {
+            // Container that choice points to for when it's chosen
+            _innerContentContainer = new Runtime.Container ();
 
-                _innerContentContainer = new Runtime.Container ();
+            // Repeat start content by diverting to its container
+            if (startContent) {
+                _divertToStartContentInner = new Runtime.Divert ();
+                _innerContentContainer.AddContent (new Runtime.PushPop (Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Push));
+                _innerContentContainer.AddContent (_divertToStartContentInner);
+            }
 
-                // Repeat start content by diverting to its container
-                if (startContent) {
-                    _divertToStartContentInner = new Runtime.Divert ();
-                    _innerContentContainer.AddContent (new Runtime.PushPop (Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Push));
-                    _innerContentContainer.AddContent (_divertToStartContentInner);
-                }
+            // Choice's own inner content
+            if (innerContent) {
+                var choiceOnlyContent = innerContent.GenerateRuntimeObject () as Runtime.Container;
+                _innerContentContainer.AddContentsOfContainer (choiceOnlyContent);
+            }
 
-                // Choice's own inner content
-                if (innerContent) {
-                    var choiceOnlyContent = innerContent.GenerateRuntimeObject () as Runtime.Container;
-                    _innerContentContainer.AddContentsOfContainer (choiceOnlyContent);
-                }
+            // Fully parsed choice will be a full line, so it needs to be terminated
+            if (startContent || innerContent) {
+                _innerContentContainer.AddContent(new Runtime.Text("\n"));
+            }
 
-                // Fully parsed choice will be a full line, so it needs to be terminated
-                if (startContent || innerContent) {
-                    _innerContentContainer.AddContent(new Runtime.Text("\n"));
-                }
+            // Use "c" as the destination name within the choice's outer container
+            _innerContentContainer.name = "c";
+            _outerContainer.AddToNamedContentOnly (_innerContentContainer);
 
-                _innerContentContainer.name = "c";
-                _outerContainer.AddToNamedContentOnly (_innerContentContainer);
+            if (this.story.countAllVisits) {
+                _innerContentContainer.visitsShouldBeCounted = true;
+                _innerContentContainer.turnIndexShouldBeCounted = true;
+            }
 
-                if (this.story.countAllVisits) {
-                    _innerContentContainer.visitsShouldBeCounted = true;
-                    _innerContentContainer.turnIndexShouldBeCounted = true;
-                }
+            _innerContentContainer.countingAtStartOnly = true;
 
-                _innerContentContainer.countingAtStartOnly = true;
-
-                // Does this choice end in an explicit divert?
-                if (this.explicitPath != null) {
-                    _weaveContentEndDivert = new Runtime.Divert ();
-                    _innerContentContainer.AddContent (_weaveContentEndDivert);
-                }
+            // Does this choice end in an explicit divert?
+            if (this.explicitPath != null) {
+                _weaveContentEndDivert = new Runtime.Divert ();
+                _innerContentContainer.AddContent (_weaveContentEndDivert);
             }
 
             return _outerContainer;
@@ -227,11 +209,6 @@ namespace Ink.Parsed
             }
 
             _resolvedExplicitPath = obj.runtimePath;
-
-            if (!hasOwnContent && onceOnly) {
-                var targetObjContainer = obj.runtimeObject as Runtime.Container;
-                targetObjContainer.visitsShouldBeCounted = true;
-            }
 
             if (_weaveContentEndDivert) {
                 _weaveContentEndDivert.targetPath = _resolvedExplicitPath;
