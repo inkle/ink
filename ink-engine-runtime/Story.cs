@@ -647,13 +647,11 @@ namespace Ink.Runtime
                 var varRef = (VariableReference)contentObj;
                 Runtime.Object foundValue = null;
 
-                Path pathForCount = null;
 
                 // Explicit literal read count
                 if (varRef.pathForCount != null) {
-                    pathForCount = varRef.pathForCount;
 
-                    var container = ContentAtPath (pathForCount) as Container;
+                    var container = varRef.containerForCount;
                     int count = VisitCountForContainer (container);
                     foundValue = new LiteralInt (count);
                 }

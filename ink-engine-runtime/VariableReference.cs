@@ -12,6 +12,12 @@ namespace Ink.Runtime
         // Variable reference is actually a path for a visit (read) count
         public Path pathForCount { get; set; }
 
+        internal Container containerForCount {
+            get {
+                return this.ResolvePath (pathForCount) as Container;
+            }
+        }
+
         [JsonProperty("readCount")]
         [UniqueJsonIdentifier]
         public string pathStringForCount { 
@@ -19,7 +25,7 @@ namespace Ink.Runtime
                 if( pathForCount == null )
                     return null;
 
-                return pathForCount.componentsString;
+                return CompactPathString(pathForCount);
             }
             set {
                 if (value == null)
