@@ -177,7 +177,7 @@ namespace Ink.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            if (!context.ResolveVariableWithName (varName, fromNode:this)) {
+            if (!context.ResolveVariableWithName (varName, fromNode:this).found) {
                 Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
             }
         }

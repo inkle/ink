@@ -170,9 +170,21 @@ namespace Ink.Parsed
                 var variableTargetName = PathAsVariableName ();
                 if (variableTargetName != null) {
                     var flowBaseScope = ClosestFlowBase ();
-                    if (flowBaseScope.ResolveVariableWithName (variableTargetName, fromNode:this)) {
+                    var resolveResult = flowBaseScope.ResolveVariableWithName (variableTargetName, fromNode: this);
+                    if (resolveResult.found) {
+
+                        // Make sure that the flow was typed correctly, given that we know that this
+                        // is meant to be a divert target
+                        if (resolveResult.isArgument) {
+                            var argument = resolveResult.ownerFlow.arguments.Where (a => a.name == variableTargetName).First();
+                            if ( !argument.isDivertTarget ) {
+                                Error ("Since '" + argument.name + "' is used as a variable divert target (on "+this.debugMetadata+"), it should be marked as: -> " + argument.name, resolveResult.ownerFlow);
+                            }
+                        }
+
                         runtimeDivert.variableDivertName = variableTargetName;
                         return;
+
                     }
                 }
 
@@ -194,6 +206,7 @@ namespace Ink.Parsed
             base.ResolveReferences (context);
 
             // May be null if it's a built in function (e.g. TURNS_SINCE)
+            // or if it's a variable target.
             var targetFlow = targetContent as FlowBase;
             if (targetFlow) {
                 if (!targetFlow.isFunction && this.isFunctionCall) {
@@ -212,8 +225,10 @@ namespace Ink.Parsed
                 }
 
                 // Variable target?
-                if (runtimeDivert.variableDivertName != null)
+                if (runtimeDivert.variableDivertName != null) {
+                    
                     return;
+                }
 
                 Error ("target not found: '" + target + "'");
             }

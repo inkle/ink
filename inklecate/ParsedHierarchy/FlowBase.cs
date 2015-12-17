@@ -79,8 +79,19 @@ namespace Ink.Parsed
             // empty by default, used by Story to process included file references
         }
 
-        public bool ResolveVariableWithName(string varName, Parsed.Object fromNode)
+        public struct VariableResolveResult
         {
+            public bool found;
+            public bool isGlobal;
+            public bool isArgument;
+            public bool isTemporary;
+            public FlowBase ownerFlow;
+        }
+
+        public VariableResolveResult ResolveVariableWithName(string varName, Parsed.Object fromNode)
+        {
+            var result = new VariableResolveResult ();
+
             if (fromNode == null) {
                 fromNode = this;
             }
@@ -91,27 +102,34 @@ namespace Ink.Parsed
                 if (ancestor is FlowBase) {
                     var ancestorFlow = (FlowBase)ancestor;
 
-                    if( ancestorFlow.HasVariableWithName(varName) ) {
-                        return true;
+
+                    if (ancestorFlow.arguments != null ) {
+                        foreach (var arg in ancestorFlow.arguments) {
+                            if (arg.name.Equals (varName)) {
+                                result.found = true;
+                                result.isArgument = true;
+                                result.ownerFlow = ancestorFlow;
+                                return result;
+                            }
+                        }
                     }
+
+                    if (ancestorFlow.variableDeclarations.ContainsKey (varName)) {
+                        result.found = true;
+                        result.ownerFlow = ancestorFlow;
+                        if ( !(ancestorFlow is Story) ) {
+                            result.isTemporary = true;
+                        }
+                        return result;
+                    }
+
                 }
 
                 ancestor = ancestor.parent;
             }
 
-            // TODO: Make temporary variables work again
-            return story.HasVariableWithName (varName);
-        }
-            
-        public bool HasVariableWithName(string varName)
-        {
-            if (arguments != null ) {
-                foreach (var arg in arguments) {
-                    if( arg.name.Equals(varName) ) return true;
-                }
-            }
-
-            return variableDeclarations.ContainsKey (varName);
+            result.found = false;
+            return result;
         }
 
         public void TryAddNewVariableDeclaration(VariableAssignment varDecl)
@@ -315,7 +333,7 @@ namespace Ink.Parsed
                     }
 
                     // Does argument conflict with another variable name?
-                    if (context.ResolveVariableWithName (arg.name, fromNode: this.parent)) {
+                    if (context.ResolveVariableWithName (arg.name, fromNode: this.parent).found) {
                         Error("Argument '"+ arg.name + "' conflicts with existing variable definition at higher scope.");
                         continue;
                     }

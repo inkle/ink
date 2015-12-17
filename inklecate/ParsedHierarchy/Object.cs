@@ -284,11 +284,26 @@ namespace Ink.Parsed
 				source = this;
 			}
 
+            // Only allow a single parsed object to have a single error *directly* associated with it
+            if (source._alreadyHadError && !isWarning) {
+                return;
+            }
+            if (source._alreadyHadWarning && isWarning) {
+                return;
+            }
+
             if (this.parent) {
                 this.parent.Error (message, source, isWarning);
             } else {
                 System.Diagnostics.Debug.Fail ("No parent object to send error to: "+message);
             }
+
+            if (isWarning) {
+                source._alreadyHadWarning = true;
+            } else {
+                source._alreadyHadError = true;
+            }
+
 		}
 
         public void Warning(string message, Parsed.Object source = null)
@@ -323,6 +338,9 @@ namespace Ink.Parsed
         {
             return base.GetHashCode ();
         }
+
+        bool _alreadyHadError;
+        bool _alreadyHadWarning;
 	}
 }
 

@@ -1510,7 +1510,7 @@ Joe
             var story = CompileString (@"
 -> one_then_tother(-> tunnel)
 
-=== one_then_tother(x) ===
+=== one_then_tother(-> x) ===
     -> x -> end
 
 === tunnel === 
@@ -1523,6 +1523,23 @@ Joe
 
             story.Begin ();
             Assert.AreEqual ("STUFF\n", story.currentText);
+        }
+
+        [Test ()]
+        public void TestRequireVariableTargetsTyped()
+        {
+            var parsedStory = CompileStringWithoutRuntime (@"
+-> test(-> elsewhere)
+
+== test(varTarget) ==
+-> varTarget ->
+-> DONE
+
+== elsewhere ==
+->->
+");
+            Assert.AreEqual (1, parsedStory.errors.Count);
+            Assert.IsTrue (parsedStory.errors[0].Contains("it should be marked as: ->"));
         }
 
 		//------------------------------------------------------------------------

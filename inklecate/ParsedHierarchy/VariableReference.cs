@@ -70,7 +70,7 @@ namespace Ink.Parsed
                 return;
             }
 
-            if (!context.ResolveVariableWithName (this.name, fromNode: this)) {
+            if (!context.ResolveVariableWithName (this.name, fromNode: this).found) {
                 Error("Unresolved variable: "+this.ToString(), this);
             }
         }

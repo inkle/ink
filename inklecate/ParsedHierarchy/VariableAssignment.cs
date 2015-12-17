@@ -76,7 +76,7 @@ namespace Ink.Parsed
             }
 
             if (!this.isNewTemporaryDeclaration) {
-                if (!context.ResolveVariableWithName (this.variableName, fromNode:this)) {
+                if (!context.ResolveVariableWithName (this.variableName, fromNode:this).found) {
                     if (story.constants.ContainsKey (variableName)) {
                         Error ("Can't re-assign to a constant (do you need to use VAR when declaring '" + this.variableName + "'?)", this);
                     } else {
