@@ -66,23 +66,53 @@ namespace Ink
                     }
                 }
 
+                // Like a switch statement
+                // { initialQueryExpression:
+                //    ... match the expression
+                // }
                 if (initialQueryExpression) {
 
                     bool earlierBranchesHaveOwnExpression = false;
                     for (int i = 0; i < alternatives.Count; ++i) {
                         var branch = alternatives [i];
+                        bool isLast = (i == alternatives.Count - 1);
+
+                        // Match query
                         if (branch.ownExpression) {
                             branch.shouldMatchEquality = true;
                             earlierBranchesHaveOwnExpression = true;
-                        } else if (earlierBranchesHaveOwnExpression) {
+                        }
+
+                        // Else (final branch)
+                        else if (earlierBranchesHaveOwnExpression && isLast) {
                             branch.alwaysMatch = true;
-                        } else {
-                            branch.isBoolCondition = true;
-                            branch.boolRequired = i == 0 ? true : false;
+                        } 
+
+                        // Binary condition:
+                        // { trueOrFalse:
+                        //    - when true
+                        //    - when false
+                        // }
+                        else {
+
+                            if (!isLast && alternatives.Count > 2) {
+                                ErrorWithParsedObject ("Only final branch can be an 'else'. Did you miss a ':'?", branch);
+                            } else {
+                                branch.isBoolCondition = true;
+                                branch.boolRequired = i == 0 ? true : false;
+                            }
                         }
                     }
-                } else {
+                } 
 
+                // No initial query, so just a multi-line conditional. e.g.:
+                // {
+                //   - x > 3:  greater than three
+                //   - x == 3: equal to three
+                //   - x < 3:  less than three
+                // }
+                else {
+                    
                     for (int i = 0; i < alternatives.Count; ++i) {
                         var alt = alternatives [i];
                         bool isLast = (i == alternatives.Count - 1);
@@ -90,15 +120,14 @@ namespace Ink
                             if (isLast) {
                                 alt.alwaysMatch = true;
                             } else {
-                                Error ("in a multi-line condition that has no initial condition, you need a condition on the branches themselves (except the last, which can be an 'else' clause)");
+                                ErrorWithParsedObject ("Branch doesn't have condition. Are you missing a ':'? ", alt);
                             }
                         }
                     }
                         
                     if (alternatives.Count == 1 && alternatives [0].ownExpression == null) {
-                        Error ("condition block with no actual conditions");
+                        ErrorWithParsedObject ("Condition block with no conditions", alternatives [0]);
                     }
-
                 }
             }
 
