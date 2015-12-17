@@ -1,68 +1,72 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
-    [JsonObject(MemberSerialization.OptIn)]
-    internal class PushPop : Runtime.Object
+    internal enum PushPopType 
     {
-        public enum Type
-        {
-            Tunnel,
-            Function
-        }
+        Tunnel,
+        Function
+    }
 
-        public enum Direction
-        {
-            Push,
-            Pop
-        }
-
+    [JsonObject(MemberSerialization.OptIn)]
+    internal class Pop : Runtime.Object
+    {
         // For serialisation
-        [JsonProperty("isPop")]
-        public bool isPop {
-            get {
-                return direction == Direction.Pop;
-            }
-            set {
-                direction = value ? Direction.Pop : Direction.Push;
-            }
-        }
-
-        // For serialisation
-        [JsonProperty("pushPop")]
+        [JsonProperty("pop")]
         [UniqueJsonIdentifier]
         public string typeString {
             get {
-                return this.type.ToString ();
+                return SerialisationName (this.type);
             }
             set {
-                string[] enumNames = Enum.GetNames (typeof(Type));
-                int enumIndex = Array.IndexOf (enumNames, value);
-                this.type = (Type) Enum.GetValues(typeof(Type)).GetValue(enumIndex);
+                this.type = SerialisedTypeFromName (value);
             }
         }
 
+        public static string SerialisationName(PushPopType pushPopType)
+        {
+            switch (pushPopType) {
+            case PushPopType.Tunnel:
+                return "tun";
+            case PushPopType.Function:
+                return "func";
+            }
 
-        public Type type;
-        public Direction direction;
+            System.Diagnostics.Debug.Fail ("PushPopType wasn't recognised");
+            return null;
+        }
 
-        public PushPop (Type type, Direction direction)
+        public static PushPopType SerialisedTypeFromName(string name)
+        {
+            switch (name) {
+            case "tun":
+                return PushPopType.Tunnel;
+            case "func":
+                return PushPopType.Function;
+            }
+
+            System.Diagnostics.Debug.Fail ("PushPopType wasn't recognised");
+            return PushPopType.Tunnel;
+        }
+
+        public PushPopType type;
+
+        public Pop (PushPopType type)
         {
             this.type = type;
-            this.direction = direction;
         }
 
         // For serialisation only
-        public PushPop()
+        public Pop()
         {
-            this.type = Type.Tunnel;
-            this.direction = Direction.Push;
+            this.type = PushPopType.Tunnel;
         }
 
         public override string ToString ()
         {
-            return string.Format ("Stack {0} ({1})", this.direction, this.type);
+            return string.Format ("Pop {0}", this.type);
         }
     }
 }

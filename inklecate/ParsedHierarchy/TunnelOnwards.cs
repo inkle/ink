@@ -4,7 +4,7 @@
     {
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            return new Runtime.PushPop (Runtime.PushPop.Type.Tunnel, Runtime.PushPop.Direction.Pop);
+            return new Runtime.Pop (Runtime.PushPopType.Tunnel);
         }
     }
 }

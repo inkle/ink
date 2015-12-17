@@ -197,9 +197,9 @@ namespace Ink.Runtime
                 }
 
                 if( currentChoices.Count == 0 && !_didSafeExit ) {
-                    if( _callStack.CanPop(PushPop.Type.Tunnel) ) {
+                    if( _callStack.CanPop(PushPopType.Tunnel) ) {
                         Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                    } else if( _callStack.CanPop(PushPop.Type.Function) ) {
+                    } else if( _callStack.CanPop(PushPopType.Function) ) {
                         Error("unexpectedly reached end of content. Do you need a '~ return'?");
                     } else if( !_callStack.canPop ) {
                         Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
@@ -480,31 +480,27 @@ namespace Ink.Runtime
                 return true;
             } 
 
-            else if (contentObj is PushPop) {
-                var pushPop = (PushPop) contentObj;
+            else if (contentObj is Pop) {
+                
+                var pop = (Pop) contentObj;
+                if (_callStack.currentElement.type != pop.type || !_callStack.canPop) {
 
-                // Push is handled in main Step function
-                if (pushPop.direction == PushPop.Direction.Pop) {
+                    var names = new Dictionary<PushPopType, string> ();
+                    names [PushPopType.Function] = "function return statement (~ ~ ~)";
+                    names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
 
-                    if (_callStack.currentElement.type != pushPop.type || !_callStack.canPop) {
-
-                        var names = new Dictionary<PushPop.Type, string> ();
-                        names [PushPop.Type.Function] = "function return statement (~ ~ ~)";
-                        names [PushPop.Type.Tunnel] = "tunnel onwards statement (->->)";
-
-                        string expected = names [_callStack.currentElement.type];
-                        if (!_callStack.canPop) {
-                            expected = "end of flow (-> END or choice)";
-                        }
-
-                        var errorMsg = string.Format ("Found {0}, when expected {1}", names [pushPop.type], expected);
-
-                        Error (errorMsg);
-                    } 
-
-                    else {
-                        _callStack.Pop ();
+                    string expected = names [_callStack.currentElement.type];
+                    if (!_callStack.canPop) {
+                        expected = "end of flow (-> END or choice)";
                     }
+
+                    var errorMsg = string.Format ("Found {0}, when expected {1}", names [pop.type], expected);
+
+                    Error (errorMsg);
+                } 
+
+                else {
+                    _callStack.Pop ();
                 }
 
                 return true;
@@ -727,7 +723,7 @@ namespace Ink.Runtime
         {
             int startCallStackHeight = _callStack.elements.Count;
 
-            _callStack.Push (PushPop.Type.Tunnel);
+            _callStack.Push (PushPopType.Tunnel);
 
             _temporaryEvaluationContainer = exprContainer;
 
@@ -1002,10 +998,10 @@ namespace Ink.Runtime
 
                 bool didPop = false;
 
-                if (_callStack.CanPop (PushPop.Type.Function)) {
+                if (_callStack.CanPop (PushPopType.Function)) {
                     
                     // Pop from the call stack
-                    _callStack.Pop (PushPop.Type.Function);
+                    _callStack.Pop (PushPopType.Function);
 
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it

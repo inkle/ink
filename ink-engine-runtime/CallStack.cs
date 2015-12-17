@@ -11,9 +11,9 @@ namespace Ink.Runtime
             public Path path;
             public bool inExpressionEvaluation;
             public Dictionary<string, Runtime.Object> temporaryVariables;
-            public PushPop.Type type;
+            public PushPopType type;
 
-            public Element(PushPop.Type type, Path initialPath = null, bool inExpressionEvaluation = false) {
+            public Element(PushPopType type, Path initialPath = null, bool inExpressionEvaluation = false) {
                 if( initialPath == null ) {
                     initialPath = Path.ToFirstElement ();
                 }
@@ -121,7 +121,7 @@ namespace Ink.Runtime
             _threads = new List<Thread> ();
             _threads.Add (new Thread ());
 
-            _threads [0].callstack.Add (new Element (PushPop.Type.Tunnel));
+            _threads [0].callstack.Add (new Element (PushPopType.Tunnel));
         }
 
         public void PushThread()
@@ -145,13 +145,13 @@ namespace Ink.Runtime
             }
         }
 
-        public void Push(PushPop.Type type)
+        public void Push(PushPopType type)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
             callStack.Add (new Element(type, initialPath: currentElement.path, inExpressionEvaluation: false));
         }
 
-        public bool CanPop(PushPop.Type? type = null) {
+        public bool CanPop(PushPopType? type = null) {
 
             if (!canPop)
                 return false;
@@ -162,7 +162,7 @@ namespace Ink.Runtime
             return currentElement.type == type;
         }
             
-        public void Pop(PushPop.Type? type = null)
+        public void Pop(PushPopType? type = null)
         {
             if (CanPop (type)) {
                 callStack.RemoveAt (callStack.Count - 1);

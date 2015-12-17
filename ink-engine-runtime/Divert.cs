@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Text;
 
 namespace Ink.Runtime
 {
@@ -45,26 +46,21 @@ namespace Ink.Runtime
         public bool hasVariableTarget { get { return variableDivertName != null; } }
 
         public bool pushesToStack { get; set; }
-        public PushPop.Type stackPushType;
+        public PushPopType stackPushType;
 
         [JsonProperty("push")]
         public string pushTypeString {
             get {
                 if (!pushesToStack)
                     return null;
-
-                if (stackPushType == PushPop.Type.Tunnel)
-                    return "tun";
-                else
-                    return "func";
+                return Pop.SerialisationName (stackPushType);
             }
             set {
-                if (value == "tun") {
+                if (value != null && value.Length > 0) {
+                    stackPushType = Pop.SerialisedTypeFromName (value);
                     pushesToStack = true;
-                    stackPushType = PushPop.Type.Tunnel;
-                } else if (value == "func") {
-                    pushesToStack = true;
-                    stackPushType = PushPop.Type.Function;
+                } else {
+                    pushesToStack = false;
                 }
             }
         }
@@ -74,7 +70,7 @@ namespace Ink.Runtime
             pushesToStack = false;
 		}
 
-        public Divert(PushPop.Type stackPushType)
+        public Divert(PushPopType stackPushType)
         {
             pushesToStack = true;
             this.stackPushType = stackPushType;
@@ -114,13 +110,29 @@ namespace Ink.Runtime
             else if (targetPath == null) {
                 return "Divert(null)";
             } else {
+
+                var sb = new StringBuilder ();
+
                 string targetStr = targetPath.ToString ();
                 int? targetLineNum = DebugLineNumberOfPath (targetPath);
                 if (targetLineNum != null) {
                     targetStr = " line " + targetLineNum;
                 }
 
-                return "Divert(" + targetStr + ")";
+                sb.Append ("Divert");
+                if (pushesToStack) {
+                    if (stackPushType == PushPopType.Function) {
+                        sb.Append (" function");
+                    } else {
+                        sb.Append (" tunnel");
+                    }
+                }
+
+                sb.Append (" (");
+                sb.Append (targetStr);
+                sb.Append (")");
+
+                return sb.ToString ();
             }
         }
 	}
