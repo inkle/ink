@@ -150,26 +150,50 @@ namespace Ink
 
         protected FlowBase.Argument FlowDeclArgument()
         {
-            // Next word could either be "ref" or the argument name
+            // Possible forms:
+            //  name
+            //  -> name      (variable divert target argument
+            //  ref name
+            //  ref -> name  (variable divert target by reference)
             var firstIden = Parse(Identifier);
-            if (firstIden == null)
+            Whitespace ();
+            var divertArrow = ParseDivertArrow ();
+            Whitespace ();
+            var secondIden = Parse(Identifier);
+
+            if (firstIden == null && secondIden == null)
                 return null;
 
+
             var flowArg = new FlowBase.Argument ();
+            if (divertArrow != null) {
+                flowArg.isDivertTarget = true;
+            }
 
             // Passing by reference
             if (firstIden == "ref") {
 
-                Whitespace ();
+                if (secondIden == null) {
+                    Error ("Expected an parameter name after 'ref'");
+                }
 
-                flowArg.name = (string) Expect (Identifier, "parameter name after 'ref'");
+                flowArg.name = secondIden;
                 flowArg.isByReference = true;
-
             } 
 
             // Simple argument name
             else {
-                flowArg.name = firstIden;
+
+                if (flowArg.isDivertTarget) {
+                    flowArg.name = secondIden;
+                } else {
+                    flowArg.name = firstIden;
+                }
+
+                if (flowArg.name == null) {
+                    Error ("Expected an parameter name");
+                }
+
                 flowArg.isByReference = false;
             }
 

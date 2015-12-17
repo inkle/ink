@@ -9,6 +9,7 @@ namespace Ink.Parsed
         {
             public string name;
             public bool isByReference;
+            public bool isDivertTarget;
         }
 
 		public string name { get; set; }
