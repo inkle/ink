@@ -289,6 +289,18 @@ namespace Ink.Parsed
                 Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
                 return false;
             }
+
+            // Light type-checking for divert target arguments
+            for (int i = 0; i < paramCount; ++i) {
+                FlowBase.Argument flowArg = targetFlow.arguments [i];
+                Parsed.Expression divArgExpr = arguments [i];
+
+                if (flowArg.isDivertTarget) {
+                    if ( !(divArgExpr is VariableReference || divArgExpr is DivertTarget) ) {
+                        Error ("Target '"+targetFlow.name + "' expects a divert target for the parameter named -> " + flowArg.name + " but saw "+divArgExpr, divArgExpr);
+                    }
+                }
+            }
                 
             if (targetFlow == null) {
                 Error ("Can't call as a function or with arguments unless it's a knot or stitch");
