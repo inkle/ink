@@ -125,8 +125,7 @@ namespace Ink.Parsed
                 _outerContainer.AddContent (Runtime.ControlCommand.BeginChoiceStartContent ());
 
                 // "Function call" to generate start content
-                _divertToStartContentOuter = new Runtime.Divert ();
-                _outerContainer.AddContent (new Runtime.PushPop (Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Push));
+                _divertToStartContentOuter = new Runtime.Divert (Runtime.PushPop.Type.Function);
                 _outerContainer.AddContent (_divertToStartContentOuter);
 
                 // Start content itself in a named container
@@ -160,8 +159,7 @@ namespace Ink.Parsed
 
             // Repeat start content by diverting to its container
             if (startContent) {
-                _divertToStartContentInner = new Runtime.Divert ();
-                _innerContentContainer.AddContent (new Runtime.PushPop (Runtime.PushPop.Type.Function, Runtime.PushPop.Direction.Push));
+                _divertToStartContentInner = new Runtime.Divert (Runtime.PushPop.Type.Function);
                 _innerContentContainer.AddContent (_divertToStartContentInner);
             }
 

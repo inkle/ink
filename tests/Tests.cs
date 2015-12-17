@@ -1501,7 +1501,29 @@ Joe
 
             story.ContinueWithChoiceIndex (0);
             Assert.AreEqual (null, story.currentErrors);
-       }
+        }
+
+
+        [Test ()]
+        public void TestVariableTunnel()
+        {
+            var story = CompileString (@"
+-> one_then_tother(-> tunnel)
+
+=== one_then_tother(x) ===
+    -> x -> end
+
+=== tunnel === 
+    STUFF
+    ->->
+
+=== end ===
+    -> END
+");
+
+            story.Begin ();
+            Assert.AreEqual ("STUFF\n", story.currentText);
+        }
 
 		//------------------------------------------------------------------------
 

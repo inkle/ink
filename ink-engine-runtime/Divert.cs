@@ -44,9 +44,41 @@ namespace Ink.Runtime
         public string variableDivertName { get; set; }
         public bool hasVariableTarget { get { return variableDivertName != null; } }
 
+        public bool pushesToStack { get; set; }
+        public PushPop.Type stackPushType;
+
+        [JsonProperty("push")]
+        public string pushTypeString {
+            get {
+                if (!pushesToStack)
+                    return null;
+
+                if (stackPushType == PushPop.Type.Tunnel)
+                    return "tun";
+                else
+                    return "func";
+            }
+            set {
+                if (value == "tun") {
+                    pushesToStack = true;
+                    stackPushType = PushPop.Type.Tunnel;
+                } else if (value == "func") {
+                    pushesToStack = true;
+                    stackPushType = PushPop.Type.Function;
+                }
+            }
+        }
+
 		public Divert ()
 		{
+            pushesToStack = false;
 		}
+
+        public Divert(PushPop.Type stackPushType)
+        {
+            pushesToStack = true;
+            this.stackPushType = stackPushType;
+        }
 
         public override bool Equals (object obj)
         {

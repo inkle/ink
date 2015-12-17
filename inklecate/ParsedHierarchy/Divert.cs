@@ -130,8 +130,8 @@ namespace Ink.Parsed
                 // If this divert is a function call, tunnel, we push to the call stack
                 // so we can return again
                 else if (isFunctionCall || isTunnel) {
-                    Runtime.PushPop.Type pushPopType = isFunctionCall ? Runtime.PushPop.Type.Function : Runtime.PushPop.Type.Tunnel;
-                    container.AddContent(new Runtime.PushPop(pushPopType, Runtime.PushPop.Direction.Push));
+                    runtimeDivert.pushesToStack = true;
+                    runtimeDivert.stackPushType = isFunctionCall ? Runtime.PushPop.Type.Function : Runtime.PushPop.Type.Tunnel;
                 }
 
                 // Jump into the "function" (knot/stitch)

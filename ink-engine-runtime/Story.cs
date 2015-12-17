@@ -291,12 +291,8 @@ namespace Ink.Runtime
             // Increment the content pointer, following diverts if necessary
             NextContent ();
 
-            // Any push to the call stack should be done after the increment to the content pointer,
-            // so that when returning from the stack, it returns to the content after the push instruction
-            var pushPop = currentContentObj as PushPop;
-            if( pushPop != null && pushPop.direction == PushPop.Direction.Push ) {
-                _callStack.Push (pushPop.type);
-            }
+            // Starting a thread should be done after the increment to the content pointer,
+            // so that when returning from the thread, it returns to the content after this instruction.
             var controlCmd = currentContentObj as ControlCommand;
             if (controlCmd && controlCmd.commandType == ControlCommand.CommandType.StartThread) {
                 _callStack.PushThread ();
@@ -453,6 +449,9 @@ namespace Ink.Runtime
                     _divertedPath = currentDivert.targetPath;
                 }
 
+                if (currentDivert.pushesToStack) {
+                    _callStack.Push (currentDivert.stackPushType);
+                }
 
                 if (_divertedPath == null) {
 
