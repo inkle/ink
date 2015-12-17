@@ -9,7 +9,7 @@ namespace Ink.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        const int inkVersionCurrent = 7;
+        const int inkVersionCurrent = 8;
 
         // Version numbers are for engine itself and story file, rather
         // than the save format.
@@ -22,7 +22,7 @@ namespace Ink.Runtime
         //     If possible, you should support it, though it's not as
         //     critical as loading old save games, since it's an
         //     in-development problem only.
-        const int inkVersionMinimumCompatible = 7;
+        const int inkVersionMinimumCompatible = 8;
 
         internal Path currentPath { 
             get { 
