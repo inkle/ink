@@ -116,7 +116,7 @@ namespace Ink.Runtime
                 string targetStr = targetPath.ToString ();
                 int? targetLineNum = DebugLineNumberOfPath (targetPath);
                 if (targetLineNum != null) {
-                    targetStr = " line " + targetLineNum;
+                    targetStr = "line " + targetLineNum;
                 }
 
                 sb.Append ("Divert");

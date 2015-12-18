@@ -138,7 +138,8 @@ namespace Ink.Parsed
             }
 
             variableInitialisation.AddContent (Runtime.ControlCommand.EvalEnd ());
-            rootContainer.InsertContent (variableInitialisation, 0);
+            if( variableDeclarations.Count > 0 )
+                rootContainer.InsertContent (variableInitialisation, 0);
 
             // Signal that it's safe to exit without error, even if there are no choices generated
             // (this only happens at the end of top level content that isn't in any particular knot)
