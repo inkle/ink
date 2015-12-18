@@ -7,6 +7,7 @@ namespace Ink.Runtime
     {
         Int,
         Float,
+        String,
         DivertTarget,
         VariablePointer
     }
@@ -77,6 +78,10 @@ namespace Ink.Runtime
                 return new LiteralFloat ((float)this.value);
             }
 
+            if (newType == LiteralType.String) {
+                return new LiteralString("" + this.value);
+            }
+
             throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
         }
     }
@@ -100,6 +105,50 @@ namespace Ink.Runtime
 
             if (newType == LiteralType.Int) {
                 return new LiteralInt ((int)this.value);
+            }
+
+            if (newType == LiteralType.String) {
+                return new LiteralString("" + this.value);
+            }
+
+            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
+        }
+    }
+
+    internal class LiteralString : Literal<string>
+    {
+        public override LiteralType literalType { get { return LiteralType.String; } }
+        public override bool isTruthy { get { return value.Length > 0; } }
+
+        public LiteralString(string literalVal) : base(literalVal)
+        {
+        }
+
+        public LiteralString() : this("") {}
+
+        public override Literal Cast(LiteralType newType)
+        {
+            if (newType == literalType) {
+                return this;
+            }
+
+            if (newType == LiteralType.Int) {
+
+                int parsedInt;
+                if (!int.TryParse (value, out parsedInt)) {
+                    return new LiteralInt (parsedInt);
+                }
+
+                throw new StoryException ("Could not cast string to int");
+            }
+
+            if (newType == LiteralType.Float) {
+                float parsedFloat;
+                if (!float.TryParse (value, out parsedFloat)) {
+                    return new LiteralFloat (parsedFloat);
+                }
+
+                throw new StoryException ("Could not cast string to float");
             }
 
             throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
