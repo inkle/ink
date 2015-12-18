@@ -1542,6 +1542,23 @@ Joe
             Assert.IsTrue (parsedStory.errors[0].Contains("it should be marked as: ->"));
         }
 
+        [Test ()]
+        public void TestIdentifersCanStartWithNumbers()
+        {
+            var story = CompileString (@"
+-> 2tests
+== 2tests ==
+~ temp 512x2 = 512 * 2
+~ temp 512x2p2 = 512x2 + 2
+512x2 = {512x2}
+512x2p2 = {512x2p2}
+-> DONE
+");
+            story.Begin ();
+
+            Assert.AreEqual ("512x2 = 1024\n512x2p2 = 1026\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

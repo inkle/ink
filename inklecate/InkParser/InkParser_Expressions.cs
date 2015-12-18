@@ -180,7 +180,9 @@ namespace Ink
 
 			Whitespace ();
 
-            var expr = OneOf (ExpressionParen, ExpressionLiteral, ExpressionFunctionCall, ExpressionVariableName) as Expression;
+            // - Since we allow numbers at the start of variable names, variable names are checked before literals
+            // - Function calls before variable names in case we see parentheses
+            var expr = OneOf (ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
             if (expr == null && prefixOp != null) {

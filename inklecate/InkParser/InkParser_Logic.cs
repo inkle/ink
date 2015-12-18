@@ -266,34 +266,38 @@ namespace Ink
             return expr;
         }
 
+        // Note: we allow identifiers that start with a number,
+        // but not if they *only* comprise numbers
         protected string Identifier()
         {
             if (_identifierCharSet == null) {
-
-                _identifierFirstCharSet = new CharacterSet ();
-                _identifierFirstCharSet.AddRange ('A', 'Z');
-                _identifierFirstCharSet.AddRange ('a', 'z');
-                _identifierFirstCharSet.Add ('_');
-
-                _identifierCharSet = new CharacterSet(_identifierFirstCharSet);
+                _identifierCharSet = new CharacterSet ();
+                _identifierCharSet.AddRange ('A', 'Z');
+                _identifierCharSet.AddRange ('a', 'z');
                 _identifierCharSet.AddRange ('0', '9');
-            }
-
-            // Parse single character first
-            var name = ParseCharactersFromCharSet (_identifierFirstCharSet, true, 1);
-            if (name == null) {
-                return null;
+                _identifierCharSet.Add ('_');
             }
 
             // Parse remaining characters (if any)
-            var tailChars = ParseCharactersFromCharSet (_identifierCharSet);
-            if (tailChars != null) {
-                name = name + tailChars;
+            var name = ParseCharactersFromCharSet (_identifierCharSet);
+            if (name == null)
+                return null;
+
+            // Reject if it's just a number
+            bool isNumberCharsOnly = true;
+            foreach (var c in name) {
+                if ( !(c >= '0' && c <= '9') ) {
+                    isNumberCharsOnly = false;
+                    break;
+                }
+            }
+            if (isNumberCharsOnly) {
+                return null;
             }
 
             return name;
         }
-        private CharacterSet _identifierFirstCharSet;
+            
         private CharacterSet _identifierCharSet;
     }
 }
