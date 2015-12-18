@@ -1559,6 +1559,30 @@ Joe
             Assert.AreEqual ("512x2 = 1024\n512x2p2 = 1026\n", story.currentText);
         }
 
+
+        [Test ()]
+        public void TestUnbalancedWeaveIndentation()
+        {
+            var story = CompileString (@"
+* * * First
+* * * * Very indented
+- - End
+-> END
+");
+            story.Begin ();
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("First", story.currentChoices[0].choiceText);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual ("First\n", story.currentText);
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual ("Very indented", story.currentChoices[0].choiceText);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (0, story.currentChoices.Count);
+            Assert.AreEqual ("Very indented\nEnd\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

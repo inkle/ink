@@ -186,32 +186,39 @@ namespace Ink.Parsed
                     AddRuntimeForWeavePoint ((IWeavePoint)obj);
                 } 
 
-                // Nested weave
-                else if (obj is Weave) {
-                    var weave = (Weave)obj;
-                    AddRuntimeForNestedWeave (weave);
-                    gatherPointsToResolve.AddRange (weave.gatherPointsToResolve);
-                }
-                    
+                // Non-weave point
                 else {
 
-                    // Find any nested explicit gather points within this object
-                    // (including the object itself)
-                    // i.e. instances of "->" without a target that's meant to go 
-                    // to the next gather point.
-                    var innerExplicitGathers = obj.FindAll<Divert> (d => d.isToGather);
-                    if (innerExplicitGathers.Count > 0)
-                        looseEnds.AddRange (innerExplicitGathers.ToArray());
+                    // Nested weave
+                    if (obj is Weave) {
+                        var weave = (Weave)obj;
+                        AddRuntimeForNestedWeave (weave);
+                        gatherPointsToResolve.AddRange (weave.gatherPointsToResolve);
+                    }
 
-                    // Keep track of nested choices within the current section,
+                    // Other object
+                    // May be complex object that contains statements - e.g. a multi-line conditional
+                    else {
+
+                        // Find any nested explicit gather points within this object
+                        // (including the object itself)
+                        // i.e. instances of "->" without a target that's meant to go 
+                        // to the next gather point.
+                        var innerExplicitGathers = obj.FindAll<Divert> (d => d.isToGather);
+                        if (innerExplicitGathers.Count > 0)
+                            looseEnds.AddRange (innerExplicitGathers.ToArray());
+
+                        // Add content
+                        AddGeneralRuntimeContent (obj.runtimeObject);
+                    }
+
+                    // Keep track of nested choices within this (possibly complex) object,
                     // so that the next Gather knows whether to auto-enter
                     // (it auto-enters when there are no choices)
                     var innerChoices = obj.FindAll<Choice> ();
                     if (innerChoices.Count > 0)
                         hasSeenChoiceInSection = true;
-                        
-                    // Add content
-                    AddGeneralRuntimeContent (obj.runtimeObject);
+
                 }
             }
 
