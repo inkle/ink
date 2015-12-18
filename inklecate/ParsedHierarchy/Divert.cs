@@ -92,7 +92,7 @@ namespace Ink.Parsed
                     for (var i = 0; i < arguments.Count; ++i) {
                         Expression argToPass = arguments [i];
                         FlowBase.Argument argExpected = null; 
-                        if( targetArguments != null ) 
+                        if( targetArguments != null && i < targetArguments.Count ) 
                             argExpected = targetArguments [i];
 
                         // Pass by reference: argument needs to be a variable reference
