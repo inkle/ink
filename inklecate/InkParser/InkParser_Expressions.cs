@@ -228,7 +228,7 @@ namespace Ink
 
 		protected Expression ExpressionLiteral()
 		{
-            return (Expression) OneOf (ExpressionFloat, ExpressionInt, ExpressionBool);
+            return (Expression) OneOf (ExpressionFloat, ExpressionInt, ExpressionBool, ExpressionString);
 		}
 
         protected Expression ExpressionDivertTarget()
@@ -262,6 +262,22 @@ namespace Ink
             } else {
                 return new Number (floatOrNull.Value);
             }
+        }
+
+        protected StringExpression ExpressionString()
+        {
+            var openQuote = ParseString ("\"");
+            if (openQuote == null)
+                return null;
+
+            var stringValue = ParseUntilCharactersFromCharSet (new CharacterSet ("\"\n\r"));
+
+            Expect (String ("\""), "close quote for string expression");
+
+            if (stringValue == null)
+                stringValue = "";
+
+            return new StringExpression (stringValue);
         }
 
         protected Number ExpressionBool()

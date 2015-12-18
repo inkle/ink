@@ -96,6 +96,7 @@
     <Compile Include="InkParser\InkParser_AuthorWarning.cs" />
     <Compile Include="ParsedHierarchy\AuthorWarning.cs" />
     <Compile Include="ParsedHierarchy\ConstantDeclaration.cs" />
+    <Compile Include="ParsedHierarchy\StringExpression.cs" />
   </ItemGroup>
   <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" Condition="Exists('..\ink-engine-runtime\ink-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

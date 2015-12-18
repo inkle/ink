@@ -69,7 +69,7 @@ namespace Ink
             Whitespace ();
 
             var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
-            if (!(expr is Number || expr is DivertTarget || expr is VariableReference)) {
+            if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference)) {
                 Error ("initial value for a variable must be a number, constant, or divert target");
             }
 
