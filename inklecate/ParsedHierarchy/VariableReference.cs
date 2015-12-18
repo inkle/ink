@@ -61,6 +61,18 @@ namespace Ink.Parsed
                 _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;
 
+                // Check for very specific writer error: getting read count and
+                // printing it as content rather than as a piece of logic
+                // e.g. Writing {myFunc} instead of {myFunc()}
+                var targetFlow = targetForCount as FlowBase;
+                if (targetFlow && targetFlow.isFunction) {
+
+                    // Is parent context content rather than logic?
+                    if ( parent is Weave || parent is ContentList || parent is FlowBase) {
+                        Warning ("'" + targetFlow.name + "' being used as read count rather than being called as function. Perhaps you intended to write " + targetFlow.name + "()");
+                    }
+                }
+
                 return;
             } 
 
