@@ -3,11 +3,15 @@ using System.ComponentModel;
 
 namespace Ink.Runtime
 {
+    // Order is significant for type coersion.
+    // If types aren't directly compatible for an operation,
+    // they're coerced to the same type, upward.
+    // (This may not be the most sensible thing to do, but it's worked so far!)
     internal enum LiteralType
     {
+        String,
         Int,
         Float,
-        String,
         DivertTarget,
         VariablePointer
     }
@@ -27,6 +31,8 @@ namespace Ink.Runtime
                 return new LiteralInt ((int)val);
             } else if (val is float) {
                 return new LiteralFloat ((float)val);
+            } else if (val is string) {
+                return new LiteralString ((string)val);
             } else if (val is Path) {
                 return new LiteralDivertTarget ((Path)val);
             }

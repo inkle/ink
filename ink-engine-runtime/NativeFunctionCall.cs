@@ -83,6 +83,8 @@ namespace Ink.Runtime
                 return Call<int> (coercedParams);
             } else if (coercedType == LiteralType.Float) {
                 return Call<float> (coercedParams);
+            } else if (coercedType == LiteralType.String) {
+                return Call<string> (coercedParams);
             } else if (coercedType == LiteralType.DivertTarget) {
                 return Call<Path> (coercedParams);
             }
@@ -97,28 +99,40 @@ namespace Ink.Runtime
 
             var val1 = (Literal<T>)param1;
 
-            // Binary
-            if (parametersOfSingleType.Count == 2) {
-                Literal param2 = (Literal) parametersOfSingleType [1];
+            int paramCount = parametersOfSingleType.Count;
 
-                var val2 = (Literal<T>)param2;
-                var opForType = (BinaryOp<T>)_operationFuncs [litType];
+            if (paramCount == 2 || paramCount == 1) {
 
-                // Return value unknown until it's evaluated
-                object resultVal = opForType (val1.value, val2.value);
+                object opForTypeObj = null;
+                if (!_operationFuncs.TryGetValue (litType, out opForTypeObj)) {
+                    throw new StoryException ("Can not perform operation '"+this.name+"' on "+litType);
+                }
 
-                return Literal.Create (resultVal);
-            } 
+                // Binary
+                if (paramCount == 2) {
+                    Literal param2 = (Literal) parametersOfSingleType [1];
 
-            // Unary
-            else if (parametersOfSingleType.Count == 1) {
+                    var val2 = (Literal<T>)param2;
 
-                var opForType = (UnaryOp<T>)_operationFuncs [litType];
-                var resultVal = opForType (val1.value);
+                    var opForType = (BinaryOp<T>)opForTypeObj;
 
-                return Literal.Create (resultVal);
-            } 
+                    // Return value unknown until it's evaluated
+                    object resultVal = opForType (val1.value, val2.value);
 
+                    return Literal.Create (resultVal);
+                } 
+
+                // Unary
+                else {
+
+                    var opForType = (UnaryOp<T>)opForTypeObj;
+
+                    var resultVal = opForType (val1.value);
+
+                    return Literal.Create (resultVal);
+                }  
+            }
+                
             else {
                 throw new System.Exception ("Unexpected number of parameters to NativeFunctionCall: " + parametersOfSingleType.Count);
             }
@@ -126,7 +140,7 @@ namespace Ink.Runtime
 
         List<Literal> CoerceLiteralsToSingleType(List<Runtime.Object> parametersIn)
         {
-            LiteralType litType = LiteralType.Int;
+            LiteralType litType = LiteralType.String;
 
             // Find out what the output type is
             // "higher level" types infect both so that binary operations
@@ -218,6 +232,9 @@ namespace Ink.Runtime
                 AddFloatBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
+                // String operations
+                AddStringBinaryOp(Add,     (x, y) => x + y); // concat
+                AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
 
                 // Special case: The only operation you can do on divert target literals
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
@@ -260,6 +277,11 @@ namespace Ink.Runtime
         static void AddFloatBinaryOp(string name, BinaryOp<float> op)
         {
             AddOpToNativeFunc (name, 2, LiteralType.Float, op);
+        }
+
+        static void AddStringBinaryOp(string name, BinaryOp<string> op)
+        {
+            AddOpToNativeFunc (name, 2, LiteralType.String, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<int> op)

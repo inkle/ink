@@ -1392,10 +1392,16 @@ VAR negativeLiteral3 = !(0)
         {
             var story = CompileString (@"
 VAR x = 5
+
 {x}
 
 * [choice]
 -
+{x}
+
+* [choice]
+-
+
 {x}
 
 * [choice]
@@ -1421,9 +1427,16 @@ VAR x = 5
             Assert.AreEqual ("8.5\n", story.currentText);
             Assert.AreEqual (8.5f, story.variablesState["x"]);
 
+            story.variablesState["x"] = "a string";
+            story.ContinueWithChoiceIndex(0);
+            Assert.AreEqual ("a string\n", story.currentText);
+            Assert.AreEqual ("a string", story.variablesState["x"]);
+
             Assert.AreEqual (null, story.variablesState["z"]);
+
+            // Not allowed arbitrary types
             Assert.Throws<StoryException>(() => {
-                story.variablesState["x"] = "strings not allowed";
+                story.variablesState["x"] = new System.Text.StringBuilder();
             });
         }
 
