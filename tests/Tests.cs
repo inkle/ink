@@ -1595,6 +1595,20 @@ Hello {""world""} 2.
             Assert.AreEqual ("Hello world 1\nHello world 2.", story.currentText);
         }
 
+
+        [Test ()]
+        public void TestQuoteCharacterSignificance()
+        {
+            // Confusing escaping + ink! Actual ink string is:
+            // My name is "{"J{"o"}e"}"
+            //  - First and last quotes are insignificant - they're part of the content
+            //  - Inner quotes are significant - they're part of the syntax for string expressions
+            // So output is: My name is "Joe"
+            var story = CompileString (@"My name is ""{""J{""o""}e""}""");
+            story.Begin ();
+            Assert.AreEqual ("My name is \"Joe\"", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

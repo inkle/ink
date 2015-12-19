@@ -54,6 +54,20 @@ namespace Ink
             }
         }
 
+        protected bool parsingStringExpression
+        {
+            get {
+                return GetFlag ((uint)CustomFlags.ParsingString);
+            } 
+            set {
+                SetFlag ((uint)CustomFlags.ParsingString, value);
+            }
+        }
+
+        protected enum CustomFlags {
+            ParsingString = 0x1
+        }
+
         string _filename;
         string _rootDirectory;
 	}

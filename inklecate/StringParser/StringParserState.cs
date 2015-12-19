@@ -13,6 +13,11 @@ namespace Ink
 			set { currentElement.characterIndex = value; } 
 		}
 
+        public uint customFlags {
+            get { return currentElement.customFlags; }
+            set { currentElement.customFlags = value; }
+        }
+
         public bool errorReportedAlreadyInScope {
             get {
                 return currentElement.reportedErrorInScope;
@@ -30,6 +35,7 @@ namespace Ink
 			public int lineIndex;
             public bool reportedErrorInScope;
             public int uniqueId;
+            public uint customFlags;
 
 			public Element() {
 
@@ -41,9 +47,16 @@ namespace Ink
                 this.uniqueId = _uniqueIdCounter;
                 this.characterIndex = fromElement.characterIndex;
                 this.lineIndex = fromElement.lineIndex;
-                reportedErrorInScope = false;
+                this.customFlags = fromElement.customFlags;
+                this.reportedErrorInScope = false;
             }
 
+            // Squash is used when succeeding from a rule,
+            // so only the state information we wanted to carry forward is
+            // retained. e.g. characterIndex and lineIndex are global,
+            // however uniqueId is specific to the individual rule,
+            // and likewise, custom flags are designed for the temporary
+            // state of the individual rule too.
             public void SquashFrom(Element fromElement)
             {
                 this.characterIndex = fromElement.characterIndex;
@@ -112,6 +125,8 @@ namespace Ink
 
 		// Reduce stack height while maintaining currentElement
 		// Remove second last element: i.e. "squash last two elements together"
+        // Used when succeeding from a rule (and ONLY when succeeding, since
+        // the state of the top element is retained).
 		public void Squash()
 		{
             if (_numElements < 2) {

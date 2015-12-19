@@ -215,6 +215,18 @@ namespace Ink
             }
         }
 
+        public void SetFlag(uint flag, bool trueOrFalse) {
+            if (trueOrFalse) {
+                state.customFlags |= flag;
+            } else {
+                state.customFlags &= ~flag;
+            }
+        }
+
+        public bool GetFlag(uint flag) {
+            return (state.customFlags & flag) != 0;
+        }
+
 		//--------------------------------
 		// Structuring
 		//--------------------------------

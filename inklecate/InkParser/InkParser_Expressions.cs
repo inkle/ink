@@ -270,9 +270,15 @@ namespace Ink
             if (openQuote == null)
                 return null;
 
+            // Set custom parser state flag so that within the text parser,
+            // it knows to treat the quote character (") as an end character
+            parsingStringExpression = true;
+
             List<Parsed.Object> textAndLogic = Parse (MixedTextAndLogic);
 
             Expect (String ("\""), "close quote for string expression");
+
+            parsingStringExpression = false;
 
             if (textAndLogic == null) {
                 textAndLogic = new List<Ink.Parsed.Object> ();

@@ -169,9 +169,7 @@ namespace Ink
                 endChars = _notTextEndCharactersChoice;
             } 
 
-            // String
-            #warning fix this
-            else if (true) {
+            else if (parsingStringExpression) {
                 endChars = _notTextEndCharactersString;
             } 
 
