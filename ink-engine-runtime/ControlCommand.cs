@@ -15,6 +15,8 @@ namespace Ink.Runtime
             PopEvaluatedValue,
             BeginChoiceStartContent,
             BeginChoiceOnlyContent,
+            BeginString,
+            EndString,
             NoOp,
             ChoiceCount,
             TurnsSince,
@@ -49,6 +51,15 @@ namespace Ink.Runtime
         // Require default constructor for serialisation
         public ControlCommand() : this(CommandType.NotSet) {}
 
+        // The following static factory methods are to make generating these objects
+        // slightly more succinct. Without these, the code gets pretty massive! e.g.
+        //
+        //     var c = new Runtime.ControlCommand(Runtime.ControlCommand.CommandType.EvalStart)
+        // 
+        // as opposed to
+        //
+        //     var c = Runtime.ControlCommand.EvalStart()
+
         public static ControlCommand EvalStart() {
             return new ControlCommand(CommandType.EvalStart);
         }
@@ -75,6 +86,14 @@ namespace Ink.Runtime
 
         public static ControlCommand BeginChoiceOnlyContent() {
             return new ControlCommand (CommandType.BeginChoiceOnlyContent);
+        }
+
+        public static ControlCommand BeginString() {
+            return new ControlCommand (CommandType.BeginString);
+        }
+
+        public static ControlCommand EndString() {
+            return new ControlCommand (CommandType.EndString);
         }
 
         public static ControlCommand NoOp() {

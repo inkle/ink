@@ -558,6 +558,52 @@ namespace Ink.Runtime
                     outputStream.Add (evalCommand);
                     break;
 
+                case ControlCommand.CommandType.BeginString:
+                    outputStream.Add (evalCommand);
+                    //_callStack.Push (PushPopType.Function);
+
+                    Assert (inExpressionEvaluation == true, "Expected to be in an expression when evaluating a string");
+                    inExpressionEvaluation = false;
+                    break;
+
+                case ControlCommand.CommandType.EndString:
+
+                    var currentOutput = CurrentOutput ();
+
+                    // Since we're iterating backward through the content,
+                    // build a stack so that when we build the string,
+                    // it's in the right order
+                    var contentStackForString = new Stack<Runtime.Object> ();
+
+                    int outputCountConsumed = 0;
+                    for (int i = currentOutput.Count - 1; i >= 0; --i) {
+                        var obj = currentOutput [i];
+
+                        outputCountConsumed++;
+
+                        var command = obj as ControlCommand;
+                        if (command != null && command.commandType == ControlCommand.CommandType.BeginString) {
+                            break;
+                        }
+
+                        if( obj is Text )
+                            contentStackForString.Push (obj);
+                    }
+
+                    // Consume the content that was produced for this string
+                    outputStream.RemoveRange (outputStream.Count - outputCountConsumed, outputCountConsumed);
+
+                    // Build string out of the content we collected
+                    var sb = new StringBuilder ();
+                    foreach (var c in contentStackForString) {
+                        sb.Append (c.ToString ());
+                    }
+
+                    // Return to expression evaluation (from content mode)
+                    inExpressionEvaluation = true;
+                    PushEvaluationStack (new LiteralString (sb.ToString ()));
+                    break;
+
                 case ControlCommand.CommandType.ChoiceCount:
                     var choiceCount = currentChoices.Count;
                     PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
@@ -955,6 +1001,11 @@ namespace Ink.Runtime
 
 			return result;
 		}
+
+        public List<Runtime.Object> CurrentOutput(Func<bool> optionalQuery = null)
+        {
+            return CurrentOutput<Runtime.Object> ();
+        }
 
         public virtual string BuildStringOfHierarchy()
         {

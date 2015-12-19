@@ -270,14 +270,16 @@ namespace Ink
             if (openQuote == null)
                 return null;
 
-            var stringValue = ParseUntilCharactersFromCharSet (new CharacterSet ("\"\n\r"));
+            List<Parsed.Object> textAndLogic = Parse (MixedTextAndLogic);
 
             Expect (String ("\""), "close quote for string expression");
 
-            if (stringValue == null)
-                stringValue = "";
+            if (textAndLogic == null) {
+                textAndLogic = new List<Ink.Parsed.Object> ();
+                textAndLogic.Add (new Parsed.Text (""));
+            }
 
-            return new StringExpression (stringValue);
+            return new StringExpression (textAndLogic);
         }
 
         protected Number ExpressionBool()

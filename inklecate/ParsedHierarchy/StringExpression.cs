@@ -1,25 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Ink.Parsed
 {
     internal class StringExpression : Parsed.Expression
     {
-        // TODO: Replace with ContentList or something
-        public string tempText;
-
-        public StringExpression (string text)
+        public StringExpression (List<Parsed.Object> content)
         {
-            tempText = text;
+            AddContent (content);
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            container.AddContent (new Runtime.LiteralString (tempText));
+            container.AddContent (Runtime.ControlCommand.BeginString());
+
+            foreach (var c in content) {
+                container.AddContent (c.runtimeObject);
+            }
+                
+            container.AddContent (Runtime.ControlCommand.EndString());
         }
 
         public override string ToString ()
         {
-            return this.tempText;
+            var sb = new StringBuilder ();
+            foreach (var c in content) {
+                sb.Append (c.ToString ());
+            }
+            return sb.ToString ();
         }
     }
 }

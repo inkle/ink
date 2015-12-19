@@ -157,12 +157,27 @@ namespace Ink
                 _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\");
                 _notTextEndCharactersChoice = new CharacterSet (_nonTextEndCharacters);
                 _notTextEndCharactersChoice.AddCharacters ("[]");
+                _notTextEndCharactersString = new CharacterSet (_nonTextEndCharacters);
+                _notTextEndCharactersString.AddCharacters ("\"");
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
             ParseRule nonTextRule = () => OneOf (ParseDivertArrow, EndOfLine, Glue);
 
-            var endChars = _parsingChoice ? _notTextEndCharactersChoice : _nonTextEndCharacters;
+            CharacterSet endChars = null;
+            if (_parsingChoice) {
+                endChars = _notTextEndCharactersChoice;
+            } 
+
+            // String
+            #warning fix this
+            else if (true) {
+                endChars = _notTextEndCharactersString;
+            } 
+
+            else {
+                endChars = _nonTextEndCharacters;
+            }
 
             string pureTextContent = ParseUntil (nonTextRule, _nonTextPauseCharacters, endChars);
             if (pureTextContent != null ) {
@@ -177,6 +192,7 @@ namespace Ink
         CharacterSet _nonTextPauseCharacters;
         CharacterSet _nonTextEndCharacters;
         CharacterSet _notTextEndCharactersChoice;
+        CharacterSet _notTextEndCharactersString;
 
 
 
