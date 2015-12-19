@@ -1622,6 +1622,19 @@ Hello {""world""} 2.
             Assert.AreEqual ("My name is \"Joe\"", story.currentText);
         }
 
+        [Test ()]
+        public void TestStringTypeCoersion()
+        {
+            var story = CompileString (@"
+{""5"" == 5:same|different}
+{""blah"" == 5:same|different}
+");
+            story.Begin ();
+
+            // Not sure that "5" should be equal to 5, but hmm.
+            Assert.AreEqual ("same\ndifferent", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

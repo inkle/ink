@@ -140,7 +140,7 @@ namespace Ink.Runtime
 
         List<Literal> CoerceLiteralsToSingleType(List<Runtime.Object> parametersIn)
         {
-            LiteralType litType = LiteralType.String;
+            LiteralType litType = LiteralType.Int;
 
             // Find out what the output type is
             // "higher level" types infect both so that binary operations

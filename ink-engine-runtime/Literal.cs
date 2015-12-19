@@ -5,13 +5,17 @@ namespace Ink.Runtime
 {
     // Order is significant for type coersion.
     // If types aren't directly compatible for an operation,
-    // they're coerced to the same type, upward.
+    // they're coerced to the same type, downward.
+    // Higher value types "infect" an operation.
     // (This may not be the most sensible thing to do, but it's worked so far!)
     internal enum LiteralType
     {
-        String,
+        // Used in coersion
         Int,
         Float,
+        String,
+
+        // Not used for coersion described above
         DivertTarget,
         VariablePointer
     }
@@ -141,20 +145,20 @@ namespace Ink.Runtime
             if (newType == LiteralType.Int) {
 
                 int parsedInt;
-                if (!int.TryParse (value, out parsedInt)) {
+                if (int.TryParse (value, out parsedInt)) {
                     return new LiteralInt (parsedInt);
+                } else {
+                    return null;
                 }
-
-                throw new StoryException ("Could not cast string to int");
             }
 
             if (newType == LiteralType.Float) {
                 float parsedFloat;
-                if (!float.TryParse (value, out parsedFloat)) {
+                if (float.TryParse (value, out parsedFloat)) {
                     return new LiteralFloat (parsedFloat);
+                } else {
+                    return null;
                 }
-
-                throw new StoryException ("Could not cast string to float");
             }
 
             throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
