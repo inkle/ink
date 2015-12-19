@@ -314,6 +314,19 @@ namespace Ink.Runtime
                 }
             }
 
+            string startText = "";
+            string choiceOnlyText = "";
+
+            if (choice.hasChoiceOnlyContent) {
+                var choiceOnlyLitStr = PopEvaluationStack () as LiteralString;
+                choiceOnlyText = choiceOnlyLitStr.value;
+            }
+
+            if (choice.hasStartContent) {
+                var startLitStr = PopEvaluationStack () as LiteralString;
+                startText = startLitStr.value;
+            }
+
             // Don't create choice instance if player has already read this content
             if (choice.onceOnly) {
                 var choiceTargetContainer = ClosestContainerToObject (choice.choiceTarget);
@@ -326,52 +339,6 @@ namespace Ink.Runtime
             var choiceInstance = new ChoiceInstance (choice);
             choiceInstance.hasBeenChosen = false;
             choiceInstance.threadAtGeneration = _callStack.currentThread.Copy ();
-
-            // Choice's text (if any) has been created on the output stream,
-            // so we need to find it and consume it.
-            string startText = "";
-            string choiceOnlyText = "";
-            for (int i = outputStream.Count - 1; i >= 0; --i) {
-                object outputObj = outputStream [i];
-
-                // "Current" is defined as "since last chosen choice"
-                var chosenInstance = outputObj as ChoiceInstance;
-                if (chosenInstance && chosenInstance.hasBeenChosen) {
-                    break;
-                }
-
-                // Now we're looking for the ControlCommands that signal
-                // where we began evaluating choice content.
-                var command = outputObj as ControlCommand;
-                if (command == null)
-                    continue;
-
-                // Two different possible types of choice content based on original weave syntax.
-                //   * start content [choice only content] ...
-                bool isStartContent = command.commandType == ControlCommand.CommandType.BeginChoiceStartContent;
-                bool isChoiceOnlyContent = command.commandType == ControlCommand.CommandType.BeginChoiceOnlyContent;
-                if ( isStartContent || isChoiceOnlyContent ) {
-
-                    var sb = new StringBuilder ();
-                    for (int j = i+1; j < outputStream.Count; ++j) {
-                        var obj = outputStream [j];
-                        Assert (obj is Runtime.Text || obj is Glue, "Should only have text within choice content");
-                        if (obj is Runtime.Text) {
-                            sb.Append (obj.ToString ());
-                        }
-                    }
-
-                    // Consumed these objects from the stream for the purposes of the choice content now
-                    outputStream.RemoveRange (i, outputStream.Count - i);
-
-                    if (isStartContent) {
-                        startText = sb.ToString ();
-                    } else {
-                        choiceOnlyText = sb.ToString ();
-                    }
-
-                }
-            }
 
             // We go through the full process of creating the choice above so
             // that we consume the content for it, since otherwise it'll
@@ -553,14 +520,8 @@ namespace Ink.Runtime
                     PopEvaluationStack ();
                     break;
 
-                case ControlCommand.CommandType.BeginChoiceStartContent:
-                case ControlCommand.CommandType.BeginChoiceOnlyContent:
-                    outputStream.Add (evalCommand);
-                    break;
-
                 case ControlCommand.CommandType.BeginString:
                     outputStream.Add (evalCommand);
-                    //_callStack.Push (PushPopType.Function);
 
                     Assert (inExpressionEvaluation == true, "Expected to be in an expression when evaluating a string");
                     inExpressionEvaluation = false;

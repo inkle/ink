@@ -98,11 +98,14 @@ namespace Ink.Parsed
             // Hmm, this structure has become slightly insane!
             //
             // [
-            //     BeginChoiceStartContent
+            //     EvalStart
+            //     BeginString
             //     PUSH (function)
             //     -> s
-            //     BeginChoiceOnlyContent
+            //     EndString
+            //     BeginString
             //     ... choice only content
+            //     EndEval
             //     Condition expression
             //     choice: -> "c"
             //     (s) = [
@@ -115,6 +118,13 @@ namespace Ink.Parsed
             //     ]
             // ]
 
+            _runtimeChoice = new Runtime.Choice (onceOnly);
+            _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
+
+            if (startContent || choiceOnlyContent || condition) {
+                _outerContainer.AddContent (Runtime.ControlCommand.EvalStart ());
+            }
+
             // Start content is put into a named container that's referenced both
             // when displaying the choice initially, and when generating the text
             // when the choice is chosen.
@@ -122,7 +132,7 @@ namespace Ink.Parsed
 
                 // Mark the start of the choice text generation, so that the runtime
                 // knows where to rewind to to extract the content from the output stream.
-                _outerContainer.AddContent (Runtime.ControlCommand.BeginChoiceStartContent ());
+                _outerContainer.AddContent (Runtime.ControlCommand.BeginString ());
 
                 // "Function call" to generate start content
                 _divertToStartContentOuter = new Runtime.Divert (Runtime.PushPopType.Function);
@@ -132,26 +142,35 @@ namespace Ink.Parsed
                 _startContentRuntimeContainer = startContent.GenerateRuntimeObject () as Runtime.Container;
                 _startContentRuntimeContainer.name = "s";
                 _outerContainer.AddToNamedContentOnly (_startContentRuntimeContainer);
+
+                _outerContainer.AddContent (Runtime.ControlCommand.EndString ());
+
+                _runtimeChoice.hasStartContent = true;
             }
 
             // Choice only content - mark the start, then generate it directly into the outer container
             if (choiceOnlyContent) {
-                _outerContainer.AddContent (Runtime.ControlCommand.BeginChoiceOnlyContent ());
+                _outerContainer.AddContent (Runtime.ControlCommand.BeginString ());
+
                 var choiceOnlyRuntimeContent = choiceOnlyContent.GenerateRuntimeObject () as Runtime.Container;
                 _outerContainer.AddContentsOfContainer (choiceOnlyRuntimeContent);
-            }
 
-            // Build choice itself
-            _runtimeChoice = new Runtime.Choice (onceOnly);
-            _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
+                _outerContainer.AddContent (Runtime.ControlCommand.EndString ());
+
+                _runtimeChoice.hasChoiceOnlyContent = true;
+            }
 
             // Generate any condition for this choice
             if (condition) {
-                var exprContainer = (Runtime.Container) condition.runtimeObject;
-                _outerContainer.AddContentsOfContainer (exprContainer);
+                condition.GenerateIntoContainer (_outerContainer);
                 _runtimeChoice.hasCondition = true;
             }
 
+            if (startContent || choiceOnlyContent || condition) {
+                _outerContainer.AddContent (Runtime.ControlCommand.EvalEnd ());
+            }
+                
+            // Add choice itself
             _outerContainer.AddContent (_runtimeChoice);
 
             // Container that choice points to for when it's chosen

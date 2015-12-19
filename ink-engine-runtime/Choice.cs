@@ -23,8 +23,14 @@ namespace Ink.Runtime
             }
         }
 
-        [JsonProperty("hasCond")]
+        [JsonProperty("cond")]
         internal bool hasCondition { get; set; }
+
+        [JsonProperty("_[")]
+        internal bool hasStartContent { get; set; }
+
+        [JsonProperty("[_]")]
+        internal bool hasChoiceOnlyContent { get; set; }
 
         [JsonProperty("once")]
         [DefaultValue(true)]
