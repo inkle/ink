@@ -165,14 +165,12 @@ namespace Ink
             ParseRule nonTextRule = () => OneOf (ParseDivertArrow, EndOfLine, Glue);
 
             CharacterSet endChars = null;
-            if (_parsingChoice) {
-                endChars = _notTextEndCharactersChoice;
-            } 
-
-            else if (parsingStringExpression) {
+            if (parsingStringExpression) {
                 endChars = _notTextEndCharactersString;
             } 
-
+            else if (_parsingChoice) {
+                endChars = _notTextEndCharactersChoice;
+            } 
             else {
                 endChars = _nonTextEndCharacters;
             }

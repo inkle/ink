@@ -1635,6 +1635,21 @@ Hello {""world""} 2.
             Assert.AreEqual ("same\ndifferent", story.currentText);
         }
 
+        [Test ()]
+        public void TestStringsInChoices()
+        {
+            var story = CompileString (@"
+* \ {""test1""} [""test2 {""test3""}""] {""test4""}
+-> DONE
+");
+            story.Begin ();
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual (@" test1 ""test2 test3""", story.currentChoices [0].choiceText);
+
+            story.ContinueWithChoiceIndex (0);
+            Assert.AreEqual (" test1  test4\n", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
