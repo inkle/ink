@@ -83,6 +83,11 @@ namespace Ink
 
             Whitespace ();
 
+            // Completely empty choice?
+            if (!startContent && !optionOnlyContent && !innerContent && !divert) {
+                Warning ("Choice is completely empty. Interpretting as a default fallback choice. Add a divert arrow to remove this warning: * ->");
+            }
+
             var choice = new Choice (startContent, optionOnlyContent, innerContent, divert);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;

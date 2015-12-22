@@ -56,7 +56,8 @@ namespace Tests
         {
             InkParser parser = new InkParser(str);
             parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
-                Assert.Fail(message + " on line " + lineIndex);
+                if( !isWarning )
+                    Assert.Fail(message + " on line " + lineIndex);
             };
             var parsedStory = parser.Parse();
             Assert.IsFalse (parsedStory.hadError);
@@ -1648,6 +1649,25 @@ Hello {""world""} 2.
 
             story.ContinueWithChoiceIndex (0);
             Assert.AreEqual (" test1  test4\n", story.currentText);
+        }
+
+        [Test ()]
+        public void TestEmptyChoice()
+        {
+            InkParser parser = new InkParser("*");
+
+            int warningCount = 0;
+            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
+                if( isWarning ) {
+                    warningCount++;
+                    Assert.IsTrue (message.Contains ("completely empty"));
+                } else {
+                    Assert.Fail("Shouldn't have had any errors");
+                }
+            };
+            parser.Parse();
+
+            Assert.AreEqual (1, warningCount);
         }
 
 		//------------------------------------------------------------------------
