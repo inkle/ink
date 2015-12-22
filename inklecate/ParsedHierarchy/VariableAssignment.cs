@@ -40,7 +40,7 @@ namespace Ink.Parsed
             // Global declarations don't generate actual procedural
             // runtime objects, but instead add a global variable to the story itself.
             // The story then initialises them all in one go at the start of the game.
-            if( newDeclScope == story )
+            if( isGlobalDeclaration )
                 return null;
 
             var container = new Runtime.Container ();
@@ -57,10 +57,12 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            VariableAssignment existingGlobalDecl = null;
-            if (this.isNewTemporaryDeclaration && story.variableDeclarations.TryGetValue(variableName, out existingGlobalDecl) ) {
-                Error ("global variable '"+variableName+"' already exists with the same name (declared on " + existingGlobalDecl.debugMetadata + ")");
-                return;
+            VariableAssignment varDecl = null;
+            if (this.isNewTemporaryDeclaration && story.variableDeclarations.TryGetValue(variableName, out varDecl) ) {
+                if (varDecl.isGlobalDeclaration) {
+                    Error ("global variable '" + variableName + "' already exists with the same name (declared on " + varDecl.debugMetadata + ")");
+                    return;
+                }
             }
 
             if (this.isGlobalDeclaration) {

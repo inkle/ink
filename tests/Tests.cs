@@ -1670,6 +1670,18 @@ Hello {""world""} 2.
             Assert.AreEqual (1, warningCount);
         }
 
+        [Test ()]
+        public void TestTemporariesAtGlobalScope()
+        {
+            var story = CompileString (@"
+VAR x = 5
+~ temp y = 4
+{x}{y}
+");
+            story.Begin ();
+            Assert.AreEqual ("54", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
