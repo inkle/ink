@@ -164,7 +164,6 @@ namespace Ink.Runtime
         Dictionary<string, Runtime.Object> _globalVariables;
 
         // Used for accessing temporary variables
-        #warning make sure this is in sync with the correct thread!
         CallStack _callStack;
     }
 }

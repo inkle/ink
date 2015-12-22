@@ -149,7 +149,6 @@ namespace Ink.Parsed
             }
         }
 
-        #warning Fix this to work with temporary variables
         public string descriptionOfScope
         {
             get {

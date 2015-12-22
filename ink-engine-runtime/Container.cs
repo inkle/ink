@@ -133,7 +133,8 @@ namespace Ink.Runtime
                     return path;
                 }
 
-                return null;
+                // Nowhere
+                return new Path();
             }
         }
 
