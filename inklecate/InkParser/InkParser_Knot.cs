@@ -200,6 +200,27 @@ namespace Ink
             return flowArg;
         }
 
+        protected ExternalDeclaration ExternalDeclaration()
+        {
+            Whitespace ();
+
+            string external = Parse(Identifier);
+            if (external != "EXTERNAL")
+                return null;
+
+            Whitespace ();
+            
+            string funcName = Expect(Identifier, "name of external function") as string ?? "";
+
+            Whitespace ();
+
+            List<FlowBase.Argument> parameterNames = Parse (BracketedKnotDeclArguments);
+
+            var argNames = parameterNames.ConvertAll<string> (arg => arg.name);
+
+            return new ExternalDeclaration (funcName, argNames);
+        }
+
 	}
 }
 

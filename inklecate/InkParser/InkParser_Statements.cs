@@ -81,6 +81,7 @@ namespace Ink
 
                     // Knots can only be parsed at Top/Global scope
                     rulesAtLevel.Add (KnotDefinition);
+                    rulesAtLevel.Add (ExternalDeclaration);
                 }
 
                 rulesAtLevel.Add(Line(Choice));
