@@ -16,6 +16,8 @@ namespace Ink.Parsed
 
         public override Ink.Runtime.Object GenerateRuntimeObject ()
         {
+            story.AddExternal (this);
+
             // No runtime code exists for an external, only metadata
             return null;
         }

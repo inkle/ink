@@ -16,6 +16,7 @@ namespace Ink.Parsed
         public List<string> warnings { get { return _warnings; } }
 
         public Dictionary<string, Expression> constants;
+        public Dictionary<string, ExternalDeclaration> externals;
 
         // Build setting for exporting:
         // When true, the visit count and beat index for *all* knots, stitches, choices,
@@ -116,6 +117,8 @@ namespace Ink.Parsed
             foreach (var constDecl in FindAll<ConstantDeclaration> ()) {
                 constants [constDecl.constantName] = constDecl.expression;
             }
+
+            externals = new Dictionary<string, ExternalDeclaration> ();
 
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
@@ -226,6 +229,20 @@ namespace Ink.Parsed
         {
             _errors = null;
             _warnings = null;
+        }
+
+        public bool IsExternal(string namedFuncTarget)
+        {
+            return externals.ContainsKey (namedFuncTarget);
+        }
+
+        public void AddExternal(ExternalDeclaration decl)
+        {
+            if (externals.ContainsKey (decl.name)) {
+                Error ("Duplicate EXTERNAL definition of '"+decl.name+"'", decl, false); 
+            } else {
+                externals [decl.name] = decl;
+            }
         }
 
         List<string> _errors;

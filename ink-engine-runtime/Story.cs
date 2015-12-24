@@ -76,6 +76,7 @@ namespace Ink.Runtime
         internal Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
+            _externals = new Dictionary<string, ExternalFunction> ();
 
             Reset ();
 		}
@@ -412,6 +413,9 @@ namespace Ink.Runtime
                     var target = (LiteralDivertTarget)varContents;
                     _divertedPath = target.targetPath;
 
+                } else if (currentDivert.isExternal) {
+                    CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
+                    return true;
                 } else {
                     _divertedPath = currentDivert.targetPath;
                 }
@@ -420,7 +424,7 @@ namespace Ink.Runtime
                     _callStack.Push (currentDivert.stackPushType);
                 }
 
-                if (_divertedPath == null) {
+                if (_divertedPath == null && !currentDivert.isExternal) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
                     if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
@@ -430,7 +434,6 @@ namespace Ink.Runtime
                     }
                 }
 
-                Assert (_divertedPath != null, "diverted path is null");
                 return true;
             } 
 
@@ -758,6 +761,38 @@ namespace Ink.Runtime
 
         }
 
+        internal void CallExternalFunction(string funcName, int numberOfArguments)
+        {
+            ExternalFunction func = null;
+            var foundExternal = _externals.TryGetValue (funcName, out func);
+            Assert (foundExternal, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound.");
+
+            // Pop arguments
+            var arguments = new List<object>();
+            for (int i = 0; i < numberOfArguments; ++i) {
+                var poppedObj = PopEvaluationStack () as Literal;
+                arguments.Add (poppedObj.valueObject);
+            }
+
+            // Convert return value (if any) to the a type that the ink engine can use
+            Runtime.Object returnObj = null;
+            object funcResult = func (arguments.ToArray());
+            if (funcResult != null) {
+                returnObj = Literal.Create (funcResult);
+                Assert (returnObj != null, "Could not create ink value from returned object of type " + funcResult.GetType());
+            } else {
+                returnObj = new Runtime.Void ();
+            }
+                
+            PushEvaluationStack (returnObj);
+        }
+
+        public delegate object ExternalFunction(object[] args);
+
+        public void BindExternalFunction(string funcName, ExternalFunction func)
+        {
+            _externals [funcName] = func;
+        }
 
         void PushToOutputStream(Runtime.Object obj)
         {
@@ -1332,6 +1367,8 @@ namespace Ink.Runtime
 
         [JsonProperty]
         private Container _mainContentContainer;
+
+        Dictionary<string, ExternalFunction> _externals;
 
         private Container _temporaryEvaluationContainer;
         private Path _divertedPath;

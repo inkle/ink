@@ -65,6 +65,12 @@ namespace Ink.Runtime
             }
         }
 
+        [JsonProperty("exArgs")]
+        public bool isExternal { get; set; }
+
+        [JsonProperty("exArgs")]
+        public int externalArgs { get; set; }
+
 		public Divert ()
 		{
             pushesToStack = false;

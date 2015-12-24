@@ -218,18 +218,33 @@ namespace Ink.Parsed
 
             // Check validity of target content
             if (targetContent == null) {
-                if (target.numberOfComponents == 1 && FunctionCall.IsValidName (target.firstComponent)) {
-                    if (!isFunctionCall)
-                        base.Error(target.firstComponent+" must be called as a function: ~ "+target.firstComponent+"()");
+                if (target.numberOfComponents == 1 ) {
+
+                    // BuiltInt means TURNS_SINCE or CHOICE_COUNT
+                    bool isBuiltIn = FunctionCall.IsValidName (target.firstComponent);
+
+                    // Client-bound function?
+                    bool isExternal = context.IsExternal (target.firstComponent);
+
+                    if (isBuiltIn || isExternal) {
+                        if (!isFunctionCall) {
+                            base.Error (target.firstComponent + " must be called as a function: ~ " + target.firstComponent + "()");
+                        }
+                        if (isExternal) {
+                            runtimeDivert.isExternal = true;
+                            runtimeDivert.externalArgs = arguments.Count;
+                            runtimeDivert.pushesToStack = false;
+                            runtimeDivert.targetPath = new Runtime.Path (this.target.firstComponent);
+                        }
                         return;
+                    }
                 }
 
                 // Variable target?
                 if (runtimeDivert.variableDivertName != null) {
-                    
                     return;
                 }
-
+                        
                 Error ("target not found: '" + target + "'");
             }
 		}
