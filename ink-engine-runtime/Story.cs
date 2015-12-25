@@ -157,6 +157,10 @@ namespace Ink.Runtime
 
 		public void Begin()
 		{
+            // TODO: Should we leave this to the client, since it could be
+            // slow to iterate through all the content an extra time?
+            ValidateExternalBindings ();
+
             Reset ();
 			Continue ();
 		}
@@ -920,6 +924,38 @@ namespace Ink.Runtime
         {
             Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
             _externals.Remove (funcName);
+        }
+
+        public void ValidateExternalBindings()
+        {
+            ValidateExternalBindings (_mainContentContainer);
+        }
+
+        void ValidateExternalBindings(Container c)
+        {
+            foreach (var innerContent in c.content) {
+                ValidateExternalBindings (innerContent);
+            }
+            foreach (var innerKeyValue in c.namedContent) {
+                ValidateExternalBindings (innerKeyValue.Value as Runtime.Object);
+            }
+        }
+
+        void ValidateExternalBindings(Runtime.Object o)
+        {
+            var container = o as Container;
+            if (container) {
+                ValidateExternalBindings (container);
+                return;
+            }
+
+            var divert = o as Divert;
+            if (divert && divert.isExternal) {
+                var name = divert.targetPathString;
+                if (!_externals.ContainsKey (name)) {
+                    Error ("Missing function binding for external '" + name + "'");
+                }
+            }
         }
 
         void PushToOutputStream(Runtime.Object obj)
