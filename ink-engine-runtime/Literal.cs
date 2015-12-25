@@ -37,6 +37,12 @@ namespace Ink.Runtime
                 val = (float)doub;
             }
 
+            // Implicitly convert bools into ints
+            if (val is bool) {
+                bool b = (bool)val;
+                val = (int)(b ? 1 : 0);
+            }
+
             if (val is int) {
                 return new LiteralInt ((int)val);
             } else if (val is float) {

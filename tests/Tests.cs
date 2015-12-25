@@ -1690,27 +1690,15 @@ VAR x = 5
 EXTERNAL message(x)
 EXTERNAL multiply(x,y)
 ~ message(""hello world"")
-{multiply(5, 3.0)}
+{multiply(5.0, 3)}
 ");
             string message = null;
 
-            story.BindExternalFunction ("message", (object[] args) => {
-                message = "MESSAGE: "+args[0];
-                return null;
+            story.BindExternalFunction ("message", (string arg) => {
+                message = "MESSAGE: "+arg;
             });
 
-            story.BindExternalFunction ("multiply", (object[] args) => {
-
-                if (args [0] is int) {
-                    args [0] = (float)(int)args [0];
-                }
-                if (args [1] is int) {
-                    args [1] = (float)(int)args [1];
-                }
-
-                float arg1 = (float)args [0];
-                float arg2 = (float)args [1];
-
+            story.BindExternalFunction ("multiply", (int arg1, float arg2) => {
                 return arg1 * arg2;
             });
 

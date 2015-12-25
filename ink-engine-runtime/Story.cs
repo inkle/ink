@@ -771,7 +771,8 @@ namespace Ink.Runtime
             var arguments = new List<object>();
             for (int i = 0; i < numberOfArguments; ++i) {
                 var poppedObj = PopEvaluationStack () as Literal;
-                arguments.Add (poppedObj.valueObject);
+                var valueObj = poppedObj.valueObject;
+                arguments.Add (valueObj);
             }
 
             // Convert return value (if any) to the a type that the ink engine can use
@@ -789,10 +790,130 @@ namespace Ink.Runtime
 
         public delegate object ExternalFunction(object[] args);
 
-        public void BindExternalFunction(string funcName, ExternalFunction func)
+        // Most general form of function binding that returns an object and takes an array of object parameters.
+        // The only way to bind a function with more than 3 arguments.
+        public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
         {
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
             _externals [funcName] = func;
+        }
+
+        object TryCoerce<T>(object value)
+        {  
+            if (value == null)
+                return null;
+
+            if (value.GetType () == typeof(T))
+                return (T) value;
+
+            if (value is float && typeof(T) == typeof(int)) {
+                int intVal = (int)Math.Round ((float)value);
+                return intVal;
+            }
+
+            if (value is int && typeof(T) == typeof(float)) {
+                float floatVal = (float)(int)value;
+                return floatVal;
+            }
+
+            if (value is int && typeof(T) == typeof(bool)) {
+                int intVal = (int)value;
+                return intVal == 0 ? false : true;
+            }
+
+            if (typeof(T) == typeof(string)) {
+                return value.ToString ();
+            }
+
+            Assert (false, "Failed to cast " + value.GetType ().Name + " to " + typeof(T).Name);
+
+            return null;
+        }
+
+        // Convenience overloads for standard functions and actions of various arities
+        // Is there a better way of doing this?!
+        public void BindExternalFunction(string funcName, Func<object> func)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 0, "External function expected no arguments");
+                return func();
+            });
+        }
+
+        public void BindExternalFunction(string funcName, Action act)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 0, "External function expected no arguments");
+                act();
+                return null;
+            });
+        }
+
+        public void BindExternalFunction<T>(string funcName, Func<T, object> func)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 1, "External function expected one argument");
+                return func( (T)TryCoerce<T>(args[0]) );
+            });
+        }
+
+        public void BindExternalFunction<T>(string funcName, Action<T> act)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 1, "External function expected one argument");
+                act( (T)TryCoerce<T>(args[0]) );
+                return null;
+            });
+        }
+
+
+
+        public void BindExternalFunction<T1, T2>(string funcName, Func<T1, T2, object> func)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 2, "External function expected two arguments");
+                return func(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1])
+                );
+            });
+        }
+
+        public void BindExternalFunction<T1, T2>(string funcName, Action<T1, T2> act)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 2, "External function expected two arguments");
+                act(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1])
+                );
+                return null;
+            });
+        }
+
+        public void BindExternalFunction<T1, T2, T3>(string funcName, Func<T1, T2, T3, object> func)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 2, "External function expected two arguments");
+                return func(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1]),
+                    (T3)TryCoerce<T3>(args[2])
+                );
+            });
+        }
+
+        public void BindExternalFunction<T1, T2, T3>(string funcName, Action<T1, T2, T3> act)
+        {
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 2, "External function expected two arguments");
+                act(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1]),
+                    (T3)TryCoerce<T3>(args[2])
+                );
+                return null;
+            });
         }
 
         public void UnbindExternalFunction(string funcName)
