@@ -232,9 +232,11 @@ namespace Ink.Parsed
                         }
                         if (isExternal) {
                             runtimeDivert.isExternal = true;
-                            runtimeDivert.externalArgs = arguments.Count;
+                            if( arguments != null )
+                                runtimeDivert.externalArgs = arguments.Count;
                             runtimeDivert.pushesToStack = false;
                             runtimeDivert.targetPath = new Runtime.Path (this.target.firstComponent);
+                            CheckExternalArgumentValidity (context);
                         }
                         return;
                     }
@@ -250,10 +252,10 @@ namespace Ink.Parsed
 		}
 
         // Returns false if there's an error
-        bool CheckArgumentValidity()
+        void CheckArgumentValidity()
         {
             if (isToGather) 
-                return true;
+                return;
 
             // Argument passing: Check for errors in number of arguments
             var numArgs = 0;
@@ -265,30 +267,30 @@ namespace Ink.Parsed
             // other error though, so although there's a problem and 
             // we report false, we don't need to report a specific error.
             if (targetContent == null) {
-                return false;
+                return;
             }
 
             FlowBase targetFlow = targetContent as FlowBase;
 
             // No error, crikey!
             if (numArgs == 0 && (targetFlow == null || !targetFlow.hasParameters)) {
-                return true;
+                return;
             }
 
             if (targetFlow == null && numArgs > 0) {
                 Error ("target needs to be a knot or stitch in order to pass arguments");
-                return false;
+                return;
             }
 
             if (targetFlow.arguments == null && numArgs > 0) {
                 Error ("target (" + targetFlow.name + ") doesn't take parameters");
-                return false;
+                return;
             }
 
             var paramCount = targetFlow.arguments.Count;
             if (paramCount > 0 && this.parent is DivertTarget) {
                 Error ("Can't store a link to a knot that takes parameters in a variable");
-                return false;
+                return;
             }
 
             if (paramCount != numArgs) {
@@ -302,7 +304,7 @@ namespace Ink.Parsed
                     butClause = "but got " + numArgs;
                 }
                 Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
-                return false;
+                return;
             }
 
             // Light type-checking for divert target arguments
@@ -319,10 +321,28 @@ namespace Ink.Parsed
                 
             if (targetFlow == null) {
                 Error ("Can't call as a function or with arguments unless it's a knot or stitch");
-                return false;
+                return;
             }
 
-            return true;
+            return;
+        }
+
+        void CheckExternalArgumentValidity(Story context)
+        {
+            string externalName = target.firstComponent;
+            ExternalDeclaration external = null;
+            var found = context.externals.TryGetValue(externalName, out external);
+            System.Diagnostics.Debug.Assert (found, "external not found");
+
+            int externalArgCount = external.argumentNames.Count;
+            int ownArgCount = 0;
+            if (arguments != null) {
+                ownArgCount = arguments.Count;
+            }
+
+            if (ownArgCount != externalArgCount) {
+                Error ("incorrect number of arguments sent to '" + externalName + "'. Expected " + externalArgCount + " but got " + ownArgCount);
+            }
         }
 
         public override void Error (string message, Object source = null, bool isWarning = false)

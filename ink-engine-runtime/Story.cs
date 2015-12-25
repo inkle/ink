@@ -791,7 +791,14 @@ namespace Ink.Runtime
 
         public void BindExternalFunction(string funcName, ExternalFunction func)
         {
+            Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
             _externals [funcName] = func;
+        }
+
+        public void UnbindExternalFunction(string funcName)
+        {
+            Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
+            _externals.Remove (funcName);
         }
 
         void PushToOutputStream(Runtime.Object obj)

@@ -31,6 +31,12 @@ namespace Ink.Runtime
 
         public static Literal Create(object val)
         {
+            // Implicitly lose precision from any doubles we get passed in
+            if (val is double) {
+                double doub = (double)val;
+                val = (float)doub;
+            }
+
             if (val is int) {
                 return new LiteralInt ((int)val);
             } else if (val is float) {
