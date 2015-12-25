@@ -1682,6 +1682,45 @@ VAR x = 5
             Assert.AreEqual ("54", story.currentText);
         }
 
+
+        [Test ()]
+        public void TestExternalBinding()
+        {
+            var story = CompileString (@"
+EXTERNAL message(x)
+EXTERNAL multiply(x,y)
+~ message(""hello world"")
+{multiply(5, 3.0)}
+");
+            string message = null;
+
+            story.BindExternalFunction ("message", (object[] args) => {
+                message = "MESSAGE: "+args[0];
+                return null;
+            });
+
+            story.BindExternalFunction ("multiply", (object[] args) => {
+
+                if (args [0] is int) {
+                    args [0] = (float)(int)args [0];
+                }
+                if (args [1] is int) {
+                    args [1] = (float)(int)args [1];
+                }
+
+                float arg1 = (float)args [0];
+                float arg2 = (float)args [1];
+
+                return arg1 * arg2;
+            });
+
+            
+            story.Begin ();
+
+            Assert.AreEqual ("MESSAGE: hello world", message);
+            Assert.AreEqual ("\n15", story.currentText);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
