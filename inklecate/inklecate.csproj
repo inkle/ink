@@ -98,6 +98,9 @@
     <Compile Include="ParsedHierarchy\ConstantDeclaration.cs" />
     <Compile Include="ParsedHierarchy\StringExpression.cs" />
     <Compile Include="ParsedHierarchy\ExternalDeclaration.cs" />
+    <Compile Include="Plugins\Plugin.cs" />
+    <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Plugins\ChoiceListPlugin.cs" />
   </ItemGroup>
   <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" Condition="Exists('..\ink-engine-runtime\ink-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -111,9 +114,11 @@
     <None Include="test_included_file2.ink">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Plugins\Readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="StringParser\" />
     <Folder Include="InkParser\" />
+    <Folder Include="Plugins\" />
   </ItemGroup>
 </Project>
