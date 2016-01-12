@@ -694,10 +694,30 @@ namespace Ink.Runtime
             return false;
         }
 
-        // TODO: Add choice marker is a hack, do it a better way!
-        // The problem is that ContinueFromPath may be called externally,
-        // and if it is then it wouldn't have a ChoiceInstance to mark where
-        // the last chunk of content ended
+        /// <summary>
+        /// Continue the story from the particular point.
+        /// The path string is a dot-separated path as used internally by the engine.
+        /// These examples should work:
+        /// 
+        ///    myKnot
+        ///    myKnot.myStitch
+        /// 
+        /// Note however that this won't necessarily work:
+        /// 
+        ///    myKnot.myStitch.myLabelledChoice
+        /// 
+        /// ...because of the way that content is nested within a weave structure.
+        /// </summary>
+        /// <param name="path">A dot-separted path string, as specified above.</param>
+        public void ContinueFromPathString(string path)
+        {
+            // TODO: Add choice marker is a hack, do it a better way!
+            // The problem is that ContinueFromPath may be called externally,
+            // and if it is then it wouldn't have a ChoiceInstance to mark where
+            // the last chunk of content ended
+            ContinueFromPath (new Path(path), addChoiceMarker:true);
+        }
+
         internal void ContinueFromPath(Path path, bool addChoiceMarker = true)
 		{
             if (addChoiceMarker) {

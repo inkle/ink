@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace Ink.Runtime
 {
-	public class Choice : Runtime.Object
+	internal class Choice : Runtime.Object
 	{
         internal Path pathOnChoice { get; set; }
 
@@ -14,11 +14,11 @@ namespace Ink.Runtime
         }
 
         [JsonProperty("path")]
-        string pathStringOnChoice {
+        internal string pathStringOnChoice {
             get {
                 return CompactPathString (pathOnChoice);
             }
-            set {
+            private set {
                 pathOnChoice = new Path (value);
             }
         }
