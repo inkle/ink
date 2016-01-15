@@ -33,22 +33,38 @@ namespace Ink.Runtime
             }
         }
 
-        public List<Runtime.Object> outputStream;
-
 
         public List<ChoiceInstance> currentChoices
 		{
 			get 
 			{
-                return CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
+                return CurrentChoices (includeInvisibleDefaults: false);
 			}
 		}
+
+        List<ChoiceInstance> CurrentChoices(bool includeInvisibleDefaults)
+        {
+            if (includeInvisibleDefaults) {
+                return _currentChoices;
+            } else {
+                return _currentChoices.Where (c => !c.choice.isInvisibleDefault).ToList();
+            }
+        }
 
 		public string currentText
 		{
 			get 
 			{
-                return StringExt.Join("", CurrentOutput<Runtime.Text> ());
+                var sb = new StringBuilder ();
+
+                foreach (var outputObj in _outputStream) {
+                    var textContent = outputObj as Text;
+                    if (textContent != null) {
+                        sb.Append(textContent.text);
+                    }
+                }
+
+                return sb.ToString ();
 			}
 		}
 
@@ -162,13 +178,13 @@ namespace Ink.Runtime
             ValidateExternalBindings ();
 
             Reset ();
-			Continue ();
 		}
 
         public void Reset()
         {
-            outputStream = new List<Runtime.Object> ();
+            _outputStream = new List<Runtime.Object> ();
             _evaluationStack = new List<Runtime.Object> ();
+            _currentChoices = new List<ChoiceInstance> ();
             _callStack = new CallStack ();
             _variablesState = new VariablesState (_callStack);
             _visitCounts = new Dictionary<string, int> ();
@@ -190,8 +206,9 @@ namespace Ink.Runtime
 
 		public void Continue()
 		{
+            _outputStream.Clear ();
+            
             _didSafeExit = false;
-            _currentTurnIndex++;
 
             try {
 
@@ -199,39 +216,57 @@ namespace Ink.Runtime
                     
                     Step();
 
-                    if( currentPath == null ) {
+                    // Run out of content and we have a default invisible choice that we can follow?
+                    if( !canContinue ) {
                         TryFollowDefaultInvisibleChoice();
                     }
 
-                } while(currentPath != null);
+                } while(canContinue && !outputStreamEndsInNewline);
 
+                // Finished a section of content / reached a choice point?
+                if( !canContinue ) {
 
-                if( _callStack.canPopThread ) {
-                    Error("Thread available to pop, threads should always be flat by the end of evaluation?");
-                }
-
-                if( currentChoices.Count == 0 && !_didSafeExit ) {
-                    if( _callStack.CanPop(PushPopType.Tunnel) ) {
-                        Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                    } else if( _callStack.CanPop(PushPopType.Function) ) {
-                        Error("unexpectedly reached end of content. Do you need a '~ return'?");
-                    } else if( !_callStack.canPop ) {
-                        Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
-                    } else {
-                        Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                    if( _callStack.canPopThread ) {
+                        Error("Thread available to pop, threads should always be flat by the end of evaluation?");
                     }
+
+                    if( currentChoices.Count == 0 && !_didSafeExit ) {
+                        if( _callStack.CanPop(PushPopType.Tunnel) ) {
+                            Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+                        } else if( _callStack.CanPop(PushPopType.Function) ) {
+                            Error("unexpectedly reached end of content. Do you need a '~ return'?");
+                        } else if( !_callStack.canPop ) {
+                            Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
+                        } else {
+                            Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                        }
+                    }
+
                 }
+
 
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
             } finally {
-                _callStack.currentThread.ResetOpenContainers ();
+
+                if( !canContinue )
+                    _callStack.currentThread.ResetOpenContainers ();
+                
                 _didSafeExit = false;
             }
 		}
 
+        public bool canContinue
+        {
+            get {
+                return currentPath != null && !hasError;
+            }
+        }
+
         void Step ()
         {
+            bool shouldAddToStream = true;
+
             // Get current content
             var currentContentObj = ContentAtPath (currentPath);
             if (currentContentObj == null) {
@@ -260,23 +295,30 @@ namespace Ink.Runtime
                 return;
             }
 
+            if (isLogicOrFlowControl) {
+                shouldAddToStream = false;
+            }
+
             // Choice with condition?
-            bool shouldAddObject = true;
             var choice = currentContentObj as Choice;
             if (choice) {
                 var choiceInstance = ProcessChoice (choice);
-                currentContentObj = choiceInstance;
-                shouldAddObject = currentContentObj != null;
+                if (choiceInstance) {
+                    _currentChoices.Add (choiceInstance);
+                }
+
+                currentContentObj = null;
+                shouldAddToStream = false;
             }
 
             // If the container has no content, then it will be
             // the "content" itself, but we skip over it.
             if (currentContentObj is Container) {
-                shouldAddObject = false;
+                shouldAddToStream = false;
             }
 
             // Content to add to evaluation stack or the output stream
-            if (!isLogicOrFlowControl && shouldAddObject) {
+            if (shouldAddToStream) {
 
                 // If we're pushing a variable pointer onto the evaluation stack, ensure that it's specific
                 // to our current (possibly temporary) context index. And make a copy of the pointer
@@ -526,24 +568,22 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.BeginString:
-                    outputStream.Add (evalCommand);
+                    _outputStream.Add (evalCommand);
 
                     Assert (inExpressionEvaluation == true, "Expected to be in an expression when evaluating a string");
                     inExpressionEvaluation = false;
                     break;
 
                 case ControlCommand.CommandType.EndString:
-
-                    var currentOutput = CurrentOutput ();
-
+                    
                     // Since we're iterating backward through the content,
                     // build a stack so that when we build the string,
                     // it's in the right order
                     var contentStackForString = new Stack<Runtime.Object> ();
 
                     int outputCountConsumed = 0;
-                    for (int i = currentOutput.Count - 1; i >= 0; --i) {
-                        var obj = currentOutput [i];
+                    for (int i = _outputStream.Count - 1; i >= 0; --i) {
+                        var obj = _outputStream [i];
 
                         outputCountConsumed++;
 
@@ -557,7 +597,7 @@ namespace Ink.Runtime
                     }
 
                     // Consume the content that was produced for this string
-                    outputStream.RemoveRange (outputStream.Count - outputCountConsumed, outputCountConsumed);
+                    _outputStream.RemoveRange (_outputStream.Count - outputCountConsumed, outputCountConsumed);
 
                     // Build string out of the content we collected
                     var sb = new StringBuilder ();
@@ -727,21 +767,20 @@ namespace Ink.Runtime
 
         internal void ContinueFromPath(Path path, bool addChoiceMarker = true)
 		{
-            if (addChoiceMarker) {
-                var choiceMarker = new ChoiceInstance (null);
-                choiceMarker.hasBeenChosen = true;
-                outputStream.Add (choiceMarker);
-            }
+            _currentChoices.Clear ();
 
             _previousPath = currentPath;
 
 			currentPath = path;
+
+            _currentTurnIndex++;
+
 			Continue ();
 		}
 
 		public void ContinueWithChoiceIndex(int choiceIdx)
 		{
-            var choiceInstances = CurrentOutput<ChoiceInstance> (c => !c.choice.isInvisibleDefault);
+            var choiceInstances = currentChoices;
             Assert (choiceIdx >= 0 && choiceIdx < choiceInstances.Count, "choice out of range");
 
             // Replace callstack with the one from the thread at the choosing point, 
@@ -752,12 +791,7 @@ namespace Ink.Runtime
             var instanceToChoose = choiceInstances [choiceIdx];
             _callStack.currentThread = instanceToChoose.threadAtGeneration;
 
-            // Create new instance as marker
-            var chosenMarker = new ChoiceInstance (instanceToChoose.choice);
-            chosenMarker.hasBeenChosen = true;
-            outputStream.Add (chosenMarker);
-
-            ContinueFromPath (chosenMarker.choice.choiceTarget.path, addChoiceMarker:false);
+            ContinueFromPath (instanceToChoose.choice.choiceTarget.path, addChoiceMarker:false);
 		}
 
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
@@ -991,9 +1025,9 @@ namespace Ink.Runtime
             // causing two piece of inline text to stay on the same line.
             bool outputStreamEndsInGlue = false;
             int glueIdx = -1;
-            if (outputStream.Count > 0) {
-                outputStreamEndsInGlue = outputStream.Last () is Glue;
-                glueIdx = outputStream.Count - 1;
+            if (_outputStream.Count > 0) {
+                outputStreamEndsInGlue = _outputStream.Last () is Glue;
+                glueIdx = _outputStream.Count - 1;
             }
 
             if (obj is Text) {
@@ -1014,7 +1048,7 @@ namespace Ink.Runtime
                     var lengthBeforeTrim = text.text.Length;
                     var trimmedText = text.text.TrimStart ('\n');
                     if (trimmedText.Length != lengthBeforeTrim && canAppendNewline) {
-                        outputStream.Add(new Text ("\n"));
+                        _outputStream.Add(new Text ("\n"));
                     }
 
                     // Remove newlines from end
@@ -1025,11 +1059,11 @@ namespace Ink.Runtime
                     if (trimmedText.Length > 0) {
                         
                         // Add main text to output stream
-                        outputStream.Add(new Text (trimmedText));
+                        _outputStream.Add(new Text (trimmedText));
 
                         // Add single trailing newline if necessary
                         if (trimmedText.Length != lengthBeforeTrim) {
-                            outputStream.Add(new Text ("\n"));
+                            _outputStream.Add(new Text ("\n"));
                         }
                     }
                         
@@ -1046,9 +1080,9 @@ namespace Ink.Runtime
             // Only remove an existing glue if we're definitely now
             // adding something new on top, since it's served its purpose.
             if( outputStreamEndsInGlue ) 
-                outputStream.RemoveAt (glueIdx);
+                _outputStream.RemoveAt (glueIdx);
             
-            outputStream.Add(obj);
+            _outputStream.Add(obj);
         }
 
         // Called when Glue is appended
@@ -1067,9 +1101,9 @@ namespace Ink.Runtime
             int lastNewlineCharIdx = -1;
 
             // Find last newline
-            for (int i = outputStream.Count - 1; i >= 0; --i) {
+            for (int i = _outputStream.Count - 1; i >= 0; --i) {
 
-                var outputObj = outputStream [i];
+                var outputObj = _outputStream [i];
                 if( outputObj is Text ) {
 
                     var text = (Text)outputObj;
@@ -1110,13 +1144,13 @@ namespace Ink.Runtime
                     firstEntireObjToRemove = lastNewlineObjIdx;
                 }
 
-                int entireObjCountToRemove = outputStream.Count - firstEntireObjToRemove;
+                int entireObjCountToRemove = _outputStream.Count - firstEntireObjToRemove;
                 if (entireObjCountToRemove > 0) {
-                    outputStream.RemoveRange (firstEntireObjToRemove, entireObjCountToRemove);
+                    _outputStream.RemoveRange (firstEntireObjToRemove, entireObjCountToRemove);
                 }
 
                 if (lastNewlineCharIdx > 0) {
-                    Text textToTrim = (Text)outputStream [lastNewlineObjIdx];
+                    Text textToTrim = (Text)_outputStream [lastNewlineObjIdx];
                     textToTrim.text = textToTrim.text.Substring (0, lastNewlineCharIdx);
                 }
             }
@@ -1126,8 +1160,8 @@ namespace Ink.Runtime
 
         bool outputStreamEndsInNewline {
             get {
-                if (outputStream.Count > 0) {
-                    var text = outputStream.Last () as Text;
+                if (_outputStream.Count > 0) {
+                    var text = _outputStream.Last () as Text;
                     if (text) {
                         return text.text == "\n";
                     }
@@ -1160,38 +1194,6 @@ namespace Ink.Runtime
             var popped = _evaluationStack.GetRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
             _evaluationStack.RemoveRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
             return popped;
-        }
-			
-        public List<T> CurrentOutput<T>(Func<T, bool> optionalQuery = null) where T : class
-		{
-			List<T> result = new List<T> ();
-
-			for (int i = outputStream.Count - 1; i >= 0; --i) {
-				object outputObj = outputStream [i];
-
-				// "Current" is defined as "since last chosen choice"
-                var chosenInstance = outputObj as ChoiceInstance;
-                if (chosenInstance && chosenInstance.hasBeenChosen) {
-					break;
-				}
-
-				T outputOfType = outputObj as T;
-				if (outputOfType != null) {
-
-                    if (optionalQuery == null || optionalQuery(outputOfType) == true) {
-                        
-                        // Insert rather than Add since we're iterating in reverse
-                        result.Insert (0, outputOfType);
-                    }
-				}
-			}
-
-			return result;
-		}
-
-        public List<Runtime.Object> CurrentOutput(Func<bool> optionalQuery = null)
-        {
-            return CurrentOutput<Runtime.Object> ();
         }
 
         public virtual string BuildStringOfHierarchy()
@@ -1266,17 +1268,17 @@ namespace Ink.Runtime
             
         bool TryFollowDefaultInvisibleChoice()
         {
-            var allChoices = CurrentOutput<ChoiceInstance> ();
+            var allChoices = CurrentChoices (includeInvisibleDefaults: true);
+
+            // Is a default invisible choice the ONLY choice?
             var invisibleChoiceInstances = allChoices.Where (c => c.choice.isInvisibleDefault).ToList();
             if (invisibleChoiceInstances.Count == 0 || allChoices.Count > invisibleChoiceInstances.Count)
                 return false;
 
-            // Silently consume the invisible choice so that it doesn't
-            // get used twice in the same call to Continue
             var choiceInstance = invisibleChoiceInstances [0];
-            outputStream.Remove (choiceInstance);
-
             currentPath = choiceInstance.choice.choiceTarget.path;
+
+            _currentChoices.Clear ();
 
             return true;
         }
@@ -1508,8 +1510,8 @@ namespace Ink.Runtime
                 // Current/previous path may not be valid if we've just had an error,
                 // or if we've simply run out of content.
                 // As a last resort, try to grab something from the output stream
-                for (int i = outputStream.Count - 1; i >= 0; --i) {
-                    var outputObj = outputStream [i];
+                for (int i = _outputStream.Count - 1; i >= 0; --i) {
+                    var outputObj = _outputStream [i];
                     dm = outputObj.debugMetadata;
                     if (dm != null) {
                         return dm;
@@ -1573,7 +1575,9 @@ namespace Ink.Runtime
         private int _currentTurnIndex;
         private int _storySeed;
 
+        private List<Runtime.Object> _outputStream;
         private List<Runtime.Object> _evaluationStack;
+        private List<ChoiceInstance> _currentChoices;
 
         private List<string> _currentErrors;
 

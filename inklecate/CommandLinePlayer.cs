@@ -27,11 +27,11 @@ namespace Ink
 		{
 			story.Begin ();
 
-            PrintOutput ();
+            EvaluateStory ();
 
 			var rand = new Random ();
 
-			while (story.currentChoices.Count > 0) {
+            while (story.currentChoices.Count > 0) {
 				var choices = story.currentChoices;
 				
                 var choiceIdx = 0;
@@ -133,22 +133,31 @@ namespace Ink
                     userDivertedPath = null;
                 }
 
-                PrintOutput ();
+                while (story.canContinue)
+                    story.Continue ();
+
+                EvaluateStory ();
 			}
 		}
 
-        void PrintOutput()
+        void EvaluateStory()
         {
-            Console.WriteLine(story.currentText);
+            while (story.canContinue) {
+                
+                story.Continue ();
 
-            if (story.hasError) {
-                SetConsoleTextColour (ConsoleColour.Red);
-                foreach (var errorMsg in story.currentErrors) {
-                    Console.WriteLine (errorMsg);
+                Console.WriteLine(story.currentText);
+
+                if (story.hasError) {
+                    SetConsoleTextColour (ConsoleColour.Red);
+                    foreach (var errorMsg in story.currentErrors) {
+                        Console.WriteLine (errorMsg);
+                    }
+                    ResetConsoleTextColour ();
+                    story.ResetErrors ();
                 }
-                ResetConsoleTextColour ();
-                story.ResetErrors ();
             }
+
         }
 
         void SetConsoleTextColour(ConsoleColour colour)
