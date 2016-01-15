@@ -12,7 +12,7 @@ namespace Ink.Runtime
         const int inkVersionCurrent = 9;
 
         // Version numbers are for engine itself and story file, rather
-        // than the save format.
+        // than the story state save format (which is um, currently nonexistant)
         //  -- old engine, new format: always fail
         //  -- new engine, old format: possibly cope, based on this number
         // When incrementing the version number above, the question you
@@ -195,7 +195,16 @@ namespace Ink.Runtime
 
             try {
 
-                while( Step () || TryFollowDefaultInvisibleChoice() ) {}
+                do {
+                    
+                    Step();
+
+                    if( currentPath == null ) {
+                        TryFollowDefaultInvisibleChoice();
+                    }
+
+                } while(currentPath != null);
+
 
                 if( _callStack.canPopThread ) {
                     Error("Thread available to pop, threads should always be flat by the end of evaluation?");
@@ -221,12 +230,14 @@ namespace Ink.Runtime
             }
 		}
 
-        // Return false if story ran out of content
-        bool Step ()
+        void Step ()
         {
+            // Get current content
             var currentContentObj = ContentAtPath (currentPath);
-            if (currentContentObj == null)
-                return false;
+            if (currentContentObj == null) {
+                currentPath = null;
+                return;
+            }
             
             // Convert path to get first leaf content
             Container currentContainer = currentContentObj as Container;
@@ -242,19 +253,11 @@ namespace Ink.Runtime
             //  - Or a logic/flow statement - if so, do it
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
-            bool endFlow;
+            bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
 
-            bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj, out endFlow);
-            if (endFlow) {
-                currentPath = null;
-
-                while (_callStack.canPopThread)
-                    _callStack.PopThread ();
-                
-                while (_callStack.canPop)
-                    _callStack.Pop ();
-
-                return false;
+            // Has flow been forced to end by flow control above?
+            if (currentPath == null) {
+                return;
             }
 
             // Choice with condition?
@@ -302,9 +305,6 @@ namespace Ink.Runtime
             if (controlCmd && controlCmd.commandType == ControlCommand.CommandType.StartThread) {
                 _callStack.PushThread ();
             }
-
-            // Do we have somewhere valid to go?
-            return currentPath != null;
         }
 
         ChoiceInstance ProcessChoice(Choice choice)
@@ -383,10 +383,8 @@ namespace Ink.Runtime
         /// </summary>
         /// <returns><c>true</c> if object was logic or flow control, <c>false</c> if it's normal content.</returns>
         /// <param name="contentObj">Content object.</param>
-        private bool PerformLogicAndFlowControl(Runtime.Object contentObj, out bool endFlow)
+        private bool PerformLogicAndFlowControl(Runtime.Object contentObj)
         {
-            endFlow = false;
-
             if( contentObj == null ) {
                 return false;
             }
@@ -623,9 +621,18 @@ namespace Ink.Runtime
                     }
 
                     break;
-
+                
+                // Force flow to end completely
                 case ControlCommand.CommandType.End:
-                    endFlow = true;
+                    
+                    currentPath = null;
+
+                    while (_callStack.canPopThread)
+                        _callStack.PopThread ();
+
+                    while (_callStack.canPop)
+                        _callStack.Pop ();
+                    
                     _didSafeExit = true;
                     break;
 
