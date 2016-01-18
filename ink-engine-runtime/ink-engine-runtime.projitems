@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ChoiceInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VariablesState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PushPop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StoryState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />

@@ -206,11 +206,30 @@ namespace Ink.Runtime
 
 		public string Continue()
 		{
+            if (!canContinue) {
+                throw new StoryException ("Can't continue - should check canContinue before calling Continue");
+            }
+
             _outputStream.Clear ();
             
             _didSafeExit = false;
 
             try {
+
+                StoryState stateAtLastNewline = null;
+                int outputTextLength = -1;
+
+
+                // The basic algorithm here is:
+                //
+                //     do { Step() } while( canContinue && !outputStreamEndsInNewline );
+                //
+                // But the complexity comes rom:
+                //  - Stepping beyond the newline in case it'll be absorbed by glue
+                //  - Ensuring that non-text content beyond newlines are generated - i.e. choices
+                // So we have to take a snapshot of the state, continue prospectively,
+                // and rewind if necessary.
+                //
 
                 do {
                     
@@ -220,8 +239,46 @@ namespace Ink.Runtime
                     if( !canContinue ) {
                         TryFollowDefaultInvisibleChoice();
                     }
+                        
+                    if( outputStreamEndsInNewline ) {
 
-                } while(canContinue && !outputStreamEndsInNewline);
+                        // Create a snapshot in case we need to rewind.
+                        // We're going to continue stepping in case we see glue or some
+                        // non-text content such as choices.
+                        stateAtLastNewline = StateSnapshot();
+                        outputTextLength = currentText.Length;
+                    } 
+
+                    if( !canContinue ) {
+                        break;
+                    }
+
+                    // We previously found a newline, but were we just double checking that
+                    // it wouldn't immediately be removed by glue?
+                    else if( stateAtLastNewline != null ) {
+
+                        // Cover cases that non-text generated content was evaluated last step
+                        string text = currentText;
+                        bool outputIsExtended = text.Length > outputTextLength;
+                        bool originalNewlineStillExists = text[outputTextLength-1] == '\n';
+
+                        // Point at which original newline was first generated will be restored
+                        if( outputIsExtended && originalNewlineStillExists ) {
+                            break;
+                        } 
+
+                        // Newline that previously existed is no longer valid - e.g.
+                        // glue was encounted that caused it to be removed.
+                        else {
+                            stateAtLastNewline = null;
+                        }
+                    }
+
+                } while(true);
+
+                if( stateAtLastNewline != null ) {
+                    RestoreStateSnapshot(stateAtLastNewline);
+                }
 
                 // Finished a section of content / reached a choice point?
                 if( !canContinue ) {
@@ -257,6 +314,16 @@ namespace Ink.Runtime
 
             return currentText;
 		}
+
+        StoryState StateSnapshot()
+        {
+            return new StoryState ();
+        }
+
+        void RestoreStateSnapshot(StoryState state)
+        {
+
+        }
 
         public bool canContinue
         {

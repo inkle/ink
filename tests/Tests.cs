@@ -342,7 +342,6 @@ VAR x = 3
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
             Assert.AreEqual ("start\n", story.Continue());
-            Assert.AreEqual ("", story.Continue());
             Assert.AreEqual (1, story.currentChoices.Count);
 
             story.ChooseChoiceIndex (0);
@@ -389,9 +388,6 @@ VAR x = 3
             story.Begin ();
 
             Assert.AreEqual ("first gather\n", story.Continue());
-
-            #warning This shouldn't be necessary
-            story.Continue ();
 
             Assert.AreEqual (2, story.currentChoices.Count);
 
@@ -544,9 +540,6 @@ VAR x = 0
             Assert.AreEqual ("hello", story.currentChoices [0].choiceText);
 
             story.ChooseChoiceIndex (0);
-            story.Continue ();
-
-            #warning This shouldn't be necessary
             story.Continue ();
 
             Assert.AreEqual ("world", story.currentChoices [0].choiceText);
@@ -784,9 +777,6 @@ This is default.
 
             story.ChooseChoiceIndex (0);
             Assert.AreEqual ("After choice\n", story.Continue());
-
-            #warning This shouldn't be necessary
-            story.Continue ();
 
             Assert.AreEqual (1, story.currentChoices.Count);
 
