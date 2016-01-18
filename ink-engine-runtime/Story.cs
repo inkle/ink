@@ -204,7 +204,7 @@ namespace Ink.Runtime
             _currentErrors = null;
         }
 
-		public void Continue()
+		public string Continue()
 		{
             _outputStream.Clear ();
             
@@ -254,6 +254,8 @@ namespace Ink.Runtime
                 
                 _didSafeExit = false;
             }
+
+            return currentText;
 		}
 
         public bool canContinue
@@ -261,6 +263,17 @@ namespace Ink.Runtime
             get {
                 return currentPath != null && !hasError;
             }
+        }
+
+        public string ContinueMaximally()
+        {
+            var sb = new StringBuilder ();
+
+            while (canContinue) {
+                sb.Append (Continue ());
+            }
+
+            return sb.ToString ();
         }
 
         void Step ()
@@ -742,7 +755,8 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Continue the story from the particular point.
+        /// Change the current position of the story to the given path.
+        /// From here you can call Continue() to evaluate the next line.
         /// The path string is a dot-separated path as used internally by the engine.
         /// These examples should work:
         /// 
@@ -756,30 +770,25 @@ namespace Ink.Runtime
         /// ...because of the way that content is nested within a weave structure.
         /// </summary>
         /// <param name="path">A dot-separted path string, as specified above.</param>
-        public void ContinueFromPathString(string path)
+        public void ChoosePathString(string path)
         {
-            // TODO: Add choice marker is a hack, do it a better way!
-            // The problem is that ContinueFromPath may be called externally,
-            // and if it is then it wouldn't have a ChoiceInstance to mark where
-            // the last chunk of content ended
-            ContinueFromPath (new Path(path), addChoiceMarker:true);
+            ChoosePath (new Path(path));
         }
-
-        internal void ContinueFromPath(Path path, bool addChoiceMarker = true)
-		{
+            
+        internal void ChoosePath(Path path)
+        {
+            // Changing direction, assume we need to clear current set of choices
             _currentChoices.Clear ();
 
             _previousPath = currentPath;
 
-			currentPath = path;
+            currentPath = path;
 
             _currentTurnIndex++;
+        }
 
-			Continue ();
-		}
-
-		public void ContinueWithChoiceIndex(int choiceIdx)
-		{
+        public void ChooseChoiceIndex(int choiceIdx)
+        {
             var choiceInstances = currentChoices;
             Assert (choiceIdx >= 0 && choiceIdx < choiceInstances.Count, "choice out of range");
 
@@ -791,8 +800,8 @@ namespace Ink.Runtime
             var instanceToChoose = choiceInstances [choiceIdx];
             _callStack.currentThread = instanceToChoose.threadAtGeneration;
 
-            ContinueFromPath (instanceToChoose.choice.choiceTarget.path, addChoiceMarker:false);
-		}
+            ChoosePath (instanceToChoose.choice.choiceTarget.path);
+        }
 
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
         {
@@ -1033,7 +1042,7 @@ namespace Ink.Runtime
             if (obj is Text) {
                 var text = (Text)obj;
 
-                bool canAppendNewline = !outputStreamEndsInNewline && !outputStreamEndsInGlue;
+                bool canAppendNewline = !outputStreamEndsInNewline && !outputStreamEndsInGlue && _outputStream.Count != 0;
 
                 // Newline: don't allow more than one
                 if (text.text == "\n") {

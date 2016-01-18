@@ -127,15 +127,12 @@ namespace Ink
                 ResetConsoleTextColour ();
 
                 if (choiceIsValid) {
-                    story.ContinueWithChoiceIndex (choiceIdx);
+                    story.ChooseChoiceIndex (choiceIdx);
                 } else if (userDivertedPath != null) {
-                    story.ContinueFromPath (userDivertedPath);
+                    story.ChoosePath (userDivertedPath);
                     userDivertedPath = null;
                 }
-
-                while (story.canContinue)
-                    story.Continue ();
-
+                    
                 EvaluateStory ();
 			}
 		}

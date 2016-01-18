@@ -71,7 +71,7 @@ namespace Tests
 		{
 			Story story = CompileString ("Hello world");
 			story.Begin ();
-            Assert.AreEqual ("Hello world", story.currentText);
+            Assert.AreEqual ("Hello world", story.Continue());
 		}
 
         [Test ()]
@@ -90,7 +90,7 @@ namespace Tests
             
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual ("Hello!\nWorld.\n", story.currentText);
+            Assert.AreEqual ("Hello!\nWorld.\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -114,7 +114,7 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual ("8\n", story.currentText);
+            Assert.AreEqual ("8\n", story.Continue());
         }
 
         [Test ()]
@@ -131,10 +131,12 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
+            story.Continue ();
+
             Assert.AreEqual ("Hello.", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("Hello, world.\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("Hello, world.\n", story.Continue());
         }
 
         [Test ()]
@@ -156,6 +158,8 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
+            story.ContinueMaximally ();
+
             Assert.AreEqual (4, story.currentChoices.Count);
             Assert.AreEqual ("one", story.currentChoices[0].choiceText);
             Assert.AreEqual ("two", story.currentChoices[1].choiceText);
@@ -179,8 +183,11 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("option text. Conditional bit.\nNext.\n", story.currentText);
+            story.Continue ();
+
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("option text. Conditional bit.\n", story.Continue());
+            Assert.AreEqual ("Next.\n", story.Continue());
         }
 
         [Test ()]
@@ -200,7 +207,7 @@ namespace Tests
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual ("\n", story.currentText);
+            Assert.AreEqual ("", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -216,7 +223,7 @@ This is the main file.
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.", story.currentText);
+            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -233,7 +240,7 @@ This is the main file
 
             Story story = CompileString (storyStr);
             story.Begin ();
-            Assert.AreEqual ("The value of a variable in test file 2 is 5.\nThis is the main file\nThe value when accessed from knot_in_2 is 5.\n", story.currentText);
+            Assert.AreEqual ("The value of a variable in test file 2 is 5.\nThis is the main file\nThe value when accessed from knot_in_2 is 5.\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -272,7 +279,7 @@ This is the main file
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("true\ntrue\ntrue\ntrue\ntrue\ngreat\nright?\n", story.currentText);
+            Assert.AreEqual ("true\ntrue\ntrue\ntrue\ntrue\ngreat\nright?\n", story.ContinueMaximally());
         }
 
         public void TestElseBranches()
@@ -334,12 +341,13 @@ VAR x = 3
 
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
-            Assert.AreEqual ("start\n\n", story.currentText);
+            Assert.AreEqual ("start\n", story.Continue());
+            Assert.AreEqual ("", story.Continue());
             Assert.AreEqual (1, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("result\n", story.currentText);
+            Assert.AreEqual ("result\n", story.Continue());
         }
 
         [Test ()]
@@ -356,6 +364,7 @@ VAR x = 3
 
             Story story = CompileString (storyStr);
             story.Begin ();
+            story.ContinueMaximally ();
 
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("visible choice", story.currentChoices[0].choiceText);
@@ -379,12 +388,16 @@ VAR x = 3
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("first gather\n", story.currentText);
+            Assert.AreEqual ("first gather\n", story.Continue());
+
+            #warning This shouldn't be necessary
+            story.Continue ();
+
             Assert.AreEqual (2, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("option 1\nthe main gather\n", story.currentText);
+            Assert.AreEqual ("option 1\nthe main gather\n", story.ContinueMaximally());
             Assert.AreEqual (0, story.currentChoices.Count);
         }
 
@@ -405,7 +418,7 @@ VAR x = 0
 
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
-            Assert.AreEqual ("\n5", story.currentText);
+            Assert.AreEqual ("5", story.Continue());
         }
 
         [Test ()]
@@ -434,7 +447,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("gather\ntest\nchoice content\ngather\nsecond time round\n", story.currentText);
+            Assert.AreEqual ("gather\ntest\nchoice content\ngather\nsecond time round\n", story.ContinueMaximally());
         }
 
 
@@ -455,16 +468,20 @@ VAR x = 0
             Story story = CompileString (storyStr);
 
             story.Begin ();
+            story.ContinueMaximally ();
+
             Assert.AreEqual (2, story.currentChoices.Count);
             Assert.AreEqual ("one", story.currentChoices[0].choiceText);
             Assert.AreEqual ("four", story.currentChoices[1].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
+
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("two", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("two\nthree\nsix", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("two\nthree\nsix", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -477,7 +494,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("nothing\n", story.currentText);
+            Assert.AreEqual ("nothing\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -489,13 +506,14 @@ VAR x = 0
 
             Story story = CompileString (storyStr);
             story.Begin ();
+            story.Continue ();
 
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("Option", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("Text", story.currentText);
+            Assert.AreEqual ("Text", story.Continue());
         }
 
         [Test ()]
@@ -511,7 +529,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("one\ntwo\nthree", story.currentText);
+            Assert.AreEqual ("one\ntwo\nthree", story.ContinueMaximally());
         }
             
         [Test ()]
@@ -521,10 +539,15 @@ VAR x = 0
 
             Story story = CompileString (storyStr);
             story.Begin ();
+            story.Continue ();
 
             Assert.AreEqual ("hello", story.currentChoices [0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.Continue ();
+
+            #warning This shouldn't be necessary
+            story.Continue ();
 
             Assert.AreEqual ("world", story.currentChoices [0].choiceText);
         }
@@ -537,7 +560,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("Some content with glue.", story.currentText);
+            Assert.AreEqual ("Some content with glue.", story.Continue());
         }
 
         [Test ()]
@@ -549,7 +572,7 @@ VAR x = 0
             story.Begin ();
 
             // Unfortunate leading newline...
-            Assert.AreEqual ("this is a '|' character", story.currentText);
+            Assert.AreEqual ("this is a '|' character", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -575,7 +598,7 @@ VAR to_two = -> two
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot", story.currentText);
+            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -595,7 +618,7 @@ VAR to_two = -> two
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("120", story.currentText);
+            Assert.AreEqual ("120", story.ContinueMaximally());
        }
 
         [Test ()]
@@ -623,7 +646,7 @@ VAR globalVal = 5
             story.Begin ();
 
             // Bloody whitespace
-            Assert.AreEqual ("5\n \n625", story.currentText);
+            Assert.AreEqual ("5\n \n625", story.ContinueMaximally());
         }
 
 
@@ -650,7 +673,7 @@ VAR result = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("\n120", story.currentText);
+            Assert.AreEqual ("120", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -672,7 +695,7 @@ VAR result = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("1 2\n", story.currentText);
+            Assert.AreEqual ("1 2\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -697,7 +720,7 @@ VAR x = 5
 ");
             story.Begin ();
 
-            Assert.AreEqual ("6\n5", story.currentText);
+            Assert.AreEqual ("6\n5", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -717,7 +740,7 @@ hi
 ");
             story.Begin ();
 
-            Assert.AreEqual ("hi\nhi\nhi\n3", story.currentText);
+            Assert.AreEqual ("hi\nhi\nhi\n3", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -733,7 +756,7 @@ hi
 ");
             story.Begin ();
 
-            Assert.AreEqual ("2", story.currentText);
+            Assert.AreEqual ("2", story.Continue());
         }
 
 
@@ -754,15 +777,21 @@ This is default.
 -> DONE
 ");
             story.Begin ();
-            Assert.AreEqual (2, story.currentChoices.Count);
-            Assert.AreEqual ("", story.currentText);
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("After choice\n", story.currentText);
+            Assert.AreEqual ("", story.Continue());
+            Assert.AreEqual (2, story.currentChoices.Count);
+
+
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("After choice\n", story.Continue());
+
+            #warning This shouldn't be necessary
+            story.Continue ();
+
             Assert.AreEqual (1, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("After choice\nThis is default.\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("After choice\nThis is default.\n", story.ContinueMaximally());
         }
 
 
@@ -795,7 +824,7 @@ This is default.
 ");
             story.Begin ();
 
-            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8", story.currentText);
+            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -814,13 +843,13 @@ This is default.
 ~ return
 ");
             story.Begin ();
-            Assert.AreEqual ( "-1\n0\n", story.currentText);
+            Assert.AreEqual ( "-1\n0\n", story.ContinueMaximally());
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("1\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("1\n", story.ContinueMaximally());
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("2", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("2", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -828,16 +857,19 @@ This is default.
         {
             Story story = CompileString ("Hello world");
             story.Begin ();
+            story.ContinueMaximally ();
             Assert.IsFalse (story.hasError);
 
             story = CompileString ("== test ==\nContent\n-> END");
             story.Begin ();
+            story.ContinueMaximally ();
             Assert.IsFalse (story.hasError);
 
             // Should have runtime error due to running out of content
             // (needs a -> END)
             story = CompileString ("== test ==\nContent");
             story.Begin ();
+            story.ContinueMaximally ();
             Assert.IsTrue (story.hasError);
 
             // Should have warning that there's no "-> END"
@@ -863,10 +895,11 @@ This is default.
 - gather");
             
             story.Begin ();
-            story.ContinueWithChoiceIndex (0);
+            story.ContinueMaximally ();
+            story.ChooseChoiceIndex (0);
 
             // Shouldn't go to "gather"
-            Assert.AreEqual ("opt\ntext\n", story.currentText);
+            Assert.AreEqual ("opt\ntext\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -892,18 +925,22 @@ This is the {first|second|third} time.
 ");
 
             story.Begin ();
+            story.ContinueMaximally ();
 
             Assert.AreEqual (3, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
 
             Assert.AreEqual (2, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
 
             Assert.AreEqual (1, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
 
             Assert.AreEqual (0, story.currentChoices.Count);
         }
@@ -986,7 +1023,7 @@ Hello
 
             story.Begin ();
 
-            Assert.AreEqual ("Hello world", story.currentText);
+            Assert.AreEqual ("Hello world", story.Continue());
         }
 
         [Test ()]
@@ -1011,7 +1048,7 @@ two ({num})
 ");
             story.Begin ();
 
-            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)", story.currentText);
+            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1040,19 +1077,21 @@ Done.
 ");
             story.Begin ();
 
+            Assert.IsFalse (story.ContinueMaximally ().Contains ("Finished tunnel"));
+
             // Choices should be A, B
             Assert.AreEqual (2, story.currentChoices.Count);
-            Assert.IsFalse (story.currentText.Contains ("Finished tunnel"));
 
-            story.ContinueWithChoiceIndex (0);
+
+            story.ChooseChoiceIndex (0);
 
             // Choices should be C, D, E
-            Assert.IsTrue (story.currentText.Contains ("Finished tunnel"));
+            Assert.IsTrue (story.ContinueMaximally ().Contains ("Finished tunnel"));
             Assert.AreEqual (3, story.currentChoices.Count);
 
-            story.ContinueWithChoiceIndex (2);
+            story.ChooseChoiceIndex (2);
 
-            Assert.IsTrue (story.currentText.Contains ("Done."));
+            Assert.IsTrue (story.ContinueMaximally ().Contains ("Done."));
         }
 
 
@@ -1067,7 +1106,7 @@ world
 ");
             story.Begin ();
 
-            Assert.AreEqual ("hello\n", story.currentText);
+            Assert.AreEqual ("hello\n", story.ContinueMaximally());
         }
 
 
@@ -1084,7 +1123,7 @@ world
 ");
             story.Begin ();
 
-            Assert.AreEqual ("hello\n", story.currentText);
+            Assert.AreEqual ("hello\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1104,7 +1143,7 @@ World.
 ");
             story.Begin ();
 
-            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.", story.currentText);
+            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.", story.ContinueMaximally());
         }
 
 
@@ -1133,10 +1172,10 @@ This is place 2.
 - ->->
 ");
             story.Begin ();
-            Assert.AreEqual ("This is place 1.\nThis is place 2.\n", story.currentText);
+            Assert.AreEqual ("This is place 1.\nThis is place 2.\n", story.ContinueMaximally());
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("choice in place 1\nThe end\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("choice in place 1\nThe end\n", story.ContinueMaximally());
             Assert.IsFalse (story.hasError);
         }
 
@@ -1162,13 +1201,15 @@ This is place 2.
 ");
             
             story.Begin ();
-            Assert.AreEqual ("blah blah\n", story.currentText);
+            Assert.AreEqual ("blah blah\n", story.ContinueMaximally());
+
             Assert.AreEqual (2, story.currentChoices.Count);
             Assert.IsTrue(story.currentChoices[0].choiceText.Contains("option"));
             Assert.IsTrue(story.currentChoices[1].choiceText.Contains("wigwag"));
 
-            story.ContinueWithChoiceIndex (1);
-            Assert.AreEqual ("wigwag\nTHE END\n", story.currentText);
+            story.ChooseChoiceIndex (1);
+            Assert.AreEqual ("wigwag\n", story.Continue());
+            Assert.AreEqual ("THE END\n", story.Continue());
             Assert.IsFalse (story.hasError);
         }
 
@@ -1195,12 +1236,12 @@ This is place 2.
 ");
 
             story.Begin ();
-            Assert.AreEqual ("I’m in a tunnel\nWhen should this get printed?\n", story.currentText);
+            Assert.AreEqual ("I’m in a tunnel\nWhen should this get printed?\n", story.ContinueMaximally());
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual(story.currentChoices[0].choiceText, "I’m an option");
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("I’m an option\nFinishing thread.\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("I’m an option\nFinishing thread.\n", story.ContinueMaximally());
             Assert.IsFalse (story.hasError);
         }
 
@@ -1235,7 +1276,7 @@ Here.
 -> DONE
 ");
             story.Begin ();
-            Assert.AreEqual ("Here.\n", story.currentText);
+            Assert.AreEqual ("Here.\n", story.Continue());
         }
 
         [Test ()]
@@ -1249,7 +1290,7 @@ CONST c = 5
 {x}
 ");
             story.Begin ();
-            Assert.AreEqual ("5", story.currentText);
+            Assert.AreEqual ("5", story.Continue());
         }
 
         [Test ()]
@@ -1269,7 +1310,7 @@ In second.
 ->->
 ");
             story.Begin ();
-            Assert.AreEqual ("1) Seen first 1 times.\nIn second.\n2) Seen first 1 times.\n", story.currentText);
+            Assert.AreEqual ("1) Seen first 1 times.\nIn second.\n2) Seen first 1 times.\n", story.ContinueMaximally ());
         }
 
         [Test ()]
@@ -1289,7 +1330,7 @@ In second.
     * {false} DONE
 ");
             story.Begin ();
-            Assert.AreEqual ("1\n1\n", story.currentText);
+            Assert.AreEqual ("1\n1\n", story.ContinueMaximally());
         }
 
 
@@ -1306,17 +1347,17 @@ In second.
         -> DONE
 ");
             story.Begin ();
-            Assert.AreEqual ("-1 = -1\n", story.currentText);
+            Assert.AreEqual ("-1 = -1\n", story.ContinueMaximally());
 
             Assert.AreEqual (1, story.currentChoices.Count);
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("stuff\n0 = 0\n", story.currentText);
+            Assert.AreEqual ("stuff\n0 = 0\n", story.ContinueMaximally());
 
             Assert.AreEqual (1, story.currentChoices.Count);
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("more stuff\n1 = 1\n", story.currentText);
+            Assert.AreEqual ("more stuff\n1 = 1\n", story.ContinueMaximally());
         }
 
 
@@ -1341,7 +1382,7 @@ Done.
 ->->
 ");
             story.Begin ();
-            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.", story.currentText);
+            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1365,10 +1406,10 @@ Done.
 ", countAllVisits:true);
             
             story.Begin ();
-            Assert.AreEqual ("0\n0\n", story.currentText);
+            Assert.AreEqual ("0\n0\n", story.ContinueMaximally());
 
-            story.ContinueWithChoiceIndex(0);
-            Assert.AreEqual ("1\n", story.currentText);
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual ("1\n", story.ContinueMaximally());
         }
 
 
@@ -1385,7 +1426,7 @@ VAR negativeLiteral3 = !(0)
 {negativeLiteral3}
 ");
             story.Begin ();
-            Assert.AreEqual ("-1\n0\n1", story.currentText);
+            Assert.AreEqual ("-1\n0\n1", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1415,22 +1456,22 @@ VAR x = 5
             story.Begin ();
 
             // Initial state
-            Assert.AreEqual ("5\n", story.currentText);
+            Assert.AreEqual ("5\n", story.ContinueMaximally());
             Assert.AreEqual (5, story.variablesState["x"]);
 
             story.variablesState["x"] = 10;
-            story.ContinueWithChoiceIndex(0);
-            Assert.AreEqual ("10\n", story.currentText);
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual ("10\n", story.ContinueMaximally());
             Assert.AreEqual (10, story.variablesState["x"]);
 
             story.variablesState["x"] = 8.5f;
-            story.ContinueWithChoiceIndex(0);
-            Assert.AreEqual ("8.5\n", story.currentText);
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual ("8.5\n", story.ContinueMaximally());
             Assert.AreEqual (8.5f, story.variablesState["x"]);
 
             story.variablesState["x"] = "a string";
-            story.ContinueWithChoiceIndex(0);
-            Assert.AreEqual ("a string\n", story.currentText);
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual ("a string\n", story.ContinueMaximally());
             Assert.AreEqual ("a string", story.variablesState["x"]);
 
             Assert.AreEqual (null, story.variablesState["z"]);
@@ -1485,11 +1526,12 @@ Joe
 ");
 
             story.Begin ();
+            story.ContinueMaximally ();
 
             Assert.AreEqual ("'Hello Joe, your name is Joe.'", story.currentChoices[0].choiceText);
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("'Hello Joe,' I said, knowing full well that his name was Joe.\n", story.currentText);
+            Assert.AreEqual ("'Hello Joe,' I said, knowing full well that his name was Joe.\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1506,14 +1548,20 @@ Joe
 ");
 
             story.Begin ();
+            story.ContinueMaximally ();
+
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("First choice", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
+
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("Second choice", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
+
             Assert.AreEqual (null, story.currentErrors);
         }
 
@@ -1536,7 +1584,7 @@ Joe
 ");
 
             story.Begin ();
-            Assert.AreEqual ("STUFF\n", story.currentText);
+            Assert.AreEqual ("STUFF\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1570,7 +1618,7 @@ Joe
 ");
             story.Begin ();
 
-            Assert.AreEqual ("512x2 = 1024\n512x2p2 = 1026\n", story.currentText);
+            Assert.AreEqual ("512x2 = 1024\n512x2p2 = 1026\n", story.ContinueMaximally());
         }
 
 
@@ -1584,17 +1632,19 @@ Joe
 -> END
 ");
             story.Begin ();
+            story.ContinueMaximally ();
+
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("First", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual ("First\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("First\n", story.ContinueMaximally());
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual ("Very indented", story.currentChoices[0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual ("Very indented\nEnd\n", story.ContinueMaximally());
             Assert.AreEqual (0, story.currentChoices.Count);
-            Assert.AreEqual ("Very indented\nEnd\n", story.currentText);
         }
 
         [Test ()]
@@ -1606,7 +1656,7 @@ VAR x = ""Hello world 1""
 Hello {""world""} 2.
 ");
             story.Begin ();
-            Assert.AreEqual ("Hello world 1\nHello world 2.", story.currentText);
+            Assert.AreEqual ("Hello world 1\nHello world 2.", story.ContinueMaximally());
         }
 
 
@@ -1620,7 +1670,7 @@ Hello {""world""} 2.
             // So output is: My name is "Joe"
             var story = CompileString (@"My name is ""{""J{""o""}e""}""");
             story.Begin ();
-            Assert.AreEqual ("My name is \"Joe\"", story.currentText);
+            Assert.AreEqual ("My name is \"Joe\"", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1633,7 +1683,7 @@ Hello {""world""} 2.
             story.Begin ();
 
             // Not sure that "5" should be equal to 5, but hmm.
-            Assert.AreEqual ("same\ndifferent", story.currentText);
+            Assert.AreEqual ("same\ndifferent", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1644,11 +1694,13 @@ Hello {""world""} 2.
 -> DONE
 ");
             story.Begin ();
+            story.ContinueMaximally ();
+
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual (@" test1 ""test2 test3""", story.currentChoices [0].choiceText);
 
-            story.ContinueWithChoiceIndex (0);
-            Assert.AreEqual (" test1  test4\n", story.currentText);
+            story.ChooseChoiceIndex (0);
+            Assert.AreEqual (" test1  test4\n", story.Continue());
         }
 
         [Test ()]
@@ -1679,7 +1731,7 @@ VAR x = 5
 {x}{y}
 ");
             story.Begin ();
-            Assert.AreEqual ("54", story.currentText);
+            Assert.AreEqual ("54", story.Continue());
         }
 
 
@@ -1704,9 +1756,9 @@ EXTERNAL multiply(x,y)
 
             
             story.Begin ();
+            Assert.AreEqual ("15", story.ContinueMaximally());
 
             Assert.AreEqual ("MESSAGE: hello world", message);
-            Assert.AreEqual ("\n15", story.currentText);
         }
 
 		//------------------------------------------------------------------------
