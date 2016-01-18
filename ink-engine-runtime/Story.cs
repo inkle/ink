@@ -24,70 +24,20 @@ namespace Ink.Runtime
         //     in-development problem only.
         const int inkVersionMinimumCompatible = 9;
 
-        internal Path currentPath { 
-            get { 
-                return _callStack.currentElement.path; 
-            } 
-            private set {
-                _callStack.currentElement.path = value;
-            }
-        }
-
-
         public List<ChoiceInstance> currentChoices
 		{
 			get 
 			{
-                return CurrentChoices (includeInvisibleDefaults: false);
+                // Don't include invisible choices for external usage.
+                return _state.currentChoices.Where (c => !c.choice.isInvisibleDefault).ToList ();
 			}
 		}
-
-        List<ChoiceInstance> CurrentChoices(bool includeInvisibleDefaults)
-        {
-            if (includeInvisibleDefaults) {
-                return _currentChoices;
-            } else {
-                return _currentChoices.Where (c => !c.choice.isInvisibleDefault).ToList();
-            }
-        }
-
-		public string currentText
-		{
-			get 
-			{
-                var sb = new StringBuilder ();
-
-                foreach (var outputObj in _outputStream) {
-                    var textContent = outputObj as Text;
-                    if (textContent != null) {
-                        sb.Append(textContent.text);
-                    }
-                }
-
-                return sb.ToString ();
-			}
-		}
-
-        public List<string> currentErrors
-        {
-            get {
-                return _currentErrors;
-            }
-        }
-
-        public bool hasError
-        {
-            get {
-                return _currentErrors != null && _currentErrors.Count > 0;
-            }
-        }
-
-        public VariablesState variablesState
-        {
-            get {
-                return _variablesState;
-            }
-        }
+            
+		public string currentText { get  { return state.currentText; } }
+        public List<string> currentErrors { get { return state.currentErrors; } }
+        public bool hasError { get { return state.hasError; } }
+        public VariablesState variablesState{ get { return state.variablesState; } }
+        internal StoryState state { get { return _state; } }
             
         internal Story (Container contentContainer)
 		{
@@ -166,11 +116,10 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        internal Runtime.Object ContentAtPath(Path path)
-		{
-			return mainContentContainer.ContentAtPath (path);
-		}
-
+        /// <summary>
+        /// Prepare the Story at the start point, ready for the first <c>Continue()</c> call.
+        /// Internally, it validates any external function bindings, and resets all state.
+        /// </summary>
 		public void Begin()
 		{
             // TODO: Should we leave this to the client, since it could be
@@ -182,100 +131,112 @@ namespace Ink.Runtime
 
         public void Reset()
         {
-            _outputStream = new List<Runtime.Object> ();
-            _evaluationStack = new List<Runtime.Object> ();
-            _currentChoices = new List<ChoiceInstance> ();
-            _callStack = new CallStack ();
-            _variablesState = new VariablesState (_callStack);
-            _visitCounts = new Dictionary<string, int> ();
-            _turnIndices = new Dictionary<string, int> ();
-            _currentTurnIndex = -1;
-
-            // Seed the shuffle random numbers
-            int timeSeed = DateTime.Now.Millisecond;
-            _storySeed = (new Random (timeSeed)).Next () % 100;
-
-            // Go to start
-            currentPath = Path.ToFirstElement ();
+            _state = new StoryState ();
         }
 
         public void ResetErrors()
         {
-            _currentErrors = null;
+            _state.ResetErrors ();
         }
 
+        /// <summary>
+        /// Continue the story for one line of content, if possible.
+        /// If you're not sure if there's more content available, for example if you
+        /// want to check whether you're at a choice point or at the end of the story,
+        /// you should call <c>canContinue</c> before calling this function.
+        /// </summary>
+        /// <returns>The line of text content.</returns>
 		public string Continue()
 		{
             if (!canContinue) {
                 throw new StoryException ("Can't continue - should check canContinue before calling Continue");
             }
 
-            _outputStream.Clear ();
-            
-            _didSafeExit = false;
+            _state.ResetOutput ();
+
+            _state.didSafeExit = false;
 
             try {
 
                 StoryState stateAtLastNewline = null;
-                int outputTextLength = -1;
-
 
                 // The basic algorithm here is:
                 //
                 //     do { Step() } while( canContinue && !outputStreamEndsInNewline );
                 //
-                // But the complexity comes rom:
-                //  - Stepping beyond the newline in case it'll be absorbed by glue
-                //  - Ensuring that non-text content beyond newlines are generated - i.e. choices
+                // But the complexity comes from:
+                //  - Stepping beyond the newline in case it'll be absorbed by glue later
+                //  - Ensuring that non-text content beyond newlines are generated - i.e. choices,
+                //    which are actually built out of text content.
                 // So we have to take a snapshot of the state, continue prospectively,
                 // and rewind if necessary.
+                // This code is slightly fragile :-/ 
                 //
 
                 do {
-                    
+
+                    // Run main step function (walks through content)
                     Step();
 
                     // Run out of content and we have a default invisible choice that we can follow?
                     if( !canContinue ) {
                         TryFollowDefaultInvisibleChoice();
                     }
-                        
-                    if( outputStreamEndsInNewline ) {
 
-                        // Create a snapshot in case we need to rewind.
-                        // We're going to continue stepping in case we see glue or some
-                        // non-text content such as choices.
-                        stateAtLastNewline = StateSnapshot();
-                        outputTextLength = currentText.Length;
-                    } 
+                    // Don't save/rewind during string evaluation, which is e.g. used for choices
+                    if( !state.inStringEvaluation ) {
 
-                    if( !canContinue ) {
-                        break;
-                    }
+                        // We previously found a newline, but were we just double checking that
+                        // it wouldn't immediately be removed by glue?
+                        if( stateAtLastNewline != null ) {
 
-                    // We previously found a newline, but were we just double checking that
-                    // it wouldn't immediately be removed by glue?
-                    else if( stateAtLastNewline != null ) {
+                            // Cover cases that non-text generated content was evaluated last step
+                            string currText = currentText;
+                            int prevTextLength = stateAtLastNewline.currentText.Length;
 
-                        // Cover cases that non-text generated content was evaluated last step
-                        string text = currentText;
-                        bool outputIsExtended = text.Length > outputTextLength;
-                        bool originalNewlineStillExists = text[outputTextLength-1] == '\n';
+                            // Output has been extended?
+                            if( !currText.Equals(stateAtLastNewline.currentText) ) {
 
-                        // Point at which original newline was first generated will be restored
-                        if( outputIsExtended && originalNewlineStillExists ) {
-                            break;
-                        } 
+                                // Original newline still exists?
+                                if( currText.Length >= prevTextLength && currText[prevTextLength-1] == '\n' ) {
+                                    
+                                    RestoreStateSnapshot(stateAtLastNewline);
+                                    break;
+                                }
 
-                        // Newline that previously existed is no longer valid - e.g.
-                        // glue was encounted that caused it to be removed.
-                        else {
-                            stateAtLastNewline = null;
+                                // Newline that previously existed is no longer valid - e.g.
+                                // glue was encounted that caused it to be removed.
+                                else {
+                                    stateAtLastNewline = null;
+                                }
+                            }
+
                         }
+
+                        // Current content ends in a newline - approaching end of our evaluation
+                        if( state.outputStreamEndsInNewline ) {
+
+                            // If we can continue evaluation for a bit:
+                            // Create a snapshot in case we need to rewind.
+                            // We're going to continue stepping in case we see glue or some
+                            // non-text content such as choices.
+                            if( canContinue ) {
+                                stateAtLastNewline = StateSnapshot();
+                            } 
+
+                            // Can't continue, so we're about to exit - make sure we
+                            // don't have an old state hanging around.
+                            else {
+                                stateAtLastNewline = null;
+                            }
+
+                        }
+
                     }
 
-                } while(true);
+                } while(canContinue);
 
+                // Need to rewind, due to evaluating further than we should?
                 if( stateAtLastNewline != null ) {
                     RestoreStateSnapshot(stateAtLastNewline);
                 }
@@ -283,16 +244,16 @@ namespace Ink.Runtime
                 // Finished a section of content / reached a choice point?
                 if( !canContinue ) {
 
-                    if( _callStack.canPopThread ) {
+                    if( state.callStack.canPopThread ) {
                         Error("Thread available to pop, threads should always be flat by the end of evaluation?");
                     }
 
-                    if( currentChoices.Count == 0 && !_didSafeExit ) {
-                        if( _callStack.CanPop(PushPopType.Tunnel) ) {
+                    if( currentChoices.Count == 0 && !state.didSafeExit ) {
+                        if( state.callStack.CanPop(PushPopType.Tunnel) ) {
                             Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                        } else if( _callStack.CanPop(PushPopType.Function) ) {
+                        } else if( state.callStack.CanPop(PushPopType.Function) ) {
                             Error("unexpectedly reached end of content. Do you need a '~ return'?");
-                        } else if( !_callStack.canPop ) {
+                        } else if( !state.callStack.canPop ) {
                             Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
                         } else {
                             Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
@@ -307,31 +268,32 @@ namespace Ink.Runtime
             } finally {
 
                 if( !canContinue )
-                    _callStack.currentThread.ResetOpenContainers ();
+                    state.callStack.currentThread.ResetOpenContainers ();
                 
-                _didSafeExit = false;
+                state.didSafeExit = false;
             }
 
             return currentText;
 		}
 
-        StoryState StateSnapshot()
-        {
-            return new StoryState ();
-        }
-
-        void RestoreStateSnapshot(StoryState state)
-        {
-
-        }
-
+        /// <summary>
+        /// Check whether more content is available if you were to call <c>Continue()</c> - i.e.
+        /// are we mid story rather than at a choice point or at the end.
+        /// </summary>
+        /// <value><c>true</c> if it's possible to call <c>Continue()</c>.</value>
         public bool canContinue
         {
             get {
-                return currentPath != null && !hasError;
+                return state.currentPath != null && !state.hasError;
             }
         }
 
+        /// <summary>
+        /// Continue the story until the next choice point or until it runs out of content.
+        /// This is as opposed to the Continue() method which only evaluates one line of
+        /// output at a time.
+        /// </summary>
+        /// <returns>The resulting text evaluated by the ink engine, concatenated together.</returns>
         public string ContinueMaximally()
         {
             var sb = new StringBuilder ();
@@ -343,22 +305,37 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
+        Runtime.Object ContentAtPath(Path path)
+        {
+            return mainContentContainer.ContentAtPath (path);
+        }
+
+        StoryState StateSnapshot()
+        {
+            return state.Copy ();
+        }
+
+        void RestoreStateSnapshot(StoryState state)
+        {
+            _state = state;
+        }
+
         void Step ()
         {
             bool shouldAddToStream = true;
 
             // Get current content
-            var currentContentObj = ContentAtPath (currentPath);
+            var currentContentObj = ContentAtPath (state.currentPath);
             if (currentContentObj == null) {
-                currentPath = null;
+                state.currentPath = null;
                 return;
             }
             
             // Convert path to get first leaf content
             Container currentContainer = currentContentObj as Container;
             if (currentContainer && currentContainer.content.Count > 0) {
-                currentPath = currentContainer.pathToFirstLeafContent;
-                currentContentObj = ContentAtPath (currentPath);
+                state.currentPath = currentContainer.pathToFirstLeafContent;
+                currentContentObj = ContentAtPath (state.currentPath);
             }
 
             IncrementVisitCountForActiveContainers (currentContentObj);
@@ -371,7 +348,7 @@ namespace Ink.Runtime
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
 
             // Has flow been forced to end by flow control above?
-            if (currentPath == null) {
+            if (state.currentPath == null) {
                 return;
             }
 
@@ -384,7 +361,7 @@ namespace Ink.Runtime
             if (choice) {
                 var choiceInstance = ProcessChoice (choice);
                 if (choiceInstance) {
-                    _currentChoices.Add (choiceInstance);
+                    state.currentChoices.Add (choiceInstance);
                 }
 
                 currentContentObj = null;
@@ -405,16 +382,16 @@ namespace Ink.Runtime
                 // so that we're not editing the original runtime object.
                 var varPointer = currentContentObj as LiteralVariablePointer;
                 if (varPointer && varPointer.contextIndex == -1) {
-                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, _callStack.currentElementIndex);
+                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, state.callStack.currentElementIndex);
                 }
 
                 // Expression evaluation content
-                if (inExpressionEvaluation) {
-                    PushEvaluationStack (currentContentObj);
+                if (state.inExpressionEvaluation) {
+                    state.PushEvaluationStack (currentContentObj);
                 }
                 // Output stream content (i.e. not expression evaluation)
                 else {
-                    PushToOutputStream (currentContentObj);
+                    state.PushToOutputStream (currentContentObj);
                 }
             }
 
@@ -425,7 +402,7 @@ namespace Ink.Runtime
             // so that when returning from the thread, it returns to the content after this instruction.
             var controlCmd = currentContentObj as ControlCommand;
             if (controlCmd && controlCmd.commandType == ControlCommand.CommandType.StartThread) {
-                _callStack.PushThread ();
+                state.callStack.PushThread ();
             }
         }
 
@@ -435,7 +412,7 @@ namespace Ink.Runtime
 
             // Don't create choice instance if choice doesn't pass conditional
             if (choice.hasCondition) {
-                var conditionValue = PopEvaluationStack ();
+                var conditionValue = state.PopEvaluationStack ();
                 if (!IsTruthy (conditionValue)) {
                     showChoice = false;
                 }
@@ -445,12 +422,12 @@ namespace Ink.Runtime
             string choiceOnlyText = "";
 
             if (choice.hasChoiceOnlyContent) {
-                var choiceOnlyLitStr = PopEvaluationStack () as LiteralString;
+                var choiceOnlyLitStr = state.PopEvaluationStack () as LiteralString;
                 choiceOnlyText = choiceOnlyLitStr.value;
             }
 
             if (choice.hasStartContent) {
-                var startLitStr = PopEvaluationStack () as LiteralString;
+                var startLitStr = state.PopEvaluationStack () as LiteralString;
                 startText = startLitStr.value;
             }
 
@@ -465,7 +442,7 @@ namespace Ink.Runtime
                 
             var choiceInstance = new ChoiceInstance (choice);
             choiceInstance.hasBeenChosen = false;
-            choiceInstance.threadAtGeneration = _callStack.currentThread.Copy ();
+            choiceInstance.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // We go through the full process of creating the choice above so
             // that we consume the content for it, since otherwise it'll
@@ -505,7 +482,7 @@ namespace Ink.Runtime
         /// </summary>
         /// <returns><c>true</c> if object was logic or flow control, <c>false</c> if it's normal content.</returns>
         /// <param name="contentObj">Content object.</param>
-        private bool PerformLogicAndFlowControl(Runtime.Object contentObj)
+        bool PerformLogicAndFlowControl(Runtime.Object contentObj)
         {
             if( contentObj == null ) {
                 return false;
@@ -518,7 +495,7 @@ namespace Ink.Runtime
                 if (currentDivert.hasVariableTarget) {
                     var varName = currentDivert.variableDivertName;
 
-                    var varContents = _variablesState.GetVariableWithName (varName);
+                    var varContents = state.variablesState.GetVariableWithName (varName);
 
                     if (!(varContents is LiteralDivertTarget)) {
 
@@ -535,20 +512,20 @@ namespace Ink.Runtime
                     }
 
                     var target = (LiteralDivertTarget)varContents;
-                    _divertedPath = target.targetPath;
+                    state.divertedPath = target.targetPath;
 
                 } else if (currentDivert.isExternal) {
                     CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
                     return true;
                 } else {
-                    _divertedPath = currentDivert.targetPath;
+                    state.divertedPath = currentDivert.targetPath;
                 }
 
                 if (currentDivert.pushesToStack) {
-                    _callStack.Push (currentDivert.stackPushType);
+                    state.callStack.Push (currentDivert.stackPushType);
                 }
 
-                if (_divertedPath == null && !currentDivert.isExternal) {
+                if (state.divertedPath == null && !currentDivert.isExternal) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
                     if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
@@ -564,12 +541,12 @@ namespace Ink.Runtime
             // Branch (conditional divert)
             else if (contentObj is Branch) {
                 var branch = (Branch)contentObj;
-                var conditionValue = PopEvaluationStack ();
+                var conditionValue = state.PopEvaluationStack ();
 
                 if (IsTruthy (conditionValue))
-                    _divertedPath = branch.trueDivert.targetPath;
+                    state.divertedPath = branch.trueDivert.targetPath;
                 else if (branch.falseDivert)
-                    _divertedPath = branch.falseDivert.targetPath;
+                    state.divertedPath = branch.falseDivert.targetPath;
                 
                 return true;
             } 
@@ -577,14 +554,14 @@ namespace Ink.Runtime
             else if (contentObj is Pop) {
                 
                 var pop = (Pop) contentObj;
-                if (_callStack.currentElement.type != pop.type || !_callStack.canPop) {
+                if (state.callStack.currentElement.type != pop.type || !state.callStack.canPop) {
 
                     var names = new Dictionary<PushPopType, string> ();
                     names [PushPopType.Function] = "function return statement (~ ~ ~)";
                     names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
 
-                    string expected = names [_callStack.currentElement.type];
-                    if (!_callStack.canPop) {
+                    string expected = names [state.callStack.currentElement.type];
+                    if (!state.callStack.canPop) {
                         expected = "end of flow (-> END or choice)";
                     }
 
@@ -594,7 +571,7 @@ namespace Ink.Runtime
                 } 
 
                 else {
-                    _callStack.Pop ();
+                    state.callStack.Pop ();
                 }
 
                 return true;
@@ -607,21 +584,21 @@ namespace Ink.Runtime
                 switch (evalCommand.commandType) {
 
                 case ControlCommand.CommandType.EvalStart:
-                    Assert (inExpressionEvaluation == false, "Already in expression evaluation?");
-                    inExpressionEvaluation = true;
+                    Assert (state.inExpressionEvaluation == false, "Already in expression evaluation?");
+                    state.inExpressionEvaluation = true;
                     break;
 
                 case ControlCommand.CommandType.EvalEnd:
-                    Assert (inExpressionEvaluation == true, "Not in expression evaluation mode");
-                    inExpressionEvaluation = false;
+                    Assert (state.inExpressionEvaluation == true, "Not in expression evaluation mode");
+                    state.inExpressionEvaluation = false;
                     break;
 
                 case ControlCommand.CommandType.EvalOutput:
 
                     // If the expression turned out to be empty, there may not be anything on the stack
-                    if (_evaluationStack.Count > 0) {
+                    if (state.evaluationStack.Count > 0) {
                         
-                        var output = PopEvaluationStack ();
+                        var output = state.PopEvaluationStack ();
 
                         // Functions may evaluate to Void, in which case we skip output
                         if (!(output is Void)) {
@@ -630,7 +607,7 @@ namespace Ink.Runtime
                             // only problem is when exporting text for viewing, it skips over numbers etc.
                             var text = new Text (output.ToString ());
 
-                            PushToOutputStream (text);
+                            state.PushToOutputStream (text);
                         }
 
                     }
@@ -640,18 +617,18 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.Duplicate:
-                    PushEvaluationStack (PeekEvaluationStack ());
+                    state.PushEvaluationStack (state.PeekEvaluationStack ());
                     break;
 
                 case ControlCommand.CommandType.PopEvaluatedValue:
-                    PopEvaluationStack ();
+                    state.PopEvaluationStack ();
                     break;
 
                 case ControlCommand.CommandType.BeginString:
-                    _outputStream.Add (evalCommand);
+                    state.PushToOutputStream (evalCommand);
 
-                    Assert (inExpressionEvaluation == true, "Expected to be in an expression when evaluating a string");
-                    inExpressionEvaluation = false;
+                    Assert (state.inExpressionEvaluation == true, "Expected to be in an expression when evaluating a string");
+                    state.inExpressionEvaluation = false;
                     break;
 
                 case ControlCommand.CommandType.EndString:
@@ -662,8 +639,8 @@ namespace Ink.Runtime
                     var contentStackForString = new Stack<Runtime.Object> ();
 
                     int outputCountConsumed = 0;
-                    for (int i = _outputStream.Count - 1; i >= 0; --i) {
-                        var obj = _outputStream [i];
+                    for (int i = state.outputStream.Count - 1; i >= 0; --i) {
+                        var obj = state.outputStream [i];
 
                         outputCountConsumed++;
 
@@ -677,7 +654,7 @@ namespace Ink.Runtime
                     }
 
                     // Consume the content that was produced for this string
-                    _outputStream.RemoveRange (_outputStream.Count - outputCountConsumed, outputCountConsumed);
+                    state.outputStream.RemoveRange (state.outputStream.Count - outputCountConsumed, outputCountConsumed);
 
                     // Build string out of the content we collected
                     var sb = new StringBuilder ();
@@ -686,17 +663,17 @@ namespace Ink.Runtime
                     }
 
                     // Return to expression evaluation (from content mode)
-                    inExpressionEvaluation = true;
-                    PushEvaluationStack (new LiteralString (sb.ToString ()));
+                    state.inExpressionEvaluation = true;
+                    state.PushEvaluationStack (new LiteralString (sb.ToString ()));
                     break;
 
                 case ControlCommand.CommandType.ChoiceCount:
                     var choiceCount = currentChoices.Count;
-                    PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
+                    state.PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
                     break;
 
                 case ControlCommand.CommandType.TurnsSince:
-                    var target = PopEvaluationStack();
+                    var target = state.PopEvaluationStack();
                     if( !(target is LiteralDivertTarget) ) {
                         string extraNote = "";
                         if( target is LiteralInt )
@@ -708,18 +685,18 @@ namespace Ink.Runtime
                     var divertTarget = target as LiteralDivertTarget;
                     var container = ContentAtPath (divertTarget.targetPath) as Container;
                     int turnCount = TurnsSinceForContainer (container);
-                    PushEvaluationStack (new LiteralInt (turnCount));
+                    state.PushEvaluationStack (new LiteralInt (turnCount));
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var currentContainer = ClosestContainerAtPath (currentPath);
+                    var currentContainer = ClosestContainerAtPath (state.currentPath);
                     var count = VisitCountForContainer(currentContainer) - 1; // index not count
-                    PushEvaluationStack (new LiteralInt (count));
+                    state.PushEvaluationStack (new LiteralInt (count));
                     break;
 
                 case ControlCommand.CommandType.SequenceShuffleIndex:
                     var shuffleIndex = NextSequenceShuffleIndex ();
-                    PushEvaluationStack (new LiteralInt (shuffleIndex));
+                    state.PushEvaluationStack (new LiteralInt (shuffleIndex));
                     break;
 
                 case ControlCommand.CommandType.StartThread:
@@ -731,29 +708,20 @@ namespace Ink.Runtime
                     // We may exist in the context of the initial
                     // act of creating the thread, or in the context of
                     // evaluating the content.
-                    if (_callStack.canPopThread) {
-                        _callStack.PopThread ();
+                    if (state.callStack.canPopThread) {
+                        state.callStack.PopThread ();
                     } 
 
                     // In normal flow - allow safe exit without warning
                     else {
-                        _didSafeExit = true;
+                        state.didSafeExit = true;
                     }
 
                     break;
                 
                 // Force flow to end completely
                 case ControlCommand.CommandType.End:
-                    
-                    currentPath = null;
-
-                    while (_callStack.canPopThread)
-                        _callStack.PopThread ();
-
-                    while (_callStack.canPop)
-                        _callStack.Pop ();
-                    
-                    _didSafeExit = true;
+                    state.ForceEndFlow ();
                     break;
 
                 default:
@@ -767,13 +735,13 @@ namespace Ink.Runtime
             // Variable assignment
             else if( contentObj is VariableAssignment ) {
                 var varAss = (VariableAssignment) contentObj;
-                var assignedVal = PopEvaluationStack();
+                var assignedVal = state.PopEvaluationStack();
 
                 // When in temporary evaluation, don't create new variables purely within
                 // the temporary context, but attempt to create them globally
                 //var prioritiseHigherInCallStack = _temporaryEvaluationContainer != null;
 
-                _variablesState.Assign (varAss, assignedVal);
+                state.variablesState.Assign (varAss, assignedVal);
 
                 return true;
             }
@@ -795,7 +763,7 @@ namespace Ink.Runtime
                 // Normal variable reference
                 else {
 
-                    foundValue = _variablesState.GetVariableWithName (varRef.name);
+                    foundValue = state.variablesState.GetVariableWithName (varRef.name);
 
                     if (foundValue == null) {
                         Error("Uninitialised variable: " + varRef.name);
@@ -803,7 +771,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                _evaluationStack.Add( foundValue );
+                state.evaluationStack.Add( foundValue );
 
                 return true;
             }
@@ -811,9 +779,9 @@ namespace Ink.Runtime
             // Native function call
             else if( contentObj is NativeFunctionCall ) {
                 var func = (NativeFunctionCall) contentObj;
-                var funcParams = PopEvaluationStack(func.numberOfParameters);
+                var funcParams = state.PopEvaluationStack(func.numberOfParameters);
                 var result = func.Call(funcParams);
-                _evaluationStack.Add(result);
+                state.evaluationStack.Add(result);
                 return true;
             }
 
@@ -844,14 +812,7 @@ namespace Ink.Runtime
             
         internal void ChoosePath(Path path)
         {
-            // Changing direction, assume we need to clear current set of choices
-            _currentChoices.Clear ();
-
-            _previousPath = currentPath;
-
-            currentPath = path;
-
-            _currentTurnIndex++;
+            state.SetChosenPath (path);
         }
 
         public void ChooseChoiceIndex(int choiceIdx)
@@ -865,22 +826,22 @@ namespace Ink.Runtime
             // can create multiple leading edges for the story, each of
             // which has its own context.
             var instanceToChoose = choiceInstances [choiceIdx];
-            _callStack.currentThread = instanceToChoose.threadAtGeneration;
+            state.callStack.currentThread = instanceToChoose.threadAtGeneration;
 
             ChoosePath (instanceToChoose.choice.choiceTarget.path);
         }
 
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
         {
-            int startCallStackHeight = _callStack.elements.Count;
+            int startCallStackHeight = state.callStack.elements.Count;
 
-            _callStack.Push (PushPopType.Tunnel);
+            state.callStack.Push (PushPopType.Tunnel);
 
             _temporaryEvaluationContainer = exprContainer;
 
-            currentPath = Path.ToFirstElement ();
+            state.currentPath = Path.ToFirstElement ();
 
-            int evalStackHeight = _evaluationStack.Count;
+            int evalStackHeight = state.evaluationStack.Count;
 
             Continue ();
 
@@ -889,13 +850,13 @@ namespace Ink.Runtime
             // Should have fallen off the end of the Container, which should
             // have auto-popped, but just in case we didn't for some reason,
             // manually pop to restore the state (including currentPath).
-            if (_callStack.elements.Count > startCallStackHeight) {
-                _callStack.Pop ();
+            if (state.callStack.elements.Count > startCallStackHeight) {
+                state.callStack.Pop ();
             }
 
-            int endStackHeight = _evaluationStack.Count;
+            int endStackHeight = state.evaluationStack.Count;
             if (endStackHeight > evalStackHeight) {
-                return PopEvaluationStack ();
+                return state.PopEvaluationStack ();
             } else {
                 return null;
             }
@@ -911,7 +872,7 @@ namespace Ink.Runtime
             // Pop arguments
             var arguments = new List<object>();
             for (int i = 0; i < numberOfArguments; ++i) {
-                var poppedObj = PopEvaluationStack () as Literal;
+                var poppedObj = state.PopEvaluationStack () as Literal;
                 var valueObj = poppedObj.valueObject;
                 arguments.Add (valueObj);
             }
@@ -926,7 +887,7 @@ namespace Ink.Runtime
                 returnObj = new Runtime.Void ();
             }
                 
-            PushEvaluationStack (returnObj);
+            state.PushEvaluationStack (returnObj);
         }
 
         public delegate object ExternalFunction(object[] args);
@@ -1094,191 +1055,17 @@ namespace Ink.Runtime
                 }
             }
         }
-
-        void PushToOutputStream(Runtime.Object obj)
-        {
-            // Glue: absorbs newlines both before and after it,
-            // causing two piece of inline text to stay on the same line.
-            bool outputStreamEndsInGlue = false;
-            int glueIdx = -1;
-            if (_outputStream.Count > 0) {
-                outputStreamEndsInGlue = _outputStream.Last () is Glue;
-                glueIdx = _outputStream.Count - 1;
-            }
-
-            if (obj is Text) {
-                var text = (Text)obj;
-
-                bool canAppendNewline = !outputStreamEndsInNewline && !outputStreamEndsInGlue && _outputStream.Count != 0;
-
-                // Newline: don't allow more than one
-                if (text.text == "\n") {
-                    if( !canAppendNewline )
-                        return;
-                } 
-
-                // General text: 
-                else {
-
-                    // Remove newlines from start, and add as a single newline Text
-                    var lengthBeforeTrim = text.text.Length;
-                    var trimmedText = text.text.TrimStart ('\n');
-                    if (trimmedText.Length != lengthBeforeTrim && canAppendNewline) {
-                        _outputStream.Add(new Text ("\n"));
-                    }
-
-                    // Remove newlines from end
-                    lengthBeforeTrim = trimmedText.Length;
-                    trimmedText = text.text.TrimEnd ('\n');
-
-                    // Anything left or was it just pure newlines?
-                    if (trimmedText.Length > 0) {
-                        
-                        // Add main text to output stream
-                        _outputStream.Add(new Text (trimmedText));
-
-                        // Add single trailing newline if necessary
-                        if (trimmedText.Length != lengthBeforeTrim) {
-                            _outputStream.Add(new Text ("\n"));
-                        }
-                    }
-                        
-                    return;
-                }
-
-            } 
-
-            // New glue: remove any existing trailing newline from output stream
-            else if (obj is Glue) {
-                TrimNewlinesFromOutputStreamEnd ();
-            }
-
-            // Only remove an existing glue if we're definitely now
-            // adding something new on top, since it's served its purpose.
-            if( outputStreamEndsInGlue ) 
-                _outputStream.RemoveAt (glueIdx);
             
-            _outputStream.Add(obj);
-        }
-
-        // Called when Glue is appended
-        // Cut through ' ' and '\t' to reach newlines
-        //  - When earliest newline from the end is found, trim all 
-        //    whitespace from the end up to and including that newline.
-        //  - If no newline is found, don't remove anything
-        // Bear in mind that text may be split across multiple text objects.
-        // e.g.:
-        //   "hello world  \n  \n    "
-        //                 ^ trim from here to the end
-        void TrimNewlinesFromOutputStreamEnd()
-        {
-            bool foundNonWhitespace = false;
-            int lastNewlineObjIdx = -1;
-            int lastNewlineCharIdx = -1;
-
-            // Find last newline
-            for (int i = _outputStream.Count - 1; i >= 0; --i) {
-
-                var outputObj = _outputStream [i];
-                if( outputObj is Text ) {
-
-                    var text = (Text)outputObj;
-
-                    for(int ci = text.text.Length-1; ci>=0; --ci) {
-                        var c = text.text [ci];
-                        if (c == ' ' || c == '\t') {
-                            continue;
-                        } 
-
-                        else if (c == '\n') {
-                            lastNewlineObjIdx = i;
-                            lastNewlineCharIdx = ci;
-                        }
-
-                        // Non-whitespace
-                        else {
-                            foundNonWhitespace = true;
-                            break;
-                        }
-                    }
-
-                    if (foundNonWhitespace) {
-                        break;
-                    }
-
-                }
-
-                // Non-text
-                else {
-                    break;
-                }
-            }
-
-            if (lastNewlineObjIdx >= 0) {
-                int firstEntireObjToRemove = lastNewlineObjIdx + 1;
-                if (lastNewlineCharIdx == 0) {
-                    firstEntireObjToRemove = lastNewlineObjIdx;
-                }
-
-                int entireObjCountToRemove = _outputStream.Count - firstEntireObjToRemove;
-                if (entireObjCountToRemove > 0) {
-                    _outputStream.RemoveRange (firstEntireObjToRemove, entireObjCountToRemove);
-                }
-
-                if (lastNewlineCharIdx > 0) {
-                    Text textToTrim = (Text)_outputStream [lastNewlineObjIdx];
-                    textToTrim.text = textToTrim.text.Substring (0, lastNewlineCharIdx);
-                }
-            }
 
 
-        }
-
-        bool outputStreamEndsInNewline {
-            get {
-                if (_outputStream.Count > 0) {
-                    var text = _outputStream.Last () as Text;
-                    if (text) {
-                        return text.text == "\n";
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        void PushEvaluationStack(Runtime.Object obj)
-        {
-            _evaluationStack.Add(obj);
-        }
-
-        Runtime.Object PopEvaluationStack()
-        {
-            var obj = _evaluationStack.Last ();
-            _evaluationStack.RemoveAt (_evaluationStack.Count - 1);
-            return obj;
-        }
-
-        Runtime.Object PeekEvaluationStack()
-        {
-            return _evaluationStack.Last ();
-        }
-
-        List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
-        {
-            Assert (numberOfObjects <= _evaluationStack.Count, "trying to pop too many objects");
-            var popped = _evaluationStack.GetRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
-            _evaluationStack.RemoveRange (_evaluationStack.Count - numberOfObjects, numberOfObjects);
-            return popped;
-        }
 
         public virtual string BuildStringOfHierarchy()
         {
             var sb = new StringBuilder ();
 
             Runtime.Object currentObj = null;
-            if (currentPath != null) {
-                currentObj = ContentAtPath (currentPath);
+            if (state.currentPath != null) {
+                currentObj = ContentAtPath (state.currentPath);
             }
             mainContentContainer.BuildStringOfHierarchy (sb, 0, currentObj);
 
@@ -1287,15 +1074,15 @@ namespace Ink.Runtime
 
 		private void NextContent()
 		{
-            _previousPath = currentPath;
+            state.previousPath = state.currentPath;
 
 			// Divert step?
-			if (_divertedPath != null) {
-				currentPath = _divertedPath;
-				_divertedPath = null;
+			if (state.divertedPath != null) {
+				state.currentPath = state.divertedPath;
+				state.divertedPath = null;
 
                 // Diverted location has valid content?
-                if (ContentAtPath (currentPath)) {
+                if (ContentAtPath (state.currentPath)) {
                     return;
                 }
 				
@@ -1306,37 +1093,37 @@ namespace Ink.Runtime
 			}
 
 			// Can we increment successfully?
-			currentPath = mainContentContainer.IncrementPath (currentPath);
+			state.currentPath = mainContentContainer.IncrementPath (state.currentPath);
 
             // Ran out of content? Try to auto-exit from a function,
             // or finish evaluating the content of a thread
-			if (currentPath == null) {
+			if (state.currentPath == null) {
 
                 bool didPop = false;
 
-                if (_callStack.CanPop (PushPopType.Function)) {
+                if (state.callStack.CanPop (PushPopType.Function)) {
                     
                     // Pop from the call stack
-                    _callStack.Pop (PushPopType.Function);
+                    state.callStack.Pop (PushPopType.Function);
 
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it
-                    if (inExpressionEvaluation) {
-                        PushEvaluationStack (new Runtime.Void ());
+                    if (state.inExpressionEvaluation) {
+                        state.PushEvaluationStack (new Runtime.Void ());
                     }
 
                     didPop = true;
 
                 } 
 
-                else if (_callStack.canPopThread) {
-                    _callStack.PopThread ();
+                else if (state.callStack.canPopThread) {
+                    state.callStack.PopThread ();
 
                     didPop = true;
                 }
 
                 // Step past the point where we last called out
-                if (didPop && currentPath != null) {
+                if (didPop && state.currentPath != null) {
                     NextContent ();
                 }
 			}
@@ -1344,7 +1131,7 @@ namespace Ink.Runtime
             
         bool TryFollowDefaultInvisibleChoice()
         {
-            var allChoices = CurrentChoices (includeInvisibleDefaults: true);
+            var allChoices = _state.currentChoices;
 
             // Is a default invisible choice the ONLY choice?
             var invisibleChoiceInstances = allChoices.Where (c => c.choice.isInvisibleDefault).ToList();
@@ -1352,9 +1139,8 @@ namespace Ink.Runtime
                 return false;
 
             var choiceInstance = invisibleChoiceInstances [0];
-            currentPath = choiceInstance.choice.choiceTarget.path;
 
-            _currentChoices.Clear ();
+            state.SetChosenPath (choiceInstance.choice.choiceTarget.path);
 
             return true;
         }
@@ -1365,7 +1151,7 @@ namespace Ink.Runtime
             // all stack elements within the current thread.
             // We will then see which ones are new compared to last step.
             var openContainersThisStep = new HashSet<Container> ();
-            foreach (CallStack.Element el in _callStack.elements) {
+            foreach (CallStack.Element el in state.callStack.elements) {
                 var callstackElementCurrentObject = ContentAtPath (el.path);
 
                 var ancestor = callstackElementCurrentObject;
@@ -1398,7 +1184,7 @@ namespace Ink.Runtime
             }
 
             // Ask thread which containers are new, and increment read / turn counts for those.
-            var newlyOpenContainers = _callStack.currentThread.UpdateOpenContainers (openContainersThisStep);
+            var newlyOpenContainers = state.callStack.currentThread.UpdateOpenContainers (openContainersThisStep);
 
             foreach (var c in newlyOpenContainers) {
                 if( c.visitsShouldBeCounted )
@@ -1417,7 +1203,7 @@ namespace Ink.Runtime
 
             int count = 0;
             var containerPathStr = container.path.ToString();
-            _visitCounts.TryGetValue (containerPathStr, out count);
+            state.visitCounts.TryGetValue (containerPathStr, out count);
             return count;
         }
 
@@ -1425,15 +1211,15 @@ namespace Ink.Runtime
         {
             int count = 0;
             var containerPathStr = container.path.ToString();
-            _visitCounts.TryGetValue (containerPathStr, out count);
+            state.visitCounts.TryGetValue (containerPathStr, out count);
             count++;
-            _visitCounts [containerPathStr] = count;
+            state.visitCounts [containerPathStr] = count;
         }
 
         void RecordTurnIndexVisitToContainer(Container container)
         {
             var containerPathStr = container.path.ToString();
-            _turnIndices [containerPathStr] = _currentTurnIndex;
+            state.turnIndices [containerPathStr] = state.currentTurnIndex;
         }
 
         int TurnsSinceForContainer(Container container)
@@ -1444,8 +1230,8 @@ namespace Ink.Runtime
 
             int index = 0;
             var containerPathStr = container.path.ToString();
-            if (_turnIndices.TryGetValue (containerPathStr, out index)) {
-                return _currentTurnIndex - index;
+            if (state.turnIndices.TryGetValue (containerPathStr, out index)) {
+                return state.currentTurnIndex - index;
             } else {
                 return -1;
             }
@@ -1456,13 +1242,13 @@ namespace Ink.Runtime
         // TODO: Is this the best algorithm it can be?
         int NextSequenceShuffleIndex()
         {
-            var numElementsLiteral = PopEvaluationStack () as LiteralInt;
+            var numElementsLiteral = state.PopEvaluationStack () as LiteralInt;
             if (numElementsLiteral == null) {
                 Error ("expected number of elements in sequence for shuffle index");
                 return 0;
             }
 
-            var seqContainer = ClosestContainerAtPath (currentPath);
+            var seqContainer = ClosestContainerAtPath (state.currentPath);
 
             int numElements = numElementsLiteral.value;
 
@@ -1479,7 +1265,7 @@ namespace Ink.Runtime
             foreach (char c in seqPathStr) {
                 sequenceHash += c;
             }
-            var randomSeed = sequenceHash + loopIndex + _storySeed;
+            var randomSeed = sequenceHash + loopIndex + state.storySeed;
             var random = new Random (randomSeed);
 
             var unpickedIndices = new List<int> ();
@@ -1535,12 +1321,7 @@ namespace Ink.Runtime
                 message = "Runtime error" + ": " + message;
             }
 
-            // TODO: Could just add to output?
-            if (_currentErrors == null) {
-                _currentErrors = new List<string> ();
-            }
-
-            _currentErrors.Add (message);
+            state.AddError (message);
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)
@@ -1563,20 +1344,20 @@ namespace Ink.Runtime
                 DebugMetadata dm;
 
                 // Try to get from the current path first
-                dm = DebugMetadataAtPath(currentPath);
+                dm = DebugMetadataAtPath(state.currentPath);
                 if (dm != null) {
                     return dm;
                 }
 
                 // Try last path
-                dm = DebugMetadataAtPath (_previousPath);
+                dm = DebugMetadataAtPath (state.previousPath);
                 if (dm != null) {
                     return dm;
                 }
 
                 // Move up callstack if possible
-                for (int i = _callStack.elements.Count - 1; i >= 0; --i) {
-                    var path = _callStack.elements [i].path;
+                for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
+                    var path = state.callStack.elements [i].path;
                     dm = DebugMetadataAtPath(path);
                     if (dm != null) {
                         return dm;
@@ -1586,8 +1367,8 @@ namespace Ink.Runtime
                 // Current/previous path may not be valid if we've just had an error,
                 // or if we've simply run out of content.
                 // As a last resort, try to grab something from the output stream
-                for (int i = _outputStream.Count - 1; i >= 0; --i) {
-                    var outputObj = _outputStream [i];
+                for (int i = state.outputStream.Count - 1; i >= 0; --i) {
+                    var outputObj = state.outputStream [i];
                     dm = outputObj.debugMetadata;
                     if (dm != null) {
                         return dm;
@@ -1639,39 +1420,16 @@ namespace Ink.Runtime
 
         Dictionary<string, ExternalFunction> _externals;
 
-        private Container _temporaryEvaluationContainer;
-        private Path _divertedPath;
-        private bool _didSafeExit;
-            
-        private CallStack _callStack;
-        private VariablesState _variablesState;
+        Container _temporaryEvaluationContainer;
 
-        private Dictionary<string, int> _visitCounts;
-        private Dictionary<string, int> _turnIndices;
-        private int _currentTurnIndex;
-        private int _storySeed;
-
-        private List<Runtime.Object> _outputStream;
-        private List<Runtime.Object> _evaluationStack;
-        private List<ChoiceInstance> _currentChoices;
-
-        private List<string> _currentErrors;
-
-        private Path _previousPath;
+        StoryState _state;
 
         // Keep track of the current set of containers up the nested chain,
         // so that as we move between the containers, we know which ones are
         // being newly visited, and therefore increment their visit counts.
         //private HashSet<Container> _openContainers;
 
-        private bool inExpressionEvaluation {
-            get {
-                return _callStack.currentElement.inExpressionEvaluation;
-            }
-            set {
-                _callStack.currentElement.inExpressionEvaluation = value;
-            }
-        }
+
 	}
 }
 

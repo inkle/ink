@@ -34,6 +34,11 @@ namespace Ink.Runtime
             _callStack = callStack;
         }
 
+        internal void CopyVariblesFrom(VariablesState varState)
+        {
+            _globalVariables = new Dictionary<string, Object> (varState._globalVariables);
+        }
+
         internal Runtime.Object GetVariableWithName(string name)
         {
             return GetVariableWithName (name, -1);

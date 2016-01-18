@@ -124,6 +124,14 @@ namespace Ink.Runtime
             _threads [0].callstack.Add (new Element (PushPopType.Tunnel));
         }
 
+        public CallStack(CallStack toCopy)
+        {
+            _threads = new List<Thread> ();
+            foreach (var otherThread in toCopy._threads) {
+                _threads.Add (otherThread.Copy ());
+            }
+        }
+
         public void PushThread()
         {
             _threads.Add (currentThread.Copy());
