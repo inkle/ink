@@ -1,4 +1,5 @@
-# ink tutorial
+
+# Language reference
 
 TODO: Write this! Possible structure:
 
