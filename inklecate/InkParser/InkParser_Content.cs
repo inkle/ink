@@ -6,24 +6,19 @@ namespace Ink
 {
     internal partial class InkParser
     {
-        void TrimEndWhitespaceAndAddNewline(List<Parsed.Object> mixedTextAndLogicResults)
+        void TrimEndWhitespace(List<Parsed.Object> mixedTextAndLogicResults, bool terminateWithSpace)
         {
-            // Trim whitespace from end and add a newline
+            // Trim whitespace from end
             if (mixedTextAndLogicResults.Count > 0) {
                 var lastObj = mixedTextAndLogicResults[mixedTextAndLogicResults.Count-1];
                 if (lastObj is Text) {
                     var text = (Text)lastObj;
-                    text.text = text.text.TrimEnd (' ', '\t') + "\n";
-                    return;
+                    text.text = text.text.TrimEnd (' ', '\t');
+
+                    if (terminateWithSpace)
+                        text.text += " ";
                 }
             }
-
-            // Otherwise, last object in line wasn't text (but some kind of logic), so
-            // we need to append the newline afterwards using a new object
-            // If we end up generating multiple newlines (e.g. due to conditional
-            // logic), we rely on the runtime to absorb them.
-            // TODO: Is there some more clever logic we can do here?
-            mixedTextAndLogicResults.Add (new Text ("\n"));
         }
 
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
@@ -49,8 +44,11 @@ namespace Ink
 
             var lastObj = result [result.Count - 1];
             if (!(lastObj is Divert)) {
-                TrimEndWhitespaceAndAddNewline (result);
+                TrimEndWhitespace (result, terminateWithSpace:false);
             }
+
+            // Add newline since it's the end of the line
+            result.Add (new Text ("\n"));
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 
@@ -79,7 +77,7 @@ namespace Ink
                     if (results == null)
                         results = new List<Parsed.Object> ();
 
-                    TrimEndWhitespaceAndAddNewline (results);
+                    TrimEndWhitespace (results, terminateWithSpace:true);
 
                     var diverts = divertsOrOnwards as List<Divert>;
                     if (diverts != null)
