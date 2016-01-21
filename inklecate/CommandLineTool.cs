@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Ink
 {
@@ -30,16 +31,17 @@ namespace Ink
         {
             Console.WriteLine (
                 "Usage: inklecate2 <options> <ink file> \n"+
-                "   -o <filename>:  Output file name\n"+
-                "   -d <path>:      Working directory (for includes)\n"+
-                "   -c:             Count all visits to knots, stitches and weave points, not\n" +
-                "                   just those referenced by TURNS_SINCE and read counts.\n" +
-                "   -p:             Play mode\n"+
-                "   -i:             Use indentation in output JSON\n"+
-                "   -v:             Verbose mode - print compilation timings\n"+
-                "   -t:             Test mode - loads up test.ink\n"+
-                "   -s:             Stress test mode - generates test content and \n" +
-                "                   times compilation\n");
+                "   -o <filename>:   Output file name\n"+
+                "   -d <path>:       Working directory (for includes)\n"+
+                "   -c:              Count all visits to knots, stitches and weave points, not\n" +
+                "                    just those referenced by TURNS_SINCE and read counts.\n" +
+                "   -p:              Play mode\n"+
+                "   -i:              Use indentation in output JSON\n"+
+                "   -v:              Verbose mode - print compilation timings\n"+
+                "   -x <pluginname>: Use external plugin. 'ChoiceListPlugin' is only available plugin right now.\n"+
+                "   -t:              Test mode - loads up test.ink\n"+
+                "   -s:              Stress test mode - generates test content and \n" +
+                "                    times compilation\n");
             Environment.Exit (ExitCodeError);
         }
             
@@ -96,6 +98,7 @@ namespace Ink
             InkParser parser = null;
             Parsed.Story parsedStory = null;
             Runtime.Story story = null;
+            var pluginManager = new PluginManager (pluginNames);
 
             var inputIsJson = opts.inputFile.EndsWith (".json");
 
@@ -109,6 +112,10 @@ namespace Ink
                     parsedStory = parser.Parse ();
                 });
 
+                TimeOperation ("PostParsePlugins", () => {
+                    pluginManager.PostParse(parsedStory);
+                });
+
                 if (parsedStory == null) {
                     Environment.Exit (ExitCodeError);
                 }
@@ -119,6 +126,10 @@ namespace Ink
 
                 TimeOperation ("Exporting runtime", () => {
                     story = parsedStory.ExportRuntime ();
+                });
+
+                TimeOperation ("PostParsePlugins", () => {
+                    pluginManager.PostExport(parsedStory, story);
                 });
             } 
 
@@ -179,9 +190,11 @@ namespace Ink
             }
 
 			opts = new Options();
+            pluginNames = new List<string> ();
 
             bool nextArgIsOutputFilename = false;
             bool nextArgIsWorkingDir = false;
+            bool nextArgIsPlugin = false;
 
 			// Process arguments
             int argIdx = 0;
@@ -193,6 +206,9 @@ namespace Ink
                 } else if (nextArgIsWorkingDir) {
                     opts.workingDirectory = arg;
                     nextArgIsWorkingDir = false;
+                } else if (nextArgIsPlugin) {
+                    pluginNames.Add (arg);
+                    nextArgIsPlugin = false;
                 }
 
 				// Options
@@ -225,6 +241,9 @@ namespace Ink
                             break;
                         case 'c':
                             opts.countAllVisits = true;
+                            break;
+                        case 'x':
+                            nextArgIsPlugin = true;
                             break;
                         case 'd':
                             nextArgIsWorkingDir = true;
@@ -270,5 +289,6 @@ namespace Ink
         }
 
         Options opts;
+        List<string> pluginNames;
 	}
 }

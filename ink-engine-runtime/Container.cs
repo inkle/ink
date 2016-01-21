@@ -231,7 +231,12 @@ namespace Ink.Runtime
             }
 
             else {
-				return (Runtime.Object) namedContent[component.name];
+                INamedContent foundContent = null;
+                if (namedContent.TryGetValue (component.name, out foundContent)) {
+                    return (Runtime.Object)foundContent;
+                } else {
+                    throw new StoryException ("Content "+component.name+" not found in "+this.path);
+                }
 			}
 		}
 
