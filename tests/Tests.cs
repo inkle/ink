@@ -490,7 +490,10 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("nothing\n", story.ContinueMaximally());
+            // Hrm: terminating space is a little bit silly
+            // (it's because the divert arrow forces a little bit of
+            // whitespace in case you're diverting straight into another line)
+            Assert.AreEqual ("nothing ", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -525,7 +528,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
             story.Begin ();
 
-            Assert.AreEqual ("one\ntwo\nthree", story.ContinueMaximally());
+            Assert.AreEqual ("one two three", story.ContinueMaximally());
         }
             
         [Test ()]
@@ -1749,6 +1752,22 @@ EXTERNAL multiply(x,y)
             Assert.AreEqual ("15", story.ContinueMaximally());
 
             Assert.AreEqual ("MESSAGE: hello world", message);
+        }
+
+        [Test ()]
+        public void TestSameLineDivertIsInline()
+        {
+            var story = CompileString (@"
+=== hurry_home ===
+We hurried home to Savile Row -> as_fast_as_we_could
+    
+=== as_fast_as_we_could ===
+as fast as we could.
+-> DONE
+");
+            
+            story.Begin ();
+            Assert.AreEqual ("We hurried home to Savile Row as fast as we could.\n", story.Continue());
         }
 
 		//------------------------------------------------------------------------
