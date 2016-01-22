@@ -453,7 +453,7 @@ namespace Ink.Parsed
 
         void WarningInTermination(Parsed.Object terminatingObject, string additionalExplanation = null)
         {
-            string mainMessage = "Apparent loose end exists where the flow runs out. Do you need a '-> END' statement, choice or divert?";
+            string mainMessage = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
             Warning (additionalExplanation == null ? mainMessage : mainMessage + " " + additionalExplanation, terminatingObject);
         }
 

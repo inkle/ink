@@ -141,7 +141,7 @@ These sections are called "knots" and they're the fundamental structural unit of
 
 ### Writing a knot
 
-The start of a knot is indicated by three equals signs, as follows.
+The start of a knot is indicated by two or more equals signs, as follows.
 
 	=== top_knot ===
 	
@@ -162,7 +162,7 @@ Note that the game will automatically run the first knot it finds in a story if 
 
 However, **ink** doesn't like loose ends, and produces a warning on compilation and/or run-time when it thinks this has happened. The script above produces this on compilation:
 
-	WARNING: Apparent loose end exists where the flow runs out. Do you need a '-> END' statement, choice or divert? on line 3 of tests/test.ink
+	WARNING: Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert? on line 3 of tests/test.ink
 
 and this on running:
 
@@ -172,9 +172,9 @@ The following plays and compiles without error:
 
 	=== top_knot ===
 	Hello world!
-	-> END
+	-> DONE
 	
-`-> END` is a marker for both the writer and the compiler; it means "the story flow intentionally ends here".
+`-> DONE` is a marker for both the writer and the compiler; it means "the story flow intentionally ends here".
 
 ## 4) Diverts
 
@@ -278,7 +278,7 @@ Using diverts, the writer can branch the flow, and join it back up again, withou
 
 Knots and diverts combine to create the basic story flow of the game. This flow is "flat" - there's no call-stack, and diverts aren't "returned" from. 
 
-In most ink scripts, the story flow starts at the top, bounces around in a spaghetti-like mess, and eventually, hopefully, reaches the `-> END`.
+In most ink scripts, the story flow starts at the top, bounces around in a spaghetti-like mess, and eventually, hopefully, reaches a `-> DONE`.
 
 The very loose structure means writers can get on and write, branching and rejoining without worrying about the structure that they're creating as they go. There's no boiler-plate to creating new branches or diversions, and no need to track any state.
 
@@ -445,7 +445,7 @@ Adding this into the previous example gives us:
 		*	The woman in the hat[?] pushes you roughly aside. -> find_help
 		*	The man with the briefcase[?] looks disgusted as you stumble past him. -> find_help 
 		*	[] But it is too late: you collapse onto the station platform. This is the end.
-			-> END
+			-> DONE
 	
 and produces:
 
@@ -475,7 +475,7 @@ The 'once-only' behaviour is not always what we want, of course, so we have a se
 			You eat another donut. -> homers_couch
 		*	[Get off the couch] 
 			You struggle up off the couch to go and compose epic poetry.
-			-> END
+			-> DONE
 
 ### Conditional Choices
 
@@ -547,11 +547,11 @@ Cycles are like sequences, but they loop their content.
 	
 	It was {&Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday} today.
 	
-	
+
 **Once-only** (marked with a `!`):
-
+	
 Once-only lists are like sequences, but when they run out of new content to display, they display nothing. (You can think of a once-only list as a sequence with a blank last entry.)
-
+	
 	He told me a joke. {!I laughed politely.|I smiled.|I grimaced.|I promised myself to not react again.}
 	
 **Shuffles** (marked with a `~`):
@@ -576,7 +576,7 @@ Lists can include divert statements.
 
 They can also be used inside choice text:
 
-	* 	"Hello, {&Master|Monsieur Fogg|you|brown-eyes}!"[] I declared.
+	+ 	"Hello, {&Master|Monsieur Fogg|you|brown-eyes}!"[] I declared.
 	
 (...with one caveat; you can't start an option's text with a `{`, as it'll look like a conditional.)
 
@@ -587,7 +587,7 @@ Lists can be used inside loops to create the appearance of intelligent, state-tr
 Here's a one-knot version of whack-a-mole. Note we use once-only options, and a fallback, to ensure the mole doesn't move around, and the game will always end.
 
 	=== whack_a_mole ===
-		{I heft the hammer.|{~Missed!|Nothing!|No good. Where is he?|Ah-ha! Got him! -> END}}
+		{I heft the hammer.|{~Missed!|Nothing!|No good. Where is he?|Ah-ha! Got him! -> DONE}}
 		The {&mole|{&nasty|blasted|foul} {&creature|rodent}} is {in here somewhere|hiding somewhere|still at large|laughing at me|still unwhacked|doomed}. <>
 		{!I'll show him!|But this time he won't escape!}
 		* 	[{&Hit|Smash|Try} top-left] 	-> whack_a_mole
@@ -596,7 +596,7 @@ Here's a one-knot version of whack-a-mole. Note we use once-only options, and a 
 		*  [{&Clobber|Bosh} bottom-left] 	-> whack_a_mole
 		*  [{&Nail|Thump} bottom-right] 	-> whack_a_mole
 		*  [] Then you collapse from hunger. The mole has defeated you! 
-			-> END
+			-> DONE
 
 produces the following 'game':
 
@@ -641,7 +641,9 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 	I turned on the television {for the first time|for the second time|again|once more}, but there was {nothing good on, so I turned it off again|still nothing worth watching|even less to hold my interest than before|nothing but rubbish|a program about sharks and I don't like sharks|nothing on}.
 	+	[Try it again]	 		-> turn_on_television
 	*	[Go outside instead]	-> go_outside_instead
-
+	
+    === go_outside_instead ===
+    -> DONE
 
 
 
@@ -695,7 +697,7 @@ This format is called "weave", and its built out of the basic content/option syn
 
 Let's go back to the first multi-choice example at the top of this document. 
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 		*	"I am somewhat tired[."]," I repeated.
 			"Really," he responded. "How deleterious."
 		*	"Nothing, Monsieur!"[] I replied.
@@ -1082,9 +1084,6 @@ So far we've made conditional text, and conditional choices, using tests based o
 # Functions
 
 
-
-
-(Explanation of `*` and `-`.)
 
 ### Comments
 
