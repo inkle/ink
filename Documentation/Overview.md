@@ -141,7 +141,7 @@ These sections are called "knots" and they're the fundamental structural unit of
 
 ### Writing a knot
 
-The start of a knot is indicated by three equals signs, as follows.
+The start of a knot is indicated by two or more equals signs, as follows.
 
 	=== top_knot ===
 	
@@ -162,7 +162,7 @@ Note that the game will automatically run the first knot it finds in a story if 
 
 However, **ink** doesn't like loose ends, and produces a warning on compilation and/or run-time when it thinks this has happened. The script above produces this on compilation:
 
-	WARNING: Apparent loose end exists where the flow runs out. Do you need a '-> END' statement, choice or divert? on line 3 of tests/test.ink
+	WARNING: Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert? on line 3 of tests/test.ink
 
 and this on running:
 
@@ -172,9 +172,9 @@ The following plays and compiles without error:
 
 	=== top_knot ===
 	Hello world!
-	-> END
+	-> DONE
 	
-`-> END` is a marker for both the writer and the compiler; it means "the story flow intentionally ends here".
+`-> DONE` is a marker for both the writer and the compiler; it means "the story flow intentionally ends here".
 
 ## 4) Diverts
 
