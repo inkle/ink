@@ -5,6 +5,8 @@ Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing in
  * **inklecate** is the command-line compiler for ink. It takes one or more text files with an `.ink` extension, and produces a `.json` file. It can also be used in *play* mode, for testing a story on the command line.
  * The **ink runtime engine** is a C# library that can be used within Unity or other C# environment.
 
+**Warning:** **ink** is in alpha. Features may change, bugs may be encountered. We're yet to complete a project with this major rewrite of ink - it's a work in progress!
+
 
 # Getting started
 
