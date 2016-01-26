@@ -1,6 +1,6 @@
 # [PackageDev] target_format: plist, ext: tmLanguage
 ---
-name: ink2
+name: ink
 scopeName: source.ink
 fileTypes: [ink, ink2]
 uuid: 5a0f60ba-87b8-4fa9-854c-6bf41f74bd98
@@ -9,14 +9,25 @@ patterns:
 
 - {include: '#comments'}
 
-# knot/stitch declaration
-- match: ^\s*(={1,})\s*(\w+)\s*(\([\w\s,]+\))?\s*(={1,})?\s*$
+# knot declaration
+- match: ^\s*(={2,})\s*(function)?\s*(\w+)\s*(\([^)]*\))?\s*(={1,})?
   captures:
-    '1': {name: keyword.operator}
-    '2': {name: entity.name.function}
-    '3': {name: variable.parameter}
-    '4': {name: keyword.operator}
+    '1': {name: markup.punctuation}
+    '2': {name: keyword.function}
+    '3': {name: entity.name.knot}
+    '4': {name: variable.parameter}
+    '5': {name: markup.punctuation}
   name: meta.knot.declaration
+
+# stitch declaration
+- match: ^\s*(=)\s*(\w+)\s*(\([^)\n]*\))?\s*$
+  captures:
+    '1': {name: markup.punctuation}
+    '2': {name: keyword.function}
+    '3': {name: entity.name.knot}
+    '4': {name: variable.parameter}
+    '5': {name: markup.punctuation}
+  name: meta.stitch.declaration
 
 
 # Choice and gather lines
@@ -44,41 +55,63 @@ repository:
       match: (//).*$\n?
       name: comment.line.double-slash.js
 
+  TODO:
+    match: ^\s*(?:(TODO\s*:)|(TODO\b))\s*(.*)
+    captures:
+      '1': { name: comment.todo.TODO }
+      '2': { name: comment.todo.TODO }
+    end: $\n?
+    name: comment.todo
+
+  globalVAR:
+    begin: ^\s*((VAR|CONST)\s*(\w+))\s*
+    beginCaptures:
+      '1': {name: meta.variable.declaration}
+      '2': {name: storage}
+      '3': {name: entity.name.variable}
+    end: $\n?
+    name: meta.variable.assignment
+
   choice:
     begin: ^\s*((?:[\*\+]\s?)+)\s*(\(\s*(\w+)\s*\))?
     beginCaptures:
-      '1': {name: keyword.operator.choiceBullet}
-      '3': {name: entity.name.function}
+      '1': {name: keyword.operator.weaveBullet.choice}
+      '2': {name: meta.label}
+      '3': {name: entity.name.label}
     end: $\n?
     name: choice
     patterns:
       - {include: '#comments'}
       - match: (\[)([^\]]*)(\])
         captures:
-          '1': {name: keyword.operator}
+          '1': {name: keyword.operator.weaveBracket}
           '2': {name: string.content}
-          '3': {name: keyword.operator}
+          '3': {name: keyword.operator.weaveBracket}
       - {include: '#divert'}
       - {include: '#mixedContent'}
 
   gather:
-    match: ^\s*((?:-\s*)+)\s*(?:\(\s*(\w+)\s*\))?
+    match: ^\s*((?:-\s*)+)(?!>)(\(\s*(\w+)\s*\))?
     captures:
-      '1': {name: keyword.operator.gatherBullet} 
-      '2': {name: entity.name.function}
-    name: entity.gather
+      '1': {name: keyword.operator.weaveBullet.gather} 
+      '2': {name: meta.label}
+      '3': {name: entity.name.label}
+    name: meta.gather
 
   multiLineLogic:
-    begin: '^\s*(\{)([\w_\s\*\/\-\+\&\|\%\<\>]+(:))?(?=[^}]+$)'
+    begin: '^\s*(\{)([\w_\s\*\/\-\+\&\|\%\<\>\.\(\)]+(:))?(?=[^}]+$)'
     beginCaptures:
-      '1': {name: keyword.operator}
-      '3': {name: keyword.operator}
+      '0': {name: meta.logicBegin}
+      '1': {name: keyword.operator.logic}
+      '3': {name: keyword.operator.logic}
     end: (\})
     endCaptures:
       '1': {name: keyword.operator}
     contentName: meta.multilineLogicInner
     name: meta.multilineLogic
     patterns:
+      - match: '^\s*else\s*\:'
+        name: conditional.else
       - begin: '^\s*(-)\s?[^:]+(:)'
         beginCaptures:
           '1': {name: keyword.operator}
@@ -124,55 +157,21 @@ repository:
     end: (\})
     endCaptures:
       '1': {name: keyword.operator.inlineLogicEnd}
-    name: entity.logic
-    patterns:
-      - {include: '#innerLogic'}
-
-  innerLogic:
-    patterns:
-      - match: '\b(choice_count|beats_since)\b\s*\([^\)]*\)'
-        name: support.function
-      - match: \b\w+\b\s*\((?:[^\)]*)\)
-        name: variable.parameter
-      - match: (\b(and|or|not|mod)\b)|\!\=|\!|&&|\|\||==|<=|>=|<|>|\+|-|\*|/|\+\+|\-\-|%
-        name: keyword.operator
+    name: meta.logic
 
   logicLine:
-    begin: \s*(~)
-    beginCaptures:
-      '0': {name: keyword.operator}
-    end: $\n?
-    name: entity.logicLine
-    patterns:
-      # var x = blah
-      - match: (var)\s+(\w+)(?:\s*(=))?
-        name: meta.logic
-        captures:
-          '1': {name: storage.varDeclaration}
-          '2': {name: storage}
-          '3': {name: keyword.operator}
-      - match: (include)\s+(.*)\s*$
-        name: entity.include
-        captures:
-          '1': {name: keyword.control}
-          '2': {name: string.unquoted.filename}
-      - match: (done|return)\s*(\([^\)]*\))?
-        name: entity.returnStatement
-        captures:
-          '1': {name: keyword.control}
-          '2': {name: variable.parameter}
-      - {include: '#innerLogic'}
-
-  endOfSection:
-    match: \s*(~\s*){2,}\s*
-    end: $
-    name: keyword.control
+    match: \s*(~\s*.*)$
+    captures:
+      '0': {name: meta.logic}
 
   divert:
-      match: '(->|=>|==>)\s*([\w\.]+)?'
+      match: (->|<-)\s*((?:(DONE)|(END)|(\w+))(?:\s*\.\s*(?:\w+))*\s*(?:\([^\)]+\))?)?
+      name: meta.divert
       captures:
-        '1': {name: keyword.operator.divert}
-        '2': {name: variable.parameter.divertTarget}
+         '1': {name: keyword.operator.divert}
+         '3': {name: keyword.done}
+         '4': {name: keyword.end}
+         '5': {name: variable.divertTarget}
 
   mixedContent:
     patterns:
@@ -182,12 +181,27 @@ repository:
       - {include: '#divert'}
       - match: <>
         name: constant.glue
+
+      # Hrm, non-matching bold/italic screw up other syntax for some reason :-(
+      - begin: \*_|_\*
+        end: \*_|_\*|\[|\{|->|\n
+        contentName: string.boldItalic
+      - begin: \*
+        end: \*|\[|\{|->|\n
+        contentName: string.bold
+      - begin: _
+        end: _|\[|\{|->|\n
+        contentName: string.italic
+
+      # Final fallback
       - match: .
         name: string.content
 
   statements:
     patterns:
       - {include: '#comments'}
+      - {include: '#TODO'}
+      - {include: '#globalVAR'}
       - {include: '#choice'}
       - {include: '#gather'}
       - {include: '#multiLineLogic'}

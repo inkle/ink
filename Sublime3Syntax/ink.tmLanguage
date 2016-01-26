@@ -8,7 +8,7 @@
 		<string>ink2</string>
 	</array>
 	<key>name</key>
-	<string>ink2</string>
+	<string>ink</string>
 	<key>patterns</key>
 	<array>
 		<dict>
@@ -21,28 +21,67 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator</string>
+					<string>markup.punctuation</string>
 				</dict>
 				<key>2</key>
 				<dict>
 					<key>name</key>
-					<string>entity.name.function</string>
+					<string>keyword.function</string>
 				</dict>
 				<key>3</key>
 				<dict>
 					<key>name</key>
-					<string>variable.parameter</string>
+					<string>entity.name.knot</string>
 				</dict>
 				<key>4</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator</string>
+					<string>variable.parameter</string>
+				</dict>
+				<key>5</key>
+				<dict>
+					<key>name</key>
+					<string>markup.punctuation</string>
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>^\s*(={1,})\s*(\w+)\s*(\([\w\s,]+\))?\s*(={1,})?\s*$</string>
+			<string>^\s*(={2,})\s*(function)?\s*(\w+)\s*(\([^)]*\))?\s*(={1,})?</string>
 			<key>name</key>
 			<string>meta.knot.declaration</string>
+		</dict>
+		<dict>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>markup.punctuation</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.function</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.knot</string>
+				</dict>
+				<key>4</key>
+				<dict>
+					<key>name</key>
+					<string>variable.parameter</string>
+				</dict>
+				<key>5</key>
+				<dict>
+					<key>name</key>
+					<string>markup.punctuation</string>
+				</dict>
+			</dict>
+			<key>match</key>
+			<string>^\s*(=)\s*(\w+)\s*(\([^)\n]*\))?\s*$</string>
+			<key>name</key>
+			<string>meta.stitch.declaration</string>
 		</dict>
 		<dict>
 			<key>include</key>
@@ -59,6 +98,28 @@
 	</array>
 	<key>repository</key>
 	<dict>
+		<key>TODO</key>
+		<dict>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>comment.todo.TODO</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>comment.todo.TODO</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>$\n?</string>
+			<key>match</key>
+			<string>^\s*(?:(TODO\s*:)|(TODO\b))\s*(.*)</string>
+			<key>name</key>
+			<string>comment.todo</string>
+		</dict>
 		<key>choice</key>
 		<dict>
 			<key>begin</key>
@@ -68,12 +129,17 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator.choiceBullet</string>
+					<string>keyword.operator.weaveBullet.choice</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>meta.label</string>
 				</dict>
 				<key>3</key>
 				<dict>
 					<key>name</key>
-					<string>entity.name.function</string>
+					<string>entity.name.label</string>
 				</dict>
 			</dict>
 			<key>end</key>
@@ -92,7 +158,7 @@
 						<key>1</key>
 						<dict>
 							<key>name</key>
-							<string>keyword.operator</string>
+							<string>keyword.operator.weaveBracket</string>
 						</dict>
 						<key>2</key>
 						<dict>
@@ -102,7 +168,7 @@
 						<key>3</key>
 						<dict>
 							<key>name</key>
-							<string>keyword.operator</string>
+							<string>keyword.operator.weaveBracket</string>
 						</dict>
 					</dict>
 					<key>match</key>
@@ -179,23 +245,26 @@
 					<key>name</key>
 					<string>keyword.operator.divert</string>
 				</dict>
-				<key>2</key>
+				<key>3</key>
 				<dict>
 					<key>name</key>
-					<string>variable.parameter.divertTarget</string>
+					<string>keyword.done</string>
+				</dict>
+				<key>4</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.end</string>
+				</dict>
+				<key>5</key>
+				<dict>
+					<key>name</key>
+					<string>variable.divertTarget</string>
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>(-&gt;|=&gt;|==&gt;)\s*([\w\.]+)?</string>
-		</dict>
-		<key>endOfSection</key>
-		<dict>
-			<key>end</key>
-			<string>$</string>
-			<key>match</key>
-			<string>\s*(~\s*){2,}\s*</string>
+			<string>(-&gt;|&lt;-)\s*((?:(DONE)|(END)|(\w+))(?:\s*\.\s*(?:\w+))*\s*(?:\([^\)]+\))?)?</string>
 			<key>name</key>
-			<string>keyword.control</string>
+			<string>meta.divert</string>
 		</dict>
 		<key>gather</key>
 		<dict>
@@ -204,18 +273,50 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator.gatherBullet</string>
+					<string>keyword.operator.weaveBullet.gather</string>
 				</dict>
 				<key>2</key>
 				<dict>
 					<key>name</key>
-					<string>entity.name.function</string>
+					<string>meta.label</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.label</string>
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>^\s*((?:-\s*)+)\s*(?:\(\s*(\w+)\s*\))?</string>
+			<string>^\s*((?:-\s*)+)(?!&gt;)(\(\s*(\w+)\s*\))?</string>
 			<key>name</key>
-			<string>entity.gather</string>
+			<string>meta.gather</string>
+		</dict>
+		<key>globalVAR</key>
+		<dict>
+			<key>begin</key>
+			<string>^\s*((VAR|CONST)\s*(\w+))\s*</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>meta.variable.declaration</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>storage</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.variable</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>$\n?</string>
+			<key>name</key>
+			<string>meta.variable.assignment</string>
 		</dict>
 		<key>inlineConditional</key>
 		<dict>
@@ -278,14 +379,7 @@
 				</dict>
 			</dict>
 			<key>name</key>
-			<string>entity.logic</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#innerLogic</string>
-				</dict>
-			</array>
+			<string>meta.logic</string>
 		</dict>
 		<key>inlineSequence</key>
 		<dict>
@@ -330,115 +424,18 @@
 				</dict>
 			</array>
 		</dict>
-		<key>innerLogic</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>match</key>
-					<string>\b(choice_count|beats_since)\b\s*\([^\)]*\)</string>
-					<key>name</key>
-					<string>support.function</string>
-				</dict>
-				<dict>
-					<key>match</key>
-					<string>\b\w+\b\s*\((?:[^\)]*)\)</string>
-					<key>name</key>
-					<string>variable.parameter</string>
-				</dict>
-				<dict>
-					<key>match</key>
-					<string>(\b(and|or|not|mod)\b)|\!\=|\!|&amp;&amp;|\|\||==|&lt;=|&gt;=|&lt;|&gt;|\+|-|\*|/|\+\+|\-\-|%</string>
-					<key>name</key>
-					<string>keyword.operator</string>
-				</dict>
-			</array>
-		</dict>
 		<key>logicLine</key>
 		<dict>
-			<key>begin</key>
-			<string>\s*(~)</string>
-			<key>beginCaptures</key>
+			<key>captures</key>
 			<dict>
 				<key>0</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator</string>
-				</dict>
-			</dict>
-			<key>end</key>
-			<string>$\n?</string>
-			<key>name</key>
-			<string>entity.logicLine</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>captures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>storage.varDeclaration</string>
-						</dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>storage</string>
-						</dict>
-						<key>3</key>
-						<dict>
-							<key>name</key>
-							<string>keyword.operator</string>
-						</dict>
-					</dict>
-					<key>match</key>
-					<string>(var)\s+(\w+)(?:\s*(=))?</string>
-					<key>name</key>
 					<string>meta.logic</string>
 				</dict>
-				<dict>
-					<key>captures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>keyword.control</string>
-						</dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>string.unquoted.filename</string>
-						</dict>
-					</dict>
-					<key>match</key>
-					<string>(include)\s+(.*)\s*$</string>
-					<key>name</key>
-					<string>entity.include</string>
-				</dict>
-				<dict>
-					<key>captures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>keyword.control</string>
-						</dict>
-						<key>2</key>
-						<dict>
-							<key>name</key>
-							<string>variable.parameter</string>
-						</dict>
-					</dict>
-					<key>match</key>
-					<string>(done|return)\s*(\([^\)]*\))?</string>
-					<key>name</key>
-					<string>entity.returnStatement</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#innerLogic</string>
-				</dict>
-			</array>
+			</dict>
+			<key>match</key>
+			<string>\s*(~\s*.*)$</string>
 		</dict>
 		<key>mixedContent</key>
 		<dict>
@@ -467,6 +464,30 @@
 					<string>constant.glue</string>
 				</dict>
 				<dict>
+					<key>begin</key>
+					<string>\*_|_\*</string>
+					<key>contentName</key>
+					<string>string.boldItalic</string>
+					<key>end</key>
+					<string>\*_|_\*|\[|\{|-&gt;|\n</string>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>\*</string>
+					<key>contentName</key>
+					<string>string.bold</string>
+					<key>end</key>
+					<string>\*|\[|\{|-&gt;|\n</string>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>_</string>
+					<key>contentName</key>
+					<string>string.italic</string>
+					<key>end</key>
+					<string>_|\[|\{|-&gt;|\n</string>
+				</dict>
+				<dict>
 					<key>match</key>
 					<string>.</string>
 					<key>name</key>
@@ -477,18 +498,23 @@
 		<key>multiLineLogic</key>
 		<dict>
 			<key>begin</key>
-			<string>^\s*(\{)([\w_\s\*\/\-\+\&amp;\|\%\&lt;\&gt;]+(:))?(?=[^}]+$)</string>
+			<string>^\s*(\{)([\w_\s\*\/\-\+\&amp;\|\%\&lt;\&gt;\.\(\)]+(:))?(?=[^}]+$)</string>
 			<key>beginCaptures</key>
 			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>meta.logicBegin</string>
+				</dict>
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator</string>
+					<string>keyword.operator.logic</string>
 				</dict>
 				<key>3</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.operator</string>
+					<string>keyword.operator.logic</string>
 				</dict>
 			</dict>
 			<key>contentName</key>
@@ -507,6 +533,12 @@
 			<string>meta.multilineLogic</string>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>match</key>
+					<string>^\s*else\s*\:</string>
+					<key>name</key>
+					<string>conditional.else</string>
+				</dict>
 				<dict>
 					<key>begin</key>
 					<string>^\s*(-)\s?[^:]+(:)</string>
@@ -548,6 +580,14 @@
 				<dict>
 					<key>include</key>
 					<string>#comments</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#TODO</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#globalVAR</string>
 				</dict>
 				<dict>
 					<key>include</key>
