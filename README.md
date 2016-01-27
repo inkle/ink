@@ -1,5 +1,7 @@
 # ink
 
+[![Gitter](https://badges.gitter.im/inkle/ink.svg)](https://gitter.im/inkle/ink?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
 
  * **inklecate** is the command-line compiler for ink. It takes one or more text files with an `.ink` extension, and produces a `.json` file. It can also be used in *play* mode, for testing a story on the command line.
@@ -42,6 +44,10 @@ Run the `build-runtime-dll.command` script. This will build a DLL file and place
 We’d of course appreciate any bug fixes you might find! Also see the roadmap below for future planned features and optimisations that you might be able to help out with.
 
 [Create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature. (Is this the best place for community discussion? We're pretty new to open source!) Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
+
+We also have a room on Gitter where you may find someone to help you:
+
+[![Gitter](https://badges.gitter.im/inkle/ink.svg)](https://gitter.im/inkle/ink?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 In terms of related projects outside of the scope of this repo, we'd love to see the following since we don't have time to do it ourselves right now, and we think it would substantially help the community:
 
