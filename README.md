@@ -63,7 +63,6 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 
  - Save state from runtime
  - Improve succinctness of JSON representation - it’s currently much larger than it needs to be. Big problem when you have 10MB+ of source ink, as we've had on past games.
- - More access to runtime in DLL - e.g. variable observers that get notified via event when the contents of a variable changes.
  - Bug fixes!
  
 ### Probably coming

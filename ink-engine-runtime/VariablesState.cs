@@ -4,6 +4,35 @@ namespace Ink.Runtime
 {
     public class VariablesState
     {
+        public delegate void VariableChanged(string variableName, Runtime.Object newValue);
+        public event VariableChanged variableChangedEvent;
+
+        internal bool batchObservingVariableChanges 
+        { 
+            get {
+                return _batchObservingVariableChanges;
+            }
+            set { 
+                _batchObservingVariableChanges = value;
+                if (value) {
+                    _changedVariables = new HashSet<string> ();
+                } 
+
+                // Finished observing variables in a batch - now send 
+                // notifications for changed variables all in one go.
+                else {
+                    if (_changedVariables != null) {
+                        foreach (var variableName in _changedVariables) {
+                            var currentValue = _globalVariables [variableName];
+                            variableChangedEvent (variableName, currentValue);
+                        }
+                    }
+
+                    _changedVariables = null;
+                }
+            }
+        }
+        bool _batchObservingVariableChanges;
 
         public object this[string variableName]
         {
@@ -24,7 +53,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                _globalVariables [variableName] = literal;
+                SetGlobal (variableName, literal);
             }
         }
 
@@ -34,9 +63,21 @@ namespace Ink.Runtime
             _callStack = callStack;
         }
 
-        internal void CopyVariblesFrom(VariablesState varState)
+        internal void CopyFrom(VariablesState varState)
         {
             _globalVariables = new Dictionary<string, Object> (varState._globalVariables);
+            variableChangedEvent = varState.variableChangedEvent;
+
+            if (varState.batchObservingVariableChanges != batchObservingVariableChanges) {
+
+                if (varState.batchObservingVariableChanges) {
+                    _batchObservingVariableChanges = true;
+                    _changedVariables = new HashSet<string> (varState._changedVariables);
+                } else {
+                    _batchObservingVariableChanges = false;
+                    _changedVariables = null;
+                }
+            }
         }
 
         internal Runtime.Object GetVariableWithName(string name)
@@ -122,9 +163,26 @@ namespace Ink.Runtime
 
 
             if (setGlobal) {
-                _globalVariables [name] = value;
+                SetGlobal (name, value);
             } else {
                 _callStack.SetTemporaryVariable (name, value, varAss.isNewDeclaration, contextIndex);
+            }
+        }
+
+        void SetGlobal(string variableName, Runtime.Object value)
+        {
+            Runtime.Object oldValue = null;
+            _globalVariables.TryGetValue (variableName, out oldValue);
+
+            _globalVariables [variableName] = value;
+
+            if (variableChangedEvent != null && !value.Equals (oldValue)) {
+
+                if (batchObservingVariableChanges) {
+                    _changedVariables.Add (variableName);
+                } else {
+                    variableChangedEvent (variableName, value);
+                }
             }
         }
 
@@ -170,6 +228,7 @@ namespace Ink.Runtime
 
         // Used for accessing temporary variables
         CallStack _callStack;
+        HashSet<string> _changedVariables;
     }
 }
 

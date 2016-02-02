@@ -113,7 +113,7 @@ namespace Ink.Runtime
             copy.callStack = new CallStack (callStack);
 
             copy.variablesState = new VariablesState (copy.callStack);
-            copy.variablesState.CopyVariblesFrom (variablesState);
+            copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
 
