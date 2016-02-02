@@ -19,7 +19,7 @@ Note that you will require basic knowledge of the Mac command line.
  * Install **inklecate** by following the instructions below
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
  * On the command line, run: `inklecate2 -p myStory.ink`. The `-p` option uses play mode so that you can see the result immediately.
- * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md).
+ * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
 ## Installing *inklecate* - the ink compiler
 
