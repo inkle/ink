@@ -1619,11 +1619,6 @@ which are slightly easier to read, and (more usefully) can be done inline for ma
 Wrapping up simple operations in function can also provide a simple place to put debugging information, if required.
 
 
-#### Advanced: external functions
-
-You can also provide additional functions via C# which the ink calls out to.
-
-TODO: An example please!
 
 
 ##  6) Constants
@@ -1674,6 +1669,42 @@ And sometimes the numbers are useful in other ways:
 	}
 	
 Constants are simply a way to allow you to give story states easy-to-understand names.  
+
+## 7) Advanced: Game-side logic 
+
+You can also provide additional functions via C# which the ink calls out to. There are two ways to provide delegate callbacks in the ink engine:
+
+### Function bindings
+
+You can bind an external script to an **ink** function, to then be used in the ink script. 
+
+To do this, first declare an external function using something like this at the top of one of your ink files, in global scope:
+
+	EXTERNAL multiply(x,y)
+
+Then before calling your story, set up the bound function:
+
+    story.BindExternalFunction ("multiply", (int arg1, float arg2) => {
+        return arg1 * arg2;
+    });  
+
+There are convenience overloads for BindExternalFunction, for arity <= 3, for both Funcs and Actions (as well as a general purpose BindExternalFunctionGeneral that takes an object array for > 3 parameters.)
+
+You can then call that function within the ink:
+
+	3 times 4 is {multiply(3, 4)}.
+
+The types you can use are int, float, bool (automatically converted from ink’s ints) and string.
+
+### Variable observers 
+
+You can also passively set the game to watch for changes in the state of any **ink** variable, by creating a variable observer: 
+
+    story.ObserveVariable ("health", (string varName, object newValue) => {
+        SetHealthInUI((int)newValue);
+    });  
+
+The reason we pass varName in is so that you can have a single observer function that observes multiple variables if you like.
 
 
 
