@@ -77,6 +77,7 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 ### To investigate
 
  - Consider changing multi-bullet weave indentation to Python-style whitespace indentation. This would be a huge syntax-breaking change, but we'd welcome a discussion and/or an experimental implementation.
+ - Plugin architecture, to allow you to extract information from the ink while it's being compiled. Currently there's a basic example in the codebase, but it currently has to be built directly into the compiler, rather than via DLLs.
  - Audio and localisation. Difficult problems that need some thought.
 
 ## Architectural overview
