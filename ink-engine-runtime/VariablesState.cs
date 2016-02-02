@@ -4,8 +4,8 @@ namespace Ink.Runtime
 {
     public class VariablesState
     {
-        public delegate void VariableChanged(string variableName, Runtime.Object newValue);
-        public event VariableChanged variableChangedEvent;
+        internal delegate void VariableChanged(string variableName, Runtime.Object newValue);
+        internal event VariableChanged variableChangedEvent;
 
         internal bool batchObservingVariableChanges 
         { 
