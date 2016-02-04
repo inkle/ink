@@ -1505,82 +1505,59 @@ produces:
 
 The following example is long, but appears in pretty much every inkle game to date:
 
-	=== function print_num(x) ===
-	{ 
-		- x >= 1000:
-			{print_num(x / 1000)} <> thousand { x mod 1000 > 0: {print_num(x mod 1000)} } 
-		- x >= 100:
-			{print_num(x / 100)} <> hundred { x mod 100 > 0: and {print_num(x mod 100)} } 
-		- else:
-			{ x >= 20:
-				{ 
-				- x / 10 == 2:
-					twenty
-				- x / 10 == 3:
-					thirty
-				- x / 10 == 4:
-					forty
-				- x / 10 == 5:
-					fifty
-				- x / 10 == 6:
-					sixty
-				- x / 10 == 7:
-					seventy
-				- x / 10 == 8:
-					eighty
-				- x / 10 == 9:
-					ninety
-				}
-				{ x mod 10 > 0:
-					<>-
-				}
-			}
-			{ x < 10 || x > 20:
-				{
-				- x mod 10 == 1:
-					<>one
-				- x mod 10 == 2:
-					<>two
-				- x mod 10 == 3:
-					<>three
-				- x mod 10 == 4:
-					<>four        
-				- x mod 10 == 5:
-					<>five
-				- x mod 10 == 6:
-					<>six
-				- x mod 10 == 7:
-					<>seven
-				- x mod 10 == 8:
-					<>eight
-				- x mod 10 == 9:
-					<>nine
-				}
-			- else:		
-				{ 
-				- x == 10:
-					ten
-				- x == 11:
-					eleven       
-				- x == 12:
-					twelve
-				- x == 13:
-					thirteen
-				- x == 14:
-					fourteen
-				- x == 15:
-					fifteen
-				- x == 16:
-					sixteen      
-				- x == 17:
-					seventeen
-				- x == 18:
-					eighteen
-				- x == 19:
-					nineteen
-				}
-			}
-	}
+TODO: Explain the hyphen? (And fix glue so this actually works...!)
+
+    === function print_num(x) ===
+    { 
+        - x >= 1000:
+            {print_num(x / 1000)} thousand { x mod 1000 > 0: {print_num(x mod 1000)} } 
+        - x >= 100:
+            {print_num(x / 100)} hundred { x mod 100 > 0: and {print_num(x mod 100)} } 
+        - x == 0:
+            zero
+        - else:
+            { x >= 20:
+                { x / 10:
+                    - 2: twenty
+                    - 3: thirty
+                    - 4: forty
+                    - 5: fifty
+                    - 6: sixty
+                    - 7: seventy
+                    - 8: eighty
+                    - 9: ninety
+                }
+                { x mod 10 > 0:
+                    <>-
+                }
+            }
+            { x < 10 || x > 20:
+                { x mod 10:
+                    - 1: <>one
+                    - 2: <>two
+                    - 3: <>three
+                    - 4: <>four        
+                    - 5: <>five
+                    - 6: <>six
+                    - 7: <>seven
+                    - 8: <>eight
+                    - 9: <>nine
+                }
+            - else:     
+                { x:
+                    - 10: ten
+                    - 11: eleven       
+                    - 12: twelve
+                    - 13: thirteen
+                    - 14: fourteen
+                    - 15: fifteen
+                    - 16: sixteen      
+                    - 17: seventeen
+                    - 18: eighteen
+                    - 19: nineteen
+                }
+            }
+    }
 	
 which enables us to write things like:
 
@@ -1672,41 +1649,7 @@ Constants are simply a way to allow you to give story states easy-to-understand 
 
 ## 7) Advanced: Game-side logic 
 
-You can also provide additional functions via C# which the ink calls out to. There are two ways to provide delegate callbacks in the ink engine:
-
-### Function bindings
-
-You can bind an external script to an **ink** function, to then be used in the ink script. 
-
-To do this, first declare an external function using something like this at the top of one of your ink files, in global scope:
-
-	EXTERNAL multiply(x,y)
-
-Then before calling your story, set up the bound function:
-
-    story.BindExternalFunction ("multiply", (int arg1, float arg2) => {
-        return arg1 * arg2;
-    });  
-
-There are convenience overloads for BindExternalFunction, for arity <= 3, for both Funcs and Actions (as well as a general purpose BindExternalFunctionGeneral that takes an object array for > 3 parameters.)
-
-You can then call that function within the ink:
-
-	3 times 4 is {multiply(3, 4)}.
-
-The types you can use are int, float, bool (automatically converted from ink’s ints) and string.
-
-### Variable observers 
-
-You can also passively set the game to watch for changes in the state of any **ink** variable, by creating a variable observer: 
-
-    story.ObserveVariable ("health", (string varName, object newValue) => {
-        SetHealthInUI((int)newValue);
-    });  
-
-The reason we pass varName in is so that you can have a single observer function that observes multiple variables if you like.
-
-
+There are two core ways to provide game hooks in the **ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
 
 # Part 4: Advanced Flow Control
 
