@@ -140,6 +140,14 @@ You can define game-side functions in C# that can be called directly from **ink*
 The types you can use as parameters and return values are int, float, bool (automatically converted from **ink**’s internal ints) and string.
 
     
+## Debugging ink engine issues
+
+The **ink** engine is still in a nascent stage (alpha!), and you may well encounter bugs, or unhelpful error messages and exceptions.
+
+We recommend we debug the compiler so that you get a breakpoint in its code when compiling and/or playing your ink file. To do so, open **ink.sln** in Xamarin or Visual Studio, and run the compiler code in the Test configuration. You should supply command line parameters in the project settings. (In Xamarin, right-click on *inklecate*, click *Options*, and in *Run > General* and modify the parameters field.) You could use something like:
+
+    -p -d <path to your ink directory> yourMainFile.ink
     
-    
-    
+The `-d` switch allows you to specify the root directory for your ink files, which may be necessary depending on where your game files are compared to the ink repo. The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
+
+When your story hits an assertion, you may be able to glean a little more information from the state of the ink engine.
