@@ -182,16 +182,16 @@ repository:
       - match: <>
         name: constant.glue
 
-      # Hrm, non-matching bold/italic screw up other syntax for some reason :-(
-      - begin: \*_|_\*
-        end: \*_|_\*|\[|\{|->|\n
-        contentName: string.boldItalic
-      - begin: \*
-        end: \*|\[|\{|->|\n
-        contentName: string.bold
-      - begin: _
-        end: _|\[|\{|->|\n
-        contentName: string.italic
+      # Hrm, the bold/italic stuff seems to be more trouble than it's worth :-(
+      # - begin: \*_|_\*
+      #   end: \*_|_\*|\[|\{|->|\n
+      #   contentName: string.boldItalic
+      # - begin: \*
+      #   end: \*|\[|\{|->|\n
+      #   contentName: string.bold
+      # - begin: _
+      #   end: _|\[|\{|->|\n
+      #   contentName: string.italic
 
       # Final fallback
       - match: .

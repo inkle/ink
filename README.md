@@ -1,5 +1,7 @@
 # ink
 
+[![Gitter](https://badges.gitter.im/inkle/ink.svg)](https://gitter.im/inkle/ink?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
 
  * **inklecate** is the command-line compiler for ink. It takes one or more text files with an `.ink` extension, and produces a `.json` file. It can also be used in *play* mode, for testing a story on the command line.
@@ -17,7 +19,7 @@ Note that you will require basic knowledge of the Mac command line.
  * Install **inklecate** by following the instructions below
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
  * On the command line, run: `inklecate2 -p myStory.ink`. The `-p` option uses play mode so that you can see the result immediately.
- * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md).
+ * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
 ## Installing *inklecate* - the ink compiler
 
@@ -43,6 +45,10 @@ We’d of course appreciate any bug fixes you might find! Also see the roadmap b
 
 [Create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature. (Is this the best place for community discussion? We're pretty new to open source!) Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
 
+We also have a room on Gitter where you may find someone to help you:
+
+[![Gitter](https://badges.gitter.im/inkle/ink.svg)](https://gitter.im/inkle/ink?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 In terms of related projects outside of the scope of this repo, we'd love to see the following since we don't have time to do it ourselves right now, and we think it would substantially help the community:
 
  * A more friendly install-edit-play flow for writers. For example, a downloadable GUI-based app with an editor pane on the left and a play pane on the right. Bonus points if the play pane automatically reloads the state of the story as you type!
@@ -57,7 +63,6 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 
  - Save state from runtime
  - Improve succinctness of JSON representation - it’s currently much larger than it needs to be. Big problem when you have 10MB+ of source ink, as we've had on past games.
- - More access to runtime in DLL - e.g. variable observers that get notified via event when the contents of a variable changes.
  - Bug fixes!
  
 ### Probably coming
@@ -72,6 +77,7 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 ### To investigate
 
  - Consider changing multi-bullet weave indentation to Python-style whitespace indentation. This would be a huge syntax-breaking change, but we'd welcome a discussion and/or an experimental implementation.
+ - Plugin architecture, to allow you to extract information from the ink while it's being compiled. Currently there's a basic example in the codebase, but it currently has to be built directly into the compiler, rather than via DLLs.
  - Audio and localisation. Difficult problems that need some thought.
 
 ## Architectural overview

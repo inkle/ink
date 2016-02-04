@@ -464,30 +464,6 @@
 					<string>constant.glue</string>
 				</dict>
 				<dict>
-					<key>begin</key>
-					<string>\*_|_\*</string>
-					<key>contentName</key>
-					<string>string.boldItalic</string>
-					<key>end</key>
-					<string>\*_|_\*|\[|\{|-&gt;|\n</string>
-				</dict>
-				<dict>
-					<key>begin</key>
-					<string>\*</string>
-					<key>contentName</key>
-					<string>string.bold</string>
-					<key>end</key>
-					<string>\*|\[|\{|-&gt;|\n</string>
-				</dict>
-				<dict>
-					<key>begin</key>
-					<string>_</string>
-					<key>contentName</key>
-					<string>string.italic</string>
-					<key>end</key>
-					<string>_|\[|\{|-&gt;|\n</string>
-				</dict>
-				<dict>
 					<key>match</key>
 					<string>.</string>
 					<key>name</key>

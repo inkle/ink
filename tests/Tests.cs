@@ -1770,6 +1770,51 @@ as fast as we could.
             Assert.AreEqual ("We hurried home to Savile Row as fast as we could.\n", story.Continue());
         }
 
+        [Test ()]
+        public void TestVariableObserver()
+        {
+            var story = CompileString (@"
+VAR testVar = 5
+VAR testVar2 = 10
+
+Hello world!
+
+~ testVar = 15
+~ testVar2 = 100
+
+Hello world 2!
+
+* choice
+
+    ~ testVar = 25
+    ~ testVar2 = 200
+
+    -> END
+");
+
+            story.Begin ();
+
+            int currentVarValue = 0;
+            int observerCallCount = 0;
+
+            story.ObserveVariable ("testVar", (string varName, object newValue) => {
+                currentVarValue = (int)newValue;
+                observerCallCount++;
+            });
+
+            story.ContinueMaximally ();
+
+            Assert.AreEqual (15, currentVarValue);
+            Assert.AreEqual (1, observerCallCount);
+            Assert.AreEqual (1, story.currentChoices.Count);
+
+            story.ChooseChoiceIndex (0);
+            story.Continue ();
+
+            Assert.AreEqual (25, currentVarValue);
+            Assert.AreEqual (2, observerCallCount);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
