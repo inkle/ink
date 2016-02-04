@@ -98,6 +98,19 @@ To jump directly to a stitch within a knot, use a `.` as a separator:
     
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
 
+**WARNING**: When choosing a scene right after loading your ink file, you should first call `Continue()`, to make sure that any global state is set up first. (We should probably review this behaviour, it's a bit surprising. The `Begin` function should automatically deal with it.) So to be clear, the following sequence should be safe:
+
+    var story = Story.CreateWithJson(...")
+    story.Begin();
+    
+    // Ensure that global state has been set up,
+    // e.g. VAR statements have been run.
+    // We throw away any initial content that's generated.
+    story.Continue();
+    
+    // Enter our first desired scene
+    story.ChoosePathString("knotWithFirstScene");
+
 ## Setting/getting ink variables
 
 The state of the variables in the **ink** engine is, appropriately enough, stored within the `variablesState` object within the `story`. You can both get and set variables directly on this object:
