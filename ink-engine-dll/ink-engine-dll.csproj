@@ -32,10 +32,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\ink-engine-runtime\Newtonsoft.Json.dll</HintPath>
     </Reference>
