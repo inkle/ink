@@ -39,12 +39,13 @@ namespace Ink.Runtime
         public VariablesState variablesState{ get { return state.variablesState; } }
         internal StoryState state { get { return _state; } }
             
+        // Warning: When creating a Story using this constructor, you need to
+        // call ResetState on it before use. Intended for compiler use only.
+        // Use CreateWithJson for normal use.
         internal Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
             _externals = new Dictionary<string, ExternalFunction> ();
-
-            Reset ();
 		}
 
         public static Story CreateWithJson(string jsonString)
@@ -81,7 +82,11 @@ namespace Ink.Runtime
                         reader.Read ();
 
                         var rootContainer = serialiser.Deserialize<Container> (reader);
-                        return new Story (rootContainer);
+                        var story = new Story (rootContainer);
+
+                        story.ResetState ();
+
+                        return story;
                     }
                 }
 
@@ -115,24 +120,13 @@ namespace Ink.Runtime
                 
             return sb.ToString ();
         }
-
-        /// <summary>
-        /// Prepare the Story at the start point, ready for the first <c>Continue()</c> call.
-        /// Internally, it validates any external function bindings, and resets all state.
-        /// </summary>
-		public void Begin()
-		{
-            // TODO: Should we leave this to the client, since it could be
-            // slow to iterate through all the content an extra time?
-            ValidateExternalBindings ();
-
-            Reset ();
-		}
-
-        public void Reset()
+            
+        public void ResetState()
         {
             _state = new StoryState ();
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
+
+            ResetGlobals ();
         }
 
         public void ResetErrors()
@@ -145,6 +139,16 @@ namespace Ink.Runtime
             _state.ForceEndFlow ();
         }
 
+        void ResetGlobals()
+        {
+            if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
+                var originalPath = state.currentPath;
+                ChoosePathString ("global decl");
+                Continue ();
+                state.currentPath = originalPath;
+            }
+        }
+
         /// <summary>
         /// Continue the story for one line of content, if possible.
         /// If you're not sure if there's more content available, for example if you
@@ -154,6 +158,11 @@ namespace Ink.Runtime
         /// <returns>The line of text content.</returns>
 		public string Continue()
 		{
+            // TODO: Should we leave this to the client, since it could be
+            // slow to iterate through all the content an extra time?
+            if( !_hasValidatedExternals )
+                ValidateExternalBindings ();
+
             if (!canContinue) {
                 throw new StoryException ("Can't continue - should check canContinue before calling Continue");
             }
@@ -1044,6 +1053,7 @@ namespace Ink.Runtime
         public void ValidateExternalBindings()
         {
             ValidateExternalBindings (_mainContentContainer);
+            _hasValidatedExternals = true;
         }
 
         void ValidateExternalBindings(Container c)
@@ -1521,6 +1531,7 @@ namespace Ink.Runtime
 
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;
+        bool _hasValidatedExternals;
 
         Container _temporaryEvaluationContainer;
 

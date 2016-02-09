@@ -25,8 +25,6 @@ namespace Ink
 
 		public void Begin()
 		{
-			story.Begin ();
-
             EvaluateStory ();
 
 			var rand = new Random ();

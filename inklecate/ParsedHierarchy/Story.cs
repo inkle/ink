@@ -141,8 +141,12 @@ namespace Ink.Parsed
             }
 
             variableInitialisation.AddContent (Runtime.ControlCommand.EvalEnd ());
-            if( variableDeclarations.Count > 0 )
-                rootContainer.InsertContent (variableInitialisation, 0);
+            variableInitialisation.AddContent (Runtime.ControlCommand.End ());
+
+            if (variableDeclarations.Count > 0) {
+                variableInitialisation.name = "global decl";
+                rootContainer.AddToNamedContentOnly (variableInitialisation);
+            }
 
             // Signal that it's safe to exit without error, even if there are no choices generated
             // (this only happens at the end of top level content that isn't in any particular knot)
@@ -172,6 +176,8 @@ namespace Ink.Parsed
 
             if (CheckErrors (earlyWarningCount))
                 return null;
+
+            runtimeStory.ResetState ();
 
 			return runtimeStory;
 		}
