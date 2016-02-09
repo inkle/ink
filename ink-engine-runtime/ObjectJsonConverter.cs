@@ -60,11 +60,13 @@ namespace Ink.Runtime
             else if ( token is JValue ) {
                 var val = (JValue) token;
                 if (val.Type == JTokenType.String) {
-                    return new Text (val.Value<string> ());
+					return new Text (val.ToString());
                 } else if (val.Type == JTokenType.Integer) {
-                    return new LiteralInt (val.Value<int> ());
+					int i = val.ToObject<int>();
+					return new LiteralInt (i);
                 } else if (val.Type == JTokenType.Float) {
-                    return new LiteralFloat (val.Value<float> ());
+					float f = val.ToObject<float>();
+					return new LiteralFloat (f);
                 } 
 
                 throw new System.Exception ("Unexpected value type");
@@ -118,11 +120,12 @@ namespace Ink.Runtime
                 }
 
                 if (jObject.TryGetValue ("name", out propToken)) {
-                    container.name = propToken.Value<string>();
+					container.name = propToken.ToString();
                 }
 
                 if (jObject.TryGetValue ("cntFlags", out propToken)) {
-                    container.countFlags = propToken.Value<int> ();
+					int i = propToken.ToObject<int>();
+					container.countFlags = i;
                 }
 
             } else {
