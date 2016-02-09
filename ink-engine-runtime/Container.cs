@@ -26,7 +26,7 @@ namespace Ink.Runtime
         }
         List<Runtime.Object> _content;
 
-		public Dictionary<string, INamedContent> namedContent { get; }
+		public Dictionary<string, INamedContent> namedContent { get; set; }
 
         [JsonProperty("namedOnly")]
         public Dictionary<string, Runtime.Object> namedOnlyContent { 
