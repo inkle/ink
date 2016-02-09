@@ -140,6 +140,11 @@ namespace Ink.Runtime
             _state.ResetErrors ();
         }
 
+        public void ResetCallstack()
+        {
+            _state.ForceEndFlow ();
+        }
+
         /// <summary>
         /// Continue the story for one line of content, if possible.
         /// If you're not sure if there's more content available, for example if you
