@@ -21,7 +21,7 @@ Add your compiled `.json` story to Unity, and it'll be imported as a TextAsset. 
 
 ## Getting started with the runtime API
 
-The API for loading and running your story is very straightforward. Pass your json string into `Ink.Runtime.Story.CreateWithJson(...)` to a story object, and then call the `Begin()` method on it. This will set it up ready to evaluate. For example, in Unity:
+The API for loading and running your story is very straightforward. Pass your json string into `Ink.Runtime.Story.CreateWithJson(...)`. For example, in Unity:
 
     using Ink.Runtime;
 
@@ -30,7 +30,6 @@ The API for loading and running your story is very straightforward. Pass your js
     void Awake()
     {
         _inkStory = Story.CreateWithJson(inkAsset.text);
-        _inkStory.Begin()
     }
     
 From there, you make calls to the story in a loop. There are two repeating stages:
@@ -97,19 +96,6 @@ To jump directly to a stitch within a knot, use a `.` as a separator:
     story.ChoosePathString("myKnotName.theStitchWithin");
     
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
-
-**WARNING**: When choosing a scene right after loading your ink file, you should first call `Continue()`, to make sure that any global state is set up first. (We should probably review this behaviour, it's a bit surprising. The `Begin` function should automatically deal with it.) So to be clear, the following sequence should be safe:
-
-    var story = Story.CreateWithJson(...")
-    story.Begin();
-    
-    // Ensure that global state has been set up,
-    // e.g. VAR statements have been run.
-    // We throw away any initial content that's generated.
-    story.Continue();
-    
-    // Enter our first desired scene
-    story.ChoosePathString("knotWithFirstScene");
 
 ## Setting/getting ink variables
 

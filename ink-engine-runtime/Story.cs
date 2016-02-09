@@ -826,9 +826,6 @@ namespace Ink.Runtime
         /// 
         /// ...because of the way that content is nested within a weave structure.
         /// 
-        /// WARNING: If choosing an initial path right after loading the story,
-        /// you should first call Continue to make sure that any global variables have
-        /// been correctly set up first.
         /// </summary>
         /// <param name="path">A dot-separted path string, as specified above.</param>
         public void ChoosePathString(string path)
