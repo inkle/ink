@@ -387,7 +387,10 @@ namespace Ink.Runtime
                 // so that we're not editing the original runtime object.
                 var varPointer = currentContentObj as LiteralVariablePointer;
                 if (varPointer && varPointer.contextIndex == -1) {
-                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, state.callStack.currentElementIndex);
+
+                    // Create new object so we're not overwriting the story's own data
+                    var contextIdx = state.callStack.ContextForVariableNamed(varPointer.variableName);
+                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, contextIdx);
                 }
 
                 // Expression evaluation content

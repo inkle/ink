@@ -1815,6 +1815,31 @@ Hello world 2!
             Assert.AreEqual (2, observerCallCount);
         }
 
+
+        [Test ()]
+        public void TestVariablePointerRefFromKnot()
+        {
+            var story = CompileString (@"
+VAR val = 5
+
+-> knot ->
+
+-> END
+
+== knot ==
+~ inc(val)
+{val}
+->->
+
+== function inc(ref x) ==
+    ~ x = x + 1
+");
+
+            story.Begin ();
+
+            Assert.AreEqual ("6\n", story.Continue());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

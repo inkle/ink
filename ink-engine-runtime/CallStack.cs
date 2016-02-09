@@ -211,6 +211,24 @@ namespace Ink.Runtime
             contextElement.temporaryVariables [name] = value;
         }
 
+        // Find the most appropriate context for this variable.
+        // Are we referencing a temporary or global variable?
+        // Note that the compiler will have warned us about possible conflicts,
+        // so anything that happens here should be safe!
+        public int ContextForVariableNamed(string name)
+        {
+            // Current temporary context?
+            // (Shouldn't attempt to access contexts higher in the callstack.)
+            if (currentElement.temporaryVariables.ContainsKey (name)) {
+                return currentElementIndex;
+            } 
+
+            // Global
+            else {
+                return -1;
+            }
+        }
+
         private List<Element> callStack
         {
             get {

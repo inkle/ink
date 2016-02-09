@@ -204,6 +204,8 @@ namespace Ink.Runtime
         }
     }
 
+    // TODO: Think: Erm, I get that this contains a string, but should
+    // we really derive from Literal<string>? That seems a bit misleading to me.
     internal class LiteralVariablePointer : Literal<string>
     {
         public string variableName { get { return this.value; } set { this.value = value; } }
@@ -211,6 +213,7 @@ namespace Ink.Runtime
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a variable pointer"); } }
 
         // Where the variable is located
+        // -1 = default, unknown, yet to be determined
         // 0  = in global scope
         // 1+ = callstack element index
         public int contextIndex { get; set; }
