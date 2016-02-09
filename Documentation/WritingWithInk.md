@@ -1162,7 +1162,7 @@ A "divert" statement is actually a type of value in itself, and can be stored, a
 
 #### Advanced: Global variables are externally visible
 
-Global variables can be accessed, and altered, from the runtime as well from the story, so provide the best way to communicate between the wider game and the story. 
+Global variables can be accessed, and altered, from the runtime as well from the story, so provide a good way to communicate between the wider game and the story. 
 
 The **ink** layer is often be a good place to store gameplay-variables; there's no save/load issues to consider, and the story itself can react to the current values. 
 
@@ -1181,7 +1181,7 @@ This can be useful in debugging. For more complex printing based on logic and va
 
 ## 2) Logic
 
-Obviously, our global variables are not intended constant, so we need a syntax for altering them. 
+Obviously, our global variables are not intended to be constants, so we need a syntax for altering them. 
 
 Since by default, any text in an **ink** script is printed out directly to the screen, we use a markup symbol to indicate that a line of content is intended meant to be doing some numerical work, we use the `~` mark. 
 
@@ -1207,7 +1207,7 @@ Results of operations - in particular, for division - are typed based on the typ
 	~ y = 7 / 3
 	~ z = 1.2 / 0.5
 	
-assigns x to be 0, y to be 2 and z to be 0.6.
+assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
 
 ## 3) Conditional blocks (if/else)
 
