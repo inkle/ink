@@ -14,28 +14,41 @@ Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing in
 
 ## Writing
 
-Note that you will require basic knowledge of the Mac command line.
+**Warning:** Since the engine is in alpha, it hasn't been neatly packaged up for non-technical writers. Right now, you need to build the compiler yourself, and you need basic knowledge of the command line to try out your stories.
 
- * Install **inklecate** by following the instructions below
+ * Build **inklecate** by following the instructions below
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
- * On the command line, run: `inklecate2 -p myStory.ink`. The `-p` option uses play mode so that you can see the result immediately.
+ * On the command line, run: `inklecate -p myStory.ink`. The `-p` option uses play mode so that you can see the result immediately.
  * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
-## Installing *inklecate* - the ink compiler
+## Building
 
-Pre-requisites:
+### Requirements
 
- * Install [Xamarin](https://xamarin.com/download)
- * Install [Xcode](https://itunes.apple.com/app/xcode/id497799835), and run, make sure it [installs command line tools](http://stackoverflow.com/questions/9329243/xcode-4-4-and-later-install-command-line-tools).
+(Can you just use Unity's MonoDevelop? We should check.)
 
-Run the `build_and_install_inklecate2.command` script by double clicking it. This will:
+**Windows:**
+    
+ * [Visual Studio](https://www.visualstudio.com/) (e.g. Community edition) or [Xamarin](https://xamarin.com/download).
+    
+**Mac:**
+    
+ * [Xamarin](https://xamarin.com/download)
+ * [Xcode](https://itunes.apple.com/app/xcode/id497799835), and run, make sure it [installs command line tools](http://stackoverflow.com/questions/9329243/xcode-4-4-and-later-install-command-line-tools).
 
- - Build the latest version of the compiler and install it in `/usr/local/bin/` with the name `inklecate2` so that you can access it from the command line.
+### Build
 
- 
-## Building the runtime DLL (for Unity)
+**Mac:**
 
-Run the `build-runtime-dll.command` script. This will build a DLL file and place it in `RuntimeDLL/ink-engine.dll`.
+You can double-click the `Mac_install_system_inklecate.command` script if you want to fully install **inklecate** in `/usr/local/bin`. Or, if you'd prefer, you can follow the Windows instructions below and put **inklecate** where you like.
+
+To build the runtime DLL (e.g. for use in Unity), double-click `Mac_build_runtime_dll.command` and the DLL will appear in `RuntimeDLL`.
+
+**Windows (or Mac):**
+
+1. Load up the solution file - `ink.sln`.
+2. Select the *Release* configuration and choose *Build -> Build All*.
+3. The compiler binary should be built in `inklecate/bin/Release` (or `x86`), while the runtime engine DLL will be built in `ink-engine-dll/bin/Release/ink-engine.dll`.
 
 # The development of ink
 
@@ -83,3 +96,16 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 ## Architectural overview
 
 See the [architectural overview documentation](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) for information about the pipeline of the **ink** engine, and a birds-eye view of the project's code structure.
+
+# License
+
+**ink** is released under the MIT license. Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
+
+### The MIT License (MIT)
+Copyright (c) 2016 inkle Ltd.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

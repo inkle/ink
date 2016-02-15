@@ -19,5 +19,4 @@ mkdir -p ReleaseBinary
 mkbundle ./inklecate/bin/Release/inklecate.exe --deps --static -o ./ReleaseBinary/inklecate ./ink-engine-runtime/Newtonsoft.Json.dll
 
 # Install
-# Rename to inklecate2 to avoid possible collision with old inklecate
-sudo cp ./ReleaseBinary/inklecate /usr/local/bin/inklecate2
+sudo cp ./ReleaseBinary/inklecate /usr/local/bin/inklecate
