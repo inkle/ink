@@ -184,8 +184,8 @@ namespace Ink.Parsed
 
             // Choice's own inner content
             if (innerContent) {
-                var choiceOnlyContent = innerContent.GenerateRuntimeObject () as Runtime.Container;
-                _innerContentContainer.AddContentsOfContainer (choiceOnlyContent);
+				var innerChoiceOnlyContent = innerContent.GenerateRuntimeObject () as Runtime.Container;
+                _innerContentContainer.AddContentsOfContainer (innerChoiceOnlyContent);
             }
 
             // Fully parsed choice will be a full line, so it needs to be terminated
