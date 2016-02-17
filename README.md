@@ -4,6 +4,10 @@
 
 Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
 
+Want to know what **ink** looks like? Take a look at the [writing documentation](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
+
+Broadly, the engine is made up of two components:
+
  * **inklecate** is the command-line compiler for ink. It takes one or more text files with an `.ink` extension, and produces a `.json` file. It can also be used in *play* mode, for testing a story on the command line.
  * The **ink runtime engine** is a C# library that can be used within Unity or other C# environment.
 
