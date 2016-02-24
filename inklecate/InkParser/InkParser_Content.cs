@@ -70,8 +70,8 @@ namespace Ink
             //  The divert on the end of the body of a choice is handled specially.)
             if (!_parsingChoice) {
 
-                var divertsOrOnwards = OneOf(MultiStepTunnelDivert, TunnelOnwards);
-                if (divertsOrOnwards != null) {
+                var diverts = Parse (MultiStepTunnelDivert);
+                if (diverts != null) {
 
                     // May not have had any results at all if there's *only* a divert!
                     if (results == null)
@@ -79,11 +79,7 @@ namespace Ink
 
                     TrimEndWhitespace (results, terminateWithSpace:true);
 
-                    var diverts = divertsOrOnwards as List<Divert>;
-                    if (diverts != null)
-                        results.AddRange (diverts);
-                    else
-                        results.Add (divertsOrOnwards as TunnelOnwards);
+                    results.AddRange (diverts);
                 }
 
             }

@@ -6,51 +6,85 @@ namespace Ink
 {
     internal partial class InkParser
     {
-        protected List<Divert> MultiStepTunnelDivert()
+        protected List<Parsed.Object> MultiStepTunnelDivert()
         {
             Whitespace ();
 
-            var arrowsAndDiverts = Interleave<object> (ParseDivertArrow, DivertIdentifierWithArguments);
+            var arrowsAndDiverts = Interleave<object> (
+                ParseDivertArrowOrTunnelOnwards,
+                DivertIdentifierWithArguments);
+            
             if (arrowsAndDiverts == null)
                 return null;
 
-            var diverts = new List<Divert> ();
+            var diverts = new List<Parsed.Object> ();
 
-            // Divert arrow only: "->"
-            // Assume if there are no target components, it must be a divert to a gather point
+            // Divert arrow only:
+            // ->
+            // ->->
+            // (with no target)
             if (arrowsAndDiverts.Count == 1) {
 
-                // Check whether we actually just accidentally parsed the onwards operator (->->)
-                if (ParseString ("->") != null) {
-                    return null;
+                // Single:
+                // ->
+                // Assume if there are no target components, it must be a divert to a gather point
+                if ( (string) arrowsAndDiverts [0] == "->") {
+                    var gatherDivert = new Divert ((Parsed.Object)null);
+                    gatherDivert.isToGather = true;
+                    diverts.Add (gatherDivert);
+                } 
+
+                // Double: (tunnel onwards)
+                // ->->
+                else {
+                    diverts.Add (new TunnelOnwards());
                 }
 
-                var gatherDivert = new Divert ((Parsed.Object)null);
-                gatherDivert.isToGather = true;
-                diverts.Add (gatherDivert);
             }
 
             // Possible patterns:
             //  -> div               -- normal divert
             //  -> div ->            -- normal tunnel
+            //  -> div ->->          -- tunnel then tunnel continue
             //  -> div -> div        -- tunnel then divert
             //  -> div -> div ->     -- tunnel then tunnel
-            //  -> div -> div -> div -- tunnel then tunnel then divert
-            // (etc)
+            //  -> div -> div ->->   (etc)
             else {
 
-                // Extract the diverts rather than the arrow strings
-                for (int divIdx = 1; divIdx < arrowsAndDiverts.Count; divIdx += 2) {
-                    var currentDivert = arrowsAndDiverts [divIdx] as Divert;
+                bool hasFinalTunnelOnwards = false;
 
-                    // More to come? (further arrows)
-                    if (divIdx < arrowsAndDiverts.Count - 1) {
-                        currentDivert.isTunnel = true;
+                // Look at the arrows and diverts
+                for (int i = 0; i < arrowsAndDiverts.Count; ++i) {
+                    bool isArrow = (i % 2) == 0;
+
+                    // Arrow string
+                    if (isArrow) {
+                        string arrow = arrowsAndDiverts [i] as string;
+                        if (arrow == "->->") {
+                            if (i == arrowsAndDiverts.Count - 1) {
+                                hasFinalTunnelOnwards = true;
+                            } else {
+                                Error ("Unexpected content after a '->->' tunnel onwards");
+                            }
+                        }
                     }
 
-                    diverts.Add (currentDivert);
+                    // Divert
+                    else {
+
+                        var divert = arrowsAndDiverts [i] as Divert;
+
+                        // More to come? (further arrows) Must be tunnelling.
+                        if (i < arrowsAndDiverts.Count - 1) {
+                            divert.isTunnel = true;
+                        }
+
+                        diverts.Add (divert);
+                    }
                 }
 
+                if (hasFinalTunnelOnwards)
+                    diverts.Add(new TunnelOnwards());
             }
 
             return diverts;
@@ -99,7 +133,7 @@ namespace Ink
                 Error ("Expected just one single divert");
             }
 
-            var divert = diverts [0];
+            var divert = diverts [0] as Divert;
             if (divert.isTunnel) {
                 Error ("Didn't expect tunnel, but a normal divert");
                 divert.isTunnel = false;
@@ -113,20 +147,30 @@ namespace Ink
             return Interleave<string> (Spaced (Identifier), Exclude (String (".")));
         }
 
+        protected string ParseDivertArrowOrTunnelOnwards()
+        {
+            int numArrows = 0;
+            while (ParseString ("->") != null)
+                numArrows++;
+
+            if (numArrows == 0)
+                return null;
+
+            else if (numArrows == 1)
+                return "->";
+
+            else if (numArrows == 2)
+                return "->->";
+            
+            else {
+                Error ("Unexpected number of arrows in divert. Should only have '->' or '->->'");
+                return "->->";
+            }
+        }
+
         protected string ParseDivertArrow()
         {
             return ParseString ("->");
-        }
-
-        protected Parsed.TunnelOnwards TunnelOnwards()
-        {
-            Whitespace ();
-
-            if ( ParseString ("->->") == null ) {
-                return null;
-            }
-
-            return new TunnelOnwards ();
         }
     }
 }

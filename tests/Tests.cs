@@ -1768,6 +1768,28 @@ VAR val = 5
             Assert.AreEqual ("6\n", story.Continue());
         }
 
+        [Test ()]
+        public void TestTunnelOnwardsAfterTunnel()
+        {
+            var story = CompileString (@"
+-> tunnel1 ->
+The End.
+-> END
+
+
+== tunnel1 ==
+Hello...
+-> tunnel2 ->->
+
+== tunnel2 ==
+...world.
+->->
+");
+
+
+            Assert.AreEqual ("Hello...\n...world.\nThe End.\n", story.ContinueMaximally());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
