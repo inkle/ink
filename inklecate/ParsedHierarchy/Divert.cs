@@ -41,11 +41,11 @@ namespace Ink.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
+            // End = end flow immediately
+            // Done = return from thread or instruct the flow that it's safe to exit
             if (isEnd) {
                 return Runtime.ControlCommand.End ();
             }
-
-            // Done = return from thread or instruct the flow that it's safe to exit
             if (isDone) {
                 return Runtime.ControlCommand.Done ();
             }

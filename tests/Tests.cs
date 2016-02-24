@@ -1790,6 +1790,20 @@ Hello...
             Assert.AreEqual ("Hello...\n...world.\nThe End.\n", story.ContinueMaximally());
         }
 
+        [Test ()]
+        public void TestChoiceDivertsToDone()
+        {
+            var story = CompileString (@"* choice -> DONE");
+
+            story.Continue ();
+
+            Assert.AreEqual (1, story.currentChoices.Count);
+            story.ChooseChoiceIndex (0);
+
+            Assert.AreEqual ("choice\n", story.Continue());
+            Assert.IsFalse (story.hasError);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

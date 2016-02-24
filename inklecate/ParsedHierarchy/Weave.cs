@@ -321,7 +321,7 @@ namespace Ink.Parsed
 
                 // If choice has an explicit gather divert ("->") then it doesn't need content added to it
                 var looseChoice = weavePoint as Choice;
-                if (looseChoice && !looseChoice.explicitGather) {
+                if (looseChoice && !looseChoice.hasExplicitGather) {
                     addContentToPreviousWeavePoint = true;
                 }
             }
@@ -415,11 +415,14 @@ namespace Ink.Parsed
             // definitely doesn't have a loose end
             if (weavePoint is Choice) {
                 var choice = (Choice)weavePoint;
-                if (choice.explicitPath != null) {
-                    return false;
-                }
-                if (choice.explicitGather) {
+
+                // However, explicit gather point is definitely a loose end
+                if (choice.hasExplicitGather) {
                     return true;
+                }
+
+                if (choice.hasTerminatingDivert) {
+                    return false;
                 }
             }
 

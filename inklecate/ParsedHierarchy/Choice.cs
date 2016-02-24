@@ -24,8 +24,17 @@ namespace Ink.Parsed
         public bool onceOnly { get; set; }
         public bool isInvisibleDefault { get; set; }
 
-		public Path   explicitPath { get; private set; }
-		public bool   explicitGather { get; private set; }
+        public Divert terminatingDivert { get; private set; }
+        public bool   hasExplicitGather {
+            get {
+                return terminatingDivert && terminatingDivert.isToGather;
+            }
+        }
+        public bool hasTerminatingDivert {
+            get {
+                return terminatingDivert != null;
+            }
+        }
         public int    indentationDepth { get; set; }// = 1;
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
@@ -47,13 +56,7 @@ namespace Ink.Parsed
         public override Runtime.Path runtimePath
         {
             get {
-                if (_innerContentContainer) {
-                    return _innerContentContainer.path;
-                } else {
-                    // This Choice may or may not have been resolved already
-                    ResolveExplicitPathIfNecessary ();
-                    return _resolvedExplicitPath;
-                }
+                return _innerContentContainer.path;
             }
         }
 
@@ -76,11 +79,8 @@ namespace Ink.Parsed
             this.onceOnly = true; // default
 
             if (divert) {
-                if (divert.isToGather) {
-                    this.explicitGather = true;
-                } else {
-                    this.explicitPath = divert.target;
-                }
+                terminatingDivert = divert;
+                AddContent (terminatingDivert);
             }
 		}
 
@@ -205,34 +205,12 @@ namespace Ink.Parsed
             _innerContentContainer.countingAtStartOnly = true;
 
             // Does this choice end in an explicit divert?
-            if (this.explicitPath != null) {
-                _weaveContentEndDivert = new Runtime.Divert ();
-                _innerContentContainer.AddContent (_weaveContentEndDivert);
+            if (terminatingDivert) {
+                _innerContentContainer.AddContent (terminatingDivert.runtimeObject);
             }
 
             return _outerContainer;
 		}
-
-        void ResolveExplicitPathIfNecessary()
-        {
-            if ( _resolvedExplicitPath != null) {
-                return;
-            }
-
-            Parsed.Object obj = explicitPath.ResolveFromContext (this);
-            if (obj == null) {
-                Error ("Choice: target not found: '" + explicitPath.ToString () + "'");
-                return;
-            }
-
-            _resolvedExplicitPath = obj.runtimePath;
-
-            if (_weaveContentEndDivert) {
-                _weaveContentEndDivert.targetPath = _resolvedExplicitPath;
-            } else {
-                _runtimeChoice.pathOnChoice = _resolvedExplicitPath;
-            }
-        }
 
         public override void ResolveReferences(Story context)
 		{
@@ -250,11 +228,6 @@ namespace Ink.Parsed
             if( _divertToStartContentInner )
                 _divertToStartContentInner.targetPath = _startContentRuntimeContainer.path;
 
-            // Resolve path that was explicitly specified (either at the end of the weave choice, or just as the normal choice path)
-            if (explicitPath != null) {
-                ResolveExplicitPathIfNecessary ();
-            }
-
             base.ResolveReferences (context);
 		}
 
@@ -270,11 +243,9 @@ namespace Ink.Parsed
         Runtime.Choice _runtimeChoice;
         Runtime.Container _innerContentContainer;
         Runtime.Container _outerContainer;
-        Runtime.Divert _weaveContentEndDivert;
         Runtime.Container _startContentRuntimeContainer;
         Runtime.Divert _divertToStartContentOuter;
         Runtime.Divert _divertToStartContentInner;
-        Runtime.Path _resolvedExplicitPath;
         Expression _condition;
 	}
 
