@@ -143,14 +143,14 @@ namespace Ink.Parsed
         // Can either be a named knot/stitch (a FlowBase) or a weave point within a Weave (Choice or Gather)
         // This function also ignores any other object types that are neither FlowBase nor Weave.
         // Called from both ResolveBase (force deep) and ResolveTail for the individual components.
-        Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? childLevel, bool forceDeepSearch = false)
+        Parsed.Object TryGetChildFromContext(Parsed.Object context, string childName, FlowLevel? minimumLevel, bool forceDeepSearch = false)
         {
             // null childLevel means that we don't know where to find it
-            bool ambiguousChildLevel = childLevel == null;
+            bool ambiguousChildLevel = minimumLevel == null;
 
             // Search for WeavePoint within Weave
             var weaveContext = context as Weave;
-            if ( weaveContext != null && (ambiguousChildLevel || childLevel == FlowLevel.WeavePoint)) {
+            if ( weaveContext != null && (ambiguousChildLevel || minimumLevel == FlowLevel.WeavePoint)) {
                 return (Parsed.Object) weaveContext.WeavePointNamed (childName);
             }
 
@@ -162,7 +162,7 @@ namespace Ink.Parsed
                 // named weave points (choices and gathers) can be found within any stitch
                 // Otherwise, we just search within the immediate object.
                 var shouldDeepSearch = forceDeepSearch || flowContext.flowLevel == FlowLevel.Knot;
-                return flowContext.ContentWithNameAtLevel (childName, childLevel, shouldDeepSearch);
+                return flowContext.ContentWithNameAtLevel (childName, minimumLevel, shouldDeepSearch);
             }
 
             return null;

@@ -1872,6 +1872,18 @@ Hello...
             Assert.AreEqual("x\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestKnotDotGather()
+        {
+            var story = CompileString (@"
+=== knot
+-> knot.gather
+- (gather) g
+-> DONE");
+
+            Assert.AreEqual("g\n", story.Continue ());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

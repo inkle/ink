@@ -261,9 +261,16 @@ namespace Ink.Parsed
             }
         }
             
-        public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? levelType = null, bool deepSearch = false)
+        public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? level = null, bool deepSearch = false)
         {
-            if ( levelType == FlowLevel.WeavePoint || levelType == null ) {
+            // Referencing self?
+            if (level == this.flowLevel || level == null) {
+                if (name == this.name) {
+                    return this;
+                }
+            }
+
+            if ( level == FlowLevel.WeavePoint || level == null ) {
                 
                 Parsed.Object weavePointResult = null;
 
@@ -274,19 +281,19 @@ namespace Ink.Parsed
                 }
 
                 // Stop now if we only wanted a result if it's a weave point?
-                if (levelType == FlowLevel.WeavePoint)
+                if (level == FlowLevel.WeavePoint)
                     return deepSearch ? DeepSearchForAnyLevelContent(name) : null;
             }
 
             // If this flow would be incapable of containing the requested level, early out
             // (e.g. asking for a Knot from a Stitch)
-            if (levelType != null && levelType < this.flowLevel)
+            if (level != null && level < this.flowLevel)
                 return null;
 
             FlowBase subFlow = null;
 
             if (_subFlowsByName.TryGetValue (name, out subFlow)) {
-                if (levelType == null || levelType == subFlow.flowLevel)
+                if (level == null || level == subFlow.flowLevel)
                     return subFlow;
             }
 
@@ -295,9 +302,14 @@ namespace Ink.Parsed
 
         Parsed.Object DeepSearchForAnyLevelContent(string name)
         {
+            var weaveResultSelf = ContentWithNameAtLevel (name, level:FlowLevel.WeavePoint, deepSearch: false);
+            if (weaveResultSelf) {
+                return weaveResultSelf;
+            }
+
             foreach (var subFlowNamePair in _subFlowsByName) {
                 var subFlow = subFlowNamePair.Value;
-                var deepResult = subFlow.ContentWithNameAtLevel (name, levelType:null, deepSearch: true);
+                var deepResult = subFlow.ContentWithNameAtLevel (name, level:null, deepSearch: true);
                 if (deepResult)
                     return deepResult;
             }
