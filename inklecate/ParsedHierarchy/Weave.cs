@@ -279,8 +279,14 @@ namespace Ink.Parsed
                     divert = (Runtime.Divert) looseEnd.runtimeObject;
                 } else {
                     var looseWeavePoint = looseEnd as IWeavePoint;
-                    divert = new Runtime.Divert ();
-                    looseWeavePoint.runtimeContainer.AddContent (divert);
+
+                    var looseChoice = looseWeavePoint as Parsed.Choice;
+                    if (looseChoice && looseChoice.hasTerminatingDivert) {
+                        divert = looseChoice.terminatingDivert.runtimeObject as Runtime.Divert;
+                    } else {
+                        divert = new Runtime.Divert ();
+                        looseWeavePoint.runtimeContainer.AddContent (divert);
+                    }
                 }
                    
                 // Pass back knowledge of this loose end being diverted

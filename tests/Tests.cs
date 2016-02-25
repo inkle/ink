@@ -1861,6 +1861,17 @@ Hello...
 ", story.ContinueMaximally());
         }
 
+        [Test ()]
+        public void TestDefaultSimpleGather()
+        {
+            var story = CompileString (@"
+* -> 
+- x
+-> DONE");
+
+            Assert.AreEqual("x\n", story.Continue ());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
