@@ -1752,28 +1752,51 @@ Tunnels can be nested, so the following valid:
 		
 ... and so on.
 
-TODO: Can you write `-> tunnel ->->`? I think you can't.
+TODO: Can you write `-> tunnel ->->`? I think you can't. (Joe: you can now!)
 				
 
 #### Advanced: Tunnels use a call-stack
 
 Tunnels are on a call-stack, so can safely recurse.
-
-
-
-
-
-
-
-	
 	
 
-## ) Threads
+## Threads
 
+TODO: We need to write proper documentation for this!
 
+Briefly, threads allow you to compose sections of content from multiple sources in one go. For example:
 
+    == thread_example ==
+    I had a headache; threading is hard to get your head around.
+    <- conversation
+    <- walking
+    
+    
+    == conversation ==
+    It was a tense moment for Monty and me.
+     * "What did you have for lunch today?"[] I asked.
+        "Spam and eggs," he replied.
+     * "Nice weather, we're having,"[] I said.
+        "I've seen better," he replied.
+     - -> house
+    
+    == walking ==
+    We continued to walk down the dusty road.
+     * Continue walking
+        -> house
+    
+    == house ==
+    Before long, we arrived at his house.
+    -> DONE
 
+It allows multiple sections of story to combined together into a single section:
 
-
-
+    I had a headache; threading is hard to get your head around.
+    It was a tense moment for Monty and me.
+    We continued to walk down the dusty road.
+    1: "What did you have for lunch today?"
+    2: "Nice weather, we're having,"
+    3: Continue walking
+    
+When a choice is chosen that leads the engine into a particular thread, the others are discarded.
 

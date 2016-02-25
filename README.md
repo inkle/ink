@@ -89,6 +89,7 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 ### Definitely coming
 
  - Save state from runtime
+ - Punctuation and whitespace cleaner. Although the ink engine does the best it can at fixing various issues such including the right amount of whitespace, there are certain things that are hard or impossible to deal with, due to the text being inherently interactive and unpredictable. For *Sorcery!* and *80 Days* we had a cleaning function which tidied up spacing and punctuation, and we intend to do the same with this latest version of the ink engine. A similar feature exists in HTML due to the inclusion of markup within text - for example, multiple spaces are collapsed down into one.
  - Improve succinctness of JSON representation - it’s currently much larger than it needs to be. Big problem when you have 10MB+ of source ink, as we've had on past games.
  - Bug fixes!
  
