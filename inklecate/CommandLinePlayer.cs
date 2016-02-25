@@ -141,7 +141,7 @@ namespace Ink
                 
                 story.Continue ();
 
-                Console.WriteLine(story.currentText);
+                Console.Write(story.currentText);
 
                 if (story.hasError) {
                     SetConsoleTextColour (ConsoleColour.Red);
