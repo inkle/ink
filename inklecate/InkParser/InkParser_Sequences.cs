@@ -104,15 +104,48 @@ namespace Ink
 
         protected List<ContentList> InnerInlineSequenceObjects()
         {
-            var listOfLists = Interleave<List<Parsed.Object>> (Optional (MixedTextAndLogic), Exclude(String ("|")), flatten:false);
-            if (listOfLists == null)
+            var interleavedContentAndPipes = Interleave<object> (Optional (MixedTextAndLogic), String ("|"), flatten:false);
+            if (interleavedContentAndPipes == null)
                 return null;
 
             var result = new List<ContentList> ();
-            foreach (var list in listOfLists) {
-                result.Add (new ContentList (list));
+
+            // The content and pipes won't necessarily be perfectly interleaved in the sense that
+            // the content can be missing, but in that case it's intended that there's blank content.
+            bool justHadContent = false;
+            foreach (object contentOrPipe in interleavedContentAndPipes) {
+
+                // Pipe/separator
+                if (contentOrPipe as string == "|") {
+
+                    // Expected content, saw pipe - need blank content now
+                    if (!justHadContent) {
+
+                        // Add blank content
+                        result.Add (new ContentList ());
+                    }
+
+                    justHadContent = false;
+                } 
+
+                // Real content
+                else {
+
+                    var content = contentOrPipe as List<Parsed.Object>;
+                    if (content == null) {
+                        Error ("Expected content, but got " + contentOrPipe + " (this is an ink compiler bug!)");
+                    } else {
+                        result.Add (new ContentList (content));
+                    }
+
+                    justHadContent = true;
+                }
             }
 
+            // Ended in a pipe? Need to insert final blank content
+            if (!justHadContent)
+                result.Add (new ContentList ());
+                
             return result;
         }
 
