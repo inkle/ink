@@ -6,6 +6,29 @@ namespace Ink.Runtime
 	{
 		public string text { get; set; }
 
+        public bool isNewline {
+            get {
+                return text == "\n";
+            }
+        }
+
+        // TODO: Cache this?
+        public bool isSpaces {
+            get {
+                foreach (var c in text) {
+                    if (c != ' ' && c != '\t')
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        public bool isNonWhitespace {
+            get {
+                return !isNewline && !isSpaces;
+            }
+        }
+
 		public Text (string str)
 		{
 			text = str;

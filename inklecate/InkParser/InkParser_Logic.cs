@@ -177,21 +177,25 @@ namespace Ink
             Whitespace ();
 
             var logic = (Parsed.Object) Expect(InnerLogic, "some kind of logic within braces: { ... }");
+
+            ContentList contentList = logic as ContentList;
+            if (!contentList) {
+                contentList = new ContentList (logic);
+            }
+
+            // Create left-glue. Like normal glue, except it only absorbs newlines to
+            // the left, ensuring that the logic is inline, but without having the side effect
+            // of possibly absorbing desired newlines that come after.
+            var rightGlue = new Parsed.Wrap<Runtime.Glue>(new Runtime.Glue (Runtime.GlueType.Right));
+            var leftGlue = new Parsed.Wrap<Runtime.Glue>(new Runtime.Glue (Runtime.GlueType.Left));
+            contentList.InsertContent (0, rightGlue);
+            contentList.AddContent (leftGlue);
                 
             Whitespace ();
 
             Expect (String("}"), "closing brace '}' for inline logic");
 
-            return logic;
-        }
-
-        protected Parsed.Object ExpectedInnerLogic()
-        {
-
-            var innerLogicObj = Expect(InnerLogic, 
-                "inner logic or sequence between '{' and '}' braces");
-
-            return (Parsed.Object) innerLogicObj;
+            return contentList;
         }
 
         protected Parsed.Object InnerLogic()
