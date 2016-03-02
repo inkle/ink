@@ -1510,9 +1510,9 @@ TODO: Explain the hyphen? (And fix glue so this actually works...!)
     === function print_num(x) ===
     { 
         - x >= 1000:
-            {print_num(x / 1000)} thousand { x mod 1000 > 0: {print_num(x mod 1000)} } 
+            {print_num(x / 1000)} thousand { x mod 1000 > 0:{print_num(x mod 1000)}}
         - x >= 100:
-            {print_num(x / 100)} hundred { x mod 100 > 0: and {print_num(x mod 100)} } 
+            {print_num(x / 100)} hundred { x mod 100 > 0:and {print_num(x mod 100)}}
         - x == 0:
             zero
         - else:
@@ -1527,21 +1527,19 @@ TODO: Explain the hyphen? (And fix glue so this actually works...!)
                     - 8: eighty
                     - 9: ninety
                 }
-                { x mod 10 > 0:
-                    <>-
-                }
+                { x mod 10 > 0:<>-<>}
             }
             { x < 10 || x > 20:
                 { x mod 10:
-                    - 1: <>one
-                    - 2: <>two
-                    - 3: <>three
-                    - 4: <>four        
-                    - 5: <>five
-                    - 6: <>six
-                    - 7: <>seven
-                    - 8: <>eight
-                    - 9: <>nine
+                    - 1: one
+                    - 2: two
+                    - 3: three
+                    - 4: four        
+                    - 5: five
+                    - 6: six
+                    - 7: seven
+                    - 8: eight
+                    - 9: nine
                 }
             - else:     
                 { x:
