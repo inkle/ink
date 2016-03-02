@@ -101,7 +101,7 @@ The square brackets in fact divide up the option content. What's before is print
 	*	Hello [back!] right back to you!
 		Nice to hear from you!
 	
-produces
+produces:
 	
 	Hello world 
 	1: Hello back!
@@ -111,9 +111,17 @@ produces
 	
 This is most useful when writing dialogue choices:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	*	"I am somewhat tired[."]," I repeated.
 		"Really," he responded. "How deleterious."
+
+produces:
+
+	"What's that?" my master asked.
+	1. "I am somewhat tired."
+	> 1
+	"I am somewhat tired," I repeated.
+	"Really," he responded. "How deleterious."
 
 ### Multiple Choices
 
