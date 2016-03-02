@@ -101,7 +101,7 @@ The square brackets in fact divide up the option content. What's before is print
 	*	Hello [back!] right back to you!
 		Nice to hear from you!
 	
-produces
+produces:
 	
 	Hello world 
 	1: Hello back!
@@ -111,9 +111,17 @@ produces
 	
 This is most useful when writing dialogue choices:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	*	"I am somewhat tired[."]," I repeated.
 		"Really," he responded. "How deleterious."
+
+produces:
+
+	"What's that?" my master asked.
+	1. "I am somewhat tired."
+	> 1
+	"I am somewhat tired," I repeated.
+	"Really," he responded. "How deleterious."
 
 ### Multiple Choices
 
@@ -172,7 +180,7 @@ Note that the game will automatically run the first knot it finds in a story if 
 
 However, **ink** doesn't like loose ends, and produces a warning on compilation and/or run-time when it thinks this has happened. The script above produces this on compilation:
 
-	WARNING: Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert? on line 3 of tests/test.ink
+	WARNING: Apparent loose end exists where the flow runs out. Do you need a '-> END' statement, choice or divert? on line 3 of tests/test.ink
 
 and this on running:
 
@@ -182,9 +190,9 @@ The following plays and compiles without error:
 
 	=== top_knot ===
 	Hello world!
-	-> DONE
+	-> END
 	
-`-> DONE` is a marker for both the writer and the compiler; it means "the story flow intentionally ends here".
+`-> END` is a marker for both the writer and the compiler; it means "the story flow should now stop".
 
 ## 4) Diverts
 
@@ -288,7 +296,7 @@ Using diverts, the writer can branch the flow, and join it back up again, withou
 
 Knots and diverts combine to create the basic story flow of the game. This flow is "flat" - there's no call-stack, and diverts aren't "returned" from. 
 
-In most ink scripts, the story flow starts at the top, bounces around in a spaghetti-like mess, and eventually, hopefully, reaches a `-> DONE`.
+In most ink scripts, the story flow starts at the top, bounces around in a spaghetti-like mess, and eventually, hopefully, reaches a `-> END`.
 
 The very loose structure means writers can get on and write, branching and rejoining without worrying about the structure that they're creating as they go. There's no boiler-plate to creating new branches or diversions, and no need to track any state.
 
@@ -455,7 +463,7 @@ Adding this into the previous example gives us:
 		*	The woman in the hat[?] pushes you roughly aside. -> find_help
 		*	The man with the briefcase[?] looks disgusted as you stumble past him. -> find_help 
 		*	[] But it is too late: you collapse onto the station platform. This is the end.
-			-> DONE
+			-> END
 	
 and produces:
 
@@ -485,7 +493,7 @@ The 'once-only' behaviour is not always what we want, of course, so we have a se
 			You eat another donut. -> homers_couch
 		*	[Get off the couch] 
 			You struggle up off the couch to go and compose epic poetry.
-			-> DONE
+			-> END
 
 ### Conditional Choices
 
@@ -597,7 +605,7 @@ Lists can be used inside loops to create the appearance of intelligent, state-tr
 Here's a one-knot version of whack-a-mole. Note we use once-only options, and a fallback, to ensure the mole doesn't move around, and the game will always end.
 
 	=== whack_a_mole ===
-		{I heft the hammer.|{~Missed!|Nothing!|No good. Where is he?|Ah-ha! Got him! -> DONE}}
+		{I heft the hammer.|{~Missed!|Nothing!|No good. Where is he?|Ah-ha! Got him! -> END}}
 		The {&mole|{&nasty|blasted|foul} {&creature|rodent}} is {in here somewhere|hiding somewhere|still at large|laughing at me|still unwhacked|doomed}. <>
 		{!I'll show him!|But this time he won't escape!}
 		* 	[{&Hit|Smash|Try} top-left] 	-> whack_a_mole
@@ -606,7 +614,7 @@ Here's a one-knot version of whack-a-mole. Note we use once-only options, and a 
 		*  [{&Clobber|Bosh} bottom-left] 	-> whack_a_mole
 		*  [{&Nail|Thump} bottom-right] 	-> whack_a_mole
 		*  [] Then you collapse from hunger. The mole has defeated you! 
-			-> DONE
+			-> END
 
 produces the following 'game':
 
@@ -653,7 +661,7 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 	*	[Go outside instead]	-> go_outside_instead
 	
     === go_outside_instead ===
-    -> DONE
+    -> END
 
 
 
@@ -919,7 +927,7 @@ Here's a longer example:
 		- - 	After that, <>
 	*	... but I said nothing[] and <> 
 	- we passed the day in silence.
-	- -> DONE
+	- -> END
 
 with a couple of possible playthroughs. A short one:
 
@@ -1364,7 +1372,7 @@ Temporary variables are safe to use in recursion (unlike globals), so the follow
 	=== finished(total) ===
 		"The result is {total}!" you announce.
 		Gauss stares at you in horror.
-		-> DONE
+		-> END
 	
 
 (In fact, this kind of definition is useful enough that **ink** provides a special kind of knot, called, imaginatively enough, a `function`, which comes with certain restrictions and can return a value. See the section below.)
@@ -1678,7 +1686,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	- (postscript) 
 		{crossing_the_date_line(-> done) 
 	- (done)
-		-> DONE 
+		-> END 
 
 	...
 	
@@ -1687,7 +1695,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	- (postscript) 
 		{crossing_the_date_line(-> done) 
 	- (done)
-		-> DONE 
+		-> END 
 	
 Both of these locations now call and execute the same segment of storyflow, but once finished they return to where they need to go next. 
 
@@ -1750,7 +1758,6 @@ Tunnels can be nested, so the following valid:
 		
 ... and so on.
 
-TODO: Can you write `-> tunnel ->->`? I think you can't. (Joe: you can now!)
 				
 
 #### Advanced: Tunnels use a call-stack
@@ -1758,11 +1765,19 @@ TODO: Can you write `-> tunnel ->->`? I think you can't. (Joe: you can now!)
 Tunnels are on a call-stack, so can safely recurse.
 	
 
-## Threads
+## 2) Threads
 
 TODO: We need to write proper documentation for this!
 
-Briefly, threads allow you to compose sections of content from multiple sources in one go. For example:
+So far, everything in ink has been entirely linear, despite all the branching and diverting. But it's actually possible for a writer to 'fork' a story into different sub-sections, to cover more possible player actions. 
+
+We call this 'threading', though it's not really threading in the sense that computer scientists mean it: it's more like stitching in new content from various places.
+
+Note that this is definitely an advanced feature: the engineering stories becomes somewhat more complex once threads are involved!
+
+### Threads join multiple sections together
+
+Threads allow you to compose sections of content from multiple sources in one go. For example:
 
     == thread_example ==
     I had a headache; threading is hard to get your head around.
@@ -1780,12 +1795,12 @@ Briefly, threads allow you to compose sections of content from multiple sources 
     
     == walking ==
     We continued to walk down the dusty road.
-     * Continue walking
+     * [Continue walking]
         -> house
     
     == house ==
     Before long, we arrived at his house.
-    -> DONE
+    -> END
 
 It allows multiple sections of story to combined together into a single section:
 
@@ -1796,5 +1811,80 @@ It allows multiple sections of story to combined together into a single section:
     2: "Nice weather, we're having,"
     3: Continue walking
     
-When a choice is chosen that leads the engine into a particular thread, the others are discarded.
+On encountering a thread statement such as `<- conversation`, the compiler will fork the story flow. The first fork considered will run the content at `conversation`, collecting up any options it finds. Once it has run out of flow here it'll then run the other fork. 
+
+All the content is collected and shown to the player. But when a choice is chosen, the engine will move to that fork of the story and collapse and discard the others.
+
+Note that global variables are *not* forked, including the read counts of knots and stitches. 
+
+### Uses of threads
+
+In a normal story, threads might never be needed. 
+
+But for games with lots of independent moving parts, threads quickly become essential. Imagine a game in which characters move independently around a map: the main story hub for a room might look like the following:
+	
+	CONST HALLWAY = 1
+	CONST OFFICE = 2
+	
+	VAR player_location = HALLWAY
+	VAR generals_location = HALLWAY 
+	VAR doctors_location = OFFICE
+	
+	== run_player_location
+		{ 
+			- player_location == HALLWAY: -> hallway 
+		}
+	
+	== hallway ==	
+		<- characters_present
+		*	[Drawers]	-> examine_drawers
+		* 	[Wardrobe] -> examine_wardrobe
+		*  [Go to Office] 	-> go_office
+		-	-> run_player_location	
+	= examine_drawers 
+		// etc... 
+	
+	// Here's the thread, which mixes in dialogue for characters you share the room with at the moment.
+	
+	== characters_present(room)
+		{ generals_location == player_location:
+			<- general_conversation
+		}
+		{ doctors_location == room:
+			<- doctor_conversation
+		}
+		
+	== general_conversation 
+		*	[Ask the General about the bloodied knife]
+			"It's a bad business, I can tell you."
+		-	-> run_player_location
+	
+	== doctor_conversation 
+		*	[Ask the Doctor about the bloodied knife]
+			"There's nothing strange about blood, is there?"
+		-	-> run_player_location 
+		
+	
+	
+Note in particular, that we need an explicit way to return the player who has gone down a side-thread to return to the main flow. In most cases, threads will either need a parameter telling them where to return to, or they'll need to end the current story section.
+	
+### When does a side-thread end?
+
+Side-threads end when they run out of flow to process: and note, they collect up options to display later (unlike tunnels, which collect options, display them and follow them until they hit an explicit return, possibly several moves later).
+
+Sometimes a thread has no content to offer - perhaps there is no conversation to have with a character after all, or perhaps we have simply not written it yet. In that case, we must mark the end of the thread explicitly.
+
+If we didn't, the end of content might be a story-bug or a hanging story thread, and we want the compiler to tell us about those. 
+
+### Using `-> DONE`
+
+So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here.
+
+Note that we don't need a `-> DONE` if the flow ends with options that fail their conditions. The engine treats this as a valid, intentional, end of flow state.
+
+**You do not need a `-> DONE` in a thread after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
+
+Using `-> END` in this case will no end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
+ 
+
 
