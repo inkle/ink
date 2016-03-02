@@ -4,38 +4,39 @@ namespace Ink.Runtime
 {
     public class Text : Runtime.Object
 	{
-		public string text { get; set; }
+        // Immutable
+        public string text { get; private set; }
 
-        public bool isNewline {
-            get {
-                return text == "\n";
-            }
-        }
-            
-        #warning TODO: Cache this?
-        public bool isSpaces {
-            get {
-                foreach (var c in text) {
-                    if (c != ' ' && c != '\t')
-                        return false;
-                }
-                return true;
-            }
-        }
+        [JsonIgnore]
+        public bool isNewline { get; private set; }
 
+        [JsonIgnore]
+        public bool isInlineWhitespace { get; private set; }
+
+        [JsonIgnore]
         public bool isNonWhitespace {
             get {
-                return !isNewline && !isSpaces;
+                return !isNewline && !isInlineWhitespace;
             }
         }
 
 		public Text (string str)
 		{
-			text = str;
+            text = str;
+
+            // Classify whitespace status
+            isNewline = text == "\n";
+            isInlineWhitespace = true;
+            foreach (var c in text) {
+                if (c != ' ' && c != '\t') {
+                    isInlineWhitespace = false;
+                    break;
+                }
+            }
 		}
 
         // Require default constructor for serialisation
-        public Text() : this(null) {}
+        public Text() : this("") {}
 
         public override string ToString ()
 		{

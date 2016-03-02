@@ -135,23 +135,6 @@ namespace Ink.Parsed
                 contentIdx++;
             }
         }
-
-        public void TrimEndNewlines()
-        {
-            for (int i = content.Count - 1; i >= 0; i--) {
-                var text = content [i] as Parsed.Text;
-                if (!text)
-                    break;
-
-                text.text = text.text.TrimEnd (' ', '\n', '\r');
-
-                if (text.text.Length == 0) {
-                    content.RemoveAt (i);
-                } else {
-                    break;
-                }
-            }
-        }
             
         // When the indentation wasn't told to us at construction time using
         // a choice point with a known indentation level, we may be told to

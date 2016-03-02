@@ -61,10 +61,6 @@ namespace Ink.Parsed
             var finalContent = new List<Parsed.Object> ();
             if (weaveObjs.Count > 0) {
                 _rootWeave = new Weave (weaveObjs, 0);
-
-                #warning Trim newlines at the end of flows?
-                //_rootWeave.TrimEndNewlines ();
-
                 finalContent.Add (_rootWeave);
             }
             if (subFlowObjs.Count > 0) {
@@ -73,8 +69,6 @@ namespace Ink.Parsed
 
             return finalContent;
         }
-
-
 
         protected virtual void PreProcessTopLevelObjects(List<Parsed.Object> topLevelObjects)
         {
