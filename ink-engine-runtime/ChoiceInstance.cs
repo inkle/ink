@@ -5,6 +5,7 @@ namespace Ink.Runtime
 	{
         public string choiceText { get; set; }
         public string pathStringOnChoice { get { return choice.pathStringOnChoice; } }
+        public int choiceIndex { get; set; }
 
         internal Choice choice { get; private set; }
         internal bool hasBeenChosen { get; set; }

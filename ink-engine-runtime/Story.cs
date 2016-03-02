@@ -29,7 +29,14 @@ namespace Ink.Runtime
 			get 
 			{
                 // Don't include invisible choices for external usage.
-                return _state.currentChoices.Where (c => !c.choice.isInvisibleDefault).ToList ();
+                var choices = new List<ChoiceInstance>();
+                foreach (var c in _state.currentChoices) {
+                    if (!c.choice.isInvisibleDefault) {
+                        c.choiceIndex = choices.Count;
+                        choices.Add (c);
+                    }
+                }
+                return choices;
 			}
 		}
             
@@ -579,7 +586,7 @@ namespace Ink.Runtime
                 if (state.callStack.currentElement.type != pop.type || !state.callStack.canPop) {
 
                     var names = new Dictionary<PushPopType, string> ();
-                    names [PushPopType.Function] = "function return statement (~ ~ ~)";
+                    names [PushPopType.Function] = "function return statement (~ return)";
                     names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
 
                     string expected = names [state.callStack.currentElement.type];
