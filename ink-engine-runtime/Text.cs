@@ -11,8 +11,8 @@ namespace Ink.Runtime
                 return text == "\n";
             }
         }
-
-        // TODO: Cache this?
+            
+        #warning TODO: Cache this?
         public bool isSpaces {
             get {
                 foreach (var c in text) {

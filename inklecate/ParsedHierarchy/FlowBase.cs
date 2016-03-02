@@ -61,7 +61,9 @@ namespace Ink.Parsed
             var finalContent = new List<Parsed.Object> ();
             if (weaveObjs.Count > 0) {
                 _rootWeave = new Weave (weaveObjs, 0);
-                _rootWeave.TrimEndNewlines ();
+
+                #warning Trim newlines at the end of flows?
+                //_rootWeave.TrimEndNewlines ();
 
                 finalContent.Add (_rootWeave);
             }

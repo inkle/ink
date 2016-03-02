@@ -43,6 +43,7 @@ namespace Ink
             // it needs a newline on the end. e.g.
             //  ~ printMyName()
             // If no text gets printed, then the extra newline will have to be culled later.
+            #warning Check whether we want to remove this for some reason?
             if (result is FunctionCall) {
                 result = new ContentList (result, new Parsed.Text ("\n"));
             }

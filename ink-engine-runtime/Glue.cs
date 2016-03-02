@@ -26,15 +26,21 @@ namespace Ink.Runtime
             }
         }
 
-        public bool facesLeft {
+        public bool isLeft {
             get {
-                return glueType == GlueType.Left || glueType == GlueType.Bidirectional;
+                return glueType == GlueType.Left;
             }
         }
 
-        public bool facesRight {
+        public bool isBi {
             get {
-                return glueType == GlueType.Right || glueType == GlueType.Bidirectional;
+                return glueType == GlueType.Bidirectional; 
+            }
+        }
+
+        public bool isRight {
+            get {
+                return glueType == GlueType.Right;
             }
         }
 

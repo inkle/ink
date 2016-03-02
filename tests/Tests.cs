@@ -70,7 +70,7 @@ namespace Tests
 		public void TestHelloWorld()
 		{
 			Story story = CompileString ("Hello world");
-            Assert.AreEqual ("Hello world", story.Continue());
+            Assert.AreEqual ("Hello world\n", story.Continue());
 		}
 
         [Test ()]
@@ -215,7 +215,7 @@ This is the main file.
                 ";
 
             Story story = CompileString (storyStr);
-            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.", story.ContinueMaximally());
+            Assert.AreEqual ("This is include 1.\nThis is include 2.\nThis is the main file.\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -399,7 +399,7 @@ VAR x = 0
 
             // Extra newline is because there's a choice object sandwiched there,
             // so it can't be absorbed :-/
-            Assert.AreEqual ("5", story.Continue());
+            Assert.AreEqual ("5\n", story.Continue());
         }
 
         [Test ()]
@@ -460,7 +460,7 @@ VAR x = 0
             Assert.AreEqual ("two", story.currentChoices[0].choiceText);
 
             story.ChooseChoiceIndex (0);
-            Assert.AreEqual ("two\nthree\nsix", story.ContinueMaximally());
+            Assert.AreEqual ("two\nthree\nsix\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -493,7 +493,7 @@ VAR x = 0
 
             story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("Text", story.Continue());
+            Assert.AreEqual ("Text\n", story.Continue());
         }
 
         [Test ()]
@@ -508,7 +508,7 @@ VAR x = 0
 
             Story story = CompileString (storyStr);
 
-            Assert.AreEqual ("one two three", story.ContinueMaximally());
+            Assert.AreEqual ("one two three\n", story.ContinueMaximally());
         }
             
         [Test ()]
@@ -530,11 +530,11 @@ VAR x = 0
         [Test ()]
         public void TestSimpleGlue()
         {
-            var storyStr =  "Some <> \ncontent<> with glue.";
+            var storyStr =  "Some <> \ncontent<> with glue.\n";
 
             Story story = CompileString (storyStr);
 
-            Assert.AreEqual ("Some content with glue.", story.Continue());
+            Assert.AreEqual ("Some content with glue.\n", story.Continue());
         }
 
         [Test ()]
@@ -545,7 +545,7 @@ VAR x = 0
             Story story = CompileString (storyStr);
 
             // Unfortunate leading newline...
-            Assert.AreEqual ("this is a '|' character", story.ContinueMaximally());
+            Assert.AreEqual ("this is a '|' character\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -570,7 +570,7 @@ VAR to_two = -> two
 
             Story story = CompileString (storyStr);
 
-            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot", story.ContinueMaximally());
+            Assert.AreEqual ("different knot\nsame knot\nsame knot\ndifferent knot\nsame knot\nsame knot\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -589,7 +589,7 @@ VAR to_two = -> two
 
             Story story = CompileString (storyStr);
 
-            Assert.AreEqual ("120", story.ContinueMaximally());
+            Assert.AreEqual ("120\n", story.ContinueMaximally());
        }
 
         [Test ()]
@@ -616,7 +616,7 @@ VAR globalVal = 5
             Story story = CompileString (storyStr);
 
             // Bloody whitespace
-            Assert.AreEqual ("5\n \n625", story.ContinueMaximally());
+            Assert.AreEqual ("5\n \n625\n", story.ContinueMaximally());
         }
 
 
@@ -642,7 +642,7 @@ VAR result = 0
 
             Story story = CompileString (storyStr);
 
-            Assert.AreEqual ("120", story.ContinueMaximally());
+            Assert.AreEqual ("120\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -686,7 +686,7 @@ VAR x = 5
 {x}
 ");
 
-            Assert.AreEqual ("6\n5", story.ContinueMaximally());
+            Assert.AreEqual ("6\n5\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -705,7 +705,7 @@ hi
 ->->
 ");
 
-            Assert.AreEqual ("hi\nhi\nhi\n3", story.ContinueMaximally());
+            Assert.AreEqual ("hi\nhi\nhi\n3\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -720,7 +720,7 @@ hi
 -> END
 ");
 
-            Assert.AreEqual ("2", story.Continue());
+            Assert.AreEqual ("2\n", story.Continue());
         }
 
 
@@ -783,7 +783,7 @@ This is default.
 { 2 * (5-1) }
 ");
 
-            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8", story.ContinueMaximally());
+            Assert.AreEqual ("36\n2\n3\n2\n2.333333\n8\n8\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -807,7 +807,7 @@ This is default.
             Assert.AreEqual ("1\n", story.ContinueMaximally());
 
             story.ChooseChoiceIndex (0);
-            Assert.AreEqual ("2", story.ContinueMaximally());
+            Assert.AreEqual ("2\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -975,7 +975,7 @@ Hello
 ");
 
 
-            Assert.AreEqual ("Hello world", story.Continue());
+            Assert.AreEqual ("Hello world\n", story.Continue());
         }
 
         [Test ()]
@@ -999,7 +999,7 @@ two ({num})
 ->->
 ");
 
-            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)", story.ContinueMaximally());
+            Assert.AreEqual ("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1090,7 +1090,7 @@ World.
 -> DONE
 ");
 
-            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.", story.ContinueMaximally());
+            Assert.AreEqual ("This is a thread example\nHello.\nThe example is now complete.\n", story.ContinueMaximally());
         }
 
 
@@ -1232,7 +1232,7 @@ CONST c = 5
 
 {x}
 ");
-            Assert.AreEqual ("5", story.Continue());
+            Assert.AreEqual ("5\n", story.Continue());
         }
 
         [Test ()]
@@ -1320,7 +1320,7 @@ Done.
 }
 ->->
 ");
-            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.", story.ContinueMaximally());
+            Assert.AreEqual ("Wait for it....\nSurprise!\nDone.\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1362,7 +1362,7 @@ VAR negativeLiteral3 = !(0)
 {negativeLiteral2}
 {negativeLiteral3}
 ");
-            Assert.AreEqual ("-1\n0\n1", story.ContinueMaximally());
+            Assert.AreEqual ("-1\n0\n1\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1585,7 +1585,7 @@ VAR x = ""Hello world 1""
 {x}
 Hello {""world""} 2.
 ");
-            Assert.AreEqual ("Hello world 1\nHello world 2.", story.ContinueMaximally());
+            Assert.AreEqual ("Hello world 1\nHello world 2.\n", story.ContinueMaximally());
         }
 
 
@@ -1598,7 +1598,7 @@ Hello {""world""} 2.
             //  - Inner quotes are significant - they're part of the syntax for string expressions
             // So output is: My name is "Joe"
             var story = CompileString (@"My name is ""{""J{""o""}e""}""");
-            Assert.AreEqual ("My name is \"Joe\"", story.ContinueMaximally());
+            Assert.AreEqual ("My name is \"Joe\"\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1610,7 +1610,7 @@ Hello {""world""} 2.
 ");
 
             // Not sure that "5" should be equal to 5, but hmm.
-            Assert.AreEqual ("same\ndifferent", story.ContinueMaximally());
+            Assert.AreEqual ("same\ndifferent\n", story.ContinueMaximally());
         }
 
         [Test ()]
@@ -1656,7 +1656,7 @@ VAR x = 5
 ~ temp y = 4
 {x}{y}
 ");
-            Assert.AreEqual ("54", story.Continue());
+            Assert.AreEqual ("54\n", story.Continue());
         }
 
 
@@ -1680,7 +1680,7 @@ EXTERNAL multiply(x,y)
             });
 
             
-            Assert.AreEqual ("15", story.ContinueMaximally());
+            Assert.AreEqual ("15\n", story.ContinueMaximally());
 
             Assert.AreEqual ("MESSAGE: hello world", message);
         }

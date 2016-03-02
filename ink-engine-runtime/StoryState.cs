@@ -148,7 +148,7 @@ namespace Ink.Runtime
         {
             var text = obj as Text;
             if (text) {
-                // TODO: Move split to Runtime.Text
+                // TODO: Maybe move split function to Runtime.Text
                 var listText = TrySplittingHeadTailWhitespace (text);
                 if (listText != null) {
                     foreach (var textObj in listText) {
@@ -242,21 +242,27 @@ namespace Ink.Runtime
             bool includeInOutput = true;
 
             if (glue) {
-                if (glue.facesLeft)
-                    TrimNewlinesFromOutputStream ();
+
+                if (glue.isLeft || glue.isBi) {
+                    TrimNewlinesFromOutputStream(stopAndRemoveRightGlue:glue.isLeft);
+                }
                 
-                includeInOutput = glue.facesRight && _existingGlue == null;
+                includeInOutput = (glue.isBi || glue.isRight) && _existingGlue == null;
             }
 
-            else if( text && _existingGlue ) {
+            else if( text ) {
 
-                if (text.isNewline) {
-                    TrimFromExistingGlue ();
-                    includeInOutput = false;
-                } else if (text.isNonWhitespace) {
-                    RemoveExistingGlue ();
+                if (_existingGlue) {
+                    if (text.isNewline) {
+                        TrimFromExistingGlue ();
+                        includeInOutput = false;
+                    } else if (text.isNonWhitespace) {
+                        RemoveExistingGlue ();
+                    }
+                } else if (text.isNewline) {
+                    if (outputStreamEndsInNewline || !outputStreamContainsContent)
+                        includeInOutput = false;
                 }
-
             }
 
             if (includeInOutput) {
@@ -269,29 +275,40 @@ namespace Ink.Runtime
             }
         }
 
-        void TrimNewlinesFromOutputStream()
+        void TrimNewlinesFromOutputStream(bool stopAndRemoveRightGlue)
         {
-            int firstTailNewline = -1;
+            int removeFrom = -1;
             int i = _outputStream.Count-1;
             while (i >= 0) {
                 var obj = _outputStream [i];
                 var cmd = obj as ControlCommand;
                 var txt = obj as Text;
+                var glue = obj as Glue;
                 if (cmd || (txt && txt.isNonWhitespace)) {
                     break;
+                } else if (stopAndRemoveRightGlue && glue && glue.isRight) {
+                    removeFrom = i;
+                    break;
                 } else if (txt && txt.isNewline) {
-                    firstTailNewline = i;
+                    removeFrom = i;
                 }
                 i--;
             }
 
-            if (firstTailNewline >= 0) {
-                i=firstTailNewline;
+            if (removeFrom >= 0) {
+                i=removeFrom;
                 while(i < _outputStream.Count) {
-                    if (_outputStream [i] is Text)
+                    var text = _outputStream [i] as Text;
+                    var glue = _outputStream [i] as Glue;
+                    if (text) {
                         _outputStream.RemoveAt (i);
-                    else
+                    } else if (stopAndRemoveRightGlue && glue && glue.isRight) {
+                        _outputStream.RemoveAt (i);
+                        if (glue == _existingGlue)
+                            _existingGlue = null;
+                    } else {
                         i++;
+                    }
                 }
             }
         }
@@ -482,13 +499,31 @@ namespace Ink.Runtime
         public bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
-                    var text = _outputStream[_outputStream.Count-1] as Text;
-                    return text && text.isNewline;
-//                    if (text) {
-//                        return text.isNewline;// text.text == "\n";
-//                    }
+
+                    for (int i = _outputStream.Count - 1; i >= 0; i--) {
+                        var obj = _outputStream [i];
+                        if (obj is ControlCommand) // e.g. BeginString
+                            break;
+                        var text = _outputStream [i] as Text;
+                        if (text) {
+                            if (text.isNewline)
+                                return true;
+                            else if (text.isNonWhitespace)
+                                break;
+                        }
+                    }
                 }
 
+                return false;
+            }
+        }
+
+        public bool outputStreamContainsContent {
+            get {
+                foreach (var content in _outputStream) {
+                    if (content is Text)
+                        return true;
+                }
                 return false;
             }
         }
