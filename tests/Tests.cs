@@ -1884,6 +1884,22 @@ Hello...
             Assert.AreEqual("g\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestImplicitInlineGlue()
+        {
+            var story = CompileString (@"
+I have {five()} eggs.
+
+== function five ==
+{false:
+    Don't print this
+}
+five
+");
+
+            Assert.AreEqual("I have five eggs.\n", story.Continue ());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
