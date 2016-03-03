@@ -463,6 +463,8 @@ namespace Ink.Runtime
             while (callStack.canPop)
                 callStack.Pop ();
 
+            currentChoices.Clear();
+
             didSafeExit = true;
         }
 

@@ -169,11 +169,11 @@ namespace Tests
                 @"
 == knot 
    *   option text[]. {true: Conditional bit.} -> next
-   -> END
+   -> DONE
 
 == next
     Next.
-    -> END
+    -> DONE
                 ";
 
             Story story = CompileString (storyStr);
@@ -1165,7 +1165,7 @@ This is place 2.
 === knot 
     <- threadA 
     When should this get printed?
-    -> END
+    -> DONE
 
 === threadA 
     -> tunnel ->
