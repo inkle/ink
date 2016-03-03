@@ -20,10 +20,20 @@ Broadly, the engine is made up of two components:
 
 **Warning:** Since the engine is in alpha, it hasn't been neatly packaged up for non-technical writers. Right now, you need to build the compiler yourself, and you need basic knowledge of the command line to try out your stories.
 
- * Build **inklecate** by following the instructions below
+ * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
- * On the command line, run: `inklecate -p myStory.ink`. The `-p` option uses play mode so that you can see the result immediately.
+ * On the command line, run the following:
+
+    **Mac:** `./inklecate -p myStory.ink`
+    
+    **Windows:** `inklecate.exe -p myStory.ink`
+    
+    The `-p` option uses play mode so that you can see the result immediately.
+    
+    Optionally, you may want to install **inklecate** at a system level (e.g. on Mac copy to `/usr/local/bin`).
+    
  * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
+
 
 ## Building
 
@@ -41,28 +51,7 @@ Broadly, the engine is made up of two components:
 
 1. Load up the solution file - `ink.sln`.
 2. Select the *Release* configuration and choose *Build -> Build All* (or *Build Solution* in Visual Studio).
-3. The compiler binary should be built in `inklecate/bin/Release` (or `x86`), while the runtime engine DLL will be built in `ink-engine-dll/bin/Release/ink-engine.dll`.
-4. Optionally, you may want to install **inklecate** at a system level (e.g. on Mac copy to `/usr/local/bin`).
-
-### Build Mac binary of *inklecate* with no dependencies
-
-The above build instructions will build a binary that relies on the Mono runtime being available on the user's system. The following script is a way of building the mono runtime directly into the binary. (Perhaps we should do this in future.)
-
-    # Build the release code
-    xbuild /p:Configuration=Release ink.sln
-    
-    # Prepare to bundle up compiled binary
-    export PATH=/Library/Frameworks/Mono.framework/Commands:$PATH
-    export AS="as -arch i386"
-    export CC="cc -arch i386 -framework CoreFoundation -lobjc -liconv"
-    mkdir -p ReleaseBinary
-    
-    # "Bundles in addition support a –static flag. The –static flag causes mkbundle to generate a static executable that statically links the Mono runtime. Be advised that this option will trigger the LGPL requirement that you still distribute the independent pieces to your user so he can manually upgrade his Mono runtime if he chooses to do so. Alternatively, you can obtain a proprietary license of Mono by contacting Xamarin."
-    # http://www.mono-project.com/archived/guiderunning_mono_applications/
-    mkbundle ./inklecate/bin/Release/inklecate.exe --deps --static -o ./ReleaseBinary/inklecate ./ink-engine-runtime/Newtonsoft.Json.dll
-    
-
-
+3. The compiler binary should be built in `inklecate/bin/Release` (or `x86`), while the runtime engine DLL will be built in `ink-engine-dll/bin/Release/ink-engine.dll`
 
 # The development of ink
 
