@@ -53,6 +53,8 @@ Broadly, the engine is made up of two components:
 2. Select the *Release* configuration and choose *Build -> Build All* (or *Build Solution* in Visual Studio).
 3. The compiler binary should be built in `inklecate/bin/Release` (or `x86`), while the runtime engine DLL will be built in `ink-engine-dll/bin/Release/ink-engine.dll`
 
+Note that the executable requires Mono on Mac or .NET on Windows. On Windows this isn't a problem since it ships with .NET, but on Mac you need Xamarin for Mono. The `build_release.command` file in the repo is a Mac script that will bundle up both Mac and Windows versions, and the Mac version will be bundled with the Mono runtime so that the end user doesn't need Xamarin/Mono installed.
+
 # The development of ink
 
 ## How to contribute
