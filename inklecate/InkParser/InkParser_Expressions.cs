@@ -285,6 +285,9 @@ namespace Ink
                 textAndLogic.Add (new Parsed.Text (""));
             }
 
+            else if (textAndLogic.Exists (c => c is Divert))
+                Error ("String expressions cannot contain diverts (->)");
+
             return new StringExpression (textAndLogic);
         }
 

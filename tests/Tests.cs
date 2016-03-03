@@ -1900,6 +1900,18 @@ five
             Assert.AreEqual("I have five eggs.\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestStringConstants()
+        {
+            var story = CompileString (@"
+{x}
+VAR x = kX
+CONST kX = ""hi""
+");
+
+            Assert.AreEqual("hi\n", story.Continue ());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

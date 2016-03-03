@@ -73,6 +73,13 @@ namespace Ink
                 Error ("initial value for a variable must be a number, constant, or divert target");
             }
 
+            // Ensure string expressions are simple
+            else if (expr is StringExpression) {
+                var strExpr = expr as StringExpression;
+                if (!strExpr.isSingleString)
+                    Error ("Constant strings cannot contain any logic.");
+            }
+
             var result = new VariableAssignment (varName, expr);
             result.isGlobalDeclaration = true;
             return result;
@@ -98,9 +105,19 @@ namespace Ink
             Whitespace ();
 
             var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
-            if (!(expr is Number || expr is DivertTarget)) {
+            if (!(expr is Number || expr is DivertTarget || expr is StringExpression)) {
                 Error ("initial value for a constant must be a number or divert target");
+
+
             }
+
+            // Ensure string expressions are simple
+            else if (expr is StringExpression) {
+                var strExpr = expr as StringExpression;
+                if (!strExpr.isSingleString)
+                    Error ("Constant strings cannot contain any logic.");
+            }
+
 
             var result = new ConstantDeclaration (varName, expr);
             return result;
