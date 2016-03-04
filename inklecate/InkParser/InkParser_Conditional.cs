@@ -120,7 +120,18 @@ namespace Ink
                             if (isLast) {
                                 alt.alwaysMatch = true;
                             } else {
-                                ErrorWithParsedObject ("Branch doesn't have condition. Are you missing a ':'? ", alt);
+                                if (alt.alwaysMatch) {
+                                    // Do we ALSO have a valid "else" at the end? Let's report the error there.
+                                    var finalClause = alternatives [alternatives.Count - 1];
+                                    if (finalClause.alwaysMatch) {
+                                        ErrorWithParsedObject ("Multiple 'else' cases. Can have a maximum of one, at the end.", finalClause);
+                                    } else {
+                                        ErrorWithParsedObject ("'else' case in conditional should always be the final one", alt);
+                                    }
+                                } else {
+                                    ErrorWithParsedObject ("Branch doesn't have condition. Are you missing a ':'? ", alt);
+                                }
+
                             }
                         }
                     }
