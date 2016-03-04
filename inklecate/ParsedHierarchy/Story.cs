@@ -107,7 +107,7 @@ namespace Ink.Parsed
 
         }
 
-        public Runtime.Story ExportRuntime(InkParser.InkParserErrorHandler errorHandler = null)
+        public Runtime.Story ExportRuntime(ErrorHandler errorHandler = null)
 		{
             _errorHandler = errorHandler;
 
@@ -179,9 +179,12 @@ namespace Ink.Parsed
 
         public override void Error(string message, Parsed.Object source, bool isWarning)
 		{
+            ErrorType errorType = isWarning ? ErrorType.Warning : ErrorType.Error;
+
             var sb = new StringBuilder ();
             if (source is AuthorWarning) {
                 sb.Append ("TODO: ");
+                errorType = ErrorType.Author;
             } else if (isWarning) {
                 sb.Append ("WARNING: ");
             } else {
@@ -196,13 +199,13 @@ namespace Ink.Parsed
             message = sb.ToString ();
 
             if (_errorHandler != null) {
-                _errorHandler (message, isWarning);
+                _errorHandler (message, errorType);
             } else {
                 Console.WriteLine (message);
             }
 
-            _hadError = !isWarning;
-            _hadWarning = isWarning;
+            _hadError = errorType == ErrorType.Error;
+            _hadWarning = errorType == ErrorType.Warning;
 		}
 
         public void ResetError()
@@ -225,7 +228,7 @@ namespace Ink.Parsed
             }
         }
             
-        InkParser.InkParserErrorHandler _errorHandler;
+        ErrorHandler _errorHandler;
         bool _hadError;
         bool _hadWarning;
 	}

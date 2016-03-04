@@ -5,10 +5,7 @@ namespace Ink
 {
 	internal partial class InkParser : StringParser
 	{
-
-        public delegate void InkParserErrorHandler(string message, bool isWarning);
-
-        public InkParser(string str, string filenameForMetadata = null, string rootDirectory = null, InkParserErrorHandler externalErrorHandler = null) : base(str) { 
+        public InkParser(string str, string filenameForMetadata = null, string rootDirectory = null, Ink.ErrorHandler externalErrorHandler = null) : base(str) { 
             _filename = filenameForMetadata;
             _rootDirectory = rootDirectory;
 			RegisterExpressionOperators ();
@@ -74,13 +71,13 @@ namespace Ink
             }
 
             if (_externalErrorHandler != null) {
-                _externalErrorHandler (fullMessage, isWarning);
+                _externalErrorHandler (fullMessage, isWarning ? ErrorType.Warning : ErrorType.Error);
             } else {
                 Console.WriteLine (fullMessage);
             }
         }
 
-        InkParserErrorHandler _externalErrorHandler;
+        Ink.ErrorHandler _externalErrorHandler;
 
         string _filename;
         string _rootDirectory;

@@ -48,13 +48,13 @@ namespace Tests
             return false;
         }
 
-        void TestErrorHandler(string message, bool isWarning) 
+        void TestErrorHandler(string message, ErrorType errorType) 
         {
             if (_testingErrors) {
-                if (isWarning)
-                    _warningMessages.Add (message);
-                else
+                if( errorType == ErrorType.Error )
                     _errorMessages.Add (message);
+                else
+                    _warningMessages.Add (message);
             } else 
                 Assert.Fail(message);
         }
@@ -792,12 +792,13 @@ This is default.
         [Test ()]
         public void TestReturnTextWarning()
         {
-            InkParser.InkParserErrorHandler errorHandler = (string message, bool isWarning) => {
-                if (isWarning) {
-                    throw new TestWarningException ();
-                }
-            };
-            InkParser parser = new InkParser("== test ==\n return something", null, null, errorHandler);
+            InkParser parser = new InkParser("== test ==\n return something", 
+                null, null, 
+                (string message, ErrorType errorType) => {
+                    if (errorType == ErrorType.Warning) {
+                        throw new TestWarningException ();
+                    }
+            });
 
             Assert.Throws<TestWarningException>(() => parser.Parse ());
         }
@@ -1661,8 +1662,8 @@ Hello {""world""} 2.
         public void TestEmptyChoice()
         {
             int warningCount = 0;
-            InkParser parser = new InkParser("*", null, null, (string message, bool isWarning) => {
-                if( isWarning ) {
+            InkParser parser = new InkParser("*", null, null, (string message, ErrorType errorType) => {
+                if( errorType == ErrorType.Warning ) {
                     warningCount++;
                     Assert.IsTrue (message.Contains ("completely empty"));
                 } else {

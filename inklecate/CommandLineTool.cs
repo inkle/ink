@@ -100,6 +100,7 @@ namespace Ink
             Runtime.Story story = null;
             errors = new List<string> ();
             warnings = new List<string> ();
+            authorMessages = new List<string> ();
             var pluginManager = new PluginManager (pluginNames);
 
             var inputIsJson = opts.inputFile.EndsWith (".json");
@@ -144,6 +145,7 @@ namespace Ink
                 opts.playMode = true;
             }
 
+            PrintMessages (authorMessages, ConsoleColour.Green);
             PrintMessages (warnings, ConsoleColour.Blue);
             PrintMessages (errors, ConsoleColour.Red);
 
@@ -188,12 +190,21 @@ namespace Ink
             }
         }
 
-        void OnError(string message, bool isWarning)
+        void OnError(string message, ErrorType errorType)
         {
-            if (isWarning)
+            switch (errorType) {
+            case ErrorType.Author:
+                authorMessages.Add (message);
+                break;
+
+            case ErrorType.Warning:
                 warnings.Add (message);
-            else
+                break;
+
+            case ErrorType.Error:
                 errors.Add (message);
+                break;
+            }
         }
 
         void PrintMessages(List<string> messageList, ConsoleColour colour)
@@ -318,6 +329,6 @@ namespace Ink
 
         List<string> errors;
         List<string> warnings;
-
+        List<string> authorMessages;
 	}
 }
