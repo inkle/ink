@@ -98,6 +98,8 @@ namespace Ink
             InkParser parser = null;
             Parsed.Story parsedStory = null;
             Runtime.Story story = null;
+            errors = new List<string> ();
+            warnings = new List<string> ();
             var pluginManager = new PluginManager (pluginNames);
 
             var inputIsJson = opts.inputFile.EndsWith (".json");
@@ -105,7 +107,7 @@ namespace Ink
             // Loading a normal ink file (as opposed to an already compiled json file)
             if (!inputIsJson) {
                 TimeOperation ("Creating parser", () => {
-                    parser = new InkParser (inputString, opts.inputFile, rootDirectory);
+                    parser = new InkParser (inputString, opts.inputFile, rootDirectory, OnError);
                 });
 
                 TimeOperation ("Parsing", () => {
@@ -116,21 +118,22 @@ namespace Ink
                     pluginManager.PostParse(parsedStory);
                 });
 
-                if (parsedStory == null) {
-                    Environment.Exit (ExitCodeError);
+                if (parsedStory != null) {
+
+                    if (opts.countAllVisits) {
+                        parsedStory.countAllVisits = true;
+                    }
+
+                    TimeOperation ("Exporting runtime", () => {
+                        story = parsedStory.ExportRuntime (OnError);
+                    });
+
+                    TimeOperation ("PostParsePlugins", () => {
+                        pluginManager.PostExport(parsedStory, story);
+                    });
+
                 }
 
-                if (opts.countAllVisits) {
-                    parsedStory.countAllVisits = true;
-                }
-
-                TimeOperation ("Exporting runtime", () => {
-                    story = parsedStory.ExportRuntime ();
-                });
-
-                TimeOperation ("PostParsePlugins", () => {
-                    pluginManager.PostExport(parsedStory, story);
-                });
             } 
 
             // Opening up a compiled json file for playing
@@ -141,7 +144,10 @@ namespace Ink
                 opts.playMode = true;
             }
 
-			if (story == null) {
+            PrintMessages (warnings, ConsoleColour.Blue);
+            PrintMessages (errors, ConsoleColour.Red);
+
+            if (story == null) {
 				Environment.Exit (ExitCodeError);
 			}
                 
@@ -180,6 +186,25 @@ namespace Ink
                     Environment.Exit (ExitCodeError);
                 }
             }
+        }
+
+        void OnError(string message, bool isWarning)
+        {
+            if (isWarning)
+                warnings.Add (message);
+            else
+                errors.Add (message);
+        }
+
+        void PrintMessages(List<string> messageList, ConsoleColour colour)
+        {
+            ColourConsole.SetConsoleTextColour (colour);
+            
+            foreach (string msg in messageList) {
+                Console.WriteLine (msg);
+            }
+
+            ColourConsole.ResetConsoleTextColour ();
         }
 
         bool ProcessArguments(string[] args)
@@ -290,5 +315,9 @@ namespace Ink
 
         Options opts;
         List<string> pluginNames;
+
+        List<string> errors;
+        List<string> warnings;
+
 	}
 }

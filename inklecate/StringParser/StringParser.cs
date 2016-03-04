@@ -34,7 +34,7 @@ namespace Ink
 
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");
 
-        public ErrorHandler errorHandler { get; set; }
+        protected ErrorHandler errorHandler { get; set; }
 
 		public char currentCharacter
 		{

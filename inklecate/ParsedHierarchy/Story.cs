@@ -10,10 +10,8 @@ namespace Ink.Parsed
 	internal class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
-        public bool hadError { get { return _errors != null && _errors.Count > 0; } }
-        public bool hadWarning { get { return _warnings != null && _warnings.Count > 0; } }
-        public List<string> errors { get { return _errors; } }
-        public List<string> warnings { get { return _warnings; } }
+        public bool hadError { get { return _hadError; } }
+        public bool hadWarning { get { return _hadWarning; } }
 
         public Dictionary<string, Expression> constants;
         public Dictionary<string, ExternalDeclaration> externals;
@@ -109,8 +107,10 @@ namespace Ink.Parsed
 
         }
 
-		public Runtime.Story ExportRuntime()
+        public Runtime.Story ExportRuntime(InkParser.InkParserErrorHandler errorHandler = null)
 		{
+            _errorHandler = errorHandler;
+
             // Find all constants before main export begins, so that VariableReferences know
             // whether to generate a runtime variable reference or the literal value
             constants = new Dictionary<string, Expression> ();
@@ -156,13 +156,8 @@ namespace Ink.Parsed
             var runtimeStory = new Runtime.Story (rootContainer);
 			runtimeObject = runtimeStory;
 
-
-            if (CheckErrors ())
+            if (hadError)
                 return null;
-
-            int earlyWarningCount = 0;
-            if( _warnings != null )
-                earlyWarningCount = _warnings.Count;
 
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
@@ -174,31 +169,13 @@ namespace Ink.Parsed
 			// we want the paths to be absolute)
 			ResolveReferences (this);
 
-            if (CheckErrors (earlyWarningCount))
+            if (hadError)
                 return null;
 
             runtimeStory.ResetState ();
 
 			return runtimeStory;
 		}
-
-        bool CheckErrors(int previouslyPrintedWarnings = 0)
-        {
-            // Print all warnings before all errors
-            if (hadWarning) {
-                for (int i = previouslyPrintedWarnings; i < _warnings.Count; ++i) {
-                    Console.WriteLine (_warnings [i]);
-                }
-            }
-
-            // Don't successfully return the object if there was an error
-            if (hadError) {
-                foreach (var e in _errors) Console.WriteLine (e);
-                return true;
-            }
-
-            return false;
-        }
 
         public override void Error(string message, Parsed.Object source, bool isWarning)
 		{
@@ -218,23 +195,20 @@ namespace Ink.Parsed
 
             message = sb.ToString ();
 
-            if (isWarning) {
-                if (_warnings == null)
-                    _warnings = new List<string> ();
-
-                _warnings.Add (message);
+            if (_errorHandler != null) {
+                _errorHandler (message, isWarning);
             } else {
-                if (_errors == null)
-                    _errors = new List<string> ();
-
-                _errors.Add (message);
+                Console.WriteLine (message);
             }
+
+            _hadError = !isWarning;
+            _hadWarning = isWarning;
 		}
 
         public void ResetError()
         {
-            _errors = null;
-            _warnings = null;
+            _hadError = false;
+            _hadWarning = false;
         }
 
         public bool IsExternal(string namedFuncTarget)
@@ -250,9 +224,10 @@ namespace Ink.Parsed
                 externals [decl.name] = decl;
             }
         }
-
-        List<string> _errors;
-        List<string> _warnings;
+            
+        InkParser.InkParserErrorHandler _errorHandler;
+        bool _hadError;
+        bool _hadWarning;
 	}
 }
 

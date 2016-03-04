@@ -5,12 +5,16 @@ namespace Ink
 {
 	internal partial class InkParser : StringParser
 	{
-        public InkParser(string str, string filenameForMetadata = null, string rootDirectory = null) : base(str) { 
+
+        public delegate void InkParserErrorHandler(string message, bool isWarning);
+
+        public InkParser(string str, string filenameForMetadata = null, string rootDirectory = null, InkParserErrorHandler externalErrorHandler = null) : base(str) { 
             _filename = filenameForMetadata;
             _rootDirectory = rootDirectory;
 			RegisterExpressionOperators ();
             GenerateStatementLevelRules ();
             this.errorHandler = OnError;
+            _externalErrorHandler = externalErrorHandler;
 		}
 
         // Main entry point
@@ -43,17 +47,7 @@ namespace Ink
                 parsedObj.debugMetadata = md;
             }
         }
-
-        public void OnError(string message, int index, int lineIndex, bool isWarning)
-        {
-            var warningType = isWarning ? "Warning" : "Error";
-            if (_filename != null) {
-                Console.WriteLine (warningType+" in '{0}' line {1}: {2}", _filename, (lineIndex+1), message);
-            } else {
-                Console.WriteLine (warningType+" on line {0}: {1}", (lineIndex+1), message);
-            }
-        }
-
+            
         protected bool parsingStringExpression
         {
             get {
@@ -67,6 +61,26 @@ namespace Ink
         protected enum CustomFlags {
             ParsingString = 0x1
         }
+
+        void OnError(string message, int index, int lineIndex, bool isWarning)
+        {
+            var warningType = isWarning ? "Warning" : "Error";
+            string fullMessage;
+
+            if (_filename != null) {
+                fullMessage = string.Format(warningType+" in '{0}' line {1}: {2}",  _filename, (lineIndex+1), message);
+            } else {
+                fullMessage = string.Format(warningType+" on line {0}: {1}", (lineIndex+1), message);
+            }
+
+            if (_externalErrorHandler != null) {
+                _externalErrorHandler (fullMessage, isWarning);
+            } else {
+                Console.WriteLine (fullMessage);
+            }
+        }
+
+        InkParserErrorHandler _externalErrorHandler;
 
         string _filename;
         string _rootDirectory;

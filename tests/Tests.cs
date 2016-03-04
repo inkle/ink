@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Ink;
 using Ink.Runtime;
+using System.Collections.Generic;
 
 namespace Tests
 {
@@ -20,27 +21,56 @@ namespace Tests
         }
         TestMode _mode;
 
-        protected void CheckParsedStoryForErrors(Ink.Parsed.Story story) {
-            if (story.hadError) {
-                foreach (string error in story.errors) {
-                    Assert.Fail ("Story compilation error: " + error);
-                }
+
+        bool _testingErrors;
+        List<string> _errorMessages = new List<string>();
+        List<string> _warningMessages = new List<string>();
+
+        bool HadError(string matchStr = null)
+        {
+            return HadErrorOrWarning (matchStr, _errorMessages);
+        }
+
+        bool HadWarning(string matchStr = null)
+        {
+            return HadErrorOrWarning (matchStr, _warningMessages);
+        }
+
+        bool HadErrorOrWarning(string matchStr, List<string> list)
+        {
+            if (matchStr == null)
+                return list.Count > 0;
+            
+            foreach (var str in list) {
+                if (str.Contains (matchStr))
+                    return true;
             }
+            return false;
+        }
+
+        void TestErrorHandler(string message, bool isWarning) 
+        {
+            if (_testingErrors) {
+                if (isWarning)
+                    _warningMessages.Add (message);
+                else
+                    _errorMessages.Add (message);
+            } else 
+                Assert.Fail(message);
         }
 
 		// Helper compile function
-        protected Story CompileString(string str, bool countAllVisits=false)
+        protected Story CompileString(string str, bool countAllVisits=false, bool testingErrors=false)
 		{
-			InkParser parser = new InkParser(str);
-            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
-                Assert.Fail(message + " on line " + lineIndex);
-            };
+            _testingErrors = testingErrors;
+            _errorMessages.Clear ();
+            _warningMessages.Clear ();
+
+            InkParser parser = new InkParser(str, null, null, TestErrorHandler);
 			var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
-            CheckParsedStoryForErrors (parsedStory);
                 
-			Story story = parsedStory.ExportRuntime ();
-            CheckParsedStoryForErrors (parsedStory);
+            Story story = parsedStory.ExportRuntime (TestErrorHandler);
             Assert.AreNotEqual (null, story);
 
             // Convert to json and back again
@@ -52,17 +82,17 @@ namespace Tests
 			return story;
 		}
 
-        protected Ink.Parsed.Story CompileStringWithoutRuntime(string str)
+        protected Ink.Parsed.Story CompileStringWithoutRuntime(string str, bool testingErrors=false)
         {
-            InkParser parser = new InkParser(str);
-            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
-                if( !isWarning )
-                    Assert.Fail(message + " on line " + lineIndex);
-            };
+            _testingErrors = testingErrors;
+            _errorMessages.Clear ();
+            _warningMessages.Clear ();
+
+            InkParser parser = new InkParser(str, null, null, TestErrorHandler);
             var parsedStory = parser.Parse();
             Assert.IsFalse (parsedStory.hadError);
 
-            parsedStory.ExportRuntime ();
+            parsedStory.ExportRuntime (TestErrorHandler);
             return parsedStory;
         }
 
@@ -564,9 +594,11 @@ VAR to_two = -> two
 
 == one
     One
+    -> DONE
 
 === two 
-    Two";
+    Two
+    -> DONE";
 
             Story story = CompileString (storyStr);
 
@@ -760,12 +792,12 @@ This is default.
         [Test ()]
         public void TestReturnTextWarning()
         {
-            InkParser parser = new InkParser("== test ==\n return something");
-            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
-                if( isWarning ) {
-                    throw new TestWarningException();
+            InkParser.InkParserErrorHandler errorHandler = (string message, bool isWarning) => {
+                if (isWarning) {
+                    throw new TestWarningException ();
                 }
             };
+            InkParser parser = new InkParser("== test ==\n return something", null, null, errorHandler);
 
             Assert.Throws<TestWarningException>(() => parser.Parse ());
         }
@@ -813,9 +845,9 @@ This is default.
         [Test ()]
         public void TestEndOfContent()
         {
-            Story story = CompileString ("Hello world");
+            Story story = CompileString ("Hello world", false, true);
             story.ContinueMaximally ();
-            Assert.IsFalse (story.hasError);
+            Assert.IsFalse (HadError());
 
             story = CompileString ("== test ==\nContent\n-> END");
             story.ContinueMaximally ();
@@ -823,21 +855,20 @@ This is default.
 
             // Should have runtime error due to running out of content
             // (needs a -> END)
-            story = CompileString ("== test ==\nContent");
+            story = CompileString ("== test ==\nContent", false, true);
             story.ContinueMaximally ();
-            Assert.IsTrue (story.hasError);
+            Assert.IsTrue (HadWarning());
 
             // Should have warning that there's no "-> END"
-            var parsedStory = CompileStringWithoutRuntime ("== test ==\nContent");
-            Assert.IsTrue (parsedStory.hadWarning);
+            CompileStringWithoutRuntime ("== test ==\nContent", true);
+            Assert.IsFalse (HadError());
+            Assert.IsTrue (HadWarning());
 
-            parsedStory = CompileStringWithoutRuntime ("== test ==\n~return");
-            Assert.IsTrue (parsedStory.hadError);
-            parsedStory.errors [0].Contains ("Return statements can only be used in knots that are declared as functions");
+            CompileStringWithoutRuntime ("== test ==\n~return", testingErrors:true);
+            Assert.IsTrue (HadError ("Return statements can only be used in knots that are declared as functions"));
 
-            parsedStory = CompileStringWithoutRuntime ("== function test ==\n-> END");
-            Assert.IsTrue (parsedStory.hadError);
-            parsedStory.errors [0].Contains ("Functions may not contain diverts");
+            CompileStringWithoutRuntime ("== function test ==\n-> END", testingErrors:true);
+            Assert.IsTrue (HadError ("Functions may not contain diverts"));
         }
 
         [Test ()]
@@ -901,7 +932,7 @@ This is the {first|second|third} time.
         [Test ()]
         public void TestFunctionPurityChecks()
         {
-            Ink.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
+            CompileStringWithoutRuntime (@"
 -> test
 
 == test ==
@@ -920,24 +951,23 @@ Hello world
 = testStitch
     This is a stitch
 ~ return
-");
-            var errors = parsedStory.errors;
+", testingErrors:true);
 
-            Assert.AreEqual (7,errors.Count);
-            Assert.IsTrue(errors[0].Contains("Return statements can only be used in knots that"));
-            Assert.IsTrue(errors[1].Contains("Functions cannot be stitches"));
-            Assert.IsTrue(errors[2].Contains("Functions may not contain stitches"));
-            Assert.IsTrue(errors[3].Contains("Functions may not contain diverts"));
-            Assert.IsTrue(errors[4].Contains("Functions may not contain choices"));
-            Assert.IsTrue(errors[5].Contains("Functions may not contain choices"));
-            Assert.IsTrue(errors[6].Contains("Return statements can only be used in knots that"));
+            Assert.AreEqual (7,_errorMessages.Count);
+            Assert.IsTrue(_errorMessages[0].Contains("Return statements can only be used in knots that"));
+            Assert.IsTrue(_errorMessages[1].Contains("Functions cannot be stitches"));
+            Assert.IsTrue(_errorMessages[2].Contains("Functions may not contain stitches"));
+            Assert.IsTrue(_errorMessages[3].Contains("Functions may not contain diverts"));
+            Assert.IsTrue(_errorMessages[4].Contains("Functions may not contain choices"));
+            Assert.IsTrue(_errorMessages[5].Contains("Functions may not contain choices"));
+            Assert.IsTrue(_errorMessages[6].Contains("Return statements can only be used in knots that"));
         }
 
 
         [Test ()]
         public void TestFunctionCallRestrictions()
         {
-            Ink.Parsed.Story parsedStory = CompileStringWithoutRuntime (@"
+            CompileStringWithoutRuntime (@"
 // Allowed to do this
 ~ myFunc()
 
@@ -954,12 +984,11 @@ This is a function.
 == aKnot ==
 This is a normal knot.
 -> END
-");
-            var errors = parsedStory.errors;
-
-            Assert.AreEqual (2, errors.Count);
-            Assert.IsTrue(errors[0].Contains("hasn't been marked as a function"));
-            Assert.IsTrue(errors[1].Contains("can only be called as a function"));
+", testingErrors:true);
+            
+            Assert.AreEqual (2, _errorMessages.Count);
+            Assert.IsTrue(_errorMessages[0].Contains("hasn't been marked as a function"));
+            Assert.IsTrue(_errorMessages[1].Contains("can only be called as a function"));
         }
 
         [Test ()]
@@ -1053,6 +1082,7 @@ Done.
 hello
 -> END
 world
+-> END
 ");
 
             Assert.AreEqual ("hello\n", story.ContinueMaximally());
@@ -1069,6 +1099,7 @@ world
 hello
 -> END
 world
+-> END
 ");
 
             Assert.AreEqual ("hello\n", story.ContinueMaximally());
@@ -1192,16 +1223,15 @@ This is place 2.
         [Test ()]
         public void TestDivertNotFoundError()
         {
-            var parsedStory = CompileStringWithoutRuntime (@"
+            CompileStringWithoutRuntime (@"
 -> knot
 
 == knot ==
 Knot.
 -> next
-");
+", testingErrors:true);
 
-            Assert.IsTrue (parsedStory.hadError);
-            Assert.IsTrue(parsedStory.errors[0].Contains("not found"));
+            Assert.IsTrue(HadError("not found"));
         }
 
         [Test ()]
@@ -1421,7 +1451,7 @@ VAR x = 5
         [Test ()]
         public void TestArgumentNameCollisions()
         {
-            var parsedStory = CompileStringWithoutRuntime (@"
+            CompileStringWithoutRuntime (@"
 VAR global_var = 5
 
 ~ pass_divert(-> knot_name)
@@ -1438,12 +1468,11 @@ VAR global_var = 5
 
 === knot_name ===
     -> END
-");
-            //parsedStory.ExportRuntime ();
+", testingErrors:true);
 
-            Assert.AreEqual (2, parsedStory.errors.Count);
-            Assert.IsTrue (parsedStory.errors [0].Contains ("conflicts with a Knot"));
-            Assert.IsTrue (parsedStory.errors [1].Contains ("conflicts with existing variable"));
+            Assert.AreEqual (2, _errorMessages.Count);
+            Assert.IsTrue (HadError ("conflicts with a Knot"));
+            Assert.IsTrue (HadError ("conflicts with existing variable"));
 
         }
 
@@ -1522,7 +1551,7 @@ Joe
         [Test ()]
         public void TestRequireVariableTargetsTyped()
         {
-            var parsedStory = CompileStringWithoutRuntime (@"
+            CompileStringWithoutRuntime (@"
 -> test(-> elsewhere)
 
 == test(varTarget) ==
@@ -1531,9 +1560,8 @@ Joe
 
 == elsewhere ==
 ->->
-");
-            Assert.AreEqual (1, parsedStory.errors.Count);
-            Assert.IsTrue (parsedStory.errors[0].Contains("it should be marked as: ->"));
+", testingErrors:true);
+            Assert.IsTrue (HadError("it should be marked as: ->"));
         }
 
         [Test ()]
@@ -1632,17 +1660,16 @@ Hello {""world""} 2.
         [Test ()]
         public void TestEmptyChoice()
         {
-            InkParser parser = new InkParser("*");
-
             int warningCount = 0;
-            parser.errorHandler += (string message, int index, int lineIndex, bool isWarning) => {
+            InkParser parser = new InkParser("*", null, null, (string message, bool isWarning) => {
                 if( isWarning ) {
                     warningCount++;
                     Assert.IsTrue (message.Contains ("completely empty"));
                 } else {
                     Assert.Fail("Shouldn't have had any errors");
                 }
-            };
+            });
+                
             parser.Parse();
 
             Assert.AreEqual (1, warningCount);
