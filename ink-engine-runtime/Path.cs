@@ -11,10 +11,11 @@ namespace Ink.Runtime
 	{
         static string parentId = "^";
 
+        // Immutable Component
 		internal class Component
 		{
-			public int index { get; set; }
-			public string name { get; set; }
+			public int index { get; private set; }
+			public string name { get; private set; }
 			public bool isIndex { get { return index >= 0; } }
             public bool isParent {
                 get {

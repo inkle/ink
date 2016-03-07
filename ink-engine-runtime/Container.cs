@@ -240,70 +240,66 @@ namespace Ink.Runtime
 			}
 		}
 
-		public Runtime.Object ContentAtPath(Path path)
+        public Runtime.Object ContentAtPath(Path path, int partialPathLength = -1)
 		{
-			Path.Component component = path.head;
-			if( component != null ) {
-				var contentObj = ContentWithPathComponent(component);
+            if (partialPathLength == -1)
+                partialPathLength = path.components.Count;
+            
+            Container currentContainer = this;
+            Runtime.Object currentObj = null;
 
-				// Continue deeper into sub-container?
-				if( path.length > 1 ) {
-					Debug.Assert (contentObj is Container, "Path continues, but content isn't a container");
-					Container subContainer = (Container) contentObj;
-					return subContainer.ContentAtPath (path.tail);
-				} else {
-					return contentObj;
-				}
+            for (int i = 0; i < partialPathLength; ++i) {
+                var comp = path.components [i];
+                Debug.Assert (currentContainer != null, "Path continued, but previous object wasn't a container: " + currentObj);
+                currentObj = currentContainer.ContentWithPathComponent(comp);
+                currentContainer = currentObj as Container;
+            }
 
-			}
-
-			return null;
+            return currentObj;
 		}
 
-		public Path IncrementPath(Path path)
+        public Path IncrementPath(Path path)
 		{
-			if (path.length > 0) {
-
-				// Try to increment tail
-				if (path.length > 1) {
-					var currChild = ContentWithPathComponent (path.head);
-					Debug.Assert (currChild is Container, "Expected a container for deep path?");
-
-					Container childContainer = (Container)currChild;
-                    Path tail = path.tail;
-                    Path incrementedTail = childContainer.IncrementPath (tail);
-
-					// Successfully incremented tail
-					if (incrementedTail != null) {
-						return new Path (path.head, incrementedTail);
-					}
-
-                    // A failed increment to a tail that contains a named element anywhere should cause the full path to fail.
-                    // Why? Because if you increment off the end of *any* named container, then there's nowhere
-                    // you can sensibly go.
-                    else if (tail.containsNamedComponent) {
-                        
-                        return null;
-                    }
-				}
-
-				// No tail, or failed to increment tail
-				// Try to increment self
-				// Can only increment if we have indexed content, and the original component was indexed
-				var comp = path.head;
-				if (comp.isIndex) {
-
-					// Successfully incremented path in self?
-					int nextIndex = comp.index + 1;
-					if (content.Count > nextIndex) {
-						return Path.ToElementWithIndex (nextIndex);
-					}
-				}
-			}
-
-			// Failed to increment
-			return null;
+            return IncrementPathAtComponent (path, path.components.Count - 1);
 		}
+
+        Path IncrementPathAtComponent(Path path, int compIndex)
+        {
+            // Can only increment if there's a container to increment within
+            if (compIndex < 0 || compIndex >= path.components.Count)
+                return null;
+            
+            // Can only increment an index, not a name
+            var componentToIncrement = path.components[compIndex];
+            if (!componentToIncrement.isIndex)
+                return null;
+
+            // Valid path?
+            Container container = null;
+            if (compIndex == 0)
+                container = this;
+            else
+                container = ContentAtPath (path, partialPathLength:compIndex) as Container;
+            
+            if (container == null)
+                throw new System.Exception ("Expected container type for parent");
+
+            // Does incrementing the index send us off the end?
+            // Increment the container's parent instead if possible
+            int nextIndex = componentToIncrement.index + 1;
+            if (nextIndex >= container.content.Count) {
+                return IncrementPathAtComponent (path, compIndex - 1);
+            }
+
+            // Build new path now we know exactly which component to increment
+            // and we know it'll be successful
+            var newPath = new Path ();
+            for (int i = 0; i < compIndex; i++) {
+                newPath.components.Add(path.components[i]);
+            }
+            newPath.components.Add (new Path.Component (nextIndex));
+            return newPath;
+        }
 
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
@@ -341,7 +337,13 @@ namespace Ink.Runtime
 
                 } else {
                     appendIndentation ();
-                    sb.Append (obj.ToString ());
+                    if (obj is Text) {
+                        sb.Append ("\"");
+                        sb.Append (obj.ToString ().Replace ("\n", "\\n"));
+                        sb.Append ("\"");
+                    } else {
+                        sb.Append (obj.ToString ());
+                    }
                 }
 
                 if (i != content.Count - 1) {

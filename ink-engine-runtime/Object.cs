@@ -76,35 +76,41 @@ namespace Ink.Runtime
 		{ 
 			get 
 			{
-				if (parent == null) {
-					return new Path ();
-				} else {
+                if (_path == null) {
 
-                    // Maintain a Stack so that the order of the components
-                    // is reversed when they're added to the Path.
-                    // We're iterating up the hierarchy from the leaves/children to the root.
-                    var comps = new Stack<Path.Component> ();
+                    if (parent == null) {
+                        _path = new Path ();
+                    } else {
+                        // Maintain a Stack so that the order of the components
+                        // is reversed when they're added to the Path.
+                        // We're iterating up the hierarchy from the leaves/children to the root.
+                        var comps = new Stack<Path.Component> ();
 
-                    var child = this;
-                    Container container = child.parent as Container;
+                        var child = this;
+                        Container container = child.parent as Container;
 
-                    while (container) {
+                        while (container) {
 
-                        var namedChild = child as INamedContent;
-                        if (namedChild != null && namedChild.hasValidName) {
-                            comps.Push (new Path.Component (namedChild.name));
-                        } else {
-                            comps.Push (new Path.Component (container.content.IndexOf(child)));
+                            var namedChild = child as INamedContent;
+                            if (namedChild != null && namedChild.hasValidName) {
+                                comps.Push (new Path.Component (namedChild.name));
+                            } else {
+                                comps.Push (new Path.Component (container.content.IndexOf(child)));
+                            }
+
+                            child = container;
+                            container = container.parent as Container;
                         }
 
-                        child = container;
-                        container = container.parent as Container;
+                        _path = new Path (comps);
                     }
 
-                    return new Path (comps);
-				}
+                }
+				
+                return _path;
 			}
 		}
+        Path _path;
 
         internal Runtime.Object ResolvePath(Path path)
         {
