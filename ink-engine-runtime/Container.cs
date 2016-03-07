@@ -116,25 +116,26 @@ namespace Ink.Runtime
 		public Path pathToFirstLeafContent
 		{
 			get {
-                return path.PathByAppendingPath (internalPathToFirstLeafContent);
+                if( _pathToFirstLeafContent == null )
+                    _pathToFirstLeafContent = path.PathByAppendingPath (internalPathToFirstLeafContent);
+
+                return _pathToFirstLeafContent;
 			}
 		}
+        Path _pathToFirstLeafContent;
 
         Path internalPathToFirstLeafContent
         {
             get {
-                if (content.Count > 0) {
-                    Path path = Path.ToFirstElement();
-                    var subContainer = content.First () as Container;
-                    if (subContainer && subContainer.content.Count > 0) {
-                        Path tailPath = subContainer.internalPathToFirstLeafContent;
-                        path = path.PathByAppendingPath (tailPath);
+                var path = new Path ();
+                var container = this;
+                while (container != null) {
+                    if (container.content.Count > 0) {
+                        path.components.Add (new Path.Component (0));
+                        container = container.content [0] as Container;
                     }
-                    return path;
                 }
-
-                // Nowhere
-                return new Path();
+                return path;
             }
         }
 
@@ -250,7 +251,8 @@ namespace Ink.Runtime
 
             for (int i = 0; i < partialPathLength; ++i) {
                 var comp = path.components [i];
-                Debug.Assert (currentContainer != null, "Path continued, but previous object wasn't a container: " + currentObj);
+                if (currentContainer == null)
+                    throw new System.Exception ("Path continued, but previous object wasn't a container: " + currentObj);
                 currentObj = currentContainer.ContentWithPathComponent(comp);
                 currentContainer = currentObj as Container;
             }
