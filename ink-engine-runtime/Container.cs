@@ -259,50 +259,7 @@ namespace Ink.Runtime
 
             return currentObj;
 		}
-
-        public Path IncrementPath(Path path)
-		{
-            return IncrementPathAtComponent (path, path.components.Count - 1);
-		}
-
-        Path IncrementPathAtComponent(Path path, int compIndex)
-        {
-            // Can only increment if there's a container to increment within
-            if (compIndex < 0 || compIndex >= path.components.Count)
-                return null;
             
-            // Can only increment an index, not a name
-            var componentToIncrement = path.components[compIndex];
-            if (!componentToIncrement.isIndex)
-                return null;
-
-            // Valid path?
-            Container container = null;
-            if (compIndex == 0)
-                container = this;
-            else
-                container = ContentAtPath (path, partialPathLength:compIndex) as Container;
-            
-            if (container == null)
-                throw new System.Exception ("Expected container type for parent");
-
-            // Does incrementing the index send us off the end?
-            // Increment the container's parent instead if possible
-            int nextIndex = componentToIncrement.index + 1;
-            if (nextIndex >= container.content.Count) {
-                return IncrementPathAtComponent (path, compIndex - 1);
-            }
-
-            // Build new path now we know exactly which component to increment
-            // and we know it'll be successful
-            var newPath = new Path ();
-            for (int i = 0; i < compIndex; i++) {
-                newPath.components.Add(path.components[i]);
-            }
-            newPath.components.Add (new Path.Component (nextIndex));
-            return newPath;
-        }
-
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
             Action appendIndentation = () => { 

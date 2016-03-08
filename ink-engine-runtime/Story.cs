@@ -312,7 +312,7 @@ namespace Ink.Runtime
         public bool canContinue
         {
             get {
-                return state.currentPath != null && !state.hasError;
+                return state.currentContentObject != null && !state.hasError;
             }
         }
 
@@ -353,20 +353,22 @@ namespace Ink.Runtime
             bool shouldAddToStream = true;
 
             // Get current content
-            var currentContentObj = ContentAtPath (state.currentPath);
+            var currentContentObj = state.currentContentObject;
             if (currentContentObj == null) {
                 state.currentPath = null;
                 return;
             }
                 
-            // Convert path to get first leaf content
+            // Step directly to the first element of content in a container (if necessary)
             Container currentContainer = currentContentObj as Container;
-            if (currentContainer && currentContainer.content.Count > 0) {
-                state.currentPath = currentContainer.pathToFirstLeafContent;
-                currentContentObj = ContentAtPath (state.currentPath);
+            while(currentContainer && currentContainer.content.Count > 0) {
+                currentContentObj = currentContainer.content [0];
+                state.callStack.currentElement.currentContentIndex = 0;
+                state.callStack.currentElement.currentContainer = currentContainer;
+
+                currentContainer = currentContentObj as Container;
             }
-            if (currentContainer == null)
-                currentContainer = currentContentObj.parent as Container;
+            currentContainer = state.callStack.currentElement.currentContainer;
 
             bool changedContainer = _previousContainer != currentContainer;
             if (changedContainer) {
@@ -382,7 +384,7 @@ namespace Ink.Runtime
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
 
             // Has flow been forced to end by flow control above?
-            if (state.currentPath == null) {
+            if (state.currentContentObject == null) {
                 return;
             }
 
@@ -1205,7 +1207,7 @@ namespace Ink.Runtime
 				state.divertedPath = null;
 
                 // Diverted location has valid content?
-                if (ContentAtPath (state.currentPath)) {
+                if (state.currentContentObject != null) {
                     return;
                 }
 				
@@ -1215,12 +1217,11 @@ namespace Ink.Runtime
                 // to the end of a container - e.g. a Conditional that's re-joining
 			}
 
-			// Can we increment successfully?
-            state.currentPath = mainContentContainer.IncrementPath (state.currentPath);
+            bool successfulPointerIncrement = IncrementContentPointer ();
 
             // Ran out of content? Try to auto-exit from a function,
             // or finish evaluating the content of a thread
-			if (state.currentPath == null) {
+            if (!successfulPointerIncrement) {
 
                 bool didPop = false;
 
@@ -1250,6 +1251,41 @@ namespace Ink.Runtime
                 }
 			}
 		}
+
+        bool IncrementContentPointer()
+        {
+            bool successfulIncrement = true;
+
+            var currEl = state.callStack.currentElement;
+            currEl.currentContentIndex++;
+
+            // Each time we step off the end, we fall out to the next container, all the
+            // while we're in indexed rather than named content
+            while (currEl.currentContentIndex >= currEl.currentContainer.content.Count) {
+
+                successfulIncrement = false;
+
+                Container nextAncestor = currEl.currentContainer.parent as Container;
+                if (!nextAncestor) {
+                    break;
+                }
+
+                var indexInAncestor = nextAncestor.content.IndexOf (currEl.currentContainer);
+                if (indexInAncestor == -1) {
+                    break;
+                }
+
+                currEl.currentContainer = nextAncestor;
+                currEl.currentContentIndex = indexInAncestor + 1;
+
+                successfulIncrement = true;
+            }
+
+            if (!successfulIncrement)
+                currEl.currentContainer = null;
+
+            return successfulIncrement;
+        }
             
         bool TryFollowDefaultInvisibleChoice()
         {
@@ -1290,8 +1326,7 @@ namespace Ink.Runtime
                         // to the nested content - the choice or gather point isn't counted
                         // as having been visited if you've seen a nested choice for example.
                         if (ancestorContainer.countingAtStartOnly) {
-                            var firstLeafPath = ancestorContainer.pathToFirstLeafContent;
-                            shouldCount = el.currentObject.path.Equals (firstLeafPath);
+                            shouldCount = el.currentContainer == ancestorContainer && el.currentContentIndex == 0;
                         } else {
                             shouldCount = true;
                         }
