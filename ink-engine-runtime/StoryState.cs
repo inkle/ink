@@ -50,9 +50,7 @@ namespace Ink.Runtime
                 callStack.currentElement.currentObject = value;
             }
         }
-
-        public Path previousPath { get; set; }
-
+            
         public bool hasError
         {
             get {
@@ -141,9 +139,6 @@ namespace Ink.Runtime
 
             if( divertedPath != null )
                 copy.divertedPath = new Path (divertedPath.componentsString);
-
-            if( previousPath != null )
-                copy.previousPath = new Path (previousPath.componentsString);
 
             copy.visitCounts = new Dictionary<string, int> (visitCounts);
             copy.turnIndices = new Dictionary<string, int> (turnIndices);
@@ -507,8 +502,6 @@ namespace Ink.Runtime
         {
             // Changing direction, assume we need to clear current set of choices
             currentChoices.Clear ();
-
-            previousPath = currentPath;
 
             currentPath = path;
 

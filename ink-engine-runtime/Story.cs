@@ -1188,19 +1188,13 @@ namespace Ink.Runtime
         {
             var sb = new StringBuilder ();
 
-            Runtime.Object currentObj = null;
-            if (state.currentPath != null) {
-                currentObj = ContentAtPath (state.currentPath);
-            }
-            mainContentContainer.BuildStringOfHierarchy (sb, 0, currentObj);
+            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
 
             return sb.ToString ();
         }
 
 		private void NextContent()
 		{
-            state.previousPath = state.currentPath;
-
 			// Divert step?
 			if (state.divertedPath != null) {
 				state.currentPath = state.divertedPath;
@@ -1506,13 +1500,7 @@ namespace Ink.Runtime
                 if (dm != null) {
                     return dm;
                 }
-
-                // Try last path
-                dm = DebugMetadataAtPath (state.previousPath);
-                if (dm != null) {
-                    return dm;
-                }
-
+                    
                 // Move up callstack if possible
                 for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
                     var currentObj = state.callStack.elements [i].currentObject;
