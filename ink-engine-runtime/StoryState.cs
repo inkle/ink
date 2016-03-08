@@ -252,15 +252,27 @@ namespace Ink.Runtime
             bool includeInOutput = true;
 
             if (glue) {
+                
+                // Found matching left-glue for right-glue? Close it.
+                bool foundMatchingLeftGlue = glue.isLeft && _currentRightGlue && glue.parent == _currentRightGlue.parent;
+                if (foundMatchingLeftGlue) {
+                    _currentRightGlue = null;
+                }
 
                 // Left/Right glue is auto-generated for inline expressions 
                 // where we want to absorb newlines but only in a certain direction.
                 // "Bi" glue is written by the user in their ink with <>
                 if (glue.isLeft || glue.isBi) {
-                    TrimNewlinesFromOutputStream(stopAndRemoveRightGlue:glue.isLeft);
+                    TrimNewlinesFromOutputStream(stopAndRemoveRightGlue:foundMatchingLeftGlue);
                 }
-                
-                includeInOutput = glue.isBi || glue.isRight;
+
+                // New right-glue
+                bool isNewRightGlue = glue.isRight && _currentRightGlue == null;
+                if (isNewRightGlue) {
+                    _currentRightGlue = glue;
+                }
+
+                includeInOutput = glue.isBi || isNewRightGlue;
             }
 
             else if( text ) {
@@ -278,6 +290,7 @@ namespace Ink.Runtime
                     // Able to completely reset when 
                     else if (text.isNonWhitespace) {
                         RemoveExistingGlue ();
+                        _currentRightGlue = null;
                     }
                 } else if (text.isNewline) {
                     if (outputStreamEndsInNewline || !outputStreamContainsContent)
@@ -495,6 +508,7 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
             
         List<Runtime.Object> _outputStream;
+        Runtime.Glue _currentRightGlue;
     }
 }
 
