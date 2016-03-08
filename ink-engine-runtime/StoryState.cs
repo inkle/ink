@@ -24,12 +24,30 @@ namespace Ink.Runtime
         public int storySeed { get; private set; }
         public bool didSafeExit { get; set; }
 
+        public Story story { get; set; }
+
         public Path currentPath { 
             get { 
-                return callStack.currentElement.path; 
+                if (currentContentObject == null)
+                    return null;
+
+                return currentContentObject.path;
             } 
             set {
-                callStack.currentElement.path = value;
+                if (value != null)
+                    currentContentObject = story.ContentAtPath (value);
+                else
+                    currentContentObject = null;
+            }
+        }
+
+        public Runtime.Object currentContentObject {
+            
+            get {
+                return callStack.currentElement.currentObject;
+            }
+            set {
+                callStack.currentElement.currentObject = value;
             }
         }
 
@@ -70,13 +88,15 @@ namespace Ink.Runtime
 
 
 
-        public StoryState ()
+        public StoryState (Story story)
         {
+            this.story = story;
+
             _outputStream = new List<Runtime.Object> ();
 
             evaluationStack = new List<Runtime.Object> ();
 
-            callStack = new CallStack ();
+            callStack = new CallStack (story.rootContentContainer);
             variablesState = new VariablesState (callStack);
 
             visitCounts = new Dictionary<string, int> ();
@@ -100,7 +120,7 @@ namespace Ink.Runtime
         // I wonder if there's a sensible way to enforce that..??
         public StoryState Copy()
         {
-            var copy = new StoryState();
+            var copy = new StoryState(story);
 
             copy.outputStream.AddRange(_outputStream);
             copy.currentChoices.AddRange(currentChoices);
@@ -111,6 +131,8 @@ namespace Ink.Runtime
             }
 
             copy.callStack = new CallStack (callStack);
+
+            copy._currentRightGlue = _currentRightGlue;
 
             copy.variablesState = new VariablesState (copy.callStack);
             copy.variablesState.CopyFrom (variablesState);

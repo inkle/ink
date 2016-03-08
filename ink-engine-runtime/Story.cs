@@ -130,7 +130,7 @@ namespace Ink.Runtime
             
         public void ResetState()
         {
-            _state = new StoryState ();
+            _state = new StoryState (this);
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
 
             ResetGlobals ();
@@ -333,7 +333,7 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        Runtime.Object ContentAtPath(Path path)
+        internal Runtime.Object ContentAtPath(Path path)
         {
             return mainContentContainer.ContentAtPath (path);
         }
@@ -365,6 +365,8 @@ namespace Ink.Runtime
                 state.currentPath = currentContainer.pathToFirstLeafContent;
                 currentContentObj = ContentAtPath (state.currentPath);
             }
+            if (currentContainer == null)
+                currentContainer = currentContentObj.parent as Container;
 
             bool changedContainer = _previousContainer != currentContainer;
             if (changedContainer) {
@@ -1272,12 +1274,12 @@ namespace Ink.Runtime
             // We will then see which ones are new compared to last step.
             var openContainersThisStep = new HashSet<Container> ();
             foreach (CallStack.Element el in state.callStack.elements) {
-                var callstackElementCurrentObject = ContentAtPath (el.path);
+                
+                Runtime.Object ancestor = el.currentObject;
 
-                var ancestor = callstackElementCurrentObject;
                 while (ancestor) {
-                    var c = ancestor as Container;
-                    if (c != null && (c.visitsShouldBeCounted || c.turnIndexShouldBeCounted)) {
+                    var ancestorContainer = ancestor as Container;
+                    if (ancestorContainer != null && (ancestorContainer.visitsShouldBeCounted || ancestorContainer.turnIndexShouldBeCounted)) {
 
                         bool shouldCount = false;
 
@@ -1287,14 +1289,15 @@ namespace Ink.Runtime
                         // if you enter them at the start. This is mainly for directing
                         // to the nested content - the choice or gather point isn't counted
                         // as having been visited if you've seen a nested choice for example.
-                        if (c.countingAtStartOnly) {
-                            shouldCount = el.path.Equals( c.pathToFirstLeafContent );
+                        if (ancestorContainer.countingAtStartOnly) {
+                            var firstLeafPath = ancestorContainer.pathToFirstLeafContent;
+                            shouldCount = el.currentObject.path.Equals (firstLeafPath);
                         } else {
                             shouldCount = true;
                         }
 
                         if (shouldCount) {
-                            openContainersThisStep.Add ((Container)ancestor);
+                            openContainersThisStep.Add ((Container)ancestorContainer);
                         }
 
                     }
@@ -1477,10 +1480,9 @@ namespace Ink.Runtime
 
                 // Move up callstack if possible
                 for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
-                    var path = state.callStack.elements [i].path;
-                    dm = DebugMetadataAtPath(path);
-                    if (dm != null) {
-                        return dm;
+                    var currentObj = state.callStack.elements [i].currentObject;
+                    if (currentObj && currentObj.debugMetadata != null) {
+                        return currentObj.debugMetadata;
                     }
                 }
 

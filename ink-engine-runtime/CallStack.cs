@@ -8,17 +8,46 @@ namespace Ink.Runtime
     {
         internal class Element
         {
-            public Path path;
+            public Container currentContainer;
+            public int currentContentIndex;
+
             public bool inExpressionEvaluation;
             public Dictionary<string, Runtime.Object> temporaryVariables;
             public PushPopType type;
 
-            public Element(PushPopType type, Path initialPath = null, bool inExpressionEvaluation = false) {
-                if( initialPath == null ) {
-                    initialPath = Path.ToFirstElement ();
-                }
+            public Runtime.Object currentObject {
+                get {
+                    if (currentContainer && currentContentIndex < currentContainer.content.Count) {
+                        return currentContainer.content [currentContentIndex];
+                    }
 
-                this.path = initialPath;
+                    return null;
+                }
+                set {
+                    var currentObj = value;
+                    if (currentObj == null) {
+                        currentContainer = null;
+                        return;
+                    }
+
+                    currentContainer = currentObj.parent as Container;
+
+                    // Two reasons why the above operation might not work:
+                    //  - currentObj is already the root container
+                    //  - currentObj is a named container rather than being an object at an index
+                    if (currentContainer != null)
+                        currentContentIndex = currentContainer.content.IndexOf (currentObj);
+
+                    if (currentContainer == null || currentContentIndex == -1) {
+                        currentContainer = currentObj as Container;
+                        currentContentIndex = 0;
+                    }
+                }
+            }
+
+            public Element(PushPopType type, Container container, int contentIndex, bool inExpressionEvaluation = false) {
+                this.currentContainer = container;
+                this.currentContentIndex = contentIndex;
                 this.inExpressionEvaluation = inExpressionEvaluation;
                 this.temporaryVariables = new Dictionary<string, Object>();
                 this.type = type;
@@ -26,7 +55,7 @@ namespace Ink.Runtime
 
             public Element Copy()
             {
-                var copy = new Element (this.type, this.path, this.inExpressionEvaluation);
+                var copy = new Element (this.type, this.currentContainer, this.currentContentIndex, this.inExpressionEvaluation);
                 copy.temporaryVariables = this.temporaryVariables;
                 return copy;
             }
@@ -88,7 +117,7 @@ namespace Ink.Runtime
 
         public Element currentElement { 
             get { 
-                return callStack.Last (); 
+                return callStack [callStack.Count - 1];
             } 
         }
 
@@ -116,12 +145,12 @@ namespace Ink.Runtime
             }
         }
 
-        public CallStack ()
+        public CallStack (Container rootContentContainer)
         {
             _threads = new List<Thread> ();
             _threads.Add (new Thread ());
 
-            _threads [0].callstack.Add (new Element (PushPopType.Tunnel));
+            _threads [0].callstack.Add (new Element (PushPopType.Tunnel, rootContentContainer, 0));
         }
 
         public CallStack(CallStack toCopy)
@@ -156,7 +185,7 @@ namespace Ink.Runtime
         public void Push(PushPopType type)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
-            callStack.Add (new Element(type, initialPath: currentElement.path, inExpressionEvaluation: false));
+            callStack.Add (new Element(type, currentElement.currentContainer, currentElement.currentContentIndex, inExpressionEvaluation: false));
         }
 
         public bool CanPop(PushPopType? type = null) {
