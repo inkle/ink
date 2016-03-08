@@ -180,6 +180,8 @@ namespace Ink.Runtime
 
             _state.variablesState.batchObservingVariableChanges = true;
 
+            _previousContainer = null;
+
             try {
 
                 StoryState stateAtLastNewline = null;
@@ -345,7 +347,7 @@ namespace Ink.Runtime
         {
             _state = state;
         }
-
+            
         void Step ()
         {
             bool shouldAddToStream = true;
@@ -356,7 +358,7 @@ namespace Ink.Runtime
                 state.currentPath = null;
                 return;
             }
-            
+                
             // Convert path to get first leaf content
             Container currentContainer = currentContentObj as Container;
             if (currentContainer && currentContainer.content.Count > 0) {
@@ -364,8 +366,12 @@ namespace Ink.Runtime
                 currentContentObj = ContentAtPath (state.currentPath);
             }
 
-            IncrementVisitCountForActiveContainers (currentContentObj);
-
+            bool changedContainer = _previousContainer != currentContainer;
+            if (changedContainer) {
+                IncrementVisitCountForActiveContainers (currentContentObj);
+                _previousContainer = currentContainer;
+            }
+            
             // Is the current content object:
             //  - Normal content
             //  - Or a logic/flow statement - if so, do it
@@ -434,7 +440,7 @@ namespace Ink.Runtime
                 state.callStack.PushThread ();
             }
         }
-
+            
         ChoiceInstance ProcessChoice(Choice choice)
         {
             bool showChoice = true;
@@ -1208,7 +1214,7 @@ namespace Ink.Runtime
 			}
 
 			// Can we increment successfully?
-			state.currentPath = mainContentContainer.IncrementPath (state.currentPath);
+            state.currentPath = mainContentContainer.IncrementPath (state.currentPath);
 
             // Ran out of content? Try to auto-exit from a function,
             // or finish evaluating the content of a thread
@@ -1228,7 +1234,6 @@ namespace Ink.Runtime
                     }
 
                     didPop = true;
-
                 } 
 
                 else if (state.callStack.canPopThread) {
@@ -1536,6 +1541,7 @@ namespace Ink.Runtime
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;
         bool _hasValidatedExternals;
+        Container _previousContainer;
 
         Container _temporaryEvaluationContainer;
 
