@@ -9,7 +9,7 @@ namespace Ink.Runtime
             get { 
                 // Resolve any relative paths to global ones as we come across them
                 if (_targetPath != null && _targetPath.isRelative) {
-                    var targetObj = ResolvePath (_targetPath);
+                    var targetObj = targetContent;
                     if (targetObj) {
                         _targetPath = targetObj.path;
                     }
@@ -21,6 +21,17 @@ namespace Ink.Runtime
             } 
         }
         Path _targetPath;
+
+        public Runtime.Object targetContent {
+            get {
+                if (_targetContent == null) {
+                    _targetContent = ResolvePath (_targetPath);
+                }
+
+                return _targetContent;
+            }
+        }
+        Runtime.Object _targetContent;
 
         [JsonProperty("div")]
         [UniqueJsonIdentifier]

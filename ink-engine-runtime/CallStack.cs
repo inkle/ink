@@ -27,6 +27,7 @@ namespace Ink.Runtime
                     var currentObj = value;
                     if (currentObj == null) {
                         currentContainer = null;
+                        currentContentIndex = 0;
                         return;
                     }
 

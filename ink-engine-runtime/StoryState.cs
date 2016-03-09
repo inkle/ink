@@ -17,7 +17,7 @@ namespace Ink.Runtime
         public VariablesState variablesState { get; private set; }
         public CallStack callStack { get; private set; }
         public List<Runtime.Object> evaluationStack { get; private set; }
-        public Path divertedPath { get; set; }
+        public Runtime.Object divertedTargetObject { get; set; }
         public Dictionary<string, int> visitCounts { get; private set; }
         public Dictionary<string, int> turnIndices { get; private set; }
         public int currentTurnIndex { get; private set; }
@@ -148,8 +148,8 @@ namespace Ink.Runtime
 
             copy.evaluationStack.AddRange (evaluationStack);
 
-            if( divertedPath != null )
-                copy.divertedPath = new Path (divertedPath.componentsString);
+            if (divertedTargetObject != null)
+                copy.divertedTargetObject = divertedTargetObject;
 
             copy.visitCounts = new Dictionary<string, int> (visitCounts);
             copy.turnIndices = new Dictionary<string, int> (turnIndices);
@@ -496,7 +496,7 @@ namespace Ink.Runtime
 
         public void ForceEndFlow()
         {
-            currentPath = null;
+            currentContentObject = null;
 
             while (callStack.canPopThread)
                 callStack.PopThread ();

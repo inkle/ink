@@ -355,7 +355,6 @@ namespace Ink.Runtime
             // Get current content
             var currentContentObj = state.currentContentObject;
             if (currentContentObj == null) {
-                state.currentPath = null;
                 return;
             }
                 
@@ -550,20 +549,20 @@ namespace Ink.Runtime
                     }
 
                     var target = (LiteralDivertTarget)varContents;
-                    state.divertedPath = target.targetPath;
+                    state.divertedTargetObject = ContentAtPath(target.targetPath);
 
                 } else if (currentDivert.isExternal) {
                     CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
                     return true;
                 } else {
-                    state.divertedPath = currentDivert.targetPath;
+                    state.divertedTargetObject = currentDivert.targetContent;
                 }
 
                 if (currentDivert.pushesToStack) {
                     state.callStack.Push (currentDivert.stackPushType);
                 }
 
-                if (state.divertedPath == null && !currentDivert.isExternal) {
+                if (state.divertedTargetObject == null && !currentDivert.isExternal) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
                     if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
@@ -582,9 +581,9 @@ namespace Ink.Runtime
                 var conditionValue = state.PopEvaluationStack ();
 
                 if (IsTruthy (conditionValue))
-                    state.divertedPath = branch.trueDivert.targetPath;
+                    state.divertedTargetObject = branch.trueDivert.targetContent;
                 else if (branch.falseDivert)
-                    state.divertedPath = branch.falseDivert.targetPath;
+                    state.divertedTargetObject = branch.falseDivert.targetContent;
                 
                 return true;
             } 
@@ -1194,9 +1193,9 @@ namespace Ink.Runtime
 		private void NextContent()
 		{
 			// Divert step?
-			if (state.divertedPath != null) {
-				state.currentPath = state.divertedPath;
-				state.divertedPath = null;
+			if (state.divertedTargetObject != null) {
+                state.currentContentObject = state.divertedTargetObject;
+                state.divertedTargetObject = null;
 
                 // Diverted location has valid content?
                 if (state.currentContentObject != null) {
