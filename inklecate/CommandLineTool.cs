@@ -145,9 +145,9 @@ namespace Ink
                 opts.playMode = true;
             }
 
-            PrintMessages (authorMessages, ConsoleColour.Green);
-            PrintMessages (warnings, ConsoleColour.Blue);
-            PrintMessages (errors, ConsoleColour.Red);
+            PrintMessages (authorMessages, ConsoleColor.Green);
+            PrintMessages (warnings, ConsoleColor.Blue);
+            PrintMessages (errors, ConsoleColor.Red);
 
             if (story == null) {
 				Environment.Exit (ExitCodeError);
@@ -207,15 +207,15 @@ namespace Ink
             }
         }
 
-        void PrintMessages(List<string> messageList, ConsoleColour colour)
+        void PrintMessages(List<string> messageList, ConsoleColor colour)
         {
-            ColourConsole.SetConsoleTextColour (colour);
-            
+            Console.ForegroundColor = colour;
+
             foreach (string msg in messageList) {
                 Console.WriteLine (msg);
             }
 
-            ColourConsole.ResetConsoleTextColour ();
+            Console.ResetColor ();
         }
 
         bool ProcessArguments(string[] args)

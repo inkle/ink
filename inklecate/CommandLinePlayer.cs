@@ -37,7 +37,7 @@ namespace Ink
 				// Normal: Ask user for choice number
 				else {
 
-                    ColourConsole.SetConsoleTextColour (ConsoleColour.Blue);
+                    Console.ForegroundColor = ConsoleColor.Blue;
 
 					int i = 1;
 					foreach (ChoiceInstance choice in choices) {
@@ -115,7 +115,7 @@ namespace Ink
 
 				}
 
-                ColourConsole.ResetConsoleTextColour ();
+                Console.ResetColor ();
 
                 if (choiceIsValid) {
                     story.ChooseChoiceIndex (choiceIdx);
@@ -138,7 +138,7 @@ namespace Ink
 
                 if (story.hasError) {
                     foreach (var errorMsg in story.currentErrors) {
-                        ColourConsole.WriteLine (errorMsg, ConsoleColour.Red);
+                        Console.WriteLine (errorMsg, ConsoleColor.Red);
                     }
                     story.ResetErrors ();
                 }

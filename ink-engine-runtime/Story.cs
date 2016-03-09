@@ -1542,13 +1542,6 @@ namespace Ink.Runtime
         Container _temporaryEvaluationContainer;
 
         StoryState _state;
-
-        // Keep track of the current set of containers up the nested chain,
-        // so that as we move between the containers, we know which ones are
-        // being newly visited, and therefore increment their visit counts.
-        //private HashSet<Container> _openContainers;
-
-
 	}
 }
 

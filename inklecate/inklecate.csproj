@@ -101,7 +101,6 @@
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Plugins\ChoiceListPlugin.cs" />
-    <Compile Include="ColourConsole.cs" />
     <Compile Include="Error.cs" />
   </ItemGroup>
   <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" Condition="Exists('..\ink-engine-runtime\ink-engine-runtime.projitems')" />
