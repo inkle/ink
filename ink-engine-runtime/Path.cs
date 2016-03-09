@@ -174,24 +174,6 @@ namespace Ink.Runtime
 			return p;
 		}
 
-		public Path PathByAppendingElementWithName(string name)
-		{
-			Path p = new Path (this.components);
-            if (name == Path.parentId) {
-                p.components.RemoveAt (p.components.Count - 1);
-            } else {
-                p.components.Add (new Component (name));
-            }
-			return p;
-		}
-
-		public Path PathByAppendingElementWithIndex(int index)
-		{
-			Path p = new Path (this.components);
-			p.components.Add (new Component (index));
-			return p;
-		}
-
         [JsonProperty("p")]
         public string componentsString {
             get {
@@ -226,18 +208,6 @@ namespace Ink.Runtime
                 }
             }
         }
-
-		static public Path ToFirstElement()
-		{
-			return ToElementWithIndex (0);
-		}
-
-		static public Path ToElementWithIndex(int index)
-		{
-			var comps = new List<Component> ();
-			comps.Add (new Component (index));
-			return new Path (comps);
-		}
 
 		public override string ToString()
 		{

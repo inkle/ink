@@ -139,13 +139,6 @@ namespace Ink.Runtime
             }
         }
 
-        public Path pathToEnd
-        {
-            get {
-                return Path.ToElementWithIndex (content.Count);
-            }
-        }
-
 		public Container ()
 		{
             _content = new List<Runtime.Object> ();

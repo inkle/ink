@@ -50,6 +50,12 @@ namespace Ink.Runtime
                 callStack.currentElement.currentObject = value;
             }
         }
+
+        public Container currentContainer {
+            get {
+                return callStack.currentElement.currentContainer;
+            }
+        }
             
         public bool hasError
         {
@@ -107,8 +113,13 @@ namespace Ink.Runtime
 
             currentChoices = new List<ChoiceInstance> ();
 
-            // Go to start
-            currentPath = Path.ToFirstElement ();
+            GoToStart();
+        }
+
+        internal void GoToStart()
+        {
+            callStack.currentElement.currentContainer = story.mainContentContainer;
+            callStack.currentElement.currentContentIndex = 0;
         }
 
         // Warning: Any Runtime.Object content referenced within the StoryState will

@@ -472,8 +472,7 @@ namespace Ink.Runtime
 
             // Don't create choice instance if player has already read this content
             if (choice.onceOnly) {
-                var choiceTargetContainer = ClosestContainerToObject (choice.choiceTarget);
-                var visitCount = VisitCountForContainer (choiceTargetContainer);
+                var visitCount = VisitCountForContainer (choice.choiceTarget);
                 if (visitCount > 0) {
                     showChoice = false;
                 }
@@ -728,8 +727,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var currentContainer = ClosestContainerAtPath (state.currentPath);
-                    var count = VisitCountForContainer(currentContainer) - 1; // index not count
+                    var count = VisitCountForContainer(state.currentContainer) - 1; // index not count
                     state.PushEvaluationStack (new LiteralInt (count));
                     break;
 
@@ -879,7 +877,7 @@ namespace Ink.Runtime
 
             _temporaryEvaluationContainer = exprContainer;
 
-            state.currentPath = Path.ToFirstElement ();
+            state.GoToStart ();
 
             int evalStackHeight = state.evaluationStack.Count;
 
@@ -1240,7 +1238,7 @@ namespace Ink.Runtime
                 }
 
                 // Step past the point where we last called out
-                if (didPop && state.currentPath != null) {
+                if (didPop && state.currentContentObject != null) {
                     NextContent ();
                 }
 			}
@@ -1400,7 +1398,7 @@ namespace Ink.Runtime
                 return 0;
             }
 
-            var seqContainer = ClosestContainerAtPath (state.currentPath);
+            var seqContainer = state.currentContainer;
 
             int numElements = numElementsLiteral.value;
 
@@ -1436,20 +1434,6 @@ namespace Ink.Runtime
             }
 
             throw new System.Exception ("Should never reach here");
-        }
-
-        Runtime.Container ClosestContainerAtPath(Path path)
-        {
-            var content = ContentAtPath (path);
-            return ClosestContainerToObject (content);
-        }
-
-        Runtime.Container ClosestContainerToObject(Runtime.Object content)
-        {
-            while (content && !(content is Container)) {
-                content = content.parent;
-            }
-            return (Runtime.Container) content;
         }
 
         // Throw an exception that gets caught and causes AddError to be called,
@@ -1496,9 +1480,12 @@ namespace Ink.Runtime
                 DebugMetadata dm;
 
                 // Try to get from the current path first
-                dm = DebugMetadataAtPath(state.currentPath);
-                if (dm != null) {
-                    return dm;
+                var currentContent = state.currentContentObject;
+                if (currentContent) {
+                    dm = currentContent.debugMetadata;
+                    if (dm != null) {
+                        return dm;
+                    }
                 }
                     
                 // Move up callstack if possible
@@ -1535,22 +1522,7 @@ namespace Ink.Runtime
             }
         }
 
-        DebugMetadata DebugMetadataAtPath(Path path)
-        {
-            if (path != null) {
-                var currentObj = ContentAtPath (path);
-                if (currentObj) {
-                    var dm = currentObj.debugMetadata;
-                    if (dm != null) {
-                        return dm;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        Container mainContentContainer {
+        internal Container mainContentContainer {
             get {
                 if (_temporaryEvaluationContainer) {
                     return _temporaryEvaluationContainer;
