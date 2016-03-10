@@ -193,7 +193,9 @@ namespace Ink
 
             Whitespace ();
 
-            var logic = (Parsed.Object) Expect(InnerLogic, "some kind of logic within braces: { ... }");
+            var logic = (Parsed.Object) Expect(InnerLogic, "some kind of logic, conditional or sequence within braces: { ... }");
+            if (logic == null)
+                return null;
 
             ContentList contentList = logic as ContentList;
             if (!contentList) {
