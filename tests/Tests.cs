@@ -2012,6 +2012,20 @@ CONST kX = ""hi""
 ", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestEmptyMultilineConditionalBranch()
+        {
+            var story = CompileString (@"
+{ 3:
+    - 3:
+    - 4:
+        txt
+}
+");
+
+            Assert.AreEqual("", story.Continue ());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

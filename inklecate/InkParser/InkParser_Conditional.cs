@@ -221,6 +221,15 @@ namespace Ink
                 content.Add (new Text (""));
             }
 
+            // Allow additional multiline whitespace, if the statements were empty (valid)
+            // then their surrounding multiline whitespacce needs to be handled manually.
+            // e.g.
+            // { x:
+            //   - 1:    // intentionally left blank, but newline needs to be parsed
+            //   - 2: etc
+            // }
+            MultilineWhitespace ();
+
             var branch = new ConditionalSingleBranch (content);
             branch.ownExpression = expr;
             branch.alwaysMatch = isElse;

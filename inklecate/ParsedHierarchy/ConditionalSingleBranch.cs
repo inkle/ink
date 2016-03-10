@@ -49,8 +49,11 @@ namespace Ink.Parsed
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
         {
-            _innerWeave = new Weave (content);
-            AddContent (_innerWeave);
+            // Branches are allowed to be empty
+            if (content != null) {
+                _innerWeave = new Weave (content);
+                AddContent (_innerWeave);
+            }
         }
 
         // Runtime content can be summarised as follows:
@@ -121,6 +124,11 @@ namespace Ink.Parsed
 
         Runtime.Container GenerateRuntimeForContent()
         {
+            // Empty branch - create empty container
+            if (_innerWeave == null) {
+                return new Runtime.Container ();
+            }
+
             var container = _innerWeave.rootContainer;
 
             // Small optimisation: If it's just one piece of content that has
