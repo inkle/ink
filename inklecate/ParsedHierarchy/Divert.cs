@@ -240,11 +240,6 @@ namespace Ink.Parsed
                         runtimeDivert.pushesToStack = false;
                         runtimeDivert.targetPath = new Runtime.Path (this.target.firstComponent);
                         CheckExternalArgumentValidity (context);
-
-                        // It's external, but a fallback target was found with the same name
-                        if (targetWasFound) {
-                            #warning TODO: Validate that fallback is a function and has the same arguments
-                        }
                     }
                     return;
                 }
@@ -274,6 +269,8 @@ namespace Ink.Parsed
             // Can't check arguments properly. It'll be due to some
             // other error though, so although there's a problem and 
             // we report false, we don't need to report a specific error.
+            // It may also be because it's a valid call to an external
+            // function, that we check at the resolve stage.
             if (targetContent == null) {
                 return;
             }
@@ -349,7 +346,7 @@ namespace Ink.Parsed
             }
 
             if (ownArgCount != externalArgCount) {
-                Error ("incorrect number of arguments sent to '" + externalName + "'. Expected " + externalArgCount + " but got " + ownArgCount);
+                Error ("incorrect number of arguments sent to external function '" + externalName + "'. Expected " + externalArgCount + " but got " + ownArgCount);
             }
         }
 
