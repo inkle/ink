@@ -44,7 +44,7 @@ namespace Ink
                 } 
 
                 else {
-                    Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ include ...\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
+                    Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
                 }
             }
 

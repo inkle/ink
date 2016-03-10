@@ -395,9 +395,9 @@ The compiler will warn you if ambiguous names are used.
 
 You can also split your content across multiple files, using an include statement.
 
-	~ include newspaper.ink
-	~ include cities/vienna.ink
-	~ include journeys/orient_express.ink
+	INCLUDE newspaper.ink
+	INCLUDE cities/vienna.ink
+	INCLUDE journeys/orient_express.ink
 	
 Include statements should always go at the top of a file, and not inside knots.
 
