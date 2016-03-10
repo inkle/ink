@@ -238,8 +238,8 @@ namespace Tests
         {
             var storyStr =
                 @"
-~ include test_included_file.ink
-~ include test_included_file2.ink
+INCLUDE test_included_file.ink
+  INCLUDE test_included_file2.ink
 
 This is the main file.
                 ";
@@ -253,7 +253,7 @@ This is the main file.
         {
             var storyStr =
                 @"
-~ include test_included_file3.ink
+INCLUDE test_included_file3.ink
 
 This is the main file
 

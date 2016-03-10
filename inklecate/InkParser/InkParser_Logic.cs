@@ -25,7 +25,7 @@ namespace Ink
             // ~ f()         -- expr
             // We don't treat variable decl/assign as an expression since we don't want an assignment
             // to have a return value, or to be used in compound expressions.
-            ParseRule afterTilda = () => OneOf (IncludeStatement, ReturnStatement, TempDeclarationOrAssignment, Expression);
+            ParseRule afterTilda = () => OneOf (ReturnStatement, TempDeclarationOrAssignment, Expression);
 
             var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine) as Parsed.Object;
 
@@ -36,7 +36,16 @@ namespace Ink
             // ...since it's bad practice, and won't do what they expect if
             // they're expecting C's lazy evaluation.
             if (result is Expression && !(result is FunctionCall || result is IncDecExpression) ) {
-                Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ include ...\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
+
+                // TODO: Remove this specific error message when it has expired in usefulness
+                var varRef = result as VariableReference;
+                if (varRef && varRef.name == "include") {
+                    Error ("'~ include' is no longer the correct syntax - please use 'INCLUDE your_filename.ink', without the tilda, and in block capitals.");
+                } 
+
+                else {
+                    Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ include ...\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
+                }
             }
 
             // A function call on its own line could result in a text side effect, in which case
@@ -125,7 +134,9 @@ namespace Ink
 
         protected object IncludeStatement()
         {
-            if (ParseString ("include") == null)
+            Whitespace ();
+
+            if (ParseString ("INCLUDE") == null)
                 return null;
 
             Whitespace ();

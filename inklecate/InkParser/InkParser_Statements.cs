@@ -103,6 +103,9 @@ namespace Ink
                 rulesAtLevel.Add(Line(VariableDeclaration));
                 rulesAtLevel.Add(Line(ConstDeclaration));
 
+                // Global include can go anywhere
+                rulesAtLevel.Add(Line(IncludeStatement));
+
                 // Normal logic / text can go anywhere
                 rulesAtLevel.Add(LogicLine);
                 rulesAtLevel.Add(LineOfMixedTextAndLogic);

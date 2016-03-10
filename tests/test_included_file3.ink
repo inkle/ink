@@ -1,1 +1,1 @@
-﻿~ include test_included_file4.ink
+﻿INCLUDE test_included_file4.ink
