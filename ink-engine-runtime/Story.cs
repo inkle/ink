@@ -1012,6 +1012,8 @@ namespace Ink.Runtime
         // Is there a better way of doing this?!
         public void BindExternalFunction(string funcName, Func<object> func)
         {
+			Assert(func != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 0, "External function expected no arguments");
                 return func();
@@ -1020,6 +1022,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction(string funcName, Action act)
         {
+			Assert(act != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 0, "External function expected no arguments");
                 act();
@@ -1029,6 +1033,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction<T>(string funcName, Func<T, object> func)
         {
+			Assert(func != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 1, "External function expected one argument");
                 return func( (T)TryCoerce<T>(args[0]) );
@@ -1037,6 +1043,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction<T>(string funcName, Action<T> act)
         {
+			Assert(act != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 1, "External function expected one argument");
                 act( (T)TryCoerce<T>(args[0]) );
@@ -1048,6 +1056,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction<T1, T2>(string funcName, Func<T1, T2, object> func)
         {
+			Assert(func != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 2, "External function expected two arguments");
                 return func(
@@ -1059,6 +1069,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction<T1, T2>(string funcName, Action<T1, T2> act)
         {
+			Assert(act != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 2, "External function expected two arguments");
                 act(
@@ -1071,6 +1083,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction<T1, T2, T3>(string funcName, Func<T1, T2, T3, object> func)
         {
+			Assert(func != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 2, "External function expected two arguments");
                 return func(
@@ -1083,6 +1097,8 @@ namespace Ink.Runtime
 
         public void BindExternalFunction<T1, T2, T3>(string funcName, Action<T1, T2, T3> act)
         {
+			Assert(act != null, "Can't bind a null function");
+
             BindExternalFunctionGeneral (funcName, (object[] args) => {
                 Assert(args.Length == 2, "External function expected two arguments");
                 act(
