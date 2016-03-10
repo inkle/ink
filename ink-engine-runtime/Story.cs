@@ -150,8 +150,13 @@ namespace Ink.Runtime
         {
             if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
                 var originalPath = state.currentPath;
+
                 ChoosePathString ("global decl");
-                Continue ();
+
+                // Continue, but without validating external bindings,
+                // since we may be doing this reset at initialisation time.
+                ContinueInternal ();
+
                 state.currentPath = originalPath;
             }
         }
@@ -163,13 +168,20 @@ namespace Ink.Runtime
         /// you should call <c>canContinue</c> before calling this function.
         /// </summary>
         /// <returns>The line of text content.</returns>
-		public string Continue()
-		{
+        public string Continue()
+        {
             // TODO: Should we leave this to the client, since it could be
             // slow to iterate through all the content an extra time?
             if( !_hasValidatedExternals )
                 ValidateExternalBindings ();
 
+
+            return ContinueInternal ();
+        }
+
+
+        string ContinueInternal()
+		{
             if (!canContinue) {
                 throw new StoryException ("Can't continue - should check canContinue before calling Continue");
             }
