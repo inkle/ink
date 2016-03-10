@@ -172,6 +172,9 @@ namespace Ink
             // the test script is also played
             if (opts.playMode) {
 
+                // Always allow ink external fallbacks
+                story.allowExternalFunctionFallbacks = true;
+
                 var player = new CommandLinePlayer (story, false, parsedStory);
                 player.Begin ();
             } 

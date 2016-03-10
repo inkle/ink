@@ -900,11 +900,36 @@ namespace Ink.Runtime
 
         }
 
+        /// <summary>
+        /// An ink file can provide a fallback functions for when when an EXTERNAL has been left
+        /// unbound by the client, and the fallback function will be called instead. Useful when
+        /// testing a story in playmode, when it's not possible to write a client-side C# external
+        /// function, but you don't want it to fail to run.
+        /// </summary>
+        public bool allowExternalFunctionFallbacks { get; set; }
+
         internal void CallExternalFunction(string funcName, int numberOfArguments)
         {
             ExternalFunction func = null;
+            Container fallbackFunctionContainer = null;
+
             var foundExternal = _externals.TryGetValue (funcName, out func);
-            Assert (foundExternal, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound.");
+
+            // Try to use fallback function?
+            if (!foundExternal) {
+                if (allowExternalFunctionFallbacks) {
+                    fallbackFunctionContainer = ContentAtPath (new Path (funcName)) as Container;
+                    Assert (fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound, and fallback ink function could not be found.");
+
+                    // Divert direct into fallback function and we're done
+                    state.callStack.Push (PushPopType.Function);
+                    state.divertedTargetObject = fallbackFunctionContainer;
+                    return;
+
+                } else {
+                    Assert (false, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound (and ink fallbacks disabled).");
+                }
+            }
 
             // Pop arguments
             var arguments = new List<object>();
@@ -914,9 +939,11 @@ namespace Ink.Runtime
                 arguments.Add (valueObj);
             }
 
+            // Run the function!
+            object funcResult = func (arguments.ToArray());
+
             // Convert return value (if any) to the a type that the ink engine can use
             Runtime.Object returnObj = null;
-            object funcResult = func (arguments.ToArray());
             if (funcResult != null) {
                 returnObj = Literal.Create (funcResult);
                 Assert (returnObj != null, "Could not create ink value from returned object of type " + funcResult.GetType());
@@ -1088,8 +1115,17 @@ namespace Ink.Runtime
             var divert = o as Divert;
             if (divert && divert.isExternal) {
                 var name = divert.targetPathString;
+
                 if (!_externals.ContainsKey (name)) {
-                    Error ("Missing function binding for external '" + name + "'");
+
+                    INamedContent fallbackFunction = null;
+                    bool fallbackFound = mainContentContainer.namedContent.TryGetValue (name, out fallbackFunction);
+
+                    if (!allowExternalFunctionFallbacks)
+                        Error ("Missing function binding for external '" + name + "' (ink fallbacks disabled)");
+                    else if( !fallbackFound ) {
+                        Error ("Missing function binding for external '" + name + "', and no fallback ink function found.");
+                    }
                 }
             }
         }

@@ -217,38 +217,46 @@ namespace Ink.Parsed
             } 
 
             // Check validity of target content
-            if (targetContent == null) {
-                if (target.numberOfComponents == 1 ) {
+            bool targetWasFound = targetContent != null;
+            bool isBuiltIn = false;
+            bool isExternal = false;
 
-                    // BuiltInt means TURNS_SINCE or CHOICE_COUNT
-                    bool isBuiltIn = FunctionCall.IsValidName (target.firstComponent);
+            if (target.numberOfComponents == 1 ) {
 
-                    // Client-bound function?
-                    bool isExternal = context.IsExternal (target.firstComponent);
+                // BuiltIn means TURNS_SINCE or CHOICE_COUNT
+                isBuiltIn = FunctionCall.IsValidName (target.firstComponent);
 
-                    if (isBuiltIn || isExternal) {
-                        if (!isFunctionCall) {
-                            base.Error (target.firstComponent + " must be called as a function: ~ " + target.firstComponent + "()");
-                        }
-                        if (isExternal) {
-                            runtimeDivert.isExternal = true;
-                            if( arguments != null )
-                                runtimeDivert.externalArgs = arguments.Count;
-                            runtimeDivert.pushesToStack = false;
-                            runtimeDivert.targetPath = new Runtime.Path (this.target.firstComponent);
-                            CheckExternalArgumentValidity (context);
-                        }
-                        return;
+                // Client-bound function?
+                isExternal = context.IsExternal (target.firstComponent);
+
+                if (isBuiltIn || isExternal) {
+                    if (!isFunctionCall) {
+                        base.Error (target.firstComponent + " must be called as a function: ~ " + target.firstComponent + "()");
                     }
-                }
+                    if (isExternal) {
+                        runtimeDivert.isExternal = true;
+                        if( arguments != null )
+                            runtimeDivert.externalArgs = arguments.Count;
+                        runtimeDivert.pushesToStack = false;
+                        runtimeDivert.targetPath = new Runtime.Path (this.target.firstComponent);
+                        CheckExternalArgumentValidity (context);
 
-                // Variable target?
-                if (runtimeDivert.variableDivertName != null) {
+                        // It's external, but a fallback target was found with the same name
+                        if (targetWasFound) {
+                            #warning TODO: Validate that fallback is a function and has the same arguments
+                        }
+                    }
                     return;
                 }
-                        
-                Error ("target not found: '" + target + "'");
             }
+
+            // Variable target?
+            if (runtimeDivert.variableDivertName != null) {
+                return;
+            }
+                  
+            if( !targetWasFound && !isBuiltIn && !isExternal )
+                Error ("target not found: '" + target + "'");
 		}
 
         // Returns false if there's an error
