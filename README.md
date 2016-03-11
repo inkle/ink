@@ -54,6 +54,11 @@ Broadly, the engine is made up of two components:
     
  * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
+## Integrating into your game
+
+We currently have a C# runtime DLL, for example for use in Unity. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease.
+
+For information on getting started, see [Running Your Ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
 
 ## Building
 
