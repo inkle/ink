@@ -56,7 +56,23 @@ Broadly, the engine is made up of two components:
 
 ## Integrating into your game
 
-We currently have a C# runtime DLL, for example for use in Unity. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease.
+We currently have a C# runtime DLL, for example for use in Unity. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster, and is all you need to get started:
+
+    using Ink.Runtime;
+
+    // 1) Load story
+    Story story = new Story.CreateWithJson(sourceJsonString);
+
+    // 2) Game content, line by line
+    while(story.canContinue)
+        Console.WriteLine(story.Continue());
+
+    // 3) Display story.currentChoices list, allow player to choose one
+    Console.WriteLine(story.currentChoices[0].choiceText);
+    story.ChooseChoiceIndex(0);
+
+    // 4) Back to 2
+    ... 
 
 For information on getting started, see [Running Your Ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
 
