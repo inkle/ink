@@ -38,7 +38,7 @@ Broadly, the engine is made up of two components:
 
 ## Writing
 
-**Warning:** Since the engine is in alpha, it hasn't been neatly packaged up for non-technical writers. Right now, you need to build the compiler yourself, and you need basic knowledge of the command line to try out your stories.
+**Warning:** Since the engine is in alpha, it hasn't been neatly packaged up for non-technical writers. Right now, you need basic knowledge of the command line to try out your stories.
 
  * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
