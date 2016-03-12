@@ -61,15 +61,15 @@ We currently have a C# runtime DLL, for example for use in Unity. It has a very 
     using Ink.Runtime;
 
     // 1) Load story
-    Story story = new Story.CreateWithJson(sourceJsonString);
+    _story = Story.CreateWithJson(sourceJsonString);
 
     // 2) Game content, line by line
-    while(story.canContinue)
-        Console.WriteLine(story.Continue());
+    while(_story.canContinue)
+        Debug.Log(story.Continue());
 
     // 3) Display story.currentChoices list, allow player to choose one
-    Console.WriteLine(story.currentChoices[0].choiceText);
-    story.ChooseChoiceIndex(0);
+    Debug.Log(_story.currentChoices[0].choiceText);
+    _story.ChooseChoiceIndex(0);
 
     // 4) Back to 2
     ... 

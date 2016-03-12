@@ -36,25 +36,25 @@ From there, you make calls to the story in a loop. There are two repeating stage
 
  1. **Present content:** You repeatedly call `Continue()` on it, which returns individual lines of string content, until the `canContinue` property becomes false. For example:
     
-        while (story.canContinue) {
-            Console.WriteLine (story.Continue ());
+        while (_inkStory.canContinue) {
+            Debug.Log (_inkStory.Continue ());
         }
         
-    A simpler way to achieve the above is through one call to `story.ContinueMaximally()`. However, in many stories it's useful to pause the story at each line, for example when stepping through dialogue. Also, in such games, there may be state changes that should be reflected in the UI, such as resource counters.
+    A simpler way to achieve the above is through one call to `_inkStory.ContinueMaximally()`. However, in many stories it's useful to pause the story at each line, for example when stepping through dialogue. Also, in such games, there may be state changes that should be reflected in the UI, such as resource counters.
  
  2. **Make choice:** When there isn't any more content, you should check to see whether there any choices to present to the player. To do so, use something like:
 
-        if( story.currentChoices.Count > 0 ) 
+        if( _inkStory.currentChoices.Count > 0 ) 
         {
-            for (int i = 0; i < story.currentChoices.Count; ++i) {
-                ChoiceInstance choice = story.currentChoices [i];
-                Console.WriteLine ("CHOICE {0}: {1}", (i + 1), choice.choiceText);
+            for (int i = 0; i < _inkStory.currentChoices.Count; ++i) {
+                ChoiceInstance choice = _inkStory.currentChoices [i];
+                Debug.Log ("CHOICE {0}: {1}", (i + 1), choice.choiceText);
             }
         }
         
     ...and when the player provides input:
     
-        story.ChooseChoiceIndex (index);
+        _inkStory.ChooseChoiceIndex (index);
         
     And now you're ready to return to step 1, and present content again.
     
@@ -87,13 +87,13 @@ Of course, you can also use *External Functions* - see below, but the above appr
 
 Top level named sections in **ink** are called knots (see [the writing tutorial](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md)). You can tell the runtime engine to jump to a particular named knot:
 
-    story.ChoosePathString("myKnotName");
+    _inkStory.ChoosePathString("myKnotName");
 
 And then call `Continue()` as usual.
 
 To jump directly to a stitch within a knot, use a `.` as a separator:
 
-    story.ChoosePathString("myKnotName.theStitchWithin");
+    _inkStory.ChoosePathString("myKnotName.theStitchWithin");
     
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
 
@@ -101,15 +101,15 @@ To jump directly to a stitch within a knot, use a `.` as a separator:
 
 The state of the variables in the **ink** engine is, appropriately enough, stored within the `variablesState` object within the `story`. You can both get and set variables directly on this object:
 
-    story.variablesState["player_health"] = 100
+    _inkStory.variablesState["player_health"] = 100
     
-    int health = (int) story.variablesState["player_health"]
+    int health = (int) _inkStory.variablesState["player_health"]
 
 ## Variable observers
 
 You can register a delegate function to be called whenever a particular variable changes. This can be useful to reflect the state of certain **ink** variables directly in the UI. For example:
 
-    story.ObserveVariable ("health", (string varName, object newValue) => {
+    _inkStory.ObserveVariable ("health", (string varName, object newValue) => {
         SetHealthInUI((int)newValue);
     });
 
@@ -126,7 +126,7 @@ You can define game-side functions in C# that can be called directly from **ink*
 
 2. **Before** calling `story.Begin()`, bind your C# function. For example:
 
-        story.BindExternalFunction ("multiply", (int arg1, float arg2) => {
+        _inkStory.BindExternalFunction ("multiply", (int arg1, float arg2) => {
             return arg1 * arg2;
         });  
 
@@ -147,6 +147,6 @@ We recommend we debug the compiler so that you get a breakpoint in its code when
 
     -p -d <path to your game's ink files directory> yourMainFile.ink
     
-The `-d` switch allows you to specify the root directory for your ink files, which may be necessary depending on where your game files are compared to the ink repo, and whether you have ink `include` statements. The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
+The `-d` switch allows you to specify the root directory for your ink files, which may be necessary depending on where your game files are compared to the ink repo, and whether you have ink `INCLUDE` statements. The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
 
 When your story hits an assertion, you may be able to glean a little more information from the state of the ink engine. See the [Architecture and Development](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) document for help understanding and debugging the engine code.
