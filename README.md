@@ -111,7 +111,7 @@ We also have a public room in HipChat where you may find someone to help you:
 In terms of related projects outside of the scope of this repo, we'd love to see the following since we don't have time to do it ourselves right now, and we think it would substantially help the community:
 
  * A more friendly install-edit-play flow for writers. For example, a downloadable GUI-based app with an editor pane on the left and a play pane on the right. Bonus points if the play pane automatically reloads the state of the story as you type!
- * Implementations of the runtime engine in other languages - for example JavaScript, so that stories can be run on the web.
+ * Implementations of the runtime engine in other languages - for example JavaScript, so that stories can be run on the web. (Note that although we'd be excited to see that right now, we'd probably recommend that you don't embark on such a project just yet, since the runtime may still change substantially, so it could create unnecessary maintenance work.)
  * Unity template project to demonstrate how to set up a particular style of game.
 
 ## Roadmap
