@@ -56,7 +56,7 @@ Broadly, the engine is made up of two components:
 
 ## Integrating into your game
 
-We currently have a C# runtime DLL, for example for use in Unity. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster, and is all you need to get started:
+We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unity, and you'll also need the included `Newtonsoft.Json.dll`. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster, and is all you need to get started:
 
     using Ink.Runtime;
 
@@ -148,6 +148,8 @@ See the [architectural overview documentation](https://github.com/inkle/ink/blob
 # License
 
 **ink** is released under the MIT license. Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
+
+[Newtonsoft's Json.NET](http://www.newtonsoft.com/json) is included, and also has the MIT License.
 
 ### The MIT License (MIT)
 Copyright (c) 2016 inkle Ltd.

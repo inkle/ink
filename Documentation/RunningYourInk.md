@@ -6,7 +6,9 @@ At this point, we're assuming that you're up and running: you have at least a ba
 
 *(Note that if you're not using Unity, skip to the section below; we'll assume that you've loaded your `.json` file into a string, ready to go.)*
 
-Add your compiled `.json` story to Unity, and it'll be imported as a TextAsset. We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
+Add your compiled `.json` story to Unity, and it'll be imported as a TextAsset. You'll also need to add the `ink-engine.dll` and `Newtonsoft.Json.dll` libraries.
+
+We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
 
 	using Ink.Runtime;
 
