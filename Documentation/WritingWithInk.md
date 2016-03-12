@@ -358,7 +358,7 @@ is the same as:
 		
 (...unless we move the order of the stitches around inside the knot!)
 
-The first stitch can also be left unnamed.
+You can also include content at the top of a knot outside of any stitch. However, you need to remember to divert out of it - the engine *won't* automatically enter the first stitch once it's worked its way through the header content.
 
 	=== the_orient_express === 
 
