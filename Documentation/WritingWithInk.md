@@ -1307,7 +1307,39 @@ You can even put options inside conditional blocks:
 
 ...but note that the lack of weave-syntax and nesting in the above example isn't accidental: to avoid confusing the various kinds of nesting at work, you aren't allowed to include gather points inside conditional blocks.
 
+### Multiline list blocks
 
+There's one other class of multiline block, which expands on the list functionality previous mentioned. The following are all valid and do what you might expect:
+ 
+ 	// Sequence: go through the alternatives, and stick on last 
+	{ stopping:
+		-	I entered the casino.
+		-  I entered the casino again.
+		-  Once more, I went inside.
+	}
+	
+	// Shuffle: show one at random
+	At the table, I drew a card. <>
+	{ shuffle:
+		- 	Ace of Hearts.
+		- 	King of Spades.
+		- 	2 of Diamonds.
+			'You lose!' crowed the croupier.
+			-> leave_casino
+	}
+	
+	// Cycle: show each in turn, and then cycle
+	{ cycle:
+		- I held my breath.
+		- I waited impatiently.
+		- I paused.
+	}
+	
+	// Once: show each, once, in turn, until all have been shown
+	{ once:
+		- Would my luck hold?
+		- Could I win the hand?
+	}
 
 ## 4) Temporary Variables
 
@@ -1767,7 +1799,7 @@ Tunnels are on a call-stack, so can safely recurse.
 
 ## 2) Threads
 
-TODO: We need to write proper documentation for this!
+TODO: Review this section to ensure examples are sensible!
 
 So far, everything in ink has been entirely linear, despite all the branching and diverting. But it's actually possible for a writer to 'fork' a story into different sub-sections, to cover more possible player actions. 
 
