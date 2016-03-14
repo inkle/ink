@@ -1764,7 +1764,7 @@ Tunnels can also be chained together, or finish on a normal divert:
 	-> crossing_the_date_line -> check_foggs_health -> done
 	...
 
-Tunnels can be nested, so the following valid:
+Tunnels can be nested, so the following is valid:
 
 	=== plains ===
 	= night_time 
