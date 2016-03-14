@@ -1910,13 +1910,13 @@ If we didn't, the end of content might be a story-bug or a hanging story thread,
 
 ### Using `-> DONE`
 
-So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here.
+So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here".
 
 Note that we don't need a `-> DONE` if the flow ends with options that fail their conditions. The engine treats this as a valid, intentional, end of flow state.
 
 **You do not need a `-> DONE` in a thread after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
 
-Using `-> END` in this case will no end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
+Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
  
 
 
