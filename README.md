@@ -48,6 +48,11 @@ Broadly, the engine is made up of two components:
     
     **Windows:** `inklecate.exe -p myStory.ink`
     
+    **Linux:** `mono inklecate.exe -p myStory.ink`
+    
+    * To run on Linux, you need the Mono runtime and the Mono System.Core library (for CLI 4.0). If you have access to the debian repository, you can install these using: <br>
+    `sudo apt-get install mono-runtime libmono-system-core4.0-cil`
+
     The `-p` option uses play mode so that you can see the result immediately.
     
     Optionally, you may want to install **inklecate** at a system level (e.g. on Mac copy to `/usr/local/bin`).
@@ -87,6 +92,10 @@ For information on getting started, see [Running Your Ink](https://github.com/in
 **Mac:**
     
  * [Xamarin](https://xamarin.com/download), or Unity's own version of MonoDevelop
+
+**Linux:**
+
+  * [Mono](http://www.mono-project.com/). For detailed installation instructions, see [Installing Mono on Linux](http://www.mono-project.com/docs/getting-started/install/linux/).
 
 ### Build
 
