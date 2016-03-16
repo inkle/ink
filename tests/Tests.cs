@@ -511,8 +511,6 @@ VAR x = 0
         [Test ()]
         public void TestChoiceWithBracketsOnly()
         {
-            // The final "->" doesn't have anywhere to go, so it should
-            // happily just go to the end of the flow.
             var storyStr = "*   [Option]\n    Text";
 
             Story story = CompileString (storyStr);
@@ -524,21 +522,6 @@ VAR x = 0
             story.ChooseChoiceIndex (0);
 
             Assert.AreEqual ("Text\n", story.Continue());
-        }
-
-        [Test ()]
-        public void TestDivertWeaveArrowTypes()
-        {
-            var storyStr =
-                @"
-- (one) one -> two
-- (two) two -> three
-- (three) three
-                ";
-
-            Story story = CompileString (storyStr);
-
-            Assert.AreEqual ("one two three\n", story.ContinueMaximally());
         }
             
         [Test ()]
@@ -574,7 +557,6 @@ VAR x = 0
 
             Story story = CompileString (storyStr);
 
-            // Unfortunate leading newline...
             Assert.AreEqual ("this is a '|' character\n", story.ContinueMaximally());
         }
 
