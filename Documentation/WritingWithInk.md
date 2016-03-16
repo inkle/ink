@@ -1307,7 +1307,39 @@ You can even put options inside conditional blocks:
 
 ...but note that the lack of weave-syntax and nesting in the above example isn't accidental: to avoid confusing the various kinds of nesting at work, you aren't allowed to include gather points inside conditional blocks.
 
+### Multiline list blocks
 
+There's one other class of multiline block, which expands on the list functionality previous mentioned. The following are all valid and do what you might expect:
+ 
+ 	// Sequence: go through the alternatives, and stick on last 
+	{ stopping:
+		-	I entered the casino.
+		-  I entered the casino again.
+		-  Once more, I went inside.
+	}
+	
+	// Shuffle: show one at random
+	At the table, I drew a card. <>
+	{ shuffle:
+		- 	Ace of Hearts.
+		- 	King of Spades.
+		- 	2 of Diamonds.
+			'You lose!' crowed the croupier.
+			-> leave_casino
+	}
+	
+	// Cycle: show each in turn, and then cycle
+	{ cycle:
+		- I held my breath.
+		- I waited impatiently.
+		- I paused.
+	}
+	
+	// Once: show each, once, in turn, until all have been shown
+	{ once:
+		- Would my luck hold?
+		- Could I win the hand?
+	}
 
 ## 4) Temporary Variables
 
@@ -1684,7 +1716,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	=== outside_honolulu ===
 	We arrived at the large island of Honolulu.
 	- (postscript) 
-		{crossing_the_date_line(-> done) 
+		{crossing_the_date_line(-> done)} 
 	- (done)
 		-> END 
 
@@ -1693,7 +1725,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	=== outside_pitcairn_island ===
 	The boat sailed along the water towards the tiny island.
 	- (postscript) 
-		{crossing_the_date_line(-> done) 
+		{crossing_the_date_line(-> done)} 
 	- (done)
 		-> END 
 	
@@ -1732,7 +1764,7 @@ Tunnels can also be chained together, or finish on a normal divert:
 	-> crossing_the_date_line -> check_foggs_health -> done
 	...
 
-Tunnels can be nested, so the following valid:
+Tunnels can be nested, so the following is valid:
 
 	=== plains ===
 	= night_time 
@@ -1767,7 +1799,7 @@ Tunnels are on a call-stack, so can safely recurse.
 
 ## 2) Threads
 
-TODO: We need to write proper documentation for this!
+TODO: Review this section to ensure examples are sensible!
 
 So far, everything in ink has been entirely linear, despite all the branching and diverting. But it's actually possible for a writer to 'fork' a story into different sub-sections, to cover more possible player actions. 
 
@@ -1878,13 +1910,13 @@ If we didn't, the end of content might be a story-bug or a hanging story thread,
 
 ### Using `-> DONE`
 
-So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here.
+So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here".
 
 Note that we don't need a `-> DONE` if the flow ends with options that fail their conditions. The engine treats this as a valid, intentional, end of flow state.
 
 **You do not need a `-> DONE` in a thread after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
 
-Using `-> END` in this case will no end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
+Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
  
 
 
