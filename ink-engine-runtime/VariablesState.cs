@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    public class VariablesState
+	public class VariablesState : IEnumerable<string>
     {
         internal delegate void VariableChanged(string variableName, Runtime.Object newValue);
         internal event VariableChanged variableChangedEvent;
@@ -56,6 +56,16 @@ namespace Ink.Runtime
                 SetGlobal (variableName, literal);
             }
         }
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
+
+		public IEnumerator<string> GetEnumerator()
+		{
+			return _globalVariables.Keys.GetEnumerator();
+		}
 
         internal VariablesState (CallStack callStack)
         {
