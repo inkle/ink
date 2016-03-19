@@ -111,7 +111,7 @@ Note that the executable requires Mono on Mac or .NET on Windows. On Windows thi
 
 We’d of course appreciate any bug fixes you might find! Also see the roadmap below for future planned features and optimisations that you might be able to help out with.
 
-[Create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature. (Is this the best place for community discussion? We're pretty new to open source!) Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
+We're using GitHub issues both as a discussion forum and as a bug tracker, so [create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature, and please label appropriately. Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
 
 We also have a public room in HipChat where you may find someone to help you:
 
