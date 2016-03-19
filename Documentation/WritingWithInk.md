@@ -250,7 +250,7 @@ You can't use too much glue: multiple glues next to each other have no additiona
 
 Combining knots, options and diverts gives us the basic structure of a choose-your-own game.
 
-	== paragraph 1 === 
+	== paragraph_1 === 
 	You stand by the wall of Analand, sword in hand.
 	* [Open the gate] -> paragraph_2 
 	* [Smash down the gate] -> paragraph_3
@@ -272,7 +272,7 @@ Using diverts, the writer can branch the flow, and join it back up again, withou
 	*	"There is not a moment to lose!"[] I declared.
 		-> hurry_outside 
 		
-	*	"Monsieur, let us savour this moment![] I declared.
+	*	"Monsieur, let us savour this moment!"[] I declared.
 		My master clouted me firmly around the head and dragged me out of the door. 
 		-> dragged_outside 
 	
