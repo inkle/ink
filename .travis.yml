@@ -1,0 +1,8 @@
+language: csharp
+solution: ink.sln
+install:
+  - sudo apt-get install nunit-console
+before_script:
+  - nuget restore ink.sln
+after_script:
+  - nunit-console tests/bin/Debug/tests.dll
