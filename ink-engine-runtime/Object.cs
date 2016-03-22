@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
     [JsonObject(MemberSerialization.OptIn)]
-	public /* TODO: abstract */ class Object
+    public /* TODO: abstract */ class Object : IJsonSerialisable
 	{
 		public Runtime.Object parent { get; set; }
 
@@ -32,6 +33,15 @@ namespace Ink.Runtime
 //        [JsonProperty("dm")]
 //        #endif
         DebugMetadata _debugMetadata;
+
+        public virtual JToken jsonToken {
+            get {
+                throw new System.NotImplementedException ("Json serialisation for "+this.GetType());
+            }
+            set {
+                throw new System.NotImplementedException ("Json serialisation for "+this.GetType());
+            }
+        }
 
         // Serialised type
         [JsonProperty("%t")]

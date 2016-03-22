@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
-    internal class StoryState
+    internal class StoryState : IJsonSerialisable
     {
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method
@@ -159,6 +161,18 @@ namespace Ink.Runtime
             copy.didSafeExit = didSafeExit;
 
             return copy;
+        }
+
+        public JToken jsonToken
+        {
+            get {
+                return new JObject (
+                    new JProperty("variablesState", variablesState.jsonToken)
+                );
+            }
+            set {
+                variablesState.jsonToken = value["variablesState"];
+            }
         }
 
         public void ResetErrors()

@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)VariablesState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PushPop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StoryState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonSerialisable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />

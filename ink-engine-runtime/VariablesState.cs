@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
-	public class VariablesState : IEnumerable<string>
+	public class VariablesState : IEnumerable<string>, IJsonSerialisable
     {
         internal delegate void VariableChanged(string variableName, Runtime.Object newValue);
         internal event VariableChanged variableChangedEvent;
@@ -86,6 +87,28 @@ namespace Ink.Runtime
                 } else {
                     _batchObservingVariableChanges = false;
                     _changedVariables = null;
+                }
+            }
+        }
+
+        public JToken jsonToken
+        {
+            get {
+                var jsonObj = new JObject ();
+
+                foreach (var keyVal in _globalVariables) {
+                    var literalValue = keyVal.Value as Runtime.Object;
+                    if (literalValue != null)
+                        jsonObj [keyVal.Key] = literalValue.jsonToken;
+                }
+
+                return jsonObj;
+            }
+            set {
+                _globalVariables.Clear ();
+
+                foreach (var keyVal in (JObject)value) {
+                    _globalVariables [keyVal.Key] = Runtime.Literal.CreateWithJson (keyVal.Value);
                 }
             }
         }
