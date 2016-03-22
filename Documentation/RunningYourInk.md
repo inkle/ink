@@ -8,6 +8,8 @@ At this point, we're assuming that you're up and running: you have at least a ba
 
 Add your compiled `.json` story to Unity, and it'll be imported as a TextAsset. You'll also need to add the `ink-engine.dll` and `Newtonsoft.Json.dll` libraries.
 
+Change API compatibility for .NET: Go into `Edit -> Project settings -> Player -> Other settings` and change API compatibility level from .NET 2.0 subset (the default) to .NET 2.0. (If you get the error `TypeLoadException: Could not load type 'Newtonsoft.Json.Linq.JArray' from assembly 'Newtonsoft.Json`..., this is what's wrong.)
+
 We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
 
 	using Ink.Runtime;
