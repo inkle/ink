@@ -49,14 +49,14 @@ namespace Ink.Runtime
             
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
-        // Use CreateWithJson for normal use.
+        // For normal use, use the constructor that takes a json string.
         internal Story (Container contentContainer)
 		{
 			_mainContentContainer = contentContainer;
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
 
-        public static Story CreateWithJson(string jsonString)
+        public Story(string jsonString) : this((Container)null)
         {
             JObject rootObject = JObject.Parse (jsonString);
 
@@ -78,11 +78,9 @@ namespace Ink.Runtime
                 throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
             
 
-            var rootContainer = Json.JTokenToRuntimeObject (rootToken) as Container;
-            var story = new Story (rootContainer);
-            story.ResetState ();
+            _mainContentContainer = Json.JTokenToRuntimeObject (rootToken) as Container;
 
-            return story;
+            ResetState ();
         }
 
         public string ToJsonString(bool indented = false)

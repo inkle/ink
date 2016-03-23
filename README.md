@@ -66,7 +66,7 @@ We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unit
     using Ink.Runtime;
 
     // 1) Load story
-    _story = Story.CreateWithJson(sourceJsonString);
+    _story = new Story(sourceJsonString);
 
     // 2) Game content, line by line
     while(_story.canContinue)

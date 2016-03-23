@@ -139,7 +139,7 @@ namespace Ink
 
             // Opening up a compiled json file for playing
             else {
-                story = Runtime.Story.CreateWithJson (inputString);
+                story = new Runtime.Story (inputString);
 
                 // No purpose for loading an already compiled file other than to play it
                 opts.playMode = true;
@@ -160,7 +160,7 @@ namespace Ink
 //
 //                Console.WriteLine ("---------------------------------------------------");
 //
-//                var reloadedStory = Runtime.Story.CreateWithJson (jsonStr);
+//                var reloadedStory = new Runtime.Story (jsonStr);
 //                var newJsonStr = reloadedStory.ToJsonString (indented: true);
 //                Console.WriteLine (newJsonStr);
 //

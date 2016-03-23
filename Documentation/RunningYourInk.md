@@ -25,7 +25,7 @@ We recommend that you create a wrapper MonoBehaviour component for the **ink** `
 
 ## Getting started with the runtime API
 
-The API for loading and running your story is very straightforward. Pass your json string into `Ink.Runtime.Story.CreateWithJson(...)`. For example, in Unity:
+The API for loading and running your story is very straightforward. Construct a new `Story` object, passing in json string. For example, in Unity:
 
     using Ink.Runtime;
 
@@ -33,7 +33,7 @@ The API for loading and running your story is very straightforward. Pass your js
 
     void Awake()
     {
-        _inkStory = Story.CreateWithJson(inkAsset.text);
+        _inkStory = new Story(inkAsset.text);
     }
     
 From there, you make calls to the story in a loop. There are two repeating stages:

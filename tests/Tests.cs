@@ -76,7 +76,7 @@ namespace Tests
             // Convert to json and back again
             if (_mode == TestMode.JsonRoundTrip) {
                 var jsonStr = story.ToJsonString (indented:true);
-                story = Story.CreateWithJson (jsonStr);
+                story = new Story (jsonStr);
             }
 
 			return story;
