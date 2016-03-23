@@ -9,6 +9,9 @@ namespace Ink.Runtime
 {
     internal class StoryState
     {
+        const int kInkSaveStateVersion = 1;
+        const int kMinCompatibleLoadVersion = 1;
+
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method, and serialisation.
         // REMEMBER! REMEMBER! REMEMBER!
@@ -193,11 +196,24 @@ namespace Ink.Runtime
                 obj ["turnIdx"] = currentTurnIndex;
                 obj ["storySeed"] = storySeed;
 
+                obj ["inkSaveVersion"] = kInkSaveStateVersion;
+
+                // Not using this right now, but could do in future.
+                obj ["inkFormatVersion"] = Story.inkVersionCurrent;
+
                 return obj;
             }
             set {
 
                 var jObject = (JObject)value;
+
+                var jSaveVersion = jObject ["inkSaveVersion"];
+                if (jSaveVersion == null) {
+                    throw new StoryException ("ink save format incorrect, can't load.");
+                }
+                else if (jSaveVersion.ToObject<int> () < kMinCompatibleLoadVersion) {
+                    throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
+                }
 
                 callStack.SetJsonToken (jObject ["callstackThreads"], story);
                 variablesState.jsonToken = jObject["variablesState"];

@@ -10,7 +10,7 @@ namespace Ink.Runtime
 {
 	public class Story : Runtime.Object
 	{
-        const int inkVersionCurrent = 10;
+        public const int inkVersionCurrent = 10;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
