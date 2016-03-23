@@ -15,13 +15,20 @@ namespace Ink.Runtime
             return jArray;
         }
 
-        public static List<Runtime.Object> JArrayToRuntimeObjList(JArray jArray)
+        public static List<Runtime.Object> JArrayToRuntimeObjList(JArray jArray, bool skipLast=false)
         {
+            int count = jArray.Count;
+            if (skipLast)
+                count--;
+
             var list = new List<Runtime.Object> (jArray.Count);
-            foreach (var jTok in jArray) {
-                var runtimeObj = JTokenToRuntimeObject (jTok);;
+
+            for (int i = 0; i < count; i++) {
+                var jTok = jArray [i];
+                var runtimeObj = JTokenToRuntimeObject (jTok);
                 list.Add (runtimeObj);
             }
+
             return list;
         }
 
@@ -115,11 +122,79 @@ namespace Ink.Runtime
                 }
             }
 
+            // Array is always a Runtime.Container
+            if (token.Type == JTokenType.Array) {
+
+                var jArray = (JArray)token;
+
+                var container = new Container ();
+                container.content = JArrayToRuntimeObjList (jArray, skipLast:true);
+
+                // Final object in the array is always a combination of
+                //  - named content
+                //  - a "#" key with the countFlags
+                // (if either exists at all, otherwise null)
+                var terminatingObj = jArray [jArray.Count - 1] as JObject;
+                if (terminatingObj != null) {
+
+                    var namedOnlyContent = new Dictionary<string, Runtime.Object> (terminatingObj.Count);
+
+                    foreach (var keyVal in terminatingObj) {
+                        if (keyVal.Key == "#") {
+                            container.countFlags = keyVal.Value.ToObject<int> ();
+                        } else {
+                            namedOnlyContent [keyVal.Key] = JTokenToRuntimeObject(keyVal.Value);
+                        }
+                    }
+
+                    container.namedOnlyContent = namedOnlyContent;
+                }
+
+                return container;
+            }
+
+            if (token.Type == JTokenType.Null)
+                return null;
+
             throw new System.Exception ("Failed to convert token to runtime object: " + token);
         }
 
         public static JToken RuntimeObjectToJToken(Runtime.Object obj)
         {
+            var container = obj as Container;
+            if (container) {
+
+                var jArray = ListToJArray (container.content);
+
+                // Container is always an array [...]
+                // But the final element is always either:
+                //  - a dictionary containing the named content, as well as possibly
+                //    the key "#" with the count flags
+                //  - null, if neither of the above
+                var namedOnlyContent = container.namedOnlyContent;
+                var countFlags = container.countFlags;
+                if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0) {
+
+                    JObject terminatingObj;
+                    if (namedOnlyContent != null)
+                        terminatingObj = DictionaryRuntimeObjsToJObject (namedOnlyContent);
+                    else
+                        terminatingObj = new JObject ();
+
+                    if( countFlags > 0 )
+                        terminatingObj ["#"] = new JValue (countFlags);
+
+                    jArray.Add (terminatingObj);
+                } 
+
+                // Add null terminator to indicate that there's no dictionary
+                else {
+                    jArray.Add (null);
+                }
+
+                return jArray;
+            }
+
             var litInt = obj as LiteralInt;
             if (litInt)
                 return new JValue (litInt.value);
@@ -161,6 +236,11 @@ namespace Ink.Runtime
                     return new JValue ("G<");
                 else
                     return new JValue ("G>");
+            }
+
+            var controlCmd = obj as ControlCommand;
+            if (controlCmd) {
+                return new JValue(_controlCommandNames [(int)controlCmd.commandType]);
             }
 
             var nativeFunc = obj as Runtime.NativeFunctionCall;

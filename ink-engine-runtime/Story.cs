@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
@@ -57,75 +58,42 @@ namespace Ink.Runtime
 
         public static Story CreateWithJson(string jsonString)
         {
-            JsonTextReader reader = new JsonTextReader(new StringReader(jsonString));
-            while (reader.Read ()) {
+            JObject rootObject = JObject.Parse (jsonString);
 
-                if (reader.TokenType == JsonToken.PropertyName) {
+            var versionObj = rootObject ["inkVersion"];
+            if (versionObj == null)
+                throw new System.Exception ("ink version number not found. Are you sure it's a valid .ink.json file?");
 
-                    var propName = reader.Value as string;
-                    if (propName == "inkVersion") {
-                        reader.Read ();
-                        int formatFromFile = System.Convert.ToInt32( reader.Value );
-
-                        if (formatFromFile > inkVersionCurrent) {
-                            throw new System.Exception ("Version of ink used to build story was newer than the current verison of the engine");
-                        } else if (formatFromFile < inkVersionMinimumCompatible) {
-                            throw new System.Exception ("Version of ink used to build story is too old to be loaded by this verison of the engine");
-                        } else if (formatFromFile != inkVersionCurrent) {
-                            Console.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
-                        }
-                    } 
-
-                    else if (propName == "root") {
-
-                        var settings = new JsonSerializerSettings { 
-                            DefaultValueHandling = DefaultValueHandling.Ignore
-                        };
-
-                        settings.Converters.Add(new ObjectJsonConverter());
-
-                        var serialiser = JsonSerializer.Create (settings);
-
-                        reader.Read ();
-
-                        var rootContainer = serialiser.Deserialize<Container> (reader);
-                        var story = new Story (rootContainer);
-
-                        story.ResetState ();
-
-                        return story;
-                    }
-                }
-
+            int formatFromFile = versionObj.ToObject<int> ();
+            if (formatFromFile > inkVersionCurrent) {
+                throw new System.Exception ("Version of ink used to build story was newer than the current verison of the engine");
+            } else if (formatFromFile < inkVersionMinimumCompatible) {
+                throw new System.Exception ("Version of ink used to build story is too old to be loaded by this verison of the engine");
+            } else if (formatFromFile != inkVersionCurrent) {
+                Console.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
             }
+                
+            var rootToken = rootObject ["root"];
+            if (rootToken == null)
+                throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
+            
 
-            throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
+            var rootContainer = Json.JTokenToRuntimeObject (rootToken) as Container;
+            var story = new Story (rootContainer);
+            story.ResetState ();
+
+            return story;
         }
 
         public string ToJsonString(bool indented = false)
         {
-            var formatting = indented ? Formatting.Indented : Formatting.None;
-            var settings = new JsonSerializerSettings { 
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            settings.Converters.Add (new JsonSimplificationConverter ());
+            var rootContainerToken = Json.RuntimeObjectToJToken (_mainContentContainer);
 
-            var rootJsonString = JsonConvert.SerializeObject(_mainContentContainer, formatting, settings);
+            var rootObject = new JObject ();
+            rootObject ["inkVersion"] = new JValue (inkVersionCurrent);
+            rootObject ["root"] = rootContainerToken;
 
-            // Wrap root in an object 
-            StringBuilder sb = new StringBuilder();
-            StringWriter sw = new StringWriter(sb);
-            using (JsonWriter writer = new JsonTextWriter (sw)) {
-                writer.WriteStartObject();
-                writer.WritePropertyName("inkVersion");
-                writer.WriteValue(inkVersionCurrent);
-                writer.WritePropertyName("root");
-                writer.WriteRawValue (rootJsonString);
-                writer.WriteEndObject();
-            }
-                
-            return sb.ToString ();
+            return rootObject.ToString ();
         }
             
         public void ResetState()
