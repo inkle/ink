@@ -8,7 +8,7 @@ mkdir -p ReleaseBinary
 
 # Windows: Simply zip up inklecate.exe, Newtonsoft.Json.dll and the runtime together
 # We rely on a compatible version of .NET being installed on Windows
-zip --junk-paths ReleaseBinary/inklecate_windows.zip inklecate/bin/Release/Newtonsoft.Json.dll inklecate/bin/Release/inklecate.exe ink-engine-dll/bin/Release/ink-engine.dll
+zip --junk-paths ReleaseBinary/inklecate_windows_and_linux.zip inklecate/bin/Release/Newtonsoft.Json.dll inklecate/bin/Release/inklecate.exe ink-engine-dll/bin/Release/ink-engine.dll
 
 # Mac: Make a native binary that includes the mono runtime
 # Prepare to bundle up compiled binary
