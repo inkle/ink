@@ -93,7 +93,7 @@ namespace Ink.Runtime
             rootObject ["inkVersion"] = new JValue (inkVersionCurrent);
             rootObject ["root"] = rootContainerToken;
 
-            return rootObject.ToString ();
+            return rootObject.ToString (indented ? Formatting.Indented : Formatting.None);
         }
             
         public void ResetState()
