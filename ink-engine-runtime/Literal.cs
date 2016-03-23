@@ -61,32 +61,6 @@ namespace Ink.Runtime
 
             return null;
         }
-
-        public static Literal CreateWithJson(JToken token)
-        {
-            if (token is JObject) {
-                var jDict = token as IDictionary<string,JToken>;
-
-                if (jDict.ContainsKey ("divTar")) {
-                    var divTarget = new LiteralDivertTarget ();
-                    divTarget.jsonToken = token;
-                    return divTarget;
-                }
-
-                if (jDict.ContainsKey ("varPtr")) {
-                    var divTarget = new LiteralVariablePointer ();
-                    divTarget.jsonToken = token;
-                    return divTarget;
-                }
-                    
-            } else {
-                var jVal = token as JValue;
-                if (jVal != null)
-                    return Create(jVal.Value);
-            }
-
-            throw new System.Exception ("Unexpected json literal type: " + token);
-        }
     }
 
     internal abstract class Literal<T> : Literal
@@ -97,15 +71,6 @@ namespace Ink.Runtime
         public override object valueObject {
             get {
                 return (object)value;
-            }
-        }
-
-        public override JToken jsonToken {
-            get {
-                return new JValue (valueObject);
-            }
-            set {
-                this.value = value.ToObject<T> ();
             }
         }
 
@@ -223,15 +188,6 @@ namespace Ink.Runtime
         public Path targetPath { get { return this.value; } set { this.value = value; } }
         public override LiteralType literalType { get { return LiteralType.DivertTarget; } }
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a divert target"); } }
-
-        public override JToken jsonToken {
-            get {
-                return new JObject(new JProperty("divTar", targetPath.ToString()));
-            }
-            set {
-                this.value = new Path (value ["divTar"].ToString ());
-            }
-        }
             
         public LiteralDivertTarget(Path targetPath) : base(targetPath)
         {
@@ -267,19 +223,6 @@ namespace Ink.Runtime
         // 0  = in global scope
         // 1+ = callstack element index
         public int contextIndex { get; set; }
-
-        public override JToken jsonToken {
-            get {
-                return new JObject(
-                    new JProperty("varPtr", variableName),
-                    new JProperty("ci", contextIndex)
-                );
-            }
-            set {
-                this.variableName = value ["varPtr"].ToString ();
-                this.contextIndex = value ["ci"].ToObject<int>();
-            }
-        }
 
         public LiteralVariablePointer(string variableName, int contextIndex = -1) : base(variableName)
         {

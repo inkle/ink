@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
@@ -160,6 +161,71 @@ namespace Ink.Runtime
             foreach (var otherThread in toCopy._threads) {
                 _threads.Add (otherThread.Copy ());
             }
+        }
+            
+        // Unfortunately it's not possible to implement jsonToken since
+        // the setter needs to take a Story as a context in order to
+        // look up objects from paths for currentContainer within elements.
+        public void SetJsonToken(JToken token, Story storyContext)
+        {
+            _threads.Clear ();
+
+            var jThreads = (JArray) token;
+            foreach (JToken jThreadTok in jThreads) {
+
+                var thread = new Thread ();
+
+                JArray jThreadCallstack = (JArray)jThreadTok;
+                foreach (JToken jElTok in jThreadCallstack) {
+
+                    JObject jElementObj = (JObject)jElTok;
+
+                    PushPopType pushPopType = (PushPopType) jElementObj ["type"].ToObject<int>();
+
+                    Container currentContainer = null;
+                    int contentIndex = 0;
+
+                    string currentContainerPathStr = null;
+                    JToken currentContainerPathStrToken;
+                    if (jElementObj.TryGetValue ("cPath", out currentContainerPathStrToken)) {
+                        currentContainerPathStr = currentContainerPathStrToken.ToString ();
+                        currentContainer = storyContext.ContentAtPath (new Path(currentContainerPathStr)) as Container;
+                        contentIndex = jElementObj ["idx"].ToObject<int> ();
+                    }
+
+                    bool inExpressionEvaluation = jElementObj ["exp"].ToObject<bool> ();
+
+                    var el = new Element (pushPopType, currentContainer, contentIndex, inExpressionEvaluation);
+
+                    var jObjTemps = (JObject) jElementObj ["temp"];
+                    el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs (jObjTemps);
+                        
+                    thread.callstack.Add (el);
+                }
+
+                _threads.Add (thread);
+            }
+        }
+            
+        // See above for why we can't implement jsonToken
+        public JToken GetJsonToken() {
+            var jThreads = new JArray ();
+            foreach (CallStack.Thread thread in _threads) {
+                var jThreadCallstack = new JArray ();
+                foreach (CallStack.Element el in thread.callstack) {
+                    var jObj = new JObject ();
+                    if (el.currentContainer) {
+                        jObj ["cPath"] = el.currentContainer.path.componentsString;
+                        jObj ["idx"] = el.currentContentIndex;
+                    }
+                    jObj ["exp"] = el.inExpressionEvaluation;
+                    jObj ["type"] = (int) el.type;
+                    jObj ["temp"] = Json.DictionaryRuntimeObjsToJObject (el.temporaryVariables);
+                    jThreadCallstack.Add (jObj);
+                }
+                jThreads.Add (jThreadCallstack);
+            }
+            return jThreads;
         }
 
         public void PushThread()

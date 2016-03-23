@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
-    internal class StoryState : IJsonSerialisable
+    internal class StoryState
     {
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method
@@ -166,12 +166,28 @@ namespace Ink.Runtime
         public JToken jsonToken
         {
             get {
-                return new JObject (
-                    new JProperty("variablesState", variablesState.jsonToken)
-                );
+
+                var obj = new JObject ();
+                obj ["callstackThreads"] = callStack.GetJsonToken();
+                obj ["variablesState"] = variablesState.jsonToken;
+
+                // TODO: Can we skip the evaluation stack, since theoretically,
+                // it's only ever used temporarily?
+                obj ["evalStack"] = Json.ListToJArray (evaluationStack);
+
+                obj ["outputStream"] = Json.ListToJArray (_outputStream);
+
+                return obj;
             }
             set {
+                callStack.SetJsonToken (value ["callstackThreads"], story);
                 variablesState.jsonToken = value["variablesState"];
+
+                // TODO: Can we skip the evaluation stack, since theoretically,
+                // it's only ever used temporarily?
+                evaluationStack = Json.JArrayToRuntimeObjList ((JArray)value ["evalStack"]);
+
+                _outputStream = Json.JArrayToRuntimeObjList ((JArray)value ["outputStream"]);
             }
         }
 
