@@ -64,7 +64,9 @@ Other transformers and structuring concepts exist, but hopefully this should giv
 
 ## Runtime code generation
 
-The parsed hierarchy closely resembles the ink as it was originally written. However, the data that's loaded by the ink engine at runtime is very different. It's built out of smaller, more fundamental units, sort of like byte code, though not that low level. For example, in the runtime, there's no concept of Knots, Stitches, Weave, or other high level ink structures. Instead, the runtime consists mainly of general purpose `Runtime.Container` objects and content, inheriting from `Runtime.Object`.
+The parsed hierarchy closely resembles the ink as it was originally written. However, the data that's loaded by the ink engine at runtime is very different. It's built out of smaller, more fundamental units, sort of like byte code, though not that low level. This content is exported to a JSON based format ready to be loaded by the runtime engine within the game. For more information on this format, [see the documentation](https://github.com/inkle/ink/blob/master/Documentation/ink_JSON_runtime_format.md).
+
+In the runtime, there's no concept of Knots, Stitches, Weave, or other high level ink structures. Instead, the runtime consists mainly of general purpose `Runtime.Container` objects and content, inheriting from `Runtime.Object`.
 
 These runtime objects are built by the `Parsed.Object` hierarchy, however not immediately. The constructors of `Parsed.Object` objects are kept as lightweight as possible, since the rewinding of the parser when rules fail can potentially cause them to be built and destroyed multiple times before a final successful hierarchy is produced.
 
