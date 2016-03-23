@@ -101,6 +101,8 @@ As mentioned above, the runtime code is built out of smaller, simpler, objects c
 
 All the higher level structures, including the story itself, any knots and stitches, and even choices, are built out of containers. Within the containers, content is iterated through sequentially, and appended to the output.
 
+This structure is loaded by the ink engine in a [JSON based format](https://github.com/inkle/ink/blob/master/Documentation/ink_JSON_runtime_format.md).
+
 ### Containers
 
 The `Runtime.Container` is general purpose, and can work as either than array or a dictionary, or both. Therefore, it can have ordered (indexed content) that's designed to be iterated through sequentially, and can also have named content, that's designed to be accessed by a string key.
