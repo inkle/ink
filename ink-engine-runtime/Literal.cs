@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Collections.Generic;
 
 namespace Ink.Runtime
@@ -65,7 +63,6 @@ namespace Ink.Runtime
 
     internal abstract class Literal<T> : Literal
     {
-        [JsonProperty("v")]
         public T value { get; set; }
 
         public override object valueObject {

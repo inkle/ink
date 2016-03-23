@@ -1,19 +1,12 @@
-﻿using Newtonsoft.Json;
-
-namespace Ink.Runtime
+﻿namespace Ink.Runtime
 {
     public class Text : Runtime.Object
 	{
         // Immutable
         public string text { get; private set; }
 
-        [JsonIgnore]
         public bool isNewline { get; private set; }
-
-        [JsonIgnore]
         public bool isInlineWhitespace { get; private set; }
-
-        [JsonIgnore]
         public bool isNonWhitespace {
             get {
                 return !isNewline && !isInlineWhitespace;
@@ -34,9 +27,6 @@ namespace Ink.Runtime
                 }
             }
 		}
-
-        // Require default constructor for serialisation
-        public Text() : this("") {}
 
         public override string ToString ()
 		{

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Ink.Runtime
+﻿namespace Ink.Runtime
 {
     internal enum GlueType
     {

@@ -2,11 +2,9 @@
 using System.Linq;
 using System.Diagnostics;
 using Ink.Runtime;
-using Newtonsoft.Json;
 
 namespace Ink.Runtime
 {
-    [JsonObject(MemberSerialization.OptIn)]
 	internal class Path
 	{
         static string parentId = "^";
@@ -174,7 +172,6 @@ namespace Ink.Runtime
 			return p;
 		}
 
-        [JsonProperty("p")]
         public string componentsString {
             get {
                 var compsStr = StringExt.Join (".", components);
