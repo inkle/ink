@@ -10,7 +10,7 @@ namespace Ink.Runtime
             get {
                 return _trueDivert;
             } 
-            private set {
+            set {
                 SetChild (ref _trueDivert, value);
             } 
         }
@@ -21,7 +21,7 @@ namespace Ink.Runtime
             get {
                 return _falseDivert;
             } 
-            private set {
+            set {
                 SetChild (ref _falseDivert, value);
             } 
         }

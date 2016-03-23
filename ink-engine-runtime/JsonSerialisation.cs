@@ -204,6 +204,22 @@ namespace Ink.Runtime
                     return varAss;
                 }
 
+                JToken trueBranch = null;
+                JToken falseBranch = null;
+                if (obj.TryGetValue ("t?", out propValue)) {
+                    trueBranch = propValue;
+                }
+                if (obj.TryGetValue ("f?", out propValue)) {
+                    falseBranch = propValue;
+                }
+                if (trueBranch != null || falseBranch != null) {
+                    var branch = new Branch ();
+                    if( trueBranch != null )
+                        branch.trueDivert = JTokenToRuntimeObject (trueBranch) as Divert;
+                    if( falseBranch != null )
+                        branch.falseDivert = JTokenToRuntimeObject (falseBranch) as Divert;
+                    return branch;
+                }
             }
 
             // Array is always a Runtime.Container
@@ -425,6 +441,16 @@ namespace Ink.Runtime
                 if (!varAss.isNewDeclaration)
                     jObj ["re"] = true;
 
+                return jObj;
+            }
+
+            var branch = obj as Branch;
+            if (branch) {
+                var jObj = new JObject ();
+                if (branch.trueDivert)
+                    jObj ["t?"] = RuntimeObjectToJToken (branch.trueDivert);
+                if (branch.falseDivert)
+                    jObj ["f?"] = RuntimeObjectToJToken (branch.falseDivert);
                 return jObj;
             }
 
