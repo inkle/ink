@@ -258,21 +258,16 @@ namespace Ink.Runtime
                     return varAss;
                 }
 
-                JToken trueBranch = null;
-                JToken falseBranch = null;
+                Divert trueDivert = null;
+                Divert falseDivert = null;
                 if (obj.TryGetValue ("t?", out propValue)) {
-                    trueBranch = propValue;
+                    trueDivert = JTokenToRuntimeObject(propValue) as Divert;
                 }
                 if (obj.TryGetValue ("f?", out propValue)) {
-                    falseBranch = propValue;
+                    falseDivert = JTokenToRuntimeObject(propValue) as Divert;
                 }
-                if (trueBranch != null || falseBranch != null) {
-                    var branch = new Branch ();
-                    if( trueBranch != null )
-                        branch.trueDivert = JTokenToRuntimeObject (trueBranch) as Divert;
-                    if( falseBranch != null )
-                        branch.falseDivert = JTokenToRuntimeObject (falseBranch) as Divert;
-                    return branch;
+                if (trueDivert || falseDivert) {
+                    return new Branch (trueDivert, falseDivert);
                 }
             }
 

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
-    [JsonObject(MemberSerialization.OptIn)]
     public /* TODO: abstract */ class Object
 	{
 		public Runtime.Object parent { get; set; }
@@ -28,30 +25,9 @@ namespace Ink.Runtime
         }
 
         // TODO: Come up with some clever solution for not having
-        // to have debug metadata on the object itself?!
-//        #if DEBUG
-//        [JsonProperty("dm")]
-//        #endif
+        // to have debug metadata on the object itself, perhaps
+        // for serialisation purposes at least.
         DebugMetadata _debugMetadata;
-
-        // Serialised type
-        [JsonProperty("%t")]
-        protected virtual string serialisedTypeName {
-            get {
-                var customNameAttr = (CustomJsonNameAttribute) Attribute.GetCustomAttribute (GetType(), typeof(CustomJsonNameAttribute));
-                if (customNameAttr != null)
-                    return customNameAttr.name;
-
-                foreach (var p in GetType().GetProperties()) {
-                    if (Attribute.GetCustomAttribute (p, typeof(UniqueJsonIdentifierAttribute)) != null) {
-                        return null;
-                    }
-                }
-
-                // Default: unqualified name (i.e. without namespace)
-                return this.GetType ().Name;
-            }
-        }
 
         internal int? DebugLineNumberOfPath(Path path)
         {

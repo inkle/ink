@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace Ink.Runtime
 {
@@ -37,9 +36,7 @@ namespace Ink.Runtime
             GenerateNativeFunctionsIfNecessary ();
             return _nativeFunctions.ContainsKey (functionName);
         }
-
-        [JsonProperty("f")]
-        [UniqueJsonIdentifier]
+            
         public string name { 
             get { 
                 return _name;

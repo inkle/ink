@@ -189,7 +189,7 @@ namespace Ink
             // surrounding the glue.
             var glueStr = ParseString("<>");
             if (glueStr != null) {
-                var glue = new Runtime.Glue ();
+                var glue = new Runtime.Glue (Runtime.GlueType.Bidirectional);
                 return new Parsed.Wrap<Runtime.Glue> (glue);
             } else {
                 return null;

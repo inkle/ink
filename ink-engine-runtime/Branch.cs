@@ -1,11 +1,9 @@
 ﻿using System.Text;
-using Newtonsoft.Json;
 
 namespace Ink.Runtime
 {
     internal class Branch : Runtime.Object
     {
-        [JsonProperty("true")]
         public Divert trueDivert { 
             get {
                 return _trueDivert;
@@ -16,7 +14,6 @@ namespace Ink.Runtime
         }
         Divert _trueDivert;
 
-        [JsonProperty("false")]
         public Divert falseDivert { 
             get {
                 return _falseDivert;
@@ -32,11 +29,7 @@ namespace Ink.Runtime
             this.trueDivert = trueDivert;
             this.falseDivert = falseDivert;
         }
-
-        // Default constructor for serialisation only
-        public Branch()
-        { }
-
+            
         public override string ToString ()
         {
             var sb = new StringBuilder ();

@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.Text;
+﻿using System.Text;
 
 namespace Ink.Runtime
 {
@@ -33,8 +32,6 @@ namespace Ink.Runtime
         }
         Runtime.Object _targetContent;
 
-        [JsonProperty("div")]
-        [UniqueJsonIdentifier]
         public string targetPathString {
             get {
                 if (targetPath == null)
@@ -50,36 +47,14 @@ namespace Ink.Runtime
                 }
             }
         }
-
-        [JsonProperty("vdiv")]
-        [UniqueJsonIdentifier]
+            
         public string variableDivertName { get; set; }
         public bool hasVariableTarget { get { return variableDivertName != null; } }
 
         public bool pushesToStack { get; set; }
         public PushPopType stackPushType;
 
-        [JsonProperty("push")]
-        public string pushTypeString {
-            get {
-                if (!pushesToStack)
-                    return null;
-                return Pop.SerialisationName (stackPushType);
-            }
-            set {
-                if (value != null && value.Length > 0) {
-                    stackPushType = Pop.SerialisedTypeFromName (value);
-                    pushesToStack = true;
-                } else {
-                    pushesToStack = false;
-                }
-            }
-        }
-
-        [JsonProperty("ex")]
         public bool isExternal { get; set; }
-
-        [JsonProperty("exArgC")]
         public int externalArgs { get; set; }
 
 		public Divert ()

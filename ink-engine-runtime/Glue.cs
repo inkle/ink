@@ -13,19 +13,6 @@ namespace Ink.Runtime
     {
         public GlueType glueType { get; set; }
 
-        // Ensure that the default value of "0" doesn't cause the field
-        // to be ommited, since the very presence of the key is important.
-        [JsonProperty("<>", DefaultValueHandling=DefaultValueHandling.Include)]
-        [UniqueJsonIdentifier]
-        public int glueTypeInt {
-            get {
-                return (int)glueType;
-            }
-            set {
-                glueType = (GlueType)value;
-            }
-        }
-
         public bool isLeft {
             get {
                 return glueType == GlueType.Left;
@@ -42,10 +29,6 @@ namespace Ink.Runtime
             get {
                 return glueType == GlueType.Right;
             }
-        }
-
-        public Glue ()
-        {
         }
 
         public Glue(GlueType type) {

@@ -1,5 +1,4 @@
-﻿
-namespace Ink.Runtime
+﻿namespace Ink.Runtime
 {
     internal class Void : Runtime.Object
     {

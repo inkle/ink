@@ -1,12 +1,8 @@
-﻿using Newtonsoft.Json;
-
-namespace Ink.Runtime
+﻿namespace Ink.Runtime
 {
     internal class VariableReference : Runtime.Object
     {
         // Normal named variable
-        [JsonProperty("get")]
-        [UniqueJsonIdentifier]
         public string name { get; set; }
 
         // Variable reference is actually a path for a visit (read) count
@@ -17,9 +13,7 @@ namespace Ink.Runtime
                 return this.ResolvePath (pathForCount) as Container;
             }
         }
-
-        [JsonProperty("readCount")]
-        [UniqueJsonIdentifier]
+            
         public string pathStringForCount { 
             get {
                 if( pathForCount == null )

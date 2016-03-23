@@ -3,19 +3,14 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
 using System.ComponentModel;
 
 namespace Ink.Runtime
 {
-    [JsonObject(MemberSerialization.OptIn)]
 	internal class Container : Runtime.Object, INamedContent
 	{
-        [JsonProperty]
 		public string name { get; set; }
 
-        [JsonProperty("c")]
-        [UniqueJsonIdentifier]
         public List<Runtime.Object> content { 
             get {
                 return _content;
@@ -28,7 +23,6 @@ namespace Ink.Runtime
 
 		public Dictionary<string, INamedContent> namedContent { get; set; }
 
-        [JsonProperty("namedOnly")]
         public Dictionary<string, Runtime.Object> namedOnlyContent { 
             get {
                 var namedOnlyContent = new Dictionary<string, Runtime.Object>();
@@ -78,9 +72,7 @@ namespace Ink.Runtime
             Turns          = 2,
             CountStartOnly = 4
         }
-
-        [JsonProperty(propertyName:"cntFlgs")]
-        [DefaultValue(0)]
+                
         public int countFlags
         {
             get {

@@ -21,7 +21,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Literal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NativeFunctionCall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Object.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectJsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Path.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Story.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StoryException.cs" />

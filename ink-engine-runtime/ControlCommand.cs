@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 
 namespace Ink.Runtime
 {
@@ -28,20 +27,6 @@ namespace Ink.Runtime
         }
             
         public CommandType commandType { get; protected set; }
-
-        // For serialisation
-        [JsonProperty("cmd")]
-        [UniqueJsonIdentifier]
-        public string commandName {
-            get {
-                return this.commandType.ToString ();
-            }
-            set {
-                string[] enumNames = Enum.GetNames (typeof(CommandType));
-                int enumIndex = Array.IndexOf (enumNames, value);
-                commandType = (CommandType) Enum.GetValues(typeof(CommandType)).GetValue(enumIndex);
-            }
-        }
 
         public ControlCommand (CommandType commandType)
         {
