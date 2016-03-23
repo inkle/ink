@@ -102,6 +102,9 @@ namespace Ink.Runtime
                 else if (str == "~ret")
                     return new Runtime.Pop (PushPopType.Function);
 
+                // Void
+                if (str == "void")
+                    return new Runtime.Void ();
             }
 
             if (token.Type == JTokenType.Object) {
@@ -142,7 +145,7 @@ namespace Ink.Runtime
                 else if (obj.TryGetValue ("x()", out propValue)) {
                     isDivert = true;
                     external = true;
-                    pushesToStack = true;
+                    pushesToStack = false;
                     divPushType = PushPopType.Function;
                 }
                 if (isDivert) {
@@ -321,10 +324,10 @@ namespace Ink.Runtime
             var divert = obj as Divert;
             if (divert) {
                 string divTypeKey = "->";
-                if (divert.pushesToStack) {
-                    if (divert.isExternal)
-                        divTypeKey = "x()";
-                    else if (divert.stackPushType == PushPopType.Function)
+                if (divert.isExternal)
+                    divTypeKey = "x()";
+                else if (divert.pushesToStack) {
+                    if (divert.stackPushType == PushPopType.Function)
                         divTypeKey = "f()";
                     else if (divert.stackPushType == PushPopType.Tunnel)
                         divTypeKey = "->t->";
@@ -453,6 +456,10 @@ namespace Ink.Runtime
                     jObj ["f?"] = RuntimeObjectToJToken (branch.falseDivert);
                 return jObj;
             }
+
+            var voidObj = obj as Void;
+            if (voidObj)
+                return "void";
 
             throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
         }
