@@ -32,6 +32,12 @@ namespace Ink.Runtime
             return new NativeFunctionCall (functionName);
         }
 
+        public static bool CallExistsWithName(string functionName)
+        {
+            GenerateNativeFunctionsIfNecessary ();
+            return _nativeFunctions.ContainsKey (functionName);
+        }
+
         [JsonProperty("f")]
         [UniqueJsonIdentifier]
         public string name { 

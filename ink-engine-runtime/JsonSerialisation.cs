@@ -76,7 +76,25 @@ namespace Ink.Runtime
                     return new Runtime.Glue (GlueType.Left);
                 else if(str == "G>")
                     return new Runtime.Glue (GlueType.Right);
-                
+
+                // Control commands (would looking up in a hash set be faster?)
+                for (int i = 0; i < _controlCommandNames.Length; ++i) {
+                    string cmdName = _controlCommandNames [i];
+                    if (str == cmdName) {
+                        return new Runtime.ControlCommand ((ControlCommand.CommandType)i);
+                    }
+                }
+
+                // Native functions
+                if( NativeFunctionCall.CallExistsWithName(str) )
+                    return NativeFunctionCall.CallWithName (str);
+
+                // Pop
+                if (str == "->->")
+                    return new Runtime.Pop (PushPopType.Tunnel);
+                else if (str == "~ret")
+                    return new Runtime.Pop (PushPopType.Function);
+
             }
 
             if (token.Type == JTokenType.Object) {
@@ -145,8 +163,48 @@ namespace Ink.Runtime
                     return new JValue ("G>");
             }
 
+            var nativeFunc = obj as Runtime.NativeFunctionCall;
+            if (nativeFunc)
+                return new JValue(nativeFunc.name);
+
+            var pop = obj as Runtime.Pop;
+            if (pop) {
+                if (pop.type == PushPopType.Function)
+                    return new JValue ("~ret");
+                else
+                    return new JValue ("->->");
+            }
+
             throw new System.Exception ("Failed to runtime object to token: " + obj);
         }
+
+        static Json() 
+        {
+            _controlCommandNames = new string[(int)ControlCommand.CommandType.TOTAL_VALUES];
+
+            _controlCommandNames [(int)ControlCommand.CommandType.EvalStart] = "ev";
+            _controlCommandNames [(int)ControlCommand.CommandType.EvalOutput] = "out";
+            _controlCommandNames [(int)ControlCommand.CommandType.EvalEnd] = "/ev";
+            _controlCommandNames [(int)ControlCommand.CommandType.Duplicate] = "du";
+            _controlCommandNames [(int)ControlCommand.CommandType.PopEvaluatedValue] = "pop";
+            _controlCommandNames [(int)ControlCommand.CommandType.BeginString] = "str";
+            _controlCommandNames [(int)ControlCommand.CommandType.EndString] = "/str";
+            _controlCommandNames [(int)ControlCommand.CommandType.NoOp] = "nop";
+            _controlCommandNames [(int)ControlCommand.CommandType.ChoiceCount] = "choiceCnt";
+            _controlCommandNames [(int)ControlCommand.CommandType.TurnsSince] = "turns";
+            _controlCommandNames [(int)ControlCommand.CommandType.VisitIndex] = "visit";
+            _controlCommandNames [(int)ControlCommand.CommandType.SequenceShuffleIndex] = "seq";
+            _controlCommandNames [(int)ControlCommand.CommandType.StartThread] = "thread";
+            _controlCommandNames [(int)ControlCommand.CommandType.Done] = "done";
+            _controlCommandNames [(int)ControlCommand.CommandType.End] = "end";
+
+            for (int i = 0; i < (int)ControlCommand.CommandType.TOTAL_VALUES; ++i) {
+                if (_controlCommandNames [i] == null)
+                    throw new System.Exception ("Control command not accounted for in serialisation");
+            }
+        }
+
+        static string[] _controlCommandNames;
     }
 }
 

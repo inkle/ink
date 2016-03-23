@@ -22,7 +22,9 @@ namespace Ink.Runtime
             SequenceShuffleIndex,
             StartThread,
             Done,
-            End
+            End,
+            //----
+            TOTAL_VALUES
         }
             
         public CommandType commandType { get; protected set; }
