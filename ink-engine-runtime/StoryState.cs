@@ -10,7 +10,7 @@ namespace Ink.Runtime
     internal class StoryState
     {
         // REMEMBER! REMEMBER! REMEMBER!
-        // When adding state, update the Copy method
+        // When adding state, update the Copy method, and serialisation.
         // REMEMBER! REMEMBER! REMEMBER!
 
         public List<Runtime.Object> outputStream { get { return _outputStream; } }
@@ -162,34 +162,93 @@ namespace Ink.Runtime
 
             return copy;
         }
-
-        public JToken jsonToken
+            
+        internal JToken jsonToken
         {
             get {
+
+                foreach (ChoiceInstance c in currentChoices) {
+                    c.originalChoicePath = c.choice.path.componentsString;
+                    c.originalThreadIndex = c.threadAtGeneration.threadIndex;
+                }
 
                 var obj = new JObject ();
                 obj ["callstackThreads"] = callStack.GetJsonToken();
                 obj ["variablesState"] = variablesState.jsonToken;
 
-                // TODO: Can we skip the evaluation stack, since theoretically,
-                // it's only ever used temporarily?
                 obj ["evalStack"] = Json.ListToJArray (evaluationStack);
 
                 obj ["outputStream"] = Json.ListToJArray (_outputStream);
 
+                obj ["currentChoices"] = Json.ListToJArray (currentChoices);
+
+                if (_currentRightGlue)
+                    obj ["currRightGlue"] = _outputStream.IndexOf (_currentRightGlue);
+
+                if( divertedTargetObject != null )
+                    obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
+
+                obj ["visitCounts"] = Json.IntDictionaryToJObject (visitCounts);
+                obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
+                obj ["turnIdx"] = currentTurnIndex;
+                obj ["storySeed"] = storySeed;
+
                 return obj;
             }
             set {
-                callStack.SetJsonToken (value ["callstackThreads"], story);
-                variablesState.jsonToken = value["variablesState"];
 
-                // TODO: Can we skip the evaluation stack, since theoretically,
-                // it's only ever used temporarily?
-                evaluationStack = Json.JArrayToRuntimeObjList ((JArray)value ["evalStack"]);
+                var jObject = (JObject)value;
 
-                _outputStream = Json.JArrayToRuntimeObjList ((JArray)value ["outputStream"]);
+                callStack.SetJsonToken (jObject ["callstackThreads"], story);
+                variablesState.jsonToken = jObject["variablesState"];
+
+                evaluationStack = Json.JArrayToRuntimeObjList ((JArray)jObject ["evalStack"]);
+
+                _outputStream = Json.JArrayToRuntimeObjList ((JArray)jObject ["outputStream"]);
+
+                currentChoices = Json.JArrayToRuntimeObjList<ChoiceInstance>((JArray)jObject ["currentChoices"]);
+
+                JToken propValue;
+                if( jObject.TryGetValue("currRightGlue", out propValue ) ) {
+                    _currentRightGlue = _outputStream [propValue.ToObject<int> ()] as Glue;
+                }
+
+                JToken currentDivertTargetPath = jObject ["currentDivertTarget"];
+                if (currentDivertTargetPath != null) {
+                    var divertPath = new Path (currentDivertTargetPath.ToString ());
+                    divertedTargetObject = story.ContentAtPath (divertPath);
+                }
+                    
+                visitCounts = Json.JObjectToIntDictionary ((JObject)jObject ["visitCounts"]);
+                turnIndices = Json.JObjectToIntDictionary ((JObject)jObject ["turnIndices"]);
+                currentTurnIndex = jObject ["turnIdx"].ToObject<int> ();
+                storySeed = jObject ["storySeed"].ToObject<int> ();
+
+                foreach (var c in currentChoices) {
+                    c.choice = (Choice) story.ContentAtPath (new Path (c.originalChoicePath));
+                    c.threadAtGeneration = callStack.ThreadWithIndex(c.originalThreadIndex);
+                }
             }
         }
+
+        /// <summary>
+        /// Exports the current state to json format, in order to save the game.
+        /// </summary>
+        /// <returns>The save state in json format.</returns>
+        /// <param name="indented">Whether to 'pretty print' using whitespace.</param>
+        public string ToJson(bool indented=false) {
+            return jsonToken.ToString (indented ? Formatting.Indented : Formatting.None);
+        }
+
+        /// <summary>
+        /// Loads a previously saved state in JSON format.
+        /// </summary>
+        /// <param name="json">The JSON string to load.</param>
+        public void LoadJson(string json)
+        {
+            jsonToken = JToken.Parse (json);
+        }
+
 
         public void ResetErrors()
         {
@@ -560,7 +619,7 @@ namespace Ink.Runtime
         }
 
         // REMEMBER! REMEMBER! REMEMBER!
-        // When adding state, update the Copy method
+        // When adding state, update the Copy method and serialisation
         // REMEMBER! REMEMBER! REMEMBER!
             
         List<Runtime.Object> _outputStream;

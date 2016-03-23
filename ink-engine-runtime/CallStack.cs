@@ -66,6 +66,7 @@ namespace Ink.Runtime
         internal class Thread
         {
             public List<Element> callstack;
+            public int threadIndex;
 
             public Thread() {
                 callstack = new List<Element>();
@@ -73,6 +74,7 @@ namespace Ink.Runtime
 
             public Thread Copy() {
                 var copy = new Thread ();
+                copy.threadIndex = threadIndex;
                 foreach(var e in callstack) {
                     copy.callstack.Add(e.Copy());
                 }
@@ -170,12 +172,18 @@ namespace Ink.Runtime
         {
             _threads.Clear ();
 
-            var jThreads = (JArray) token;
+            var jObject = (JObject)token;
+
+            var jThreads = (JArray) jObject ["threads"];
+
             foreach (JToken jThreadTok in jThreads) {
 
                 var thread = new Thread ();
 
-                JArray jThreadCallstack = (JArray)jThreadTok;
+                JObject jThreadObj = (JObject) jThreadTok;
+                thread.threadIndex = jThreadObj ["threadIndex"].ToObject<int> ();
+
+                JArray jThreadCallstack = (JArray) jThreadObj ["callstack"];
                 foreach (JToken jElTok in jThreadCallstack) {
 
                     JObject jElementObj = (JObject)jElTok;
@@ -205,12 +213,21 @@ namespace Ink.Runtime
 
                 _threads.Add (thread);
             }
+
+            _threadCounter = jObject ["threadCounter"].ToObject<int> ();
         }
             
         // See above for why we can't implement jsonToken
         public JToken GetJsonToken() {
+
+            var jObject = new JObject ();
+
             var jThreads = new JArray ();
             foreach (CallStack.Thread thread in _threads) {
+
+                var threadJObj = new JObject ();
+
+
                 var jThreadCallstack = new JArray ();
                 foreach (CallStack.Element el in thread.callstack) {
                     var jObj = new JObject ();
@@ -223,14 +240,25 @@ namespace Ink.Runtime
                     jObj ["temp"] = Json.DictionaryRuntimeObjsToJObject (el.temporaryVariables);
                     jThreadCallstack.Add (jObj);
                 }
-                jThreads.Add (jThreadCallstack);
+
+                threadJObj ["callstack"] = jThreadCallstack;
+                threadJObj ["threadIndex"] = thread.threadIndex;
+
+                jThreads.Add (threadJObj);
             }
-            return jThreads;
+
+            jObject ["threads"] = jThreads;
+            jObject ["threadCounter"] = _threadCounter;
+
+            return jObject;
         }
 
         public void PushThread()
         {
-            _threads.Add (currentThread.Copy());
+            var newThread = currentThread.Copy ();
+            newThread.threadIndex = _threadCounter;
+            _threadCounter++;
+            _threads.Add (newThread);
         }
 
         public void PopThread()
@@ -324,6 +352,11 @@ namespace Ink.Runtime
                 return -1;
             }
         }
+            
+        public Thread ThreadWithIndex(int index)
+        {
+            return _threads.Find (t => t.threadIndex == index);
+        }
 
         private List<Element> callStack
         {
@@ -333,6 +366,7 @@ namespace Ink.Runtime
         }
 
         private List<Thread> _threads;
+        public int _threadCounter;
     }
 }
 

@@ -456,7 +456,6 @@ namespace Ink.Runtime
             }
                 
             var choiceInstance = new ChoiceInstance (choice);
-            choiceInstance.hasBeenChosen = false;
             choiceInstance.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // We go through the full process of creating the choice above so

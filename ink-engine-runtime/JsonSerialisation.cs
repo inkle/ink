@@ -6,7 +6,7 @@ namespace Ink.Runtime
 {
     internal static class Json
     {
-        public static JArray ListToJArray(List<Runtime.Object> serialisables)
+        public static JArray ListToJArray<T>(List<T> serialisables) where T : Runtime.Object
         {
             var jArray = new JArray ();
             foreach (var s in serialisables) {
@@ -15,21 +15,26 @@ namespace Ink.Runtime
             return jArray;
         }
 
-        public static List<Runtime.Object> JArrayToRuntimeObjList(JArray jArray, bool skipLast=false)
+        public static List<T> JArrayToRuntimeObjList<T>(JArray jArray, bool skipLast=false) where T : Runtime.Object
         {
             int count = jArray.Count;
             if (skipLast)
                 count--;
 
-            var list = new List<Runtime.Object> (jArray.Count);
+            var list = new List<T> (jArray.Count);
 
             for (int i = 0; i < count; i++) {
                 var jTok = jArray [i];
-                var runtimeObj = JTokenToRuntimeObject (jTok);
+                var runtimeObj = JTokenToRuntimeObject (jTok) as T;
                 list.Add (runtimeObj);
             }
 
             return list;
+        }
+
+        public static List<Runtime.Object> JArrayToRuntimeObjList(JArray jArray, bool skipLast=false)
+        {
+            return JArrayToRuntimeObjList<Runtime.Object> (jArray, skipLast);
         }
 
         public static JObject DictionaryRuntimeObjsToJObject(Dictionary<string, Runtime.Object> dictionary)
@@ -54,6 +59,24 @@ namespace Ink.Runtime
             }
 
             return dict;
+        }
+
+        public static Dictionary<string, int> JObjectToIntDictionary(JObject jObject)
+        {
+            var dict = new Dictionary<string, int> (jObject.Count);
+            foreach (var keyVal in jObject) {
+                dict [keyVal.Key] = keyVal.Value.ToObject<int> ();
+            }
+            return dict;
+        }
+
+        public static JObject IntDictionaryToJObject(Dictionary<string, int> dict)
+        {
+            var jObj = new JObject ();
+            foreach (var keyVal in dict) {
+                jObj [keyVal.Key] = keyVal.Value;
+            }
+            return jObj;
         }
 
         // ----------------------
@@ -106,7 +129,8 @@ namespace Ink.Runtime
         // Choice:         {"*": pathString,
         //                  "flg": 18 }
         //
-        //
+        // ChoiceInstance: Nothing too clever, it's only used in the save state,
+        //                 there's not likely to be many of them.
         public static Runtime.Object JTokenToRuntimeObject(JToken token)
         {
             if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float) {
@@ -269,43 +293,14 @@ namespace Ink.Runtime
                 if (trueDivert || falseDivert) {
                     return new Branch (trueDivert, falseDivert);
                 }
+
+                if (obj ["originalChoicePath"] != null)
+                    return JObjectToChoiceInstance (obj);
             }
 
             // Array is always a Runtime.Container
             if (token.Type == JTokenType.Array) {
-
-                var jArray = (JArray)token;
-
-                var container = new Container ();
-                container.content = JArrayToRuntimeObjList (jArray, skipLast:true);
-
-                // Final object in the array is always a combination of
-                //  - named content
-                //  - a "#" key with the countFlags
-                // (if either exists at all, otherwise null)
-                var terminatingObj = jArray [jArray.Count - 1] as JObject;
-                if (terminatingObj != null) {
-
-                    var namedOnlyContent = new Dictionary<string, Runtime.Object> (terminatingObj.Count);
-
-                    foreach (var keyVal in terminatingObj) {
-                        if (keyVal.Key == "#f") {
-                            container.countFlags = keyVal.Value.ToObject<int> ();
-                        } else if (keyVal.Key == "#n") {
-                            container.name = keyVal.Value.ToString ();
-                        } else {
-                            var namedContentItem = JTokenToRuntimeObject(keyVal.Value);
-                            var namedSubContainer = namedContentItem as Container;
-                            if (namedSubContainer)
-                                namedSubContainer.name = keyVal.Key;
-                            namedOnlyContent [keyVal.Key] = namedContentItem;
-                        }
-                    }
-
-                    container.namedOnlyContent = namedOnlyContent;
-                }
-
-                return container;
+                return JArrayToContainer((JArray)token);
             }
 
             if (token.Type == JTokenType.Null)
@@ -318,53 +313,7 @@ namespace Ink.Runtime
         {
             var container = obj as Container;
             if (container) {
-
-                var jArray = ListToJArray (container.content);
-
-                // Container is always an array [...]
-                // But the final element is always either:
-                //  - a dictionary containing the named content, as well as possibly
-                //    the key "#" with the count flags
-                //  - null, if neither of the above
-                var namedOnlyContent = container.namedOnlyContent;
-                var countFlags = container.countFlags;
-                if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0 || container.name != null) {
-
-                    JObject terminatingObj;
-                    if (namedOnlyContent != null) {
-                        terminatingObj = DictionaryRuntimeObjsToJObject (namedOnlyContent);
-
-                        // Strip redundant names from containers if necessary
-                        foreach (var namedContentObj in terminatingObj) {
-                            var subContainerJArray = namedContentObj.Value as JArray;
-                            if (subContainerJArray != null) {
-                                var attrJObj = subContainerJArray [subContainerJArray.Count - 1] as JObject;
-                                if (attrJObj != null) {
-                                    attrJObj.Remove ("#n");
-                                    if (attrJObj.Count == 0)
-                                        subContainerJArray [subContainerJArray.Count - 1] = null;
-                                }
-                            }
-                        }
-
-                    } else
-                        terminatingObj = new JObject ();
-
-                    if( countFlags > 0 )
-                        terminatingObj ["#f"] = countFlags;
-
-                    if( container.name != null )
-                        terminatingObj ["#n"] = container.name;
-
-                    jArray.Add (terminatingObj);
-                } 
-
-                // Add null terminator to indicate that there's no dictionary
-                else {
-                    jArray.Add (null);
-                }
-
-                return jArray;
+                return ContainerToJArray (container);
             }
 
             var divert = obj as Divert;
@@ -507,7 +456,116 @@ namespace Ink.Runtime
             if (voidObj)
                 return "void";
 
+            // Used when serialising save state only
+            var choiceInstance = obj as ChoiceInstance;
+            if (choiceInstance)
+                return ChoiceInstanceToJObject (choiceInstance);
+
             throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
+        }
+
+        static JToken ContainerToJArray(Container container)
+        {
+            var jArray = ListToJArray (container.content);
+
+            // Container is always an array [...]
+            // But the final element is always either:
+            //  - a dictionary containing the named content, as well as possibly
+            //    the key "#" with the count flags
+            //  - null, if neither of the above
+            var namedOnlyContent = container.namedOnlyContent;
+            var countFlags = container.countFlags;
+            if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0 || container.name != null) {
+
+                JObject terminatingObj;
+                if (namedOnlyContent != null) {
+                    terminatingObj = DictionaryRuntimeObjsToJObject (namedOnlyContent);
+
+                    // Strip redundant names from containers if necessary
+                    foreach (var namedContentObj in terminatingObj) {
+                        var subContainerJArray = namedContentObj.Value as JArray;
+                        if (subContainerJArray != null) {
+                            var attrJObj = subContainerJArray [subContainerJArray.Count - 1] as JObject;
+                            if (attrJObj != null) {
+                                attrJObj.Remove ("#n");
+                                if (attrJObj.Count == 0)
+                                    subContainerJArray [subContainerJArray.Count - 1] = null;
+                            }
+                        }
+                    }
+
+                } else
+                    terminatingObj = new JObject ();
+
+                if( countFlags > 0 )
+                    terminatingObj ["#f"] = countFlags;
+
+                if( container.name != null )
+                    terminatingObj ["#n"] = container.name;
+
+                jArray.Add (terminatingObj);
+            } 
+
+            // Add null terminator to indicate that there's no dictionary
+            else {
+                jArray.Add (null);
+            }
+
+            return jArray;
+        }
+
+        static Container JArrayToContainer(JArray jArray)
+        {
+            var container = new Container ();
+            container.content = JArrayToRuntimeObjList (jArray, skipLast:true);
+
+            // Final object in the array is always a combination of
+            //  - named content
+            //  - a "#" key with the countFlags
+            // (if either exists at all, otherwise null)
+            var terminatingObj = jArray [jArray.Count - 1] as JObject;
+            if (terminatingObj != null) {
+
+                var namedOnlyContent = new Dictionary<string, Runtime.Object> (terminatingObj.Count);
+
+                foreach (var keyVal in terminatingObj) {
+                    if (keyVal.Key == "#f") {
+                        container.countFlags = keyVal.Value.ToObject<int> ();
+                    } else if (keyVal.Key == "#n") {
+                        container.name = keyVal.Value.ToString ();
+                    } else {
+                        var namedContentItem = JTokenToRuntimeObject(keyVal.Value);
+                        var namedSubContainer = namedContentItem as Container;
+                        if (namedSubContainer)
+                            namedSubContainer.name = keyVal.Key;
+                        namedOnlyContent [keyVal.Key] = namedContentItem;
+                    }
+                }
+
+                container.namedOnlyContent = namedOnlyContent;
+            }
+
+            return container;
+        }
+
+        static ChoiceInstance JObjectToChoiceInstance(JObject jObj)
+        {
+            var choiceInst = new ChoiceInstance();
+            choiceInst.choiceText = jObj ["choiceText"].ToString();
+            choiceInst.choiceIndex = jObj ["choiceIndex"].ToObject<int>();
+            choiceInst.originalChoicePath = jObj ["originalChoicePath"].ToString();
+            choiceInst.originalThreadIndex = jObj ["originalThreadIndex"].ToObject<int>();
+            return choiceInst;
+        }
+
+        static JObject ChoiceInstanceToJObject(ChoiceInstance choiceInst)
+        {
+            var jObj = new JObject ();
+            jObj ["choiceText"] = choiceInst.choiceText;
+            jObj ["choiceIndex"] = choiceInst.choiceIndex;
+            jObj ["originalChoicePath"] = choiceInst.originalChoicePath;
+            jObj ["originalThreadIndex"] = choiceInst.originalThreadIndex;
+            return jObj;
         }
 
         static Json() 

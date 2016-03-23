@@ -7,9 +7,13 @@ namespace Ink.Runtime
         public string pathStringOnChoice { get { return choice.pathStringOnChoice; } }
         public int choiceIndex { get; set; }
 
-        internal Choice choice { get; private set; }
-        internal bool hasBeenChosen { get; set; }
+        internal Choice choice { get; set; }
         internal CallStack.Thread threadAtGeneration { get; set; }
+        internal int originalThreadIndex;
+
+        // Only used temporarily for loading/saving from JSON
+        internal string originalChoicePath;
+
 
         public ChoiceInstance()
         {
