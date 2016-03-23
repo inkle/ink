@@ -71,7 +71,7 @@ namespace Ink.Runtime
                     return new LiteralString (str.Substring (1));
 
                 // Runtime text
-                if (firstChar == '#')
+                if (firstChar == '$')
                     return new Runtime.Text (str.Substring (1));
                 if (firstChar == '\n' && str.Length == 1)
                     return new Runtime.Text ("\n");
@@ -120,6 +120,90 @@ namespace Ink.Runtime
                         varPtr.contextIndex = propValue.ToObject<int> ();
                     return varPtr;
                 }
+
+                // Divert
+                bool isDivert = false;
+                bool pushesToStack = false;
+                PushPopType divPushType = PushPopType.Function;
+                bool external = false;
+                if (obj.TryGetValue ("->", out propValue)) {
+                    isDivert = true;
+                }
+                else if (obj.TryGetValue ("f()", out propValue)) {
+                    isDivert = true;
+                    pushesToStack = true;
+                    divPushType = PushPopType.Function;
+                }
+                else if (obj.TryGetValue ("->t->", out propValue)) {
+                    isDivert = true;
+                    pushesToStack = true;
+                    divPushType = PushPopType.Tunnel;
+                }
+                else if (obj.TryGetValue ("x()", out propValue)) {
+                    isDivert = true;
+                    external = true;
+                    pushesToStack = true;
+                    divPushType = PushPopType.Function;
+                }
+                if (isDivert) {
+                    var divert = new Divert ();
+                    divert.pushesToStack = pushesToStack;
+                    divert.stackPushType = divPushType;
+                    divert.isExternal = external;
+
+                    string target = propValue.ToString ();
+
+                    if (obj.TryGetValue ("var", out propValue))
+                        divert.variableDivertName = target;
+                    else
+                        divert.targetPathString = target;
+
+                    if (external) {
+                        if (obj.TryGetValue ("exArgs", out propValue))
+                            divert.externalArgs = propValue.ToObject<int> ();
+                    }
+
+                    return divert;
+                }
+                    
+                // Choice
+                if (obj.TryGetValue ("*", out propValue)) {
+                    var choice = new Choice ();
+                    choice.pathStringOnChoice = propValue.ToString();
+
+                    if (obj.TryGetValue ("flg", out propValue))
+                        choice.flags = propValue.ToObject<int>();
+
+                    return choice;
+                }
+
+                // Variable reference
+                if (obj.TryGetValue ("VAR?", out propValue)) {
+                    return new VariableReference (propValue.ToString ());
+                } else if (obj.TryGetValue ("CNT?", out propValue)) {
+                    var readCountVarRef = new VariableReference ();
+                    readCountVarRef.pathStringForCount = propValue.ToString ();
+                    return readCountVarRef;
+                }
+
+                // Variable assignment
+                bool isVarAss = false;
+                bool isGlobalVar = false;
+                if (obj.TryGetValue ("VAR=", out propValue)) {
+                    isVarAss = true;
+                    isGlobalVar = true;
+                } else if (obj.TryGetValue ("temp=", out propValue)) {
+                    isVarAss = true;
+                    isGlobalVar = false;
+                }
+                if (isVarAss) {
+                    var varName = propValue.ToString ();
+                    var isNewDecl = !obj.TryGetValue("re", out propValue);
+                    var varAss = new VariableAssignment (varName, isNewDecl);
+                    varAss.isGlobal = isGlobalVar;
+                    return varAss;
+                }
+
             }
 
             // Array is always a Runtime.Container
@@ -140,10 +224,16 @@ namespace Ink.Runtime
                     var namedOnlyContent = new Dictionary<string, Runtime.Object> (terminatingObj.Count);
 
                     foreach (var keyVal in terminatingObj) {
-                        if (keyVal.Key == "#") {
+                        if (keyVal.Key == "#f") {
                             container.countFlags = keyVal.Value.ToObject<int> ();
+                        } else if (keyVal.Key == "#n") {
+                            container.name = keyVal.Value.ToString ();
                         } else {
-                            namedOnlyContent [keyVal.Key] = JTokenToRuntimeObject(keyVal.Value);
+                            var namedContentItem = JTokenToRuntimeObject(keyVal.Value);
+                            var namedSubContainer = namedContentItem as Container;
+                            if (namedSubContainer)
+                                namedSubContainer.name = keyVal.Key;
+                            namedOnlyContent [keyVal.Key] = namedContentItem;
                         }
                     }
 
@@ -173,16 +263,33 @@ namespace Ink.Runtime
                 //  - null, if neither of the above
                 var namedOnlyContent = container.namedOnlyContent;
                 var countFlags = container.countFlags;
-                if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0) {
+                if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0 || container.name != null) {
 
                     JObject terminatingObj;
-                    if (namedOnlyContent != null)
+                    if (namedOnlyContent != null) {
                         terminatingObj = DictionaryRuntimeObjsToJObject (namedOnlyContent);
-                    else
+
+                        // Strip redundant names from containers if necessary
+                        foreach (var namedContentObj in terminatingObj) {
+                            var subContainerJArray = namedContentObj.Value as JArray;
+                            if (subContainerJArray != null) {
+                                var attrJObj = subContainerJArray [subContainerJArray.Count - 1] as JObject;
+                                if (attrJObj != null) {
+                                    attrJObj.Remove ("#n");
+                                    if (attrJObj.Count == 0)
+                                        subContainerJArray [subContainerJArray.Count - 1] = null;
+                                }
+                            }
+                        }
+
+                    } else
                         terminatingObj = new JObject ();
 
                     if( countFlags > 0 )
-                        terminatingObj ["#"] = new JValue (countFlags);
+                        terminatingObj ["#f"] = countFlags;
+
+                    if( container.name != null )
+                        terminatingObj ["#n"] = container.name;
 
                     jArray.Add (terminatingObj);
                 } 
@@ -195,17 +302,55 @@ namespace Ink.Runtime
                 return jArray;
             }
 
+            var divert = obj as Divert;
+            if (divert) {
+                string divTypeKey = "->";
+                if (divert.pushesToStack) {
+                    if (divert.isExternal)
+                        divTypeKey = "x()";
+                    else if (divert.stackPushType == PushPopType.Function)
+                        divTypeKey = "f()";
+                    else if (divert.stackPushType == PushPopType.Tunnel)
+                        divTypeKey = "->t->";
+                }
+
+                string targetStr;
+                if (divert.hasVariableTarget)
+                    targetStr = divert.variableDivertName;
+                else
+                    targetStr = divert.targetPathString;
+
+                var jObj = new JObject();
+                jObj[divTypeKey] = targetStr;
+
+                if (divert.hasVariableTarget)
+                    jObj ["var"] = true;
+
+                if (divert.externalArgs > 0)
+                    jObj ["exArgs"] = divert.externalArgs;
+
+                return jObj;
+            }
+
+            var choice = obj as Choice;
+            if (choice) {
+                var jObj = new JObject ();
+                jObj ["*"] = choice.pathStringOnChoice;
+                jObj ["flg"] = choice.flags;
+                return jObj;
+            }
+
             var litInt = obj as LiteralInt;
             if (litInt)
-                return new JValue (litInt.value);
+                return litInt.value;
 
             var litFloat = obj as LiteralFloat;
             if (litFloat)
-                return new JValue (litFloat.value);
+                return litFloat.value;
             
             var litStr = obj as LiteralString;
             if (litStr)
-                return new JValue("^" + litStr.value);
+                return "^" + litStr.value;
 
             var litDivTarget = obj as LiteralDivertTarget;
             if (litDivTarget)
@@ -223,39 +368,67 @@ namespace Ink.Runtime
             var text = obj as Runtime.Text;
             if (text) {
                 if (text.isNewline)
-                    return new JValue ("\n");
+                    return "\n";
                 else
-                    return new JValue ("#" + text.text);
+                    return "$" + text.text;
             }
 
             var glue = obj as Runtime.Glue;
             if (glue) {
                 if (glue.isBi)
-                    return new JValue ("<>");
+                    return "<>";
                 else if (glue.isLeft)
-                    return new JValue ("G<");
+                    return "G<";
                 else
-                    return new JValue ("G>");
+                    return "G>";
             }
 
             var controlCmd = obj as ControlCommand;
             if (controlCmd) {
-                return new JValue(_controlCommandNames [(int)controlCmd.commandType]);
+                return _controlCommandNames [(int)controlCmd.commandType];
             }
 
             var nativeFunc = obj as Runtime.NativeFunctionCall;
             if (nativeFunc)
-                return new JValue(nativeFunc.name);
+                return nativeFunc.name;
 
             var pop = obj as Runtime.Pop;
             if (pop) {
                 if (pop.type == PushPopType.Function)
-                    return new JValue ("~ret");
+                    return "~ret";
                 else
-                    return new JValue ("->->");
+                    return "->->";
             }
 
-            throw new System.Exception ("Failed to runtime object to token: " + obj);
+            // Variable reference
+            var varRef = obj as VariableReference;
+            if (varRef) {
+                var jObj = new JObject ();
+                string readCountPath = varRef.pathStringForCount;
+                if (readCountPath != null) {
+                    jObj ["CNT?"] = readCountPath;
+                } else {
+                    jObj ["VAR?"] = varRef.name;
+                }
+
+                return jObj;
+            }
+
+            // Variable assignment
+            var varAss = obj as VariableAssignment;
+            if (varAss) {
+                string key = varAss.isGlobal ? "VAR=" : "temp=";
+                var jObj = new JObject ();
+                jObj [key] = varAss.variableName;
+
+                // Reassignment?
+                if (!varAss.isNewDeclaration)
+                    jObj ["re"] = true;
+
+                return jObj;
+            }
+
+            throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
         }
 
         static Json() 

@@ -18,7 +18,7 @@ namespace Ink.Runtime
             get {
                 return CompactPathString (pathOnChoice);
             }
-            private set {
+            set {
                 pathOnChoice = new Path (value);
             }
         }
@@ -38,6 +38,25 @@ namespace Ink.Runtime
 
         [JsonProperty("default")]
         internal bool isInvisibleDefault { get; set; }
+
+        internal int flags {
+            get {
+                int flags = 0;
+                if (hasCondition)         flags |= 1;
+                if (hasStartContent)      flags |= 2;
+                if (hasChoiceOnlyContent) flags |= 4;
+                if (isInvisibleDefault)   flags |= 8;
+                if (onceOnly)             flags |= 16;
+                return flags;
+            }
+            set {
+                if ((value & 1) > 0)  hasCondition = true;
+                if ((value & 2) > 0)  hasStartContent = true;
+                if ((value & 4) > 0)  hasChoiceOnlyContent = true;
+                if ((value & 8) > 0)  isInvisibleDefault = true;
+                if ((value & 16) > 0) onceOnly = true;
+            }
+        }
 
         internal Choice (bool onceOnly)
 		{
