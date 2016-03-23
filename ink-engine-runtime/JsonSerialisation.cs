@@ -56,6 +56,57 @@ namespace Ink.Runtime
             return dict;
         }
 
+        // ----------------------
+        // JSON ENCODING SCHEME
+        // ----------------------
+        //
+        // Text:           "#The string"  "##The string that begins with a literal hash"
+        //                 "\n"
+        // 
+        // Glue:           "<>", "G<", "G>"
+        // 
+        // ControlCommand: "ev", "out", "/ev", "du" "pop", "str", "/str", "nop", 
+        //                 "choiceCnt", "turns", "visit", "seq", "thread", "done", "end"
+        // 
+        // NativeFunction: "+", "-", "/", "*", "%" "~", "==", ">", "<", ">=", "<=", "!=", "!"... etc
+        // 
+        // Pop:            "->->", "~ret"
+        //
+        // Void:           "void"
+        // 
+        // Literal:        "^literal string", "^^literal string beginning with ^"
+        //                 5, 5.2
+        //                 {"^->": "path.target"}
+        //                 {"^var": "varname", "ci": 0}
+        // 
+        // Container:      [...]
+        //                 [..., 
+        //                     {
+        //                         "subContainerName": ..., 
+        //                         "#f": 5,                    // flags
+        //                         "#n": "containerOwnName"    // only if not redundant
+        //                     }
+        //                 ]
+        // 
+        // Divert:         {"->": "path.target"}
+        //                 {"->": "path.target", "var": true}
+        //                 {"f()": "path.func"}
+        //                 {"->t->": "path.tunnel"}
+        //                 {"x()": "externalFuncName", "exArgs": 5}
+        // 
+        // Branch:         {"t?": divert if true }
+        //                 {"f?": divert if false }
+        // 
+        // Var Assign:     {"VAR=": "varName", "re": true}   // reassignment
+        //                 {"temp=": "varName"}
+        // 
+        // Var ref:        {"VAR?": "varName"}
+        //                 {"CNT?": "stitch name"}
+        // 
+        // Choice:         {"*": pathString,
+        //                  "flg": 18 }
+        //
+        //
         public static Runtime.Object JTokenToRuntimeObject(JToken token)
         {
             if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float) {
