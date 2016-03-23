@@ -62,6 +62,18 @@ From there, you make calls to the story in a loop. There are two repeating stage
         
     And now you're ready to return to step 1, and present content again.
     
+### Saving and loading
+
+To save the state of your story within your game, call:
+
+`string savedJson = _inkStory.state.ToJson();`
+
+...and then to load it again:
+
+`_inkStory.state.LoadJson(savedJson);`
+
+### Is that it?
+    
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.
 
 ## Engine usage and philosophy
