@@ -146,6 +146,8 @@ namespace Ink
             // e.g.
             //   - inline conditionals must have exactly 1 or 2 alternatives
             //   - multiline expression shouldn't have mixed existence of branch-conditions?
+            if (alternatives == null)
+                return null;
 
             var cond = new Conditional (initialQueryExpression, alternatives);
             return cond;
@@ -246,10 +248,6 @@ namespace Ink
 
             if (ParseString (":") == null)
                 return null;
-
-            // Optional "..."
-            Parse(Whitespace);
-            ParseCharactersFromString (".");
 
             return expr;
         }

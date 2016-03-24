@@ -245,7 +245,7 @@ namespace Ink
             // Conditional with expression?
             var initialQueryExpression = Parse(ConditionExpression);
             if (initialQueryExpression) {
-                var conditional = (Conditional) Expect(() => InnerConditionalContent (initialQueryExpression), "conditional content following query (i.e. '"+initialQueryExpression+"'");
+                var conditional = (Conditional) Expect(() => InnerConditionalContent (initialQueryExpression), "conditional content following query");
                 return conditional;
             }
 
