@@ -120,6 +120,14 @@ The state of the variables in the **ink** engine is, appropriately enough, store
     _inkStory.variablesState["player_health"] = 100
     
     int health = (int) _inkStory.variablesState["player_health"]
+    
+## Read/Visit counts
+
+To find out the number of times that a knot or stitch has been visited by the ink engine, you can use this API:
+
+    _inkStory.state.VisitCountAtPathString("...");
+    
+The path string is in the form `"yourKnot"` for knots, and `"yourKnot.yourStitch"` for stitches.
 
 ## Variable observers
 
