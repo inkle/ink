@@ -7,31 +7,70 @@ using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
-    internal class StoryState
+    public class StoryState
     {
-        const int kInkSaveStateVersion = 1;
+        public const int kInkSaveStateVersion = 1;
         const int kMinCompatibleLoadVersion = 1;
+
+        /// <summary>
+        /// Exports the current state to json format, in order to save the game.
+        /// </summary>
+        /// <returns>The save state in json format.</returns>
+        /// <param name="indented">Whether to 'pretty print' using whitespace.</param>
+        public string ToJson(bool indented=false) {
+            return jsonToken.ToString (indented ? Formatting.Indented : Formatting.None);
+        }
+
+        /// <summary>
+        /// Loads a previously saved state in JSON format.
+        /// </summary>
+        /// <param name="json">The JSON string to load.</param>
+        public void LoadJson(string json)
+        {
+            jsonToken = JToken.Parse (json);
+        }
+
+        /// <summary>
+        /// Gets the visit/read count of a particular Container at the given path.
+        /// For a knot or stitch, that path string will be in the form:
+        /// 
+        ///     knot
+        ///     knot.stitch
+        /// 
+        /// </summary>
+        /// <returns>The number of times the specific knot or stitch has
+        /// been enountered by the ink engine.</returns>
+        /// <param name="pathString">The dot-separated path string of
+        /// the specific knot or stitch.</param>
+        internal int VisitCountAtPathString(string pathString)
+        {
+            int visitCountOut;
+            if (visitCounts.TryGetValue (pathString, out visitCountOut))
+                return visitCountOut;
+
+            return -1;
+        }
 
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method, and serialisation.
         // REMEMBER! REMEMBER! REMEMBER!
 
-        public List<Runtime.Object> outputStream { get { return _outputStream; } }
-        public List<ChoiceInstance> currentChoices { get; private set; }
-        public List<string> currentErrors { get; private set; }
-        public VariablesState variablesState { get; private set; }
-        public CallStack callStack { get; private set; }
-        public List<Runtime.Object> evaluationStack { get; private set; }
-        public Runtime.Object divertedTargetObject { get; set; }
-        public Dictionary<string, int> visitCounts { get; private set; }
-        public Dictionary<string, int> turnIndices { get; private set; }
-        public int currentTurnIndex { get; private set; }
-        public int storySeed { get; private set; }
-        public bool didSafeExit { get; set; }
+        internal List<Runtime.Object> outputStream { get { return _outputStream; } }
+        internal List<ChoiceInstance> currentChoices { get; private set; }
+        internal List<string> currentErrors { get; private set; }
+        internal VariablesState variablesState { get; private set; }
+        internal CallStack callStack { get; private set; }
+        internal List<Runtime.Object> evaluationStack { get; private set; }
+        internal Runtime.Object divertedTargetObject { get; set; }
+        internal Dictionary<string, int> visitCounts { get; private set; }
+        internal Dictionary<string, int> turnIndices { get; private set; }
+        internal int currentTurnIndex { get; private set; }
+        internal int storySeed { get; private set; }
+        internal bool didSafeExit { get; set; }
 
-        public Story story { get; set; }
+        internal Story story { get; set; }
 
-        public Path currentPath { 
+        internal Path currentPath { 
             get { 
                 if (currentContentObject == null)
                     return null;
@@ -46,7 +85,7 @@ namespace Ink.Runtime
             }
         }
 
-        public Runtime.Object currentContentObject {
+        internal Runtime.Object currentContentObject {
             
             get {
                 return callStack.currentElement.currentObject;
@@ -56,20 +95,20 @@ namespace Ink.Runtime
             }
         }
 
-        public Container currentContainer {
+        internal Container currentContainer {
             get {
                 return callStack.currentElement.currentContainer;
             }
         }
             
-        public bool hasError
+        internal bool hasError
         {
             get {
                 return currentErrors != null && currentErrors.Count > 0;
             }
         }
 
-        public string currentText
+        internal string currentText
         {
             get 
             {
@@ -86,7 +125,7 @@ namespace Ink.Runtime
             }
         }
 
-        public bool inExpressionEvaluation {
+        internal bool inExpressionEvaluation {
             get {
                 return callStack.currentElement.inExpressionEvaluation;
             }
@@ -94,10 +133,8 @@ namespace Ink.Runtime
                 callStack.currentElement.inExpressionEvaluation = value;
             }
         }
-
-
-
-        public StoryState (Story story)
+            
+        internal StoryState (Story story)
         {
             this.story = story;
 
@@ -132,7 +169,7 @@ namespace Ink.Runtime
         // Runtime.Objects are treated as immutable after they've been set up.
         // (e.g. we don't edit a Runtime.Text after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
-        public StoryState Copy()
+        internal StoryState Copy()
         {
             var copy = new StoryState(story);
 
@@ -246,39 +283,20 @@ namespace Ink.Runtime
                 }
             }
         }
-
-        /// <summary>
-        /// Exports the current state to json format, in order to save the game.
-        /// </summary>
-        /// <returns>The save state in json format.</returns>
-        /// <param name="indented">Whether to 'pretty print' using whitespace.</param>
-        public string ToJson(bool indented=false) {
-            return jsonToken.ToString (indented ? Formatting.Indented : Formatting.None);
-        }
-
-        /// <summary>
-        /// Loads a previously saved state in JSON format.
-        /// </summary>
-        /// <param name="json">The JSON string to load.</param>
-        public void LoadJson(string json)
-        {
-            jsonToken = JToken.Parse (json);
-        }
-
-
-        public void ResetErrors()
+            
+        internal void ResetErrors()
         {
             currentErrors = null;
         }
             
-        public void ResetOutput()
+        internal void ResetOutput()
         {
             _outputStream.Clear ();
         }
 
         // Push to output stream, but split out newlines in text for consistency
         // in dealing with them later.
-        public void PushToOutputStream(Runtime.Object obj)
+        internal void PushToOutputStream(Runtime.Object obj)
         {
             var text = obj as Text;
             if (text) {
@@ -294,26 +312,6 @@ namespace Ink.Runtime
             PushToOutputStreamIndividual (obj);
         }
 
-        /// <summary>
-        /// Gets the visit/read count of a particular Container at the given path.
-        /// For a knot or stitch, that path string will be in the form:
-        /// 
-        ///     knot
-        ///     knot.stitch
-        /// 
-        /// </summary>
-        /// <returns>The number of times the specific knot or stitch has
-        /// been enountered by the ink engine.</returns>
-        /// <param name="pathString">The dot-separated path string of
-        /// the specific knot or stitch.</param>
-        public int VisitCountAtPathString(string pathString)
-        {
-            int visitCountOut;
-            if (visitCounts.TryGetValue (pathString, out visitCountOut))
-                return visitCountOut;
-
-            return -1;
-        }
 
         // At both the start and the end of the string, split out the new lines like so:
         //
@@ -546,7 +544,7 @@ namespace Ink.Runtime
             }
         }
 
-        public bool outputStreamEndsInNewline {
+        internal bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
 
@@ -568,7 +566,7 @@ namespace Ink.Runtime
             }
         }
 
-        public bool outputStreamContainsContent {
+        internal bool outputStreamContainsContent {
             get {
                 foreach (var content in _outputStream) {
                     if (content is Text)
@@ -578,7 +576,7 @@ namespace Ink.Runtime
             }
         }
 
-        public bool inStringEvaluation {
+        internal bool inStringEvaluation {
             get {
                 for (int i = _outputStream.Count - 1; i >= 0; i--) {
                     var cmd = _outputStream [i] as ControlCommand;
@@ -591,24 +589,24 @@ namespace Ink.Runtime
             }
         }
 
-        public void PushEvaluationStack(Runtime.Object obj)
+        internal void PushEvaluationStack(Runtime.Object obj)
         {
             evaluationStack.Add(obj);
         }
 
-        public Runtime.Object PopEvaluationStack()
+        internal Runtime.Object PopEvaluationStack()
         {
             var obj = evaluationStack [evaluationStack.Count - 1];
             evaluationStack.RemoveAt (evaluationStack.Count - 1);
             return obj;
         }
 
-        public Runtime.Object PeekEvaluationStack()
+        internal Runtime.Object PeekEvaluationStack()
         {
             return evaluationStack [evaluationStack.Count - 1];
         }
 
-        public List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
+        internal List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
         {
             if(numberOfObjects > evaluationStack.Count) {
                 throw new System.Exception ("trying to pop too many objects");
@@ -620,7 +618,7 @@ namespace Ink.Runtime
         }
 
 
-        public void ForceEndFlow()
+        internal void ForceEndFlow()
         {
             currentContentObject = null;
 
@@ -646,7 +644,7 @@ namespace Ink.Runtime
             currentTurnIndex++;
         }
 
-        public void AddError(string message)
+        internal void AddError(string message)
         {
             // TODO: Could just add to output?
             if (currentErrors == null) {

@@ -45,7 +45,7 @@ namespace Ink.Runtime
         public List<string> currentErrors { get { return state.currentErrors; } }
         public bool hasError { get { return state.hasError; } }
         public VariablesState variablesState{ get { return state.variablesState; } }
-        internal StoryState state { get { return _state; } }
+        public StoryState state { get { return _state; } }
             
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
