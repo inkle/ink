@@ -51,6 +51,9 @@ namespace Ink.Parsed
 
                 var subFlow = obj as FlowBase;
                 if (subFlow) {
+                    if (_firstChildFlow == null)
+                        _firstChildFlow = subFlow;
+
                     subFlowObjs.Add (obj);
                     _subFlowsByName [subFlow.name] = subFlow;
                 } else {
@@ -461,8 +464,15 @@ namespace Ink.Parsed
 
         void WarningInTermination(Parsed.Object terminatingObject, string additionalExplanation = null)
         {
-            string mainMessage = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
-            Warning (additionalExplanation == null ? mainMessage : mainMessage + " " + additionalExplanation, terminatingObject);
+            string message = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
+            if (additionalExplanation != null) {
+                message = message + " " + additionalExplanation;
+            }
+            if (_firstChildFlow) {
+                message = message + " Note that if you intend to enter '"+_firstChildFlow.name+"' next, you need to divert to it explicitly.";
+            }
+
+            Warning (additionalExplanation == null ? message : message + " " + additionalExplanation, terminatingObject);
         }
 
         protected Dictionary<string, FlowBase> subFlowsByName {
@@ -477,6 +487,7 @@ namespace Ink.Parsed
         Runtime.Divert _startingSubFlowDivert;
         Runtime.Object _startingSubFlowRuntime;
         Runtime.Object _finalLooseEndTarget;
+        FlowBase _firstChildFlow;
             
 	}
 }
