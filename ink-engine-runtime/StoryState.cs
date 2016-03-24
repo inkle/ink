@@ -294,6 +294,27 @@ namespace Ink.Runtime
             PushToOutputStreamIndividual (obj);
         }
 
+        /// <summary>
+        /// Gets the visit/read count of a particular Container at the given path.
+        /// For a knot or stitch, that path string will be in the form:
+        /// 
+        ///     knot
+        ///     knot.stitch
+        /// 
+        /// </summary>
+        /// <returns>The number of times the specific knot or stitch has
+        /// been enountered by the ink engine.</returns>
+        /// <param name="pathString">The dot-separated path string of
+        /// the specific knot or stitch.</param>
+        public int VisitCountAtPathString(string pathString)
+        {
+            int visitCountOut;
+            if (visitCounts.TryGetValue (pathString, out visitCountOut))
+                return visitCountOut;
+
+            return -1;
+        }
+
         // At both the start and the end of the string, split out the new lines like so:
         //
         //  "   \n  \n     \n  the string \n is awesome \n     \n     "
