@@ -2008,6 +2008,22 @@ CONST kX = ""hi""
             Assert.AreEqual("", story.Continue ());
         }
 
+
+        [Test ()]
+        public void TestLeadingNewlineMultilineSequence()
+        {
+            var story = CompileString (@"
+{stopping:
+
+- a line after an empty line
+- blah
+}
+");
+
+            Assert.AreEqual("a line after an empty line\n", story.Continue ());
+        }
+
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

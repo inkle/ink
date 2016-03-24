@@ -151,6 +151,8 @@ namespace Ink
 
         protected List<ContentList> InnerMultilineSequenceObjects()
         {
+            MultilineWhitespace ();
+
             var contentLists = OneOrMore (SingleMultilineSequenceElement);
             if (contentLists == null)
                 return null;
