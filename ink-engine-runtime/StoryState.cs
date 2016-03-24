@@ -635,7 +635,8 @@ namespace Ink.Runtime
             didSafeExit = true;
         }
 
-        public void SetChosenPath(Path path)
+        // Don't make public since the method need to be wrapped in Story for visit counting
+        internal void SetChosenPath(Path path)
         {
             // Changing direction, assume we need to clear current set of choices
             currentChoices.Clear ();

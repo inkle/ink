@@ -158,7 +158,7 @@ namespace Ink.Runtime
 
             _state.variablesState.batchObservingVariableChanges = true;
 
-            _previousContainer = null;
+            //_previousContainer = null;
 
             try {
 
@@ -270,9 +270,6 @@ namespace Ink.Runtime
             } catch(StoryException e) {
                 AddError (e.Message, e.useEndLineNumber);
             } finally {
-
-                if( !canContinue )
-                    state.callStack.currentThread.ResetOpenContainers ();
                 
                 state.didSafeExit = false;
 
@@ -338,7 +335,15 @@ namespace Ink.Runtime
                 
             // Step directly to the first element of content in a container (if necessary)
             Container currentContainer = currentContentObj as Container;
-            while(currentContainer && currentContainer.content.Count > 0) {
+            while(currentContainer) {
+
+                // Mark container as being entered
+                VisitContainer (currentContainer, atStart:true);
+
+                // No content? the most we can do is step past it
+                if (currentContainer.content.Count == 0)
+                    break;
+
                 currentContentObj = currentContainer.content [0];
                 state.callStack.currentElement.currentContentIndex = 0;
                 state.callStack.currentElement.currentContainer = currentContainer;
@@ -347,12 +352,6 @@ namespace Ink.Runtime
             }
             currentContainer = state.callStack.currentElement.currentContainer;
 
-            bool changedContainer = _previousContainer != currentContainer;
-            if (changedContainer) {
-                IncrementVisitCountForActiveContainers (currentContentObj);
-                _previousContainer = currentContainer;
-            }
-            
             // Is the current content object:
             //  - Normal content
             //  - Or a logic/flow statement - if so, do it
@@ -419,6 +418,50 @@ namespace Ink.Runtime
             var controlCmd = currentContentObj as ControlCommand;
             if (controlCmd && controlCmd.commandType == ControlCommand.CommandType.StartThread) {
                 state.callStack.PushThread ();
+            }
+        }
+
+        // Mark a container as having been visited
+        void VisitContainer(Container container, bool atStart)
+        {
+            if ( !container.countingAtStartOnly || atStart ) {
+                if( container.visitsShouldBeCounted )
+                    IncrementVisitCountForContainer (container);
+
+                if (container.turnIndexShouldBeCounted)
+                    RecordTurnIndexVisitToContainer (container);
+            }
+        }
+
+        void VisitChangedContainersDueToDivert(Runtime.Object previousContentObject, Runtime.Object newContentObject)
+        {
+            if (!previousContentObject || !newContentObject)
+                return;
+            
+            // First, find the previously open set of containers
+            var prevContainerSet = new HashSet<Container> ();
+            Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
+            while (prevAncestor) {
+                prevContainerSet.Add (prevAncestor);
+                prevAncestor = prevAncestor.parent as Container;
+            }
+
+            // If the new object is a container itself, it will be visited automatically at the next actual
+            // content step. However, we need to walk up the new ancestry to see if there are more new containers
+            Runtime.Object currentChildOfContainer = newContentObject;
+            Container currentContainerAncestor = currentChildOfContainer.parent as Container;
+            while (currentContainerAncestor && !prevContainerSet.Contains(currentContainerAncestor)) {
+
+                // Check whether this ancestor container is being entered at the start,
+                // by checking whether the child object is the first.
+                bool enteringAtStart = currentContainerAncestor.content.Count > 0 
+                    && currentChildOfContainer == currentContainerAncestor.content [0];
+
+                // Mark a visit to this container
+                VisitContainer (currentContainerAncestor, enteringAtStart);
+
+                currentChildOfContainer = currentContainerAncestor;
+                currentContainerAncestor = currentContainerAncestor.parent as Container;
             }
         }
             
@@ -826,7 +869,14 @@ namespace Ink.Runtime
             
         internal void ChoosePath(Path path)
         {
+            var prevContentObj = state.currentContentObject;
+
             state.SetChosenPath (path);
+
+            var newContentObj = state.currentContentObject;
+
+            // Take a note of newly visited containers for read counts etc
+            VisitChangedContainersDueToDivert (prevContentObj, newContentObj);
         }
 
         public void ChooseChoiceIndex(int choiceIdx)
@@ -1223,8 +1273,18 @@ namespace Ink.Runtime
 		{
 			// Divert step?
 			if (state.divertedTargetObject != null) {
+
+                var prevObj = state.currentContentObject;
+
                 state.currentContentObject = state.divertedTargetObject;
                 state.divertedTargetObject = null;
+
+                // Check for newly visited containers
+                // Rather than using state.currentContentObject and state.divertedTargetObject,
+                // we have to make sure that both come via the state.currentContentObject property,
+                // since it can actually get transformed slightly when set (it can end up stepping 
+                // into a container).
+                VisitChangedContainersDueToDivert (prevObj, state.currentContentObject);
 
                 // Diverted location has valid content?
                 if (state.currentContentObject != null) {
@@ -1318,60 +1378,11 @@ namespace Ink.Runtime
 
             var choiceInstance = invisibleChoiceInstances [0];
 
-            state.SetChosenPath (choiceInstance.choice.choiceTarget.path);
+            ChoosePath (choiceInstance.choice.choiceTarget.path);
 
             return true;
         }
-
-        void IncrementVisitCountForActiveContainers (Object currentContentObj)
-        {
-            // Find all open containers (runtime version of knots and stitches) across
-            // all stack elements within the current thread.
-            // We will then see which ones are new compared to last step.
-            var openContainersThisStep = new HashSet<Container> ();
-            foreach (CallStack.Element el in state.callStack.elements) {
-                
-                Runtime.Object ancestor = el.currentObject;
-
-                while (ancestor) {
-                    var ancestorContainer = ancestor as Container;
-                    if (ancestorContainer != null && (ancestorContainer.visitsShouldBeCounted || ancestorContainer.turnIndexShouldBeCounted)) {
-
-                        bool shouldCount = false;
-
-                        // Knots and stitches are "full" containers - any entry to them, even
-                        // half way through via a labelled choice or gather count as a visit.
-                        // By contrast, gathers and choices only count as being visited
-                        // if you enter them at the start. This is mainly for directing
-                        // to the nested content - the choice or gather point isn't counted
-                        // as having been visited if you've seen a nested choice for example.
-                        if (ancestorContainer.countingAtStartOnly) {
-                            shouldCount = el.currentContainer == ancestorContainer && el.currentContentIndex == 0;
-                        } else {
-                            shouldCount = true;
-                        }
-
-                        if (shouldCount) {
-                            openContainersThisStep.Add ((Container)ancestorContainer);
-                        }
-
-                    }
-                    
-                    ancestor = ancestor.parent;
-                }
-            }
-
-            // Ask thread which containers are new, and increment read / turn counts for those.
-            var newlyOpenContainers = state.callStack.currentThread.UpdateOpenContainers (openContainersThisStep);
-
-            foreach (var c in newlyOpenContainers) {
-                if( c.visitsShouldBeCounted )
-                    IncrementVisitCountForContainer (c);
-                if (c.turnIndexShouldBeCounted)
-                    RecordTurnIndexVisitToContainer (c);
-            }
-        }
-
+            
         int VisitCountForContainer(Container container)
         {
             if( !container.visitsShouldBeCounted ) {
@@ -1566,7 +1577,6 @@ namespace Ink.Runtime
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;
         bool _hasValidatedExternals;
-        Container _previousContainer;
 
         Container _temporaryEvaluationContainer;
 

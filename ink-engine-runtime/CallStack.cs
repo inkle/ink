@@ -33,13 +33,12 @@ namespace Ink.Runtime
                     }
 
                     currentContainer = currentObj.parent as Container;
+                    if (currentContainer != null)
+                        currentContentIndex = currentContainer.content.IndexOf (currentObj);
 
                     // Two reasons why the above operation might not work:
                     //  - currentObj is already the root container
                     //  - currentObj is a named container rather than being an object at an index
-                    if (currentContainer != null)
-                        currentContentIndex = currentContainer.content.IndexOf (currentObj);
-
                     if (currentContainer == null || currentContentIndex == -1) {
                         currentContainer = currentObj as Container;
                         currentContentIndex = 0;
@@ -78,39 +77,8 @@ namespace Ink.Runtime
                 foreach(var e in callstack) {
                     copy.callstack.Add(e.Copy());
                 }
-                if (_openContainers != null) {
-                    copy._openContainers = new HashSet<Container> (_openContainers);
-                }
                 return copy;
             }
-
-            public void ResetOpenContainers()
-            {
-                _openContainers = null;
-            }
-
-            // Story tells CallStack when the set of containers changes for this thread.
-            // CallStack passes back which ones are new, for incrementing of read and turn counts.
-            public HashSet<Container> UpdateOpenContainers(HashSet<Container> openContainers)
-            {
-                var newlyOpenContainers = new HashSet<Container> (openContainers);
-                if (_openContainers != null) {
-                    foreach (var c in _openContainers) {
-                        newlyOpenContainers.Remove (c);
-                    }
-                }
-
-                _openContainers = openContainers;
-
-                return newlyOpenContainers;
-            }
-
-            // For tracking of read counts and turn counts:
-            // Keep track of which containers (runtime equivalent of knots and stitches)
-            // are "open" right now - which containers is the runtime currently inside.
-            // e.g. can be currently inside a stitch, within a knot.
-            // As these change, the story increments a counter for them.
-            HashSet<Container> _openContainers;
         }
 
         public List<Element> elements {
