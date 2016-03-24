@@ -2023,6 +2023,19 @@ CONST kX = ""hi""
             Assert.AreEqual("a line after an empty line\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestGatherReadCountWithInitialSequence()
+        {
+            var story = CompileString (@"
+- (opts)
+{test:seen test}
+- (test) 
+{ -> opts |}
+");
+
+            Assert.AreEqual("seen test\n", story.Continue ());
+        }
+
 
 		//------------------------------------------------------------------------
 
