@@ -407,7 +407,7 @@ namespace Ink.Parsed
 
             // Knots/stitches have to terminate in a choice, a divert,
             // a conditional that contains a choice or divert.
-            var lastObjectInFlow = _rootWeave.lastParsedObject;
+            var lastObjectInFlow = _rootWeave.lastParsedSignificantObject;
 
 
             var terminatingDivert = lastObjectInFlow as Divert;

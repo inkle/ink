@@ -2036,6 +2036,23 @@ CONST kX = ""hi""
             Assert.AreEqual("seen test\n", story.Continue ());
         }
 
+        // Although VAR and CONST declarations are parsed as being
+        // part of the knot, they're extracted, so that the null
+        // termination detection shouldn't see this as a loose end.
+        [Test ()]
+        public void TestKnotTerminationSkipsGlobalObjects()
+        {
+            CompileStringWithoutRuntime (@"
+=== stuff ===
+-> END
+
+VAR X = 1
+CONST Y = 2
+", testingErrors:true);
+
+            Assert.IsTrue (_warningMessages.Count == 0);
+        }
+
 
 		//------------------------------------------------------------------------
 

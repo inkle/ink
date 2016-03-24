@@ -35,24 +35,36 @@ namespace Ink.Parsed
             public Runtime.Object targetRuntimeObj;
         }
 
-        public Parsed.Object lastParsedObject
+        public Parsed.Object lastParsedSignificantObject
         {
             get {
                 if (content.Count > 0) {
 
-                    // Don't count extraneous newlines
+                    // Don't count extraneous newlines or VAR/CONST declarations,
+                    // since they're "empty" statements outside of the main flow.
                     Parsed.Object lastObject = null;
                     for (int i = content.Count - 1; i >= 0; --i) {
                         lastObject = content [i];
+
                         var lastText = lastObject as Parsed.Text;
-                        if (lastText == null || lastText.text != "\n") {
-                            break;
+                        if (lastText && lastText.text == "\n") {
+                            continue;
                         }
+
+                        var varAss = lastObject as VariableAssignment;
+                        if (varAss && varAss.isGlobalDeclaration && varAss.isDeclaration)
+                            continue;
+
+                        var constDecl = lastObject as ConstantDeclaration;
+                        if (constDecl)
+                            continue;
+                        
+                        break;
                     }
 
                     var lastWeave = lastObject as Weave;
                     if (lastWeave)
-                        return lastWeave.lastParsedObject;
+                        return lastWeave.lastParsedSignificantObject;
                     else
                         return lastObject;
                 } else {
