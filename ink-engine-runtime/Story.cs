@@ -608,32 +608,6 @@ namespace Ink.Runtime
                 return true;
             } 
 
-            else if (contentObj is Pop) {
-                
-                var pop = (Pop) contentObj;
-                if (state.callStack.currentElement.type != pop.type || !state.callStack.canPop) {
-
-                    var names = new Dictionary<PushPopType, string> ();
-                    names [PushPopType.Function] = "function return statement (~ return)";
-                    names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
-
-                    string expected = names [state.callStack.currentElement.type];
-                    if (!state.callStack.canPop) {
-                        expected = "end of flow (-> END or choice)";
-                    }
-
-                    var errorMsg = string.Format ("Found {0}, when expected {1}", names [pop.type], expected);
-
-                    Error (errorMsg);
-                } 
-
-                else {
-                    state.callStack.Pop ();
-                }
-
-                return true;
-            }
-
             // Start/end an expression evaluation? Or print out the result?
             else if( contentObj is ControlCommand ) {
                 var evalCommand = (ControlCommand) contentObj;
@@ -679,6 +653,33 @@ namespace Ink.Runtime
 
                 case ControlCommand.CommandType.PopEvaluatedValue:
                     state.PopEvaluationStack ();
+                    break;
+
+                case ControlCommand.CommandType.PopFunction:
+                case ControlCommand.CommandType.PopTunnel:
+
+                    var popType = evalCommand.commandType == ControlCommand.CommandType.PopFunction ?
+                        PushPopType.Function : PushPopType.Tunnel;
+                    
+                    if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
+
+                        var names = new Dictionary<PushPopType, string> ();
+                        names [PushPopType.Function] = "function return statement (~ return)";
+                        names [PushPopType.Tunnel] = "tunnel onwards statement (->->)";
+
+                        string expected = names [state.callStack.currentElement.type];
+                        if (!state.callStack.canPop) {
+                            expected = "end of flow (-> END or choice)";
+                        }
+
+                        var errorMsg = string.Format ("Found {0}, when expected {1}", names [popType], expected);
+
+                        Error (errorMsg);
+                    } 
+
+                    else {
+                        state.callStack.Pop ();
+                    }
                     break;
 
                 case ControlCommand.CommandType.BeginString:

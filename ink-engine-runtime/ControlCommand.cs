@@ -12,6 +12,8 @@ namespace Ink.Runtime
             EvalEnd,
             Duplicate,
             PopEvaluatedValue,
+            PopFunction,
+            PopTunnel,
             BeginString,
             EndString,
             NoOp,
@@ -63,6 +65,14 @@ namespace Ink.Runtime
 
         public static ControlCommand PopEvaluatedValue() {
             return new ControlCommand (CommandType.PopEvaluatedValue);
+        }
+
+        public static ControlCommand PopFunction() {
+            return new ControlCommand (CommandType.PopFunction);
+        }
+
+        public static ControlCommand PopTunnel() {
+            return new ControlCommand (CommandType.PopTunnel);
         }
             
         public static ControlCommand BeginString() {

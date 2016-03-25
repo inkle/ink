@@ -88,13 +88,11 @@ namespace Ink.Runtime
         // 
         // Glue:           "<>", "G<", "G>"
         // 
-        // ControlCommand: "ev", "out", "/ev", "du" "pop", "str", "/str", "nop", 
+        // ControlCommand: "ev", "out", "/ev", "du" "pop", "->->", "~ret", "str", "/str", "nop", 
         //                 "choiceCnt", "turns", "visit", "seq", "thread", "done", "end"
         // 
         // NativeFunction: "+", "-", "/", "*", "%" "~", "==", ">", "<", ">=", "<=", "!=", "!"... etc
         // 
-        // Pop:            "->->", "~ret"
-        //
         // Void:           "void"
         // 
         // Literal:        "^literal string", "^^literal string beginning with ^"
@@ -173,9 +171,9 @@ namespace Ink.Runtime
 
                 // Pop
                 if (str == "->->")
-                    return new Runtime.Pop (PushPopType.Tunnel);
+                    return Runtime.ControlCommand.PopTunnel ();
                 else if (str == "~ret")
-                    return new Runtime.Pop (PushPopType.Function);
+                    return Runtime.ControlCommand.PopFunction ();
 
                 // Void
                 if (str == "void")
@@ -406,14 +404,6 @@ namespace Ink.Runtime
             if (nativeFunc)
                 return nativeFunc.name;
 
-            var pop = obj as Runtime.Pop;
-            if (pop) {
-                if (pop.type == PushPopType.Function)
-                    return "~ret";
-                else
-                    return "->->";
-            }
-
             // Variable reference
             var varRef = obj as VariableReference;
             if (varRef) {
@@ -577,6 +567,8 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.EvalEnd] = "/ev";
             _controlCommandNames [(int)ControlCommand.CommandType.Duplicate] = "du";
             _controlCommandNames [(int)ControlCommand.CommandType.PopEvaluatedValue] = "pop";
+            _controlCommandNames [(int)ControlCommand.CommandType.PopFunction] = "~ret";
+            _controlCommandNames [(int)ControlCommand.CommandType.PopTunnel] = "->->";
             _controlCommandNames [(int)ControlCommand.CommandType.BeginString] = "str";
             _controlCommandNames [(int)ControlCommand.CommandType.EndString] = "/str";
             _controlCommandNames [(int)ControlCommand.CommandType.NoOp] = "nop";

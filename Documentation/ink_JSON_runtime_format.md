@@ -55,6 +55,7 @@ Control commands are special instructions to the text engine to perform various 
 * `"/ev"` - End logical evaluation mode. Future objects will be appended to the output stream rather than to the evaluation stack.
 * `"out"` - The topmost object on the evaluation stack is popped and appended to the output stream (main story output).
 * `"pop"` - Pops a value from the evaluation stack, *without* appending to the output stream.
+* `"->->"` and `"~ret"` pop the callstack - used for returning from a tunnel or function respectively. They are specified independently for error checking, since the callstack is aware of whether each element was pushed as a tunnel or function in the first place.
 * `"du"` - Duplicate the topmost object on the evaluation stack. Useful since some commands consume objects on the evaluation stack.
 * `"str"` - Begin string evaluation mode. Adds a marker to the output stream, and goes into content mode (from evaluation mode). Must have already been in evaluation mode when this is encounted. See below for explanation.
 * `"/str"` - End string evaluation mode. All content after the previous Begin marker is concatenated together, removed from the output stream, and appended as a string literal to the evaluation stack. Re-enters evaluation mode immediately afterwards.
@@ -66,13 +67,6 @@ Control commands are special instructions to the text engine to perform various 
 * `"thread"` - Clones/starts a new thread, as used with the `<- knot` syntax in ink. This esssentially clones the entire callstack, branching it.
 * `"done"` - Tries to close/pop the active thread, otherwise marks the story flow safe to exit without a loose end warning.
 * `"end"` - Ends the story flow immediately, closes all active threads, unwinds the callstack, and removes any choices that were previously created.
-
-## Callstack Pop
-
-*(TODO: These could just be control commands.)*
-
-`"->->"` and `"~ret"` pop the callstack - used for returning from a tunnel or function respectively. They are specified independently for error checking, since the callstack is aware of whether each element was pushed as a tunnel or function in the first place.
-
 
 ## Native functions
 
