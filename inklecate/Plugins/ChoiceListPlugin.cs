@@ -42,7 +42,7 @@ namespace InkPlugin
                 // Note that this choice text is an approximation since
                 // it can be dynamically generated at runtime. We are therefore
                 // making the assumption that the startContent and choiceOnlyContent
-                // lists contain only literal (string) content.
+                // lists contain only string value content.
                 var choiceTextApproximation = sb.ToString ();
                 var filename = choice.debugMetadata.fileName;
 

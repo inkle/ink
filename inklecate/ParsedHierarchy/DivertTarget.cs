@@ -15,14 +15,14 @@ namespace Ink.Parsed
             divert.GenerateRuntimeObject();
 
             _runtimeDivert = (Runtime.Divert) divert.runtimeDivert;
-            _runtimeLiteralDivertTarget = new Runtime.LiteralDivertTarget ();
+            _runtimeDivertTargetValue = new Runtime.DivertTargetValue ();
 
             if (divert.arguments != null && divert.arguments.Count > 0) {
                 Error ("Can't use a divert target as a variable if it has parameters");
                 return;
             }
 
-            container.AddContent (_runtimeLiteralDivertTarget);
+            container.AddContent (_runtimeDivertTargetValue);
         }
 
         public override void ResolveReferences (Story context)
@@ -85,10 +85,10 @@ namespace Ink.Parsed
                 usageContext = usageParent;
             }
 
-            _runtimeLiteralDivertTarget.targetPath = _runtimeDivert.targetPath;
+            _runtimeDivertTargetValue.targetPath = _runtimeDivert.targetPath;
         }
             
-        Runtime.LiteralDivertTarget _runtimeLiteralDivertTarget;
+        Runtime.DivertTargetValue _runtimeDivertTargetValue;
         Runtime.Divert _runtimeDivert;
     }
 }

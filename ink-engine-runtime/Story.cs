@@ -392,12 +392,12 @@ namespace Ink.Runtime
                 // If we're pushing a variable pointer onto the evaluation stack, ensure that it's specific
                 // to our current (possibly temporary) context index. And make a copy of the pointer
                 // so that we're not editing the original runtime object.
-                var varPointer = currentContentObj as LiteralVariablePointer;
+                var varPointer = currentContentObj as VariablePointerValue;
                 if (varPointer && varPointer.contextIndex == -1) {
 
                     // Create new object so we're not overwriting the story's own data
                     var contextIdx = state.callStack.ContextForVariableNamed(varPointer.variableName);
-                    currentContentObj = new LiteralVariablePointer (varPointer.variableName, contextIdx);
+                    currentContentObj = new VariablePointerValue (varPointer.variableName, contextIdx);
                 }
 
                 // Expression evaluation content
@@ -481,13 +481,13 @@ namespace Ink.Runtime
             string choiceOnlyText = "";
 
             if (choice.hasChoiceOnlyContent) {
-                var choiceOnlyLitStr = state.PopEvaluationStack () as LiteralString;
-                choiceOnlyText = choiceOnlyLitStr.value;
+                var choiceOnlyStrVal = state.PopEvaluationStack () as StringValue;
+                choiceOnlyText = choiceOnlyStrVal.value;
             }
 
             if (choice.hasStartContent) {
-                var startLitStr = state.PopEvaluationStack () as LiteralString;
-                startText = startLitStr.value;
+                var startStrVal = state.PopEvaluationStack () as StringValue;
+                startText = startStrVal.value;
             }
 
             // Don't create choice instance if player has already read this content
@@ -519,16 +519,16 @@ namespace Ink.Runtime
         bool IsTruthy(Runtime.Object obj)
         {
             bool truthy = false;
-            if (obj is Literal) {
-                var literal = (Literal)obj;
+            if (obj is Value) {
+                var val = (Value)obj;
 
-                if (literal is LiteralDivertTarget) {
-                    var divTarget = (LiteralDivertTarget)literal;
+                if (val is DivertTargetValue) {
+                    var divTarget = (DivertTargetValue)val;
                     Error ("Shouldn't use a divert target (to " + divTarget.targetPath + ") as a conditional value. Did you intend a function call 'likeThis()' or a read count check 'likeThis'? (no arrows)");
                     return false;
                 }
 
-                return literal.isTruthy;
+                return val.isTruthy;
             }
             return truthy;
         }
@@ -554,9 +554,9 @@ namespace Ink.Runtime
 
                     var varContents = state.variablesState.GetVariableWithName (varName);
 
-                    if (!(varContents is LiteralDivertTarget)) {
+                    if (!(varContents is DivertTargetValue)) {
 
-                        var intContent = varContents as LiteralInt;
+                        var intContent = varContents as IntValue;
 
                         string errorMessage = "Tried to divert to a target from a variable, but the variable (" + varName + ") didn't contain a divert target, it ";
                         if (intContent && intContent.value == 0) {
@@ -568,7 +568,7 @@ namespace Ink.Runtime
                         Error (errorMessage);
                     }
 
-                    var target = (LiteralDivertTarget)varContents;
+                    var target = (DivertTargetValue)varContents;
                     state.divertedTargetObject = ContentAtPath(target.targetPath);
 
                 } else if (currentDivert.isExternal) {
@@ -636,7 +636,7 @@ namespace Ink.Runtime
                             // TODO: Should we really always blanket convert to string?
                             // It would be okay to have numbers in the output stream the
                             // only problem is when exporting text for viewing, it skips over numbers etc.
-                            var text = new LiteralString (output.ToString ());
+                            var text = new StringValue (output.ToString ());
 
                             state.PushToOutputStream (text);
                         }
@@ -707,7 +707,7 @@ namespace Ink.Runtime
                             break;
                         }
 
-                        if( obj is LiteralString )
+                        if( obj is StringValue )
                             contentStackForString.Push (obj);
                     }
 
@@ -722,38 +722,38 @@ namespace Ink.Runtime
 
                     // Return to expression evaluation (from content mode)
                     state.inExpressionEvaluation = true;
-                    state.PushEvaluationStack (new LiteralString (sb.ToString ()));
+                    state.PushEvaluationStack (new StringValue (sb.ToString ()));
                     break;
 
                 case ControlCommand.CommandType.ChoiceCount:
                     var choiceCount = currentChoices.Count;
-                    state.PushEvaluationStack (new Runtime.LiteralInt (choiceCount));
+                    state.PushEvaluationStack (new Runtime.IntValue (choiceCount));
                     break;
 
                 case ControlCommand.CommandType.TurnsSince:
                     var target = state.PopEvaluationStack();
-                    if( !(target is LiteralDivertTarget) ) {
+                    if( !(target is DivertTargetValue) ) {
                         string extraNote = "";
-                        if( target is LiteralInt )
+                        if( target is IntValue )
                             extraNote = ". Did you accidentally pass a read count ('knot_name') instead of a target ('-> knot_name')?";
                         Error("TURNS_SINCE expected a divert target (knot, stitch, label name), but saw "+target+extraNote);
                         break;
                     }
                         
-                    var divertTarget = target as LiteralDivertTarget;
+                    var divertTarget = target as DivertTargetValue;
                     var container = ContentAtPath (divertTarget.targetPath) as Container;
                     int turnCount = TurnsSinceForContainer (container);
-                    state.PushEvaluationStack (new LiteralInt (turnCount));
+                    state.PushEvaluationStack (new IntValue (turnCount));
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
                     var count = VisitCountForContainer(state.currentContainer) - 1; // index not count
-                    state.PushEvaluationStack (new LiteralInt (count));
+                    state.PushEvaluationStack (new IntValue (count));
                     break;
 
                 case ControlCommand.CommandType.SequenceShuffleIndex:
                     var shuffleIndex = NextSequenceShuffleIndex ();
-                    state.PushEvaluationStack (new LiteralInt (shuffleIndex));
+                    state.PushEvaluationStack (new IntValue (shuffleIndex));
                     break;
 
                 case ControlCommand.CommandType.StartThread:
@@ -809,12 +809,12 @@ namespace Ink.Runtime
                 Runtime.Object foundValue = null;
 
 
-                // Explicit literal read count
+                // Explicit read count value
                 if (varRef.pathForCount != null) {
 
                     var container = varRef.containerForCount;
                     int count = VisitCountForContainer (container);
-                    foundValue = new LiteralInt (count);
+                    foundValue = new IntValue (count);
                 }
 
                 // Normal variable reference
@@ -824,7 +824,7 @@ namespace Ink.Runtime
 
                     if (foundValue == null) {
                         Error("Uninitialised variable: " + varRef.name);
-                        foundValue = new LiteralInt (0);
+                        foundValue = new IntValue (0);
                     }
                 }
 
@@ -962,7 +962,7 @@ namespace Ink.Runtime
             // Pop arguments
             var arguments = new List<object>();
             for (int i = 0; i < numberOfArguments; ++i) {
-                var poppedObj = state.PopEvaluationStack () as Literal;
+                var poppedObj = state.PopEvaluationStack () as Value;
                 var valueObj = poppedObj.valueObject;
                 arguments.Add (valueObj);
             }
@@ -973,7 +973,7 @@ namespace Ink.Runtime
             // Convert return value (if any) to the a type that the ink engine can use
             Runtime.Object returnObj = null;
             if (funcResult != null) {
-                returnObj = Literal.Create (funcResult);
+                returnObj = Value.Create (funcResult);
                 Assert (returnObj != null, "Could not create ink value from returned object of type " + funcResult.GetType());
             } else {
                 returnObj = new Runtime.Void ();
@@ -1244,7 +1244,7 @@ namespace Ink.Runtime
             }
         }
 
-        void VariableStateDidChangeEvent(string variableName, Runtime.Object newValue)
+        void VariableStateDidChangeEvent(string variableName, Runtime.Object newValueObj)
         {
             if (_variableObservers == null)
                 return;
@@ -1252,12 +1252,12 @@ namespace Ink.Runtime
             VariableObserver observers = null;
             if (_variableObservers.TryGetValue (variableName, out observers)) {
 
-                if (!(newValue is Literal)) {
+                if (!(newValueObj is Value)) {
                     throw new System.Exception ("Tried to get the value of a variable that isn't a standard type");
                 }
-                var literal = newValue as Literal;
+                var val = newValueObj as Value;
 
-                observers (variableName, literal.valueObject);
+                observers (variableName, val.valueObject);
             }
         }
 
@@ -1432,15 +1432,15 @@ namespace Ink.Runtime
         // TODO: Is this the best algorithm it can be?
         int NextSequenceShuffleIndex()
         {
-            var numElementsLiteral = state.PopEvaluationStack () as LiteralInt;
-            if (numElementsLiteral == null) {
+            var numElementsIntVal = state.PopEvaluationStack () as IntValue;
+            if (numElementsIntVal == null) {
                 Error ("expected number of elements in sequence for shuffle index");
                 return 0;
             }
 
             var seqContainer = state.currentContainer;
 
-            int numElements = numElementsLiteral.value;
+            int numElements = numElementsIntVal.value;
 
             var seqCount = VisitCountForContainer (seqContainer);
             var loopIndex = seqCount / numElements;

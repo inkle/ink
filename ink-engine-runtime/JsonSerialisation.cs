@@ -83,9 +83,6 @@ namespace Ink.Runtime
         // JSON ENCODING SCHEME
         // ----------------------
         //
-        // Text:           "#The string"  "##The string that begins with a literal hash"
-        //                 "\n"
-        // 
         // Glue:           "<>", "G<", "G>"
         // 
         // ControlCommand: "ev", "out", "/ev", "du" "pop", "->->", "~ret", "str", "/str", "nop", 
@@ -95,7 +92,7 @@ namespace Ink.Runtime
         // 
         // Void:           "void"
         // 
-        // Literal:        "^literal string", "^^literal string beginning with ^"
+        // Value:          "^string value", "^^string value beginning with ^"
         //                 5, 5.2
         //                 {"^->": "path.target"}
         //                 {"^var": "varname", "ci": 0}
@@ -132,18 +129,18 @@ namespace Ink.Runtime
         public static Runtime.Object JTokenToRuntimeObject(JToken token)
         {
             if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float) {
-                return Literal.Create (((JValue)token).Value);
+                return Value.Create (((JValue)token).Value);
             }
             
             if (token.Type == JTokenType.String) {
                 string str = token.ToString ();
 
-                // Literal string
+                // String value
                 char firstChar = str[0];
                 if (firstChar == '^')
-                    return new LiteralString (str.Substring (1));
+                    return new StringValue (str.Substring (1));
                 else if( firstChar == '\n' && str.Length == 1)
-                    return new LiteralString ("\n");
+                    return new StringValue ("\n");
 
                 // Glue
                 if (str == "<>")
@@ -181,13 +178,13 @@ namespace Ink.Runtime
                 JObject obj = (JObject)token;
                 JToken propValue;
 
-                // Literal divert target to path
+                // Divert target value to path
                 if (obj.TryGetValue ("^->", out propValue))
-                    return new LiteralDivertTarget (new Path (propValue.ToString()));
+                    return new DivertTargetValue (new Path (propValue.ToString()));
 
-                // LiteralVariablePointer
+                // VariablePointerValue
                 if (obj.TryGetValue ("^var", out propValue)) {
-                    var varPtr = new LiteralVariablePointer (propValue.ToString ());
+                    var varPtr = new VariablePointerValue (propValue.ToString ());
                     if (obj.TryGetValue ("ci", out propValue))
                         varPtr.contextIndex = propValue.ToObject<int> ();
                     return varPtr;
@@ -348,33 +345,33 @@ namespace Ink.Runtime
                 return jObj;
             }
 
-            var litInt = obj as LiteralInt;
-            if (litInt)
-                return litInt.value;
+            var intVal = obj as IntValue;
+            if (intVal)
+                return intVal.value;
 
-            var litFloat = obj as LiteralFloat;
-            if (litFloat)
-                return litFloat.value;
+            var floatVal = obj as FloatValue;
+            if (floatVal)
+                return floatVal.value;
             
-            var litStr = obj as LiteralString;
-            if (litStr) {
-                if (litStr.isNewline)
+            var strVal = obj as StringValue;
+            if (strVal) {
+                if (strVal.isNewline)
                     return "\n";
                 else
-                    return "^" + litStr.value;
+                    return "^" + strVal.value;
             }
 
-            var litDivTarget = obj as LiteralDivertTarget;
-            if (litDivTarget)
+            var divTargetVal = obj as DivertTargetValue;
+            if (divTargetVal)
                 return new JObject (
-                    new JProperty("^->", litDivTarget.value.componentsString)
+                    new JProperty("^->", divTargetVal.value.componentsString)
                 );
 
-            var litVarPtr = obj as LiteralVariablePointer;
-            if (litVarPtr)
+            var varPtrVal = obj as VariablePointerValue;
+            if (varPtrVal)
                 return new JObject (
-                    new JProperty("^var", litVarPtr.value),
-                    new JProperty("ci", litVarPtr.contextIndex)
+                    new JProperty("^var", varPtrVal.value),
+                    new JProperty("ci", varPtrVal.contextIndex)
                 );
 
             var glue = obj as Runtime.Glue;

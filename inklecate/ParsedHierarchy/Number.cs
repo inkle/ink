@@ -17,9 +17,9 @@ namespace Ink.Parsed
         public override void GenerateIntoContainer (Runtime.Container container)
 		{
             if (value is int) {
-                container.AddContent (new Runtime.LiteralInt ((int)value));
+                container.AddContent (new Runtime.IntValue ((int)value));
             } else if (value is float) {
-                container.AddContent (new Runtime.LiteralFloat ((float)value));
+                container.AddContent (new Runtime.FloatValue ((float)value));
             }
 		}
 

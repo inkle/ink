@@ -8,7 +8,7 @@ namespace Ink.Runtime
     // they're coerced to the same type, downward.
     // Higher value types "infect" an operation.
     // (This may not be the most sensible thing to do, but it's worked so far!)
-    internal enum LiteralType
+    internal enum ValueType
     {
         // Used in coersion
         Int,
@@ -20,16 +20,16 @@ namespace Ink.Runtime
         VariablePointer
     }
 
-    internal abstract class Literal : Runtime.Object
+    internal abstract class Value : Runtime.Object
     {
-        public abstract LiteralType literalType { get; }
+        public abstract ValueType valueType { get; }
         public abstract bool isTruthy { get; }
 
-        public abstract Literal Cast(LiteralType newType);
+        public abstract Value Cast(ValueType newType);
 
         public abstract object valueObject { get; }
 
-        public static Literal Create(object val)
+        public static Value Create(object val)
         {
             // Implicitly lose precision from any doubles we get passed in
             if (val is double) {
@@ -44,24 +44,24 @@ namespace Ink.Runtime
             }
 
             if (val is int) {
-                return new LiteralInt ((int)val);
+                return new IntValue ((int)val);
             } else if (val is long) {
-                return new LiteralInt ((int)(long)val);
+                return new IntValue ((int)(long)val);
             } else if (val is float) {
-                return new LiteralFloat ((float)val);
+                return new FloatValue ((float)val);
             } else if (val is double) {
-                return new LiteralFloat ((float)(double)val);
+                return new FloatValue ((float)(double)val);
             } else if (val is string) {
-                return new LiteralString ((string)val);
+                return new StringValue ((string)val);
             } else if (val is Path) {
-                return new LiteralDivertTarget ((Path)val);
+                return new DivertTargetValue ((Path)val);
             }
 
             return null;
         }
     }
 
-    internal abstract class Literal<T> : Literal
+    internal abstract class Value<T> : Value
     {
         public T value { get; set; }
 
@@ -71,9 +71,9 @@ namespace Ink.Runtime
             }
         }
 
-        public Literal (T literalVal)
+        public Value (T val)
         {
-            value = literalVal;
+            value = val;
         }
 
         public override string ToString ()
@@ -82,67 +82,67 @@ namespace Ink.Runtime
         }
     }
 
-    internal class LiteralInt : Literal<int>
+    internal class IntValue : Value<int>
     {
-        public override LiteralType literalType { get { return LiteralType.Int; } }
+        public override ValueType valueType { get { return ValueType.Int; } }
         public override bool isTruthy { get { return value != 0; } }
 
-        public LiteralInt(int literalVal) : base(literalVal)
+        public IntValue(int intVal) : base(intVal)
         {
         }
 
-        public LiteralInt() : this(0) {}
+        public IntValue() : this(0) {}
 
-        public override Literal Cast(LiteralType newType)
+        public override Value Cast(ValueType newType)
         {
-            if (newType == literalType) {
+            if (newType == valueType) {
                 return this;
             }
 
-            if (newType == LiteralType.Float) {
-                return new LiteralFloat ((float)this.value);
+            if (newType == ValueType.Float) {
+                return new FloatValue ((float)this.value);
             }
 
-            if (newType == LiteralType.String) {
-                return new LiteralString("" + this.value);
+            if (newType == ValueType.String) {
+                return new StringValue("" + this.value);
             }
 
-            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
         }
     }
 
-    internal class LiteralFloat : Literal<float>
+    internal class FloatValue : Value<float>
     {
-        public override LiteralType literalType { get { return LiteralType.Float; } }
+        public override ValueType valueType { get { return ValueType.Float; } }
         public override bool isTruthy { get { return value != 0.0f; } }
 
-        public LiteralFloat(float literalVal) : base(literalVal)
+        public FloatValue(float val) : base(val)
         {
         }
 
-        public LiteralFloat() : this(0.0f) {}
+        public FloatValue() : this(0.0f) {}
 
-        public override Literal Cast(LiteralType newType)
+        public override Value Cast(ValueType newType)
         {
-            if (newType == literalType) {
+            if (newType == valueType) {
                 return this;
             }
 
-            if (newType == LiteralType.Int) {
-                return new LiteralInt ((int)this.value);
+            if (newType == ValueType.Int) {
+                return new IntValue ((int)this.value);
             }
 
-            if (newType == LiteralType.String) {
-                return new LiteralString("" + this.value);
+            if (newType == ValueType.String) {
+                return new StringValue("" + this.value);
             }
 
-            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
         }
     }
 
-    internal class LiteralString : Literal<string>
+    internal class StringValue : Value<string>
     {
-        public override LiteralType literalType { get { return LiteralType.String; } }
+        public override ValueType valueType { get { return ValueType.String; } }
         public override bool isTruthy { get { return value.Length > 0; } }
 
         public bool isNewline { get; private set; }
@@ -153,7 +153,7 @@ namespace Ink.Runtime
             }
         }
 
-        public LiteralString(string literalVal) : base(literalVal)
+        public StringValue(string str) : base(str)
         {
             // Classify whitespace status
             isNewline = value == "\n";
@@ -166,70 +166,70 @@ namespace Ink.Runtime
             }
         }
 
-        public LiteralString() : this("") {}
+        public StringValue() : this("") {}
 
-        public override Literal Cast(LiteralType newType)
+        public override Value Cast(ValueType newType)
         {
-            if (newType == literalType) {
+            if (newType == valueType) {
                 return this;
             }
 
-            if (newType == LiteralType.Int) {
+            if (newType == ValueType.Int) {
 
                 int parsedInt;
                 if (int.TryParse (value, out parsedInt)) {
-                    return new LiteralInt (parsedInt);
+                    return new IntValue (parsedInt);
                 } else {
                     return null;
                 }
             }
 
-            if (newType == LiteralType.Float) {
+            if (newType == ValueType.Float) {
                 float parsedFloat;
                 if (float.TryParse (value, out parsedFloat)) {
-                    return new LiteralFloat (parsedFloat);
+                    return new FloatValue (parsedFloat);
                 } else {
                     return null;
                 }
             }
 
-            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
         }
     }
 
-    internal class LiteralDivertTarget : Literal<Path>
+    internal class DivertTargetValue : Value<Path>
     {
         public Path targetPath { get { return this.value; } set { this.value = value; } }
-        public override LiteralType literalType { get { return LiteralType.DivertTarget; } }
+        public override ValueType valueType { get { return ValueType.DivertTarget; } }
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a divert target"); } }
             
-        public LiteralDivertTarget(Path targetPath) : base(targetPath)
+        public DivertTargetValue(Path targetPath) : base(targetPath)
         {
         }
 
-        public LiteralDivertTarget() : base(null)
+        public DivertTargetValue() : base(null)
         {}
 
-        public override Literal Cast(LiteralType newType)
+        public override Value Cast(ValueType newType)
         {
-            if (newType == literalType)
+            if (newType == valueType)
                 return this;
             
-            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
         }
 
         public override string ToString ()
         {
-            return "LiteralDivertTarget(" + targetPath + ")";
+            return "DivertTargetValue(" + targetPath + ")";
         }
     }
 
     // TODO: Think: Erm, I get that this contains a string, but should
-    // we really derive from Literal<string>? That seems a bit misleading to me.
-    internal class LiteralVariablePointer : Literal<string>
+    // we really derive from Value<string>? That seems a bit misleading to me.
+    internal class VariablePointerValue : Value<string>
     {
         public string variableName { get { return this.value; } set { this.value = value; } }
-        public override LiteralType literalType { get { return LiteralType.VariablePointer; } }
+        public override ValueType valueType { get { return ValueType.VariablePointer; } }
         public override bool isTruthy { get { throw new System.Exception("Shouldn't be checking the truthiness of a variable pointer"); } }
 
         // Where the variable is located
@@ -238,26 +238,26 @@ namespace Ink.Runtime
         // 1+ = callstack element index
         public int contextIndex { get; set; }
 
-        public LiteralVariablePointer(string variableName, int contextIndex = -1) : base(variableName)
+        public VariablePointerValue(string variableName, int contextIndex = -1) : base(variableName)
         {
             this.contextIndex = contextIndex;
         }
 
-        public LiteralVariablePointer() : this(null)
+        public VariablePointerValue() : this(null)
         {
         }
 
-        public override Literal Cast(LiteralType newType)
+        public override Value Cast(ValueType newType)
         {
-            if (newType == literalType)
+            if (newType == valueType)
                 return this;
 
-            throw new System.Exception ("Unexpected type cast of Literal to new LiteralType");
+            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
         }
 
         public override string ToString ()
         {
-            return "LiteralVariablePointer(" + variableName + ")";
+            return "VariablePointerValue(" + variableName + ")";
         }
     }
         

@@ -98,7 +98,7 @@ namespace Ink.Parsed
                     container.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
 
                 if (alwaysMatch)
-                    container.AddContent (new Runtime.LiteralInt (1));
+                    container.AddContent (new Runtime.IntValue (1));
 
                 if( needsEval ) 
                     container.AddContent (Runtime.ControlCommand.EvalEnd ()); 

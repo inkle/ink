@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Divert.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Glue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)INamedContent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Literal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NativeFunctionCall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Object.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Path.cs" />
@@ -33,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PushPop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StoryState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JsonSerialisation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Value.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />

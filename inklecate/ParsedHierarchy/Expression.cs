@@ -163,7 +163,7 @@ namespace Ink.Parsed
             container.AddContent (new Runtime.VariableReference (varName));
 
             // 2.
-            container.AddContent (new Runtime.LiteralInt (isInc ? 1 : -1));
+            container.AddContent (new Runtime.IntValue (isInc ? 1 : -1));
 
             // 3.
             container.AddContent (Runtime.NativeFunctionCall.CallWithName ("+"));

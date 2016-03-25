@@ -37,15 +37,13 @@ Examples:
 
    A container with the text object "test", flags 1 and 2, and a nested container named "subContainer" that resembles the first example.
 
-## Literals
+## Values
 
-*(TODO: Consider renaming to "Values"?)*
+Values are the main content objects. The most useful for written content is the String Value, which is used for all the main text within the story flow.
 
-Literals are the main content objects. The most useful is the string literal, which is used for all the main text within the story flow.
+String Values are represented in JSON by preceding the text in quotes by a leading `^` to distinguish it from many other object types which have special names (for example, control commands and native functions). The only exception is a newline, which can be simply written as `"\n"`.
 
-String literals are represented in JSON by preceded the text in quotes by a leading `^` to distinguish it from many other object types which have special names (for example, control commands and native functions). The only exception is a newline, which can be simply written as `"\n"`.
-
-Literals may also be used in logic/calculations, for example with the `int` and `float` types.
+Values may also be used in logic/calculations, for example with the `int` and `float` types.
 
 Supported types:
 
@@ -82,7 +80,7 @@ Control commands are special instructions to the text engine to perform various 
 * `"->->"` and `"~ret"` pop the callstack - used for returning from a tunnel or function respectively. They are specified independently for error checking, since the callstack is aware of whether each element was pushed as a tunnel or function in the first place.
 * `"du"` - Duplicate the topmost object on the evaluation stack. Useful since some commands consume objects on the evaluation stack.
 * `"str"` - Begin string evaluation mode. Adds a marker to the output stream, and goes into content mode (from evaluation mode). Must have already been in evaluation mode when this is encounted. See below for explanation.
-* `"/str"` - End string evaluation mode. All content after the previous Begin marker is concatenated together, removed from the output stream, and appended as a string literal to the evaluation stack. Re-enters evaluation mode immediately afterwards.
+* `"/str"` - End string evaluation mode. All content after the previous Begin marker is concatenated together, removed from the output stream, and appended as a string value to the evaluation stack. Re-enters evaluation mode immediately afterwards.
 * `"nop"` - No-operation. Does nothing, but is useful as an addressable piece of content to divert to.
 * `"choiceCnt"` - Pushes an integer with the current number of choices to the evaluation stack.
 * `"turns"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of turns since that target was last visited by the story engine.
@@ -105,7 +103,7 @@ Booleans are supported only in the C-style - i.e. as integers where non-zero is 
 Diverts can take the following forms:
 
 * `{"->": "path.to.target"}` - a standard divert to content at a particular path.
-* `{"->": "variableTarget", "var": true}` - as above, except that `var` specifies that the target is the name of a variable containing a *divert target* literal.
+* `{"->": "variableTarget", "var": true}` - as above, except that `var` specifies that the target is the name of a variable containing a *divert target* value.
 * `{"f()": "path.to.func"}` - a function-call, which is defined as a divert that pushes an element to the callstack. Note that it doesn't necessarily correspond directly to an ink function, since choices use them internally too.
 * `{"->t->": "path.tunnel"}` - a tunnel, which works similarly to a function call by pushing an element to the callstack. The only difference is that the callstack is aware of the type of element that was pushed, for error checking.
 * `{"x()": "externalFuncName", "exArgs": 5}` - an external (game-side) function call, that optionally takes the specified number of arguments.

@@ -104,7 +104,7 @@ namespace Ink.Parsed
                                 break;
                             }
 
-                            var varPointer = new Runtime.LiteralVariablePointer (varRef.name);
+                            var varPointer = new Runtime.VariablePointerValue (varRef.name);
                             container.AddContent (varPointer);
                         } 
 

@@ -54,13 +54,13 @@ namespace Ink.Parsed
             // Chosen sequence index:
             //  - Stopping: take the MIN(read count, num elements - 1)
             if (sequenceType == SequenceType.Stopping) {
-                container.AddContent (new Runtime.LiteralInt (sequenceElements.Count - 1));
+                container.AddContent (new Runtime.IntValue (sequenceElements.Count - 1));
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName ("MIN"));
             } 
 
             // - Cycle: take (read count % num elements)
             else if (sequenceType == SequenceType.Cycle) {
-                container.AddContent (new Runtime.LiteralInt (sequenceElements.Count));
+                container.AddContent (new Runtime.IntValue (sequenceElements.Count));
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName ("%"));
             }
 
@@ -73,7 +73,7 @@ namespace Ink.Parsed
             // Shuffle
             else if (sequenceType == SequenceType.Shuffle) {
                 // This one's a bit more complex! Choose the index at runtime.
-                container.AddContent (new Runtime.LiteralInt (sequenceElements.Count));
+                container.AddContent (new Runtime.IntValue (sequenceElements.Count));
                 container.AddContent (Runtime.ControlCommand.SequenceShuffleIndex ());
             }
 
@@ -95,7 +95,7 @@ namespace Ink.Parsed
                 // duplicate chosen sequence index, since it'll be consumed by "=="
                 container.AddContent (Runtime.ControlCommand.EvalStart ());
                 container.AddContent (Runtime.ControlCommand.Duplicate ()); 
-                container.AddContent (new Runtime.LiteralInt (elIndex));
+                container.AddContent (new Runtime.IntValue (elIndex));
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
                 container.AddContent (Runtime.ControlCommand.EvalEnd ());
 

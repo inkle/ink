@@ -40,13 +40,13 @@ namespace Ink.Runtime
             get {
                 Runtime.Object varContents;
                 if ( _globalVariables.TryGetValue (variableName, out varContents) )
-                    return (varContents as Runtime.Literal).valueObject;
+                    return (varContents as Runtime.Value).valueObject;
                 else
                     return null;
             }
             set {
-                var literal = Runtime.Literal.Create(value);
-                if (literal == null) {
+                var val = Runtime.Value.Create(value);
+                if (val == null) {
                     if (value == null) {
                         throw new StoryException ("Cannot pass null to VariableState");
                     } else {
@@ -54,7 +54,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                SetGlobal (variableName, literal);
+                SetGlobal (variableName, val);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Ink.Runtime
             Runtime.Object varValue = GetRawVariableWithName (name, contextIndex);
 
             // Get value from pointer?
-            var varPointer = varValue as LiteralVariablePointer;
+            var varPointer = varValue as VariablePointerValue;
             if (varPointer) {
                 varValue = ValueAtVariablePointer (varPointer);
             }
@@ -138,7 +138,7 @@ namespace Ink.Runtime
             return varValue;
         }
 
-        internal Runtime.Object ValueAtVariablePointer(LiteralVariablePointer pointer)
+        internal Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
         {
             return GetVariableWithName (pointer.variableName, pointer.contextIndex);
         }
@@ -158,7 +158,7 @@ namespace Ink.Runtime
 
             // Constructing new variable pointer reference
             if (varAss.isNewDeclaration) {
-                var varPointer = value as LiteralVariablePointer;
+                var varPointer = value as VariablePointerValue;
                 if (varPointer) {
                     var fullyResolvedVariablePointer = ResolveVariablePointer (varPointer);
                     value = fullyResolvedVariablePointer;
@@ -171,9 +171,9 @@ namespace Ink.Runtime
             else {
 
                 // De-reference variable reference to point to
-                LiteralVariablePointer existingPointer = null;
+                VariablePointerValue existingPointer = null;
                 do {
-                    existingPointer = GetRawVariableWithName (name, contextIndex) as LiteralVariablePointer;
+                    existingPointer = GetRawVariableWithName (name, contextIndex) as VariablePointerValue;
                     if (existingPointer) {
                         name = existingPointer.variableName;
                         contextIndex = existingPointer.contextIndex;
@@ -210,7 +210,7 @@ namespace Ink.Runtime
         // Given a variable pointer with just the name of the target known, resolve to a variable
         // pointer that more specifically points to the exact instance: whether it's global,
         // or the exact position of a temporary on the callstack.
-        LiteralVariablePointer ResolveVariablePointer(LiteralVariablePointer varPointer)
+        VariablePointerValue ResolveVariablePointer(VariablePointerValue varPointer)
         {
             int contextIndex = varPointer.contextIndex;
 
@@ -223,7 +223,7 @@ namespace Ink.Runtime
             // When accessing a pointer to a pointer (e.g. when calling nested or 
             // recursive functions that take a variable references, ensure we don't create
             // a chain of indirection by just returning the final target.
-            var doubleRedirectionPointer = valueOfVariablePointedTo as LiteralVariablePointer;
+            var doubleRedirectionPointer = valueOfVariablePointedTo as VariablePointerValue;
             if (doubleRedirectionPointer) {
                 return doubleRedirectionPointer;
             } 
@@ -231,7 +231,7 @@ namespace Ink.Runtime
             // Make copy of the variable pointer so we're not using the value direct from
             // the runtime. Temporary must be local to the current scope.
             else {
-                return new LiteralVariablePointer (varPointer.variableName, contextIndex);
+                return new VariablePointerValue (varPointer.variableName, contextIndex);
             }
         }
 

@@ -30,16 +30,16 @@ namespace Ink.Parsed
 
             else if( isTurnsSince ) {
 
-                var literalDivertTarget = arguments [0] as DivertTarget;
+                var divertTarget = arguments [0] as DivertTarget;
                 var variableDivertTarget = arguments[0] as VariableReference;
 
-                if (arguments.Count != 1 || (literalDivertTarget == null && variableDivertTarget == null) ) {
+                if (arguments.Count != 1 || (divertTarget == null && variableDivertTarget == null) ) {
                     Error ("The TURNS_SINCE() function should take one argument: a divert target to the target knot, stitch, gather or choice you want to check. e.g. TURNS_SINCE(-> myKnot)");
                     return;
                 }
 
-                if( literalDivertTarget ) {
-                    _turnCountDivertTarget = literalDivertTarget;
+                if( divertTarget ) {
+                    _turnCountDivertTarget = divertTarget;
                     AddContent(_turnCountDivertTarget);
 
                     _turnCountDivertTarget.GenerateIntoContainer(container);

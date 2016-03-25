@@ -79,50 +79,50 @@ namespace Ink.Runtime
                     throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
             }
 
-            var coercedParams = CoerceLiteralsToSingleType (parameters);
-            LiteralType coercedType = coercedParams[0].literalType;
+            var coercedParams = CoerceValuesToSingleType (parameters);
+            ValueType coercedType = coercedParams[0].valueType;
 
-            if (coercedType == LiteralType.Int) {
+            if (coercedType == ValueType.Int) {
                 return Call<int> (coercedParams);
-            } else if (coercedType == LiteralType.Float) {
+            } else if (coercedType == ValueType.Float) {
                 return Call<float> (coercedParams);
-            } else if (coercedType == LiteralType.String) {
+            } else if (coercedType == ValueType.String) {
                 return Call<string> (coercedParams);
-            } else if (coercedType == LiteralType.DivertTarget) {
+            } else if (coercedType == ValueType.DivertTarget) {
                 return Call<Path> (coercedParams);
             }
 
             return null;
         }
 
-        Literal Call<T>(List<Literal> parametersOfSingleType)
+        Value Call<T>(List<Value> parametersOfSingleType)
         {
-            Literal param1 = (Literal) parametersOfSingleType [0];
-            LiteralType litType = param1.literalType;
+            Value param1 = (Value) parametersOfSingleType [0];
+            ValueType valType = param1.valueType;
 
-            var val1 = (Literal<T>)param1;
+            var val1 = (Value<T>)param1;
 
             int paramCount = parametersOfSingleType.Count;
 
             if (paramCount == 2 || paramCount == 1) {
 
                 object opForTypeObj = null;
-                if (!_operationFuncs.TryGetValue (litType, out opForTypeObj)) {
-                    throw new StoryException ("Can not perform operation '"+this.name+"' on "+litType);
+                if (!_operationFuncs.TryGetValue (valType, out opForTypeObj)) {
+                    throw new StoryException ("Can not perform operation '"+this.name+"' on "+valType);
                 }
 
                 // Binary
                 if (paramCount == 2) {
-                    Literal param2 = (Literal) parametersOfSingleType [1];
+                    Value param2 = (Value) parametersOfSingleType [1];
 
-                    var val2 = (Literal<T>)param2;
+                    var val2 = (Value<T>)param2;
 
                     var opForType = (BinaryOp<T>)opForTypeObj;
 
                     // Return value unknown until it's evaluated
                     object resultVal = opForType (val1.value, val2.value);
 
-                    return Literal.Create (resultVal);
+                    return Value.Create (resultVal);
                 } 
 
                 // Unary
@@ -132,7 +132,7 @@ namespace Ink.Runtime
 
                     var resultVal = opForType (val1.value);
 
-                    return Literal.Create (resultVal);
+                    return Value.Create (resultVal);
                 }  
             }
                 
@@ -141,26 +141,26 @@ namespace Ink.Runtime
             }
         }
 
-        List<Literal> CoerceLiteralsToSingleType(List<Runtime.Object> parametersIn)
+        List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
         {
-            LiteralType litType = LiteralType.Int;
+            ValueType valType = ValueType.Int;
 
             // Find out what the output type is
             // "higher level" types infect both so that binary operations
             // use the same type on both sides. e.g. binary operation of
             // int and float causes the int to be casted to a float.
             foreach (var obj in parametersIn) {
-                var literal = (Literal)obj;
-                if (literal.literalType > litType) {
-                    litType = literal.literalType;
+                var val = (Value)obj;
+                if (val.valueType > valType) {
+                    valType = val.valueType;
                 }
             }
 
             // Coerce to this chosen type
-            var parametersOut = new List<Literal> ();
-            foreach (Literal literal in parametersIn) {
-                var castedLiteral = literal.Cast (litType);
-                parametersOut.Add (castedLiteral);
+            var parametersOut = new List<Value> ();
+            foreach (Value val in parametersIn) {
+                var castedValue = val.Cast (valType);
+                parametersOut.Add (castedValue);
             }
 
             return parametersOut;
@@ -239,24 +239,24 @@ namespace Ink.Runtime
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
 
-                // Special case: The only operation you can do on divert target literals
+                // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
                     return d1.Equals(d2) ? 1 : 0;
                 };
-                AddOpToNativeFunc (Equal, 2, LiteralType.DivertTarget, divertTargetsEqual);
+                AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
             }
         }
 
-        void AddOpFuncForType(LiteralType litType, object op)
+        void AddOpFuncForType(ValueType valType, object op)
         {
             if (_operationFuncs == null) {
-                _operationFuncs = new Dictionary<LiteralType, object> ();
+                _operationFuncs = new Dictionary<ValueType, object> ();
             }
 
-            _operationFuncs [litType] = op;
+            _operationFuncs [valType] = op;
         }
 
-        static void AddOpToNativeFunc(string name, int args, LiteralType litType, object op)
+        static void AddOpToNativeFunc(string name, int args, ValueType valType, object op)
         {
             NativeFunctionCall nativeFunc = null;
             if (!_nativeFunctions.TryGetValue (name, out nativeFunc)) {
@@ -264,32 +264,32 @@ namespace Ink.Runtime
                 _nativeFunctions [name] = nativeFunc;
             }
 
-            nativeFunc.AddOpFuncForType (litType, op);
+            nativeFunc.AddOpFuncForType (valType, op);
         }
 
         static void AddIntBinaryOp(string name, BinaryOp<int> op)
         {
-            AddOpToNativeFunc (name, 2, LiteralType.Int, op);
+            AddOpToNativeFunc (name, 2, ValueType.Int, op);
         }
 
         static void AddIntUnaryOp(string name, UnaryOp<int> op)
         {
-            AddOpToNativeFunc (name, 1, LiteralType.Int, op);
+            AddOpToNativeFunc (name, 1, ValueType.Int, op);
         }
 
         static void AddFloatBinaryOp(string name, BinaryOp<float> op)
         {
-            AddOpToNativeFunc (name, 2, LiteralType.Float, op);
+            AddOpToNativeFunc (name, 2, ValueType.Float, op);
         }
 
         static void AddStringBinaryOp(string name, BinaryOp<string> op)
         {
-            AddOpToNativeFunc (name, 2, LiteralType.String, op);
+            AddOpToNativeFunc (name, 2, ValueType.String, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<int> op)
         {
-            AddOpToNativeFunc (name, 1, LiteralType.Int, op);
+            AddOpToNativeFunc (name, 1, ValueType.Int, op);
         }
 
         public override string ToString ()
@@ -304,7 +304,7 @@ namespace Ink.Runtime
         bool _isPrototype;
 
         // Operations for each data type, for a single operation (e.g. "+")
-        Dictionary<LiteralType, object> _operationFuncs;
+        Dictionary<ValueType, object> _operationFuncs;
 
         static Dictionary<string, NativeFunctionCall> _nativeFunctions;
 
