@@ -53,7 +53,12 @@ namespace Ink
             //  ~ printMyName()
             // If no text gets printed, then the extra newline will have to be culled later.
             if (result is FunctionCall) {
-                result = new ContentList (result, new Parsed.Text ("\n"));
+
+                // Add extra pop to make sure we tidy up after ourselves - we no longer need anything on the evaluation stack.
+                var funCall = result as FunctionCall;
+                funCall.shouldPopReturnedValue = true;
+
+                result = new ContentList (funCall, new Parsed.Text ("\n"));
             }
 
             return result as Parsed.Object;

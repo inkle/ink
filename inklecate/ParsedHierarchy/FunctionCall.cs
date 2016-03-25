@@ -9,6 +9,7 @@ namespace Ink.Parsed
         public Runtime.Divert runtimeDivert { get { return _proxyDivert.runtimeDivert; } }
         public bool isChoiceCount { get { return name == "CHOICE_COUNT"; } }
         public bool isTurnsSince { get { return name == "TURNS_SINCE"; } }
+        public bool shouldPopReturnedValue;
 
         public FunctionCall (string functionName, List<Expression> arguments)
         {
@@ -65,6 +66,13 @@ namespace Ink.Parsed
             else {
                 container.AddContent (_proxyDivert.runtimeObject);
             }
+
+            // Function calls that are used alone on a tilda-based line:
+            //  ~ func()
+            // Should tidy up any returned value from the evaluation stack,
+            // since it's unused.
+            if (shouldPopReturnedValue)
+                container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
         }
 
         public override void ResolveReferences (Story context)
