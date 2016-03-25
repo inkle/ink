@@ -9,8 +9,8 @@ namespace Ink.Runtime
 {
     public class StoryState
     {
-        public const int kInkSaveStateVersion = 1;
-        const int kMinCompatibleLoadVersion = 1;
+        public const int kInkSaveStateVersion = 2;
+        const int kMinCompatibleLoadVersion = 2;
 
         /// <summary>
         /// Exports the current state to json format, in order to save the game.
