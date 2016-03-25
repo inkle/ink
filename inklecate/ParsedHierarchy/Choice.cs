@@ -190,7 +190,7 @@ namespace Ink.Parsed
 
             // Fully parsed choice will be a full line, so it needs to be terminated
             if (startContent || innerContent) {
-                _innerContentContainer.AddContent(new Runtime.Text("\n"));
+                _innerContentContainer.AddContent(new Runtime.LiteralString("\n"));
             }
 
             // Use "c" as the destination name within the choice's outer container

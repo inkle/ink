@@ -142,12 +142,8 @@ namespace Ink.Runtime
                 char firstChar = str[0];
                 if (firstChar == '^')
                     return new LiteralString (str.Substring (1));
-
-                // Runtime text
-                if (firstChar == '$')
-                    return new Runtime.Text (str.Substring (1));
-                if (firstChar == '\n' && str.Length == 1)
-                    return new Runtime.Text ("\n");
+                else if( firstChar == '\n' && str.Length == 1)
+                    return new LiteralString ("\n");
 
                 // Glue
                 if (str == "<>")
@@ -361,8 +357,12 @@ namespace Ink.Runtime
                 return litFloat.value;
             
             var litStr = obj as LiteralString;
-            if (litStr)
-                return "^" + litStr.value;
+            if (litStr) {
+                if (litStr.isNewline)
+                    return "\n";
+                else
+                    return "^" + litStr.value;
+            }
 
             var litDivTarget = obj as LiteralDivertTarget;
             if (litDivTarget)
@@ -376,14 +376,6 @@ namespace Ink.Runtime
                     new JProperty("^var", litVarPtr.value),
                     new JProperty("ci", litVarPtr.contextIndex)
                 );
-
-            var text = obj as Runtime.Text;
-            if (text) {
-                if (text.isNewline)
-                    return "\n";
-                else
-                    return "$" + text.text;
-            }
 
             var glue = obj as Runtime.Glue;
             if (glue) {

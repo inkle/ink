@@ -12,7 +12,7 @@ namespace Ink.Parsed
 
 		public override Runtime.Object GenerateRuntimeObject ()
 		{
-			return new Runtime.Text(this.text);
+			return new Runtime.LiteralString(this.text);
 		}
 
         public override string ToString ()

@@ -36,16 +36,40 @@ Examples:
 * `["$test", {"subContainer": [5, 6, null], "#f": 3}]`
 
    A container with the text object "test", flags 1 and 2, and a nested container named "subContainer" that resembles the first example.
-   
-## Text
 
-The main text content within the story flow is represented by a JSON string, with a leading `$` to distinguish it from many other object types which are represented with special string names. The only exception is a newline, which can be simply written as `"\n"`.
+## Literals
 
-Examples:
+*(TODO: Consider renaming to "Values"?)*
 
-* `"$Hello world"` - The string `Hello world`
-* `"$$9.99` - The string `$9.99`.
-* `"\n"` - A newline.
+Literals are the main content objects. The most useful is the string literal, which is used for all the main text within the story flow.
+
+String literals are represented in JSON by preceded the text in quotes by a leading `^` to distinguish it from many other object types which have special names (for example, control commands and native functions). The only exception is a newline, which can be simply written as `"\n"`.
+
+Literals may also be used in logic/calculations, for example with the `int` and `float` types.
+
+Supported types:
+
+* **string**: Represented with a leading `^` to differentiate from other string-based objects. e.g. `"^Hello world"` is used in JSON to represent the text `Hello world`, and `"^^ up there ^"` would be the text `^ up there ^`. No `^` is needed for a newline, so it's just `"\n"`.
+* **int** and **float**: these are represented using their standard JSON counterparts. e.g. `5`, `5.6`.
+* **divert target**: represents a variable divert target, for example as used in the following ink:
+
+        VAR x = -> somewhere
+        
+    Represented in runtime JSON as an object of the form: `{"^->": "path.to.target"}`
+
+* **variable pointer**: used for references to variables, for example when declaring a function with the following ink:
+
+        == function myFunction(ref x) ==
+        
+    Represented in runtime JSON as an object of the form: `{"^var": "varname", "ci": 0}`. Where `ci` is "context index", with the following possible values:
+    
+    * **-1** - default value, context yet to be determined.
+    * **0**  - Variable is a global
+    * **1 or more** - variable is a local/temporary in the callstack element with the given index.
+
+## Void
+
+Represented by `"void"`, this is used to place an object on the evaluation stack when a function returns without a value.
 
 ## Control commands
 
@@ -75,36 +99,6 @@ These are mathematical and logical functions that pop 1 or 2 arguments from the 
 `"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"~"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
         
 Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
-
-## Literals
-
-*(TODO: Consider renaming to "Values"?)*
-
-Logical values that can be used in conjunction with various logical constructs such as functions and native functions.
-
-Supported types:
-
-* **int** and **float**: these are represented using their standard JSON counterparts. e.g. `5`, `5.6`.
-* **string**: Represented with a leading `^` to differentiate from other string-based objects. e.g. `^Hello world`. TODO: consider merging with Text objects.
-* **divert target**: represents a variable divert target, for example as used in the following ink:
-
-        VAR x = -> somewhere
-        
-    Represented in runtime JSON as an object of the form: `{"^->": "path.to.target"}`
-
-* **variable pointer**: used for references to variables, for example when declaring a function with the following ink:
-
-        == function myFunction(ref x) ==
-        
-    Represented in runtime JSON as an object of the form: `{"^var": "varname", "ci": 0}`. Where `ci` is "context index", with the following possible values:
-    
-    * **-1** - default value, context yet to be determined.
-    * **0**  - Variable is a global
-    * **1 or more** - variable is a local/temporary in the callstack element with the given index.
-
-## Void
-
-Represented by `"void"`, this is used to place an object on the evaluation stack when a function returns without a value.
 
 ## Divert
 

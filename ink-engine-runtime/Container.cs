@@ -281,7 +281,7 @@ namespace Ink.Runtime
 
                 } else {
                     appendIndentation ();
-                    if (obj is Text) {
+                    if (obj is LiteralString) {
                         sb.Append ("\"");
                         sb.Append (obj.ToString ().Replace ("\n", "\\n"));
                         sb.Append ("\"");

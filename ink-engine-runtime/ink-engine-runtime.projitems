@@ -25,7 +25,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Story.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StoryException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StringJoinExtension.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Text.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VariableAssignment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VariableReference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Void.cs" />

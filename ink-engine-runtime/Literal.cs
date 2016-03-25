@@ -145,8 +145,25 @@ namespace Ink.Runtime
         public override LiteralType literalType { get { return LiteralType.String; } }
         public override bool isTruthy { get { return value.Length > 0; } }
 
+        public bool isNewline { get; private set; }
+        public bool isInlineWhitespace { get; private set; }
+        public bool isNonWhitespace {
+            get {
+                return !isNewline && !isInlineWhitespace;
+            }
+        }
+
         public LiteralString(string literalVal) : base(literalVal)
         {
+            // Classify whitespace status
+            isNewline = value == "\n";
+            isInlineWhitespace = true;
+            foreach (var c in value) {
+                if (c != ' ' && c != '\t') {
+                    isInlineWhitespace = false;
+                    break;
+                }
+            }
         }
 
         public LiteralString() : this("") {}

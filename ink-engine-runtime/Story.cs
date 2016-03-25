@@ -636,7 +636,7 @@ namespace Ink.Runtime
                             // TODO: Should we really always blanket convert to string?
                             // It would be okay to have numbers in the output stream the
                             // only problem is when exporting text for viewing, it skips over numbers etc.
-                            var text = new Text (output.ToString ());
+                            var text = new LiteralString (output.ToString ());
 
                             state.PushToOutputStream (text);
                         }
@@ -707,7 +707,7 @@ namespace Ink.Runtime
                             break;
                         }
 
-                        if( obj is Text )
+                        if( obj is LiteralString )
                             contentStackForString.Push (obj);
                     }
 

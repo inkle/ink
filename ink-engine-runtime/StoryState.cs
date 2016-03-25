@@ -115,9 +115,9 @@ namespace Ink.Runtime
                 var sb = new StringBuilder ();
 
                 foreach (var outputObj in _outputStream) {
-                    var textContent = outputObj as Text;
+                    var textContent = outputObj as LiteralString;
                     if (textContent != null) {
-                        sb.Append(textContent.text);
+                        sb.Append(textContent.value);
                     }
                 }
 
@@ -298,7 +298,7 @@ namespace Ink.Runtime
         // in dealing with them later.
         internal void PushToOutputStream(Runtime.Object obj)
         {
-            var text = obj as Text;
+            var text = obj as LiteralString;
             if (text) {
                 var listText = TrySplittingHeadTailWhitespace (text);
                 if (listText != null) {
@@ -324,9 +324,9 @@ namespace Ink.Runtime
         //
         //  - If no splitting is necessary, null is returned.
         //  - A newline on its own is returned in an list for consistency.
-        List<Runtime.Text> TrySplittingHeadTailWhitespace(Runtime.Text single)
+        List<Runtime.LiteralString> TrySplittingHeadTailWhitespace(Runtime.LiteralString single)
         {
-            string str = single.text;
+            string str = single.value;
 
             int headFirstNewlineIdx = -1;
             int headLastNewlineIdx = -1;
@@ -362,16 +362,16 @@ namespace Ink.Runtime
             if (headFirstNewlineIdx == -1 && tailLastNewlineIdx == -1)
                 return null;
                 
-            var listTexts = new List<Runtime.Text> ();
+            var listTexts = new List<Runtime.LiteralString> ();
             int innerStrStart = 0;
             int innerStrEnd = str.Length;
 
             if (headFirstNewlineIdx != -1) {
                 if (headFirstNewlineIdx > 0) {
-                    var leadingSpaces = new Text (str.Substring (0, headFirstNewlineIdx));
+                    var leadingSpaces = new LiteralString (str.Substring (0, headFirstNewlineIdx));
                     listTexts.Add(leadingSpaces);
                 }
-                listTexts.Add (new Text ("\n"));
+                listTexts.Add (new LiteralString ("\n"));
                 innerStrStart = headLastNewlineIdx + 1;
             }
 
@@ -381,14 +381,14 @@ namespace Ink.Runtime
 
             if (innerStrEnd > innerStrStart) {
                 var innerStrText = str.Substring (innerStrStart, innerStrEnd - innerStrStart);
-                listTexts.Add (new Text (innerStrText));
+                listTexts.Add (new LiteralString (innerStrText));
             }
 
             if (tailLastNewlineIdx != -1 && tailFirstNewlineIdx > headLastNewlineIdx) {
-                listTexts.Add (new Text ("\n"));
+                listTexts.Add (new LiteralString ("\n"));
                 if (tailLastNewlineIdx < str.Length - 1) {
                     int numSpaces = (str.Length - tailLastNewlineIdx) - 1;
-                    var trailingSpaces = new Text (str.Substring (tailLastNewlineIdx + 1, numSpaces));
+                    var trailingSpaces = new LiteralString (str.Substring (tailLastNewlineIdx + 1, numSpaces));
                     listTexts.Add(trailingSpaces);
                 }
             }
@@ -399,7 +399,7 @@ namespace Ink.Runtime
         void PushToOutputStreamIndividual(Runtime.Object obj)
         {
             var glue = obj as Runtime.Glue;
-            var text = obj as Runtime.Text;
+            var text = obj as Runtime.LiteralString;
 
             bool includeInOutput = true;
 
@@ -469,7 +469,7 @@ namespace Ink.Runtime
             while (i >= 0) {
                 var obj = _outputStream [i];
                 var cmd = obj as ControlCommand;
-                var txt = obj as Text;
+                var txt = obj as LiteralString;
                 var glue = obj as Glue;
 
                 if (cmd || (txt && txt.isNonWhitespace)) {
@@ -489,7 +489,7 @@ namespace Ink.Runtime
             if (removeWhitespaceFrom >= 0) {
                 i=removeWhitespaceFrom;
                 while(i < _outputStream.Count) {
-                    var text = _outputStream [i] as Text;
+                    var text = _outputStream [i] as LiteralString;
                     if (text) {
                         _outputStream.RemoveAt (i);
                     } else {
@@ -508,7 +508,7 @@ namespace Ink.Runtime
         {
             int i = currentGlueIndex;
             while (i < _outputStream.Count) {
-                var txt = _outputStream [i] as Text;
+                var txt = _outputStream [i] as LiteralString;
                 if (txt && !txt.isNonWhitespace)
                     _outputStream.RemoveAt (i);
                 else
@@ -552,7 +552,7 @@ namespace Ink.Runtime
                         var obj = _outputStream [i];
                         if (obj is ControlCommand) // e.g. BeginString
                             break;
-                        var text = _outputStream [i] as Text;
+                        var text = _outputStream [i] as LiteralString;
                         if (text) {
                             if (text.isNewline)
                                 return true;
@@ -569,7 +569,7 @@ namespace Ink.Runtime
         internal bool outputStreamContainsContent {
             get {
                 foreach (var content in _outputStream) {
-                    if (content is Text)
+                    if (content is LiteralString)
                         return true;
                 }
                 return false;
