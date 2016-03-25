@@ -104,8 +104,6 @@ Supported types:
 
 ## Void
 
-*(TODO: This should perhaps be a type of Literal.)*
-
 Represented by `"void"`, this is used to place an object on the evaluation stack when a function returns without a value.
 
 ## Divert
