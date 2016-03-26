@@ -463,12 +463,6 @@
 					<key>name</key>
 					<string>constant.glue</string>
 				</dict>
-				<dict>
-					<key>match</key>
-					<string>.</string>
-					<key>name</key>
-					<string>string.content</string>
-				</dict>
 			</array>
 		</dict>
 		<key>multiLineLogic</key>

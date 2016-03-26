@@ -194,8 +194,11 @@ repository:
       #   contentName: string.italic
 
       # Final fallback
-      - match: .
-        name: string.content
+      # 26/03/16 - Switch off this semantic name for the main text content,
+      # since it messes with word wrapping, and doesn't seem to give any
+      # particular benefit.
+      # - match: .
+      #   name: string.content
 
   statements:
     patterns:
