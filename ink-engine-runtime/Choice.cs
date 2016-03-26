@@ -38,11 +38,11 @@ namespace Ink.Runtime
                 return flags;
             }
             set {
-                if ((value & 1) > 0)  hasCondition = true;
-                if ((value & 2) > 0)  hasStartContent = true;
-                if ((value & 4) > 0)  hasChoiceOnlyContent = true;
-                if ((value & 8) > 0)  isInvisibleDefault = true;
-                if ((value & 16) > 0) onceOnly = true;
+                hasCondition = (value & 1) > 0;
+                hasStartContent = (value & 2) > 0;
+                hasChoiceOnlyContent = (value & 4) > 0;
+                isInvisibleDefault = (value & 8) > 0;
+                onceOnly = (value & 16) > 0;
             }
         }
 

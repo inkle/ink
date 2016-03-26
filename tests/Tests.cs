@@ -2054,6 +2054,26 @@ CONST Y = 2
         }
 
 
+        [Test ()]
+        public void TestStickyChoicesStaySticky()
+        {
+            var story = CompileString (@"
+== test ==
+First line.
+Second line.
++ Choice 1
++ Choice 2
+- -> test
+");
+
+            story.ContinueMaximally ();
+            Assert.AreEqual (2, story.currentChoices.Count);
+
+            story.ChooseChoiceIndex (0);
+            story.ContinueMaximally ();
+            Assert.AreEqual (2, story.currentChoices.Count);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
