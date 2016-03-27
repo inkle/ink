@@ -1145,7 +1145,7 @@ Global variables can be defined anywhere, via a `VAR` statement. They should be 
 	VAR knowledge_of_the_cure = false
 	VAR players_name = "Emilia"
 	VAR number_of_infected_people = 521
-	VAR current_epilogue = "-> they_all_die_of_the_plague"
+	VAR current_epilogue = -> they_all_die_of_the_plague
 
 ### Using Global Variables
 
@@ -1165,7 +1165,7 @@ A "divert" statement is actually a type of value in itself, and can be stored, a
 	=== continue_or_quit ===
 	Give up now, or keep trying to save your Kingdom?
 	*  [Keep trying!] 	-> more_hopeless_introspection
-	*  [Give up] 		-> epilogue
+	*  [Give up] 		-> current_epilogue
 
 
 #### Advanced: Global variables are externally visible
