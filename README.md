@@ -82,6 +82,8 @@ We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unit
 
 For information on getting started, see [Running Your Ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
 
+For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
+
 ## Building
 
 ### Requirements
