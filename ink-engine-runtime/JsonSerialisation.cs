@@ -121,10 +121,10 @@ namespace Ink.Runtime
         // Var ref:        {"VAR?": "varName"}
         //                 {"CNT?": "stitch name"}
         // 
-        // Choice:         {"*": pathString,
+        // ChoicePoint:    {"*": pathString,
         //                  "flg": 18 }
         //
-        // ChoiceInstance: Nothing too clever, it's only used in the save state,
+        // Choice:         Nothing too clever, it's only used in the save state,
         //                 there's not likely to be many of them.
         public static Runtime.Object JTokenToRuntimeObject(JToken token)
         {
@@ -237,7 +237,7 @@ namespace Ink.Runtime
                     
                 // Choice
                 if (obj.TryGetValue ("*", out propValue)) {
-                    var choice = new Choice ();
+                    var choice = new ChoicePoint ();
                     choice.pathStringOnChoice = propValue.ToString();
 
                     if (obj.TryGetValue ("flg", out propValue))
@@ -286,7 +286,7 @@ namespace Ink.Runtime
                 }
 
                 if (obj ["originalChoicePath"] != null)
-                    return JObjectToChoiceInstance (obj);
+                    return JObjectToChoice (obj);
             }
 
             // Array is always a Runtime.Container
@@ -337,11 +337,11 @@ namespace Ink.Runtime
                 return jObj;
             }
 
-            var choice = obj as Choice;
-            if (choice) {
+            var choicePoint = obj as ChoicePoint;
+            if (choicePoint) {
                 var jObj = new JObject ();
-                jObj ["*"] = choice.pathStringOnChoice;
-                jObj ["flg"] = choice.flags;
+                jObj ["*"] = choicePoint.pathStringOnChoice;
+                jObj ["flg"] = choicePoint.flags;
                 return jObj;
             }
 
@@ -436,9 +436,9 @@ namespace Ink.Runtime
                 return "void";
 
             // Used when serialising save state only
-            var choiceInstance = obj as ChoiceInstance;
-            if (choiceInstance)
-                return ChoiceInstanceToJObject (choiceInstance);
+            var choice = obj as Choice;
+            if (choice)
+                return ChoiceToJObject (choice);
 
             throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
         }
@@ -527,23 +527,23 @@ namespace Ink.Runtime
             return container;
         }
 
-        static ChoiceInstance JObjectToChoiceInstance(JObject jObj)
+        static Choice JObjectToChoice(JObject jObj)
         {
-            var choiceInst = new ChoiceInstance();
-            choiceInst.choiceText = jObj ["choiceText"].ToString();
-            choiceInst.choiceIndex = jObj ["choiceIndex"].ToObject<int>();
-            choiceInst.originalChoicePath = jObj ["originalChoicePath"].ToString();
-            choiceInst.originalThreadIndex = jObj ["originalThreadIndex"].ToObject<int>();
-            return choiceInst;
+            var choice = new Choice();
+            choice.text = jObj ["text"].ToString();
+            choice.index = jObj ["index"].ToObject<int>();
+            choice.originalChoicePath = jObj ["originalChoicePath"].ToString();
+            choice.originalThreadIndex = jObj ["originalThreadIndex"].ToObject<int>();
+            return choice;
         }
 
-        static JObject ChoiceInstanceToJObject(ChoiceInstance choiceInst)
+        static JObject ChoiceToJObject(Choice choice)
         {
             var jObj = new JObject ();
-            jObj ["choiceText"] = choiceInst.choiceText;
-            jObj ["choiceIndex"] = choiceInst.choiceIndex;
-            jObj ["originalChoicePath"] = choiceInst.originalChoicePath;
-            jObj ["originalThreadIndex"] = choiceInst.originalThreadIndex;
+            jObj ["text"] = choice.text;
+            jObj ["index"] = choice.index;
+            jObj ["originalChoicePath"] = choice.originalChoicePath;
+            jObj ["originalThreadIndex"] = choice.originalThreadIndex;
             return jObj;
         }
 

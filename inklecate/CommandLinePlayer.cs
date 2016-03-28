@@ -40,8 +40,8 @@ namespace Ink
                     Console.ForegroundColor = ConsoleColor.Blue;
 
 					int i = 1;
-					foreach (ChoiceInstance choice in choices) {
-						Console.WriteLine ("{0}: {1}", i, choice.choiceText);
+					foreach (Choice choice in choices) {
+						Console.WriteLine ("{0}: {1}", i, choice.text);
 						i++;
 					}
 

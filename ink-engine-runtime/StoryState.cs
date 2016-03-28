@@ -56,7 +56,7 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
 
         internal List<Runtime.Object> outputStream { get { return _outputStream; } }
-        internal List<ChoiceInstance> currentChoices { get; private set; }
+        internal List<Choice> currentChoices { get; private set; }
         internal List<string> currentErrors { get; private set; }
         internal VariablesState variablesState { get; private set; }
         internal CallStack callStack { get; private set; }
@@ -153,7 +153,7 @@ namespace Ink.Runtime
             int timeSeed = DateTime.Now.Millisecond;
             storySeed = (new Random (timeSeed)).Next () % 100;
 
-            currentChoices = new List<ChoiceInstance> ();
+            currentChoices = new List<Choice> ();
 
             GoToStart();
         }
@@ -207,8 +207,8 @@ namespace Ink.Runtime
         {
             get {
 
-                foreach (ChoiceInstance c in currentChoices) {
-                    c.originalChoicePath = c.choice.path.componentsString;
+                foreach (Choice c in currentChoices) {
+                    c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
                 }
 
@@ -259,7 +259,7 @@ namespace Ink.Runtime
 
                 _outputStream = Json.JArrayToRuntimeObjList ((JArray)jObject ["outputStream"]);
 
-                currentChoices = Json.JArrayToRuntimeObjList<ChoiceInstance>((JArray)jObject ["currentChoices"]);
+                currentChoices = Json.JArrayToRuntimeObjList<Choice>((JArray)jObject ["currentChoices"]);
 
                 JToken propValue;
                 if( jObject.TryGetValue("currRightGlue", out propValue ) ) {
@@ -278,7 +278,7 @@ namespace Ink.Runtime
                 storySeed = jObject ["storySeed"].ToObject<int> ();
 
                 foreach (var c in currentChoices) {
-                    c.choice = (Choice) story.ContentAtPath (new Path (c.originalChoicePath));
+                    c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
                     c.threadAtGeneration = callStack.ThreadWithIndex(c.originalThreadIndex);
                 }
             }

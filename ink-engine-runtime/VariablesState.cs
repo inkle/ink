@@ -35,6 +35,13 @@ namespace Ink.Runtime
         }
         bool _batchObservingVariableChanges;
 
+        /// <summary>
+        /// Get or set the value of a named global ink variable.
+        /// The types available are the standard ink types. Certain
+        /// types will be implicitly casted when setting.
+        /// For example, doubles to floats, longs to ints, and bools
+        /// to ints.
+        /// </summary>
         public object this[string variableName]
         {
             get {
@@ -63,6 +70,9 @@ namespace Ink.Runtime
 			return GetEnumerator();
 		}
 
+        /// <summary>
+        /// Enumerator to allow iteration over all global variables by name.
+        /// </summary>
 		public IEnumerator<string> GetEnumerator()
 		{
 			return _globalVariables.Keys.GetEnumerator();
@@ -90,8 +100,8 @@ namespace Ink.Runtime
                 }
             }
         }
-
-        public JToken jsonToken
+            
+        internal JToken jsonToken
         {
             get {
                 return Json.DictionaryRuntimeObjsToJObject(_globalVariables);

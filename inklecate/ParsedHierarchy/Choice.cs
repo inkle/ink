@@ -118,7 +118,7 @@ namespace Ink.Parsed
             //     ]
             // ]
 
-            _runtimeChoice = new Runtime.Choice (onceOnly);
+            _runtimeChoice = new Runtime.ChoicePoint (onceOnly);
             _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
 
             if (startContent || choiceOnlyContent || condition) {
@@ -240,7 +240,7 @@ namespace Ink.Parsed
             }
         }
 
-        Runtime.Choice _runtimeChoice;
+        Runtime.ChoicePoint _runtimeChoice;
         Runtime.Container _innerContentContainer;
         Runtime.Container _outerContainer;
         Runtime.Container _startContentRuntimeContainer;

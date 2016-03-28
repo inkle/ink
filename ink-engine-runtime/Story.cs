@@ -25,15 +25,22 @@ namespace Ink.Runtime
         //     in-development problem only.
         const int inkVersionMinimumCompatible = 11;
 
-        public List<ChoiceInstance> currentChoices
+        /// <summary>
+        /// The list of Choice objects available at the current point in
+        /// the Story. This list will be populated as the Story is stepped
+        /// through with the Continue() method. Once canContinue becomes
+        /// false, this list will be fully populated, and is usually
+        /// (but not always) on the final Continue() step.
+        /// </summary>
+        public List<Choice> currentChoices
 		{
 			get 
 			{
                 // Don't include invisible choices for external usage.
-                var choices = new List<ChoiceInstance>();
+                var choices = new List<Choice>();
                 foreach (var c in _state.currentChoices) {
-                    if (!c.choice.isInvisibleDefault) {
-                        c.choiceIndex = choices.Count;
+                    if (!c.choicePoint.isInvisibleDefault) {
+                        c.index = choices.Count;
                         choices.Add (c);
                     }
                 }
@@ -41,10 +48,38 @@ namespace Ink.Runtime
 			}
 		}
             
+        /// <summary>
+        /// The latest line of text to be generated from a Continue() call.
+        /// </summary>
 		public string currentText { get  { return state.currentText; } }
+
+        /// <summary>
+        /// Any errors generated during evaluation of the Story.
+        /// </summary>
         public List<string> currentErrors { get { return state.currentErrors; } }
+
+        /// <summary>
+        /// Whether the currentErrors list contains any errors.
+        /// </summary>
         public bool hasError { get { return state.hasError; } }
+
+        /// <summary>
+        /// The VariablesState object contains all the global variables in the story.
+        /// However, note that there's more to the state of a Story than just the
+        /// global variables. This is a convenience accessor to the full state object.
+        /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
+
+        /// <summary>
+        /// The entire current state of the story including (but not limited to):
+        /// 
+        ///  * Global variables
+        ///  * Temporary variables
+        ///  * Read/visit and turn counts
+        ///  * The callstack and evaluation stacks
+        ///  * The current threads
+        /// 
+        /// </summary>
         public StoryState state { get { return _state; } }
             
         // Warning: When creating a Story using this constructor, you need to
@@ -56,6 +91,9 @@ namespace Ink.Runtime
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
 
+        /// <summary>
+        /// Construct a Story object using a JSON string compiled through inklecate.
+        /// </summary>
         public Story(string jsonString) : this((Container)null)
         {
             JObject rootObject = JObject.Parse (jsonString);
@@ -83,6 +121,12 @@ namespace Ink.Runtime
             ResetState ();
         }
 
+        /// <summary>
+        /// The Story itself in JSON representation.
+        /// </summary>
+        /// <param name="indented">
+        /// Whether to indent or 'pretty print' the JSON. Not avisable, except
+        /// for debugging purposes of small stories.</param>
         public string ToJsonString(bool indented = false)
         {
             var rootContainerToken = Json.RuntimeObjectToJToken (_mainContentContainer);
@@ -94,6 +138,10 @@ namespace Ink.Runtime
             return rootObject.ToString (indented ? Formatting.Indented : Formatting.None);
         }
             
+        /// <summary>
+        /// Reset the Story back to its initial state as it was when it was
+        /// first constructed.
+        /// </summary>
         public void ResetState()
         {
             _state = new StoryState (this);
@@ -102,11 +150,22 @@ namespace Ink.Runtime
             ResetGlobals ();
         }
 
+        /// <summary>
+        /// Reset the runtime error list within the state.
+        /// </summary>
         public void ResetErrors()
         {
             _state.ResetErrors ();
         }
 
+        /// <summary>
+        /// Unwinds the callstack. Useful to reset the Story's evaluation
+        /// without actually changing any meaningful state, for example if
+        /// you want to exit a section of story prematurely and tell it to
+        /// go elsewhere with a call to ChoosePathString(...).
+        /// Doing so without calling ResetCallstack() could cause unexpected
+        /// issues if, for example, the Story was in a tunnel already.
+        /// </summary>
         public void ResetCallstack()
         {
             _state.ForceEndFlow ();
@@ -369,11 +428,11 @@ namespace Ink.Runtime
             }
 
             // Choice with condition?
-            var choice = currentContentObj as Choice;
-            if (choice) {
-                var choiceInstance = ProcessChoice (choice);
-                if (choiceInstance) {
-                    state.currentChoices.Add (choiceInstance);
+            var choicePoint = currentContentObj as ChoicePoint;
+            if (choicePoint) {
+                var choice = ProcessChoice (choicePoint);
+                if (choice) {
+                    state.currentChoices.Add (choice);
                 }
 
                 currentContentObj = null;
@@ -465,12 +524,12 @@ namespace Ink.Runtime
             }
         }
             
-        ChoiceInstance ProcessChoice(Choice choice)
+        Choice ProcessChoice(ChoicePoint choicePoint)
         {
             bool showChoice = true;
 
-            // Don't create choice instance if choice doesn't pass conditional
-            if (choice.hasCondition) {
+            // Don't create choice if choice point doesn't pass conditional
+            if (choicePoint.hasCondition) {
                 var conditionValue = state.PopEvaluationStack ();
                 if (!IsTruthy (conditionValue)) {
                     showChoice = false;
@@ -480,26 +539,26 @@ namespace Ink.Runtime
             string startText = "";
             string choiceOnlyText = "";
 
-            if (choice.hasChoiceOnlyContent) {
+            if (choicePoint.hasChoiceOnlyContent) {
                 var choiceOnlyStrVal = state.PopEvaluationStack () as StringValue;
                 choiceOnlyText = choiceOnlyStrVal.value;
             }
 
-            if (choice.hasStartContent) {
+            if (choicePoint.hasStartContent) {
                 var startStrVal = state.PopEvaluationStack () as StringValue;
                 startText = startStrVal.value;
             }
 
-            // Don't create choice instance if player has already read this content
-            if (choice.onceOnly) {
-                var visitCount = VisitCountForContainer (choice.choiceTarget);
+            // Don't create choice if player has already read this content
+            if (choicePoint.onceOnly) {
+                var visitCount = VisitCountForContainer (choicePoint.choiceTarget);
                 if (visitCount > 0) {
                     showChoice = false;
                 }
             }
                 
-            var choiceInstance = new ChoiceInstance (choice);
-            choiceInstance.threadAtGeneration = state.callStack.currentThread.Copy ();
+            var choice = new Choice (choicePoint);
+            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // We go through the full process of creating the choice above so
             // that we consume the content for it, since otherwise it'll
@@ -508,10 +567,10 @@ namespace Ink.Runtime
                 return null;
             }
 
-            // Set final text for the choice instance
-            choiceInstance.choiceText = startText + choiceOnlyText;
+            // Set final text for the choice
+            choice.text = startText + choiceOnlyText;
 
-            return choiceInstance;
+            return choice;
         }
 
         // Does the expression result represented by this object evaluate to true?
@@ -880,22 +939,29 @@ namespace Ink.Runtime
             VisitChangedContainersDueToDivert (prevContentObj, newContentObj);
         }
 
+        /// <summary>
+        /// Chooses the Choice from the currentChoices list with the given
+        /// index. Internally, this sets the current content path to that
+        /// pointed to by the Choice, ready to continue story evaluation.
+        /// </summary>
         public void ChooseChoiceIndex(int choiceIdx)
         {
-            var choiceInstances = currentChoices;
-            Assert (choiceIdx >= 0 && choiceIdx < choiceInstances.Count, "choice out of range");
+            var choices = currentChoices;
+            Assert (choiceIdx >= 0 && choiceIdx < choices.Count, "choice out of range");
 
             // Replace callstack with the one from the thread at the choosing point, 
             // so that we can jump into the right place in the flow.
             // This is important in case the flow was forked by a new thread, which
             // can create multiple leading edges for the story, each of
             // which has its own context.
-            var instanceToChoose = choiceInstances [choiceIdx];
-            state.callStack.currentThread = instanceToChoose.threadAtGeneration;
+            var choiceToChoose = choices [choiceIdx];
+            state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
-            ChoosePath (instanceToChoose.choice.choiceTarget.path);
+            ChoosePath (choiceToChoose.choicePoint.choiceTarget.path);
         }
 
+        // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
+        // CommandLinePlayer.
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
         {
             int startCallStackHeight = state.callStack.elements.Count;
@@ -982,10 +1048,20 @@ namespace Ink.Runtime
             state.PushEvaluationStack (returnObj);
         }
 
+        /// <summary>
+        /// General purpose delegate definition for bound EXTERNAL function definitions
+        /// from ink. Note that this version isn't necessary if you have a function
+        /// with three arguments or less - see the overloads of BindExternalFunction.
+        /// </summary>
         public delegate object ExternalFunction(object[] args);
 
-        // Most general form of function binding that returns an object and takes an array of object parameters.
-        // The only way to bind a function with more than 3 arguments.
+        /// <summary>
+        /// Most general form of function binding that returns an object
+        /// and takes an array of object parameters.
+        /// The only way to bind a function with more than 3 arguments.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
         {
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
@@ -1026,6 +1102,12 @@ namespace Ink.Runtime
 
         // Convenience overloads for standard functions and actions of various arities
         // Is there a better way of doing this?!
+
+        /// <summary>
+        /// Bind a C# function to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction(string funcName, Func<object> func)
         {
 			Assert(func != null, "Can't bind a null function");
@@ -1036,6 +1118,11 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Bind a C# Action to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction(string funcName, Action act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1047,6 +1134,11 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Bind a C# function to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction<T>(string funcName, Func<T, object> func)
         {
 			Assert(func != null, "Can't bind a null function");
@@ -1057,6 +1149,11 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Bind a C# action to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction<T>(string funcName, Action<T> act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1069,7 +1166,11 @@ namespace Ink.Runtime
         }
 
 
-
+        /// <summary>
+        /// Bind a C# function to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction<T1, T2>(string funcName, Func<T1, T2, object> func)
         {
 			Assert(func != null, "Can't bind a null function");
@@ -1083,6 +1184,11 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Bind a C# action to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction<T1, T2>(string funcName, Action<T1, T2> act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1097,6 +1203,11 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Bind a C# function to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction<T1, T2, T3>(string funcName, Func<T1, T2, T3, object> func)
         {
 			Assert(func != null, "Can't bind a null function");
@@ -1111,6 +1222,11 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Bind a C# action to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunction<T1, T2, T3>(string funcName, Action<T1, T2, T3> act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1126,12 +1242,19 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Remove a binding for a named EXTERNAL ink function.
+        /// </summary>
         public void UnbindExternalFunction(string funcName)
         {
             Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
             _externals.Remove (funcName);
         }
 
+        /// <summary>
+        /// Check that all EXTERNAL ink functions have a valid bound C# function.
+        /// Note that this is automatically called on the first call to Continue().
+        /// </summary>
         public void ValidateExternalBindings()
         {
             ValidateExternalBindings (_mainContentContainer);
@@ -1174,7 +1297,9 @@ namespace Ink.Runtime
             }
         }
            
-
+        /// <summary>
+        /// Delegate definition for variable observation - see ObserveVariable.
+        /// </summary>
         public delegate void VariableObserver(string variableName, object newValue);
 
         /// <summary>
@@ -1261,6 +1386,13 @@ namespace Ink.Runtime
             }
         }
 
+        /// <summary>
+        /// Useful when debugging a (very short) story, to visualise the state of the
+        /// story. Add this call as a watch and open the extended text. A "<--" mark
+        /// will denote the current point of the story.
+        /// It's only recommended that this is used on very short debug stories, since
+        /// it can end up generate a large quantity of text otherwise.
+        /// </summary>
         public virtual string BuildStringOfHierarchy()
         {
             var sb = new StringBuilder ();
@@ -1373,13 +1505,13 @@ namespace Ink.Runtime
             var allChoices = _state.currentChoices;
 
             // Is a default invisible choice the ONLY choice?
-            var invisibleChoiceInstances = allChoices.Where (c => c.choice.isInvisibleDefault).ToList();
-            if (invisibleChoiceInstances.Count == 0 || allChoices.Count > invisibleChoiceInstances.Count)
+            var invisibleChoices = allChoices.Where (c => c.choicePoint.isInvisibleDefault).ToList();
+            if (invisibleChoices.Count == 0 || allChoices.Count > invisibleChoices.Count)
                 return false;
 
-            var choiceInstance = invisibleChoiceInstances [0];
+            var choice = invisibleChoices [0];
 
-            ChoosePath (choiceInstance.choice.choiceTarget.path);
+            ChoosePath (choice.choicePoint.choiceTarget.path);
 
             return true;
         }

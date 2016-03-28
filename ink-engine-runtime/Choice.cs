@@ -1,69 +1,48 @@
-﻿using System.ComponentModel;
-
+﻿
 namespace Ink.Runtime
 {
-	internal class Choice : Runtime.Object
+    /// <summary>
+    /// A generated Choice from the story.
+    /// A single ChoicePoint in the Story could potentially generate
+    /// different Choices dynamically dependent on state, so they're
+    /// separated.
+    /// </summary>
+	public class Choice : Runtime.Object
 	{
-        internal Path pathOnChoice { get; set; }
+        /// <summary>
+        /// The main text to presented to the player for this Choice.
+        /// </summary>
+        public string text { get; set; }
 
-        internal Container choiceTarget {
-            get {
-                return this.ResolvePath (pathOnChoice) as Container;
-            }
+        /// <summary>
+        /// The target path that the Story should be diverted to if
+        /// this Choice is chosen.
+        /// </summary>
+        public string pathStringOnChoice { get { return choicePoint.pathStringOnChoice; } }
+
+        /// <summary>
+        /// The original index into currentChoices list on the Story when
+        /// this Choice was generated, for convenience.
+        /// </summary>
+        public int index { get; set; }
+
+        internal ChoicePoint choicePoint { get; set; }
+        internal CallStack.Thread threadAtGeneration { get; set; }
+        internal int originalThreadIndex;
+
+        // Only used temporarily for loading/saving from JSON
+        internal string originalChoicePath;
+
+
+        public Choice()
+        {
         }
 
-        internal string pathStringOnChoice {
-            get {
-                return CompactPathString (pathOnChoice);
-            }
-            set {
-                pathOnChoice = new Path (value);
-            }
-        }
-
-        internal bool hasCondition { get; set; }
-        internal bool hasStartContent { get; set; }
-        internal bool hasChoiceOnlyContent { get; set; }
-        internal bool onceOnly { get; set; }
-        internal bool isInvisibleDefault { get; set; }
-
-        internal int flags {
-            get {
-                int flags = 0;
-                if (hasCondition)         flags |= 1;
-                if (hasStartContent)      flags |= 2;
-                if (hasChoiceOnlyContent) flags |= 4;
-                if (isInvisibleDefault)   flags |= 8;
-                if (onceOnly)             flags |= 16;
-                return flags;
-            }
-            set {
-                hasCondition = (value & 1) > 0;
-                hasStartContent = (value & 2) > 0;
-                hasChoiceOnlyContent = (value & 4) > 0;
-                isInvisibleDefault = (value & 8) > 0;
-                onceOnly = (value & 16) > 0;
-            }
-        }
-
-        internal Choice (bool onceOnly)
+		internal Choice (ChoicePoint choice)
 		{
-            this.onceOnly = onceOnly;
+			this.choicePoint = choice;
 		}
 
-        public Choice() : this(true) {}
-
-        public override string ToString ()
-        {
-            int? targetLineNum = DebugLineNumberOfPath (pathOnChoice);
-            string targetString = pathOnChoice.ToString ();
-
-            if (targetLineNum != null) {
-                targetString = " line " + targetLineNum;
-            } 
-
-            return "Choice: -> " + targetString;
-        }
 	}
 }
 

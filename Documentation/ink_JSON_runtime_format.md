@@ -149,11 +149,11 @@ Example:
 * `{"CNT?": "the_hall.light_switch"}` - gets the read count of the container at the given path. For example, it might be a stitch named `light_switch` in a knot called `the_hall`.
 
 
-## Choice
+## ChoicePoint
 
-Generates an instance of a choice (in C# runtime, a `ChoiceInstance`). Its exact behaviour depends on its flags. It doesn't contain any text itself, since choice text is generated at runtime and added to the evaluation stack. When a choice is enounted, it pops content off the evaluation stack according to its flags, which indicate which texts are needed.
+Generates an instance of a `Choice`. Its exact behaviour depends on its flags. It doesn't contain any text itself, since choice text is generated at runtime and added to the evaluation stack. When a ChoicePoint is enounted, it pops content off the evaluation stack according to its flags, which indicate which texts are needed.
 
-A choice object's structure in JSON is:
+A ChoicePoint object's structure in JSON is:
 
     {
         "*": "path.when.chosen",
@@ -170,7 +170,7 @@ The `flg` field is a bitfield of flags:
  * **0x8 - Is invisible default?** - When this is enabled, the choice isn't provided to the game (isn't presented to the player), and instead is automatically followed if there are no other choices generated.
  * **0x10 - Once only?** - Defaults to true. This is the difference between the `*` and `+` choice bullets in ink. If once only (`*`), the choice is only displayed if its target container's read count is zero.
 
-Example of the full JSON output, including the choice object, when generating an actual ink choice from `* Hello[.], world.`. Most of the complexity is derived from the fact that content can be dynamic, and the square bracket notation that requires repetition.
+Example of the full JSON output, including the ChoicePoint object, when generating an actual ink choice from `* Hello[.], world.`. Most of the complexity is derived from the fact that content can be dynamic, and the square bracket notation that requires repetition.
     
     // Outer container
     [
@@ -195,7 +195,7 @@ Example of the full JSON output, including the choice object, when generating an
       // Evaluation of choice text complete
       "/ev",
       
-      // Choice object itself:
+      // ChoicePoint object itself:
       //  - linked to own container named 'c'
       //  - Flags 22 are:
       //     * 0x2  - has start content

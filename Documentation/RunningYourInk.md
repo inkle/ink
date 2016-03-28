@@ -51,7 +51,7 @@ From there, you make calls to the story in a loop. There are two repeating stage
         if( _inkStory.currentChoices.Count > 0 ) 
         {
             for (int i = 0; i < _inkStory.currentChoices.Count; ++i) {
-                ChoiceInstance choice = _inkStory.currentChoices [i];
+                Choice choice = _inkStory.currentChoices [i];
                 Debug.Log("Choice " + (i + 1) + ". " + choice.choiceText);
             }
         }
