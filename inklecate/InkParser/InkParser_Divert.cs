@@ -124,7 +124,7 @@ namespace Ink
         }
 
         protected Divert SingleDivert()
-        {
+        {            
             var diverts = Parse (MultiStepTunnelDivert);
             if (diverts == null)
                 return null;
@@ -133,9 +133,16 @@ namespace Ink
                 Error ("Expected just one single divert");
             }
 
+            var singleDivert = diverts [0];
+            if (singleDivert is TunnelOnwards) {
+                return null;
+            }
+
             var divert = diverts [0] as Divert;
             if (divert.isTunnel) {
                 Error ("Didn't expect tunnel, but a normal divert");
+
+                // Convert to normal divert to continue parsing
                 divert.isTunnel = false;
             }
 
