@@ -76,6 +76,8 @@ To save the state of your story within your game, call:
     
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.
 
+For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
+
 ## Engine usage and philosophy
 
 In Unity, we recommend using your own component class to wrap `Ink.Runtime.Story`. The runtime **ink** engine has been designed to be reasonably general purpose and have a simple API. We also recommend wrapping rather than inheriting from `Story`, so that you can expose to your game only the functionality that you need.

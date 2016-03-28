@@ -587,7 +587,7 @@
 		</dict>
 	</dict>
 	<key>scopeName</key>
-	<string>source.ink</string>
+	<string>markup.ink</string>
 	<key>uuid</key>
 	<string>5a0f60ba-87b8-4fa9-854c-6bf41f74bd98</string>
 </dict>

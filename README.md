@@ -1,6 +1,7 @@
 # ink
 
 [![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/gkq2pSLqU)
+[![CI Status](http://img.shields.io/travis/inkle/ink.svg?style=flat)](https://travis-ci.org/inkle/ink)
 
 Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
 
@@ -80,6 +81,8 @@ We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unit
     ... 
 
 For information on getting started, see [Running Your Ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
+
+For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
 
 ## Building
 
