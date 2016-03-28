@@ -155,9 +155,19 @@ namespace Ink
             }
 
             Parsed.Story includedStory = null;
+            string includedString = null;
             try {
-                string includedString = System.IO.File.ReadAllText(fullFilename);
+                includedString = System.IO.File.ReadAllText(fullFilename);
+            }
+            catch {
+                string message = "Failed to load: " + filename;
+                if (_rootDirectory != null)
+                    message += "' (root directory is " + _rootDirectory + "). File not found perhaps?";
+                Error (message);
+            }
 
+
+            if (includedString != null ) {
                 InkParser parser = new InkParser(includedString, filename, _rootDirectory);
                 includedStory = parser.Parse();
 
@@ -169,13 +179,6 @@ namespace Ink
                         Error ("Failed to parse included file '" + filename);
                     }
                 }
-
-            }
-            catch {
-                string message = "Included file not found: " + filename;
-                if (_rootDirectory != null)
-                    message += "' (searching in " + _rootDirectory + ")";
-                Error (message);
             }
 
             // Return valid IncludedFile object even when story failed to parse and we have a null story:
