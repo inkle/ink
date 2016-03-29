@@ -8,6 +8,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
+    /// <summary>
+    /// A Story is the core object representing a complete Ink narrative.
+    /// </summary>
 	public class Story : Runtime.Object
 	{
         public const int inkVersionCurrent = 11;
@@ -25,6 +28,9 @@ namespace Ink.Runtime
         //     in-development problem only.
         const int inkVersionMinimumCompatible = 11;
 
+        /// <summary>
+        /// List of all currently-visible story choices.
+        /// </summary>
         public List<ChoiceInstance> currentChoices
 		{
 			get 
@@ -56,6 +62,10 @@ namespace Ink.Runtime
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
 
+        /// <summary>
+        /// Create a Ink Story from a compiled JSON story string (such as the .json produced when Inklewriter is run over an .ink file).
+        /// </summary>
+        /// <param name="jsonString">Compiled JSON story definition.</param>
         public Story(string jsonString) : this((Container)null)
         {
             JObject rootObject = JObject.Parse (jsonString);
@@ -83,6 +93,11 @@ namespace Ink.Runtime
             ResetState ();
         }
 
+        /// <summary>
+        /// Retrieve the story definition as a compiled JSON string. (Note: to get the current state for a story in process, use story.state.ToJson() instead.)
+        /// </summary>
+        /// <param name="indented">Whether to 'pretty print' using whitespace.</param>
+        /// <returns>Story definition as compiled JSON.</returns>
         public string ToJsonString(bool indented = false)
         {
             var rootContainerToken = Json.RuntimeObjectToJToken (_mainContentContainer);
@@ -93,7 +108,10 @@ namespace Ink.Runtime
 
             return rootObject.ToString (indented ? Formatting.Indented : Formatting.None);
         }
-            
+
+        /// <summary>
+        /// Clear story state and all globals.
+        /// </summary>
         public void ResetState()
         {
             _state = new StoryState (this);
@@ -102,11 +120,17 @@ namespace Ink.Runtime
             ResetGlobals ();
         }
 
+        /// <summary>
+        /// Reset any story errors.
+        /// </summary>
         public void ResetErrors()
         {
             _state.ResetErrors ();
         }
 
+        /// <summary>
+        /// Clear all items from the call stack and current choices.
+        /// </summary>
         public void ResetCallstack()
         {
             _state.ForceEndFlow ();
@@ -880,6 +904,11 @@ namespace Ink.Runtime
             VisitChangedContainersDueToDivert (prevContentObj, newContentObj);
         }
 
+        /// <summary>
+        /// Change the current position of the story based on a choice index (from the currently available story choices).
+        /// From here you can call Continue() to evaluate the next line.
+        /// </summary>
+        /// <param name="choiceIdx">A zero based index representing a story choice.</param>
         public void ChooseChoiceIndex(int choiceIdx)
         {
             var choiceInstances = currentChoices;
@@ -984,8 +1013,12 @@ namespace Ink.Runtime
 
         public delegate object ExternalFunction(object[] args);
 
-        // Most general form of function binding that returns an object and takes an array of object parameters.
-        // The only way to bind a function with more than 3 arguments.
+        /// <summary>
+        /// Most general form of function binding that returns an object and takes an array of object parameters.
+        /// The only way to bind a function with more than 3 arguments.
+        /// </summary>
+        /// <param name="funcName">Name of the external function.</param>
+        /// <param name="func">Delegate for the external function.</param>
         public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
         {
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
@@ -1126,12 +1159,20 @@ namespace Ink.Runtime
             });
         }
 
+        /// <summary>
+        /// Remove an already-bound external function from the collection of externals.
+        /// </summary>
+        /// <param name="funcName">Name of the external function.</param>
         public void UnbindExternalFunction(string funcName)
         {
             Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
             _externals.Remove (funcName);
         }
 
+        /// <summary>
+        /// Verifies external functions are bound (or have fallbacks, if fallbacks are enabled). Updates internal state indicating successful verification. 
+        /// Throws an exception if verification fails.
+        /// </summary>
         public void ValidateExternalBindings()
         {
             ValidateExternalBindings (_mainContentContainer);
