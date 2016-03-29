@@ -1,7 +1,7 @@
 # [PackageDev] target_format: plist, ext: tmLanguage
 ---
 name: ink
-scopeName: markup.ink
+scopeName: source.ink
 fileTypes: [ink, ink2]
 uuid: 5a0f60ba-87b8-4fa9-854c-6bf41f74bd98
 
