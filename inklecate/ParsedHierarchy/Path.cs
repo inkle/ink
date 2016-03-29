@@ -98,18 +98,29 @@ namespace Ink.Parsed
 
         // Find the root object from the base, i.e. root from:
         //    root.sub1.sub2
-        Parsed.Object ResolveBaseTarget(Parsed.Object context)
+        Parsed.Object ResolveBaseTarget(Parsed.Object originalContext)
         {
             var firstComp = firstComponent;
 
             // Work up the ancestry to find the node that has the named object
-            while (context != null) {
+            Parsed.Object ancestorContext = originalContext;
+            while (ancestorContext != null) {
 
-                var foundBase = TryGetChildFromContext (context, firstComp, null, forceDeepSearch:true);
+                // Only allow deep search when searching deeper from original context.
+                // Don't allow search upward *then* downward, since that's searching *everywhere*!
+                // Allowed examples:
+                //  - From an inner gather of a stitch, you should search up to find a knot called 'x'
+                //    at the root of a story, but not a stitch called 'x' in that knot.
+                //  - However, from within a knot, you should be able to find a gather/choice
+                //    anywhere called 'x'
+                // (that latter example is quite loose, but we allow it)
+                bool deepSearch = ancestorContext == originalContext;
+
+                var foundBase = TryGetChildFromContext (ancestorContext, firstComp, null, deepSearch);
                 if (foundBase != null)
                     return foundBase;
 
-                context = context.parent;
+                ancestorContext = ancestorContext.parent;
             }
 
             return null;

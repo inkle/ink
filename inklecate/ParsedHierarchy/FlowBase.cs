@@ -481,6 +481,16 @@ namespace Ink.Parsed
             }
         }
 
+
+        public override string ToString ()
+        {
+            string flowTypeName = GetType ().Name;
+            if (isFunction)
+                flowTypeName = "Function";
+            
+            return flowTypeName+" '" + name + "'";
+        }
+
         Weave _rootWeave;
         Dictionary<string, FlowBase> _subFlowsByName;
         List<Runtime.Divert> _finalLooseEnds;

@@ -2074,6 +2074,19 @@ Second line.
             Assert.AreEqual (2, story.currentChoices.Count);
         }
 
+        [Test ()]
+        public void TestArgumentShouldntConflictWithGatherElsewhere()
+        {
+            // Testing that there are no errors only
+            CompileStringWithoutRuntime (@"
+== knot ==
+- (x) -> DONE
+
+== function f(x) ==
+Nothing
+");
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
