@@ -97,8 +97,6 @@ namespace Ink.Parsed
 
         static HashSet<string> _reservedKeywords = new HashSet<string>(new string[] { 
             "true", "false",
-            "on", "off",
-            "yes", "no",
             "not",
             "return",
             "else"

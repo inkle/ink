@@ -294,9 +294,9 @@ namespace Ink
         protected Number ExpressionBool()
         {
             var id = Parse(Identifier);
-            if (id == "true" || id == "yes" || id == "on") {
+            if (id == "true") {
                 return new Number (1);
-            } else if (id == "false" || id == "no" || id == "off") {
+            } else if (id == "false") {
                 return new Number (0);
             }
 
