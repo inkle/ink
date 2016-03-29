@@ -335,6 +335,12 @@ namespace Ink.Parsed
             if (arguments != null) {
                 foreach (var arg in arguments) {
 
+                    // Don't allow reserved words for argument names
+                    if (VariableAssignment.IsReservedKeyword (arg.name)) {
+                        Error ("Argument '" + arg.name + "' is a reserved word, please choose another name");
+                        continue;
+                    }
+
                     // Does argument conflict with a knot/stitch/label?
                     var pathOfTheoreticalTarget = new Path (arg.name);
                     Parsed.Object target = pathOfTheoreticalTarget.ResolveFromContext (this);
