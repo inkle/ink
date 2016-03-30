@@ -1232,9 +1232,9 @@ The if syntax takes its cue from the other conditionals used so far, with the `{
 Else conditions can be provided:
 
 	{ x > 0:
-		~ y = x - 1:
+		~ y = x - 1
 	- else:
-		~ y = x + 1;
+		~ y = x + 1
 	}
 	
 ### Extended if/else if/else blocks
@@ -1254,9 +1254,9 @@ And using this form we can include 'else-if' conditions:
 		- x == 0:
 			~ y = 0
 		- x > 0:
-			~ y = x - 1:
+			~ y = x - 1
 		- else:
-			~ y = x + 1;
+			~ y = x + 1
 	}
 
 (Note, as with everything else, the white-space is purely for readability and has no syntactic meaning.)
