@@ -8,6 +8,10 @@ using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
+    /// <summary>
+    /// A Story is the core class that represents a complete Ink narrative, and
+    /// manages the evaluation and state of it.
+    /// </summary>
 	public class Story : Runtime.Object
 	{
         public const int inkVersionCurrent = 11;
