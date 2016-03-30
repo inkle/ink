@@ -7,8 +7,18 @@ using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
+    /// <summary>
+    /// All story state information is included in the StoryState class,
+    /// including global variables, read counts, the pointer to the current
+    /// point in the story, the call stack (for tunnels, functions, etc),
+    /// and a few other smaller bits and pieces. You can save the current
+    /// state using the json serialisation functions ToJson and LoadJson.
+    /// </summary>
     public class StoryState
     {
+        /// <summary>
+        /// The current version of the state save file JSON-based format.
+        /// </summary>
         public const int kInkSaveStateVersion = 2;
         const int kMinCompatibleLoadVersion = 2;
 

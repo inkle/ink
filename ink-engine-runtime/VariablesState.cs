@@ -3,6 +3,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
+    /// <summary>
+    /// Encompasses all the global variables in an ink Story, and
+    /// allows binding of a VariableChanged event so that that game
+    /// code can be notified whenever the global variables change.
+    /// </summary>
 	public class VariablesState : IEnumerable<string>
     {
         internal delegate void VariableChanged(string variableName, Runtime.Object newValue);

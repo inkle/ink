@@ -34,7 +34,7 @@ namespace Ink.Runtime
         internal string originalChoicePath;
 
 
-        public Choice()
+        internal Choice()
         {
         }
 

@@ -14,6 +14,9 @@ namespace Ink.Runtime
     /// </summary>
 	public class Story : Runtime.Object
 	{
+        /// <summary>
+        /// The current version of the ink story file format.
+        /// </summary>
         public const int inkVersionCurrent = 11;
 
         // Version numbers are for engine itself and story file, rather
@@ -27,6 +30,10 @@ namespace Ink.Runtime
         //     If possible, you should support it, though it's not as
         //     critical as loading old save games, since it's an
         //     in-development problem only.
+
+        /// <summary>
+        /// The minimum legacy version of ink that can be loaded by the current version of the code.
+        /// </summary>
         const int inkVersionMinimumCompatible = 11;
 
         /// <summary>
@@ -1126,7 +1133,7 @@ namespace Ink.Runtime
         /// Bind a C# Action to an ink EXTERNAL function declaration.
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-        /// <param name="func">The C# function to bind.</param>
+        /// <param name="act">The C# action to bind.</param>
         public void BindExternalFunction(string funcName, Action act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1157,7 +1164,7 @@ namespace Ink.Runtime
         /// Bind a C# action to an ink EXTERNAL function declaration.
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-        /// <param name="func">The C# function to bind.</param>
+        /// <param name="act">The C# action to bind.</param>
         public void BindExternalFunction<T>(string funcName, Action<T> act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1192,7 +1199,7 @@ namespace Ink.Runtime
         /// Bind a C# action to an ink EXTERNAL function declaration.
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-        /// <param name="func">The C# function to bind.</param>
+        /// <param name="act">The C# action to bind.</param>
         public void BindExternalFunction<T1, T2>(string funcName, Action<T1, T2> act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1230,7 +1237,7 @@ namespace Ink.Runtime
         /// Bind a C# action to an ink EXTERNAL function declaration.
         /// </summary>
         /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
-        /// <param name="func">The C# function to bind.</param>
+        /// <param name="act">The C# action to bind.</param>
         public void BindExternalFunction<T1, T2, T3>(string funcName, Action<T1, T2, T3> act)
         {
 			Assert(act != null, "Can't bind a null function");
@@ -1392,7 +1399,7 @@ namespace Ink.Runtime
 
         /// <summary>
         /// Useful when debugging a (very short) story, to visualise the state of the
-        /// story. Add this call as a watch and open the extended text. A "<--" mark
+        /// story. Add this call as a watch and open the extended text. A left-arrow mark
         /// will denote the current point of the story.
         /// It's only recommended that this is used on very short debug stories, since
         /// it can end up generate a large quantity of text otherwise.

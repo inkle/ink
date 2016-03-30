@@ -4,11 +4,19 @@ using System.Diagnostics;
 
 namespace Ink.Runtime
 {
+    /// <summary>
+    /// Base class for all ink runtime content.
+    /// </summary>
     public /* TODO: abstract */ class Object
 	{
+        /// <summary>
+        /// Runtime.Objects can be included in the main Story as a hierarchy.
+        /// Usually parents are Container objects. (TODO: Always?)
+        /// </summary>
+        /// <value>The parent.</value>
 		public Runtime.Object parent { get; set; }
 
-        public Runtime.DebugMetadata debugMetadata { 
+        internal Runtime.DebugMetadata debugMetadata { 
             get {
                 if (_debugMetadata == null) {
                     if (parent) {
@@ -181,11 +189,11 @@ namespace Ink.Runtime
             }
         }
 
-		public Object ()
+		internal Object ()
 		{
 		}
 
-        protected void SetChild<T>(ref T obj, T value) where T : Runtime.Object
+        internal void SetChild<T>(ref T obj, T value) where T : Runtime.Object
         {
             if (obj)
                 obj.parent = null;
@@ -196,29 +204,33 @@ namespace Ink.Runtime
                 obj.parent = this;
         }
             
-        // Allow implicit conversion to bool so you don't have to do:
-        // if( myObj != null ) ...
+        /// Allow implicit conversion to bool so you don't have to do:
+        /// if( myObj != null ) ...
         public static implicit operator bool (Object obj)
         {
             var isNull = object.ReferenceEquals (obj, null);
             return !isNull;
         }
 
+        /// Required for implicit bool comparison
         public static bool operator ==(Object a, Object b)
         {
             return object.ReferenceEquals (a, b);
         }
 
+        /// Required for implicit bool comparison
         public static bool operator !=(Object a, Object b)
         {
             return !(a == b);
         }
 
+        /// Required for implicit bool comparison
         public override bool Equals (object obj)
         {
             return object.ReferenceEquals (obj, this);
         }
 
+        /// Required for implicit bool comparison
         public override int GetHashCode ()
         {
             return base.GetHashCode ();
