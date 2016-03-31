@@ -238,8 +238,12 @@ namespace Ink.Runtime
 
                 obj ["currentChoices"] = Json.ListToJArray (currentChoices);
 
-                if (_currentRightGlue)
-                    obj ["currRightGlue"] = _outputStream.IndexOf (_currentRightGlue);
+				if (_currentRightGlue) {
+					int rightGluePos = _outputStream.IndexOf (_currentRightGlue);
+					if( rightGluePos != -1 ) {
+						obj ["currRightGlue"] = _outputStream.IndexOf (_currentRightGlue);
+					}
+				}
 
                 if( divertedTargetObject != null )
                     obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
@@ -279,7 +283,10 @@ namespace Ink.Runtime
 
                 JToken propValue;
                 if( jObject.TryGetValue("currRightGlue", out propValue ) ) {
-                    _currentRightGlue = _outputStream [propValue.ToObject<int> ()] as Glue;
+					int gluePos = propValue.ToObject<int> ();
+					if( gluePos >= 0 ) {
+						_currentRightGlue = _outputStream [gluePos] as Glue;
+					}
                 }
 
                 JToken currentDivertTargetPath = jObject ["currentDivertTarget"];
