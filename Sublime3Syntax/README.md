@@ -13,8 +13,8 @@
 ### Files to be installed
 
  * `ink.tmLanguage`: This is the file compiled using the AAAPackageDev package in *Sublime Text 3*, and is simply an uglier plist-based XML version of the YAML grammar.
- * `ink.tmTheme`: A custom colour scheme for using ink. Unfortunately, it's necessary to use this since ink requires unique semantic markup that doesn't map very nicely to standard programming and markup concepts. We'd welcome other themes (e.g. dark ones) that use the ink symbol names.
- * `ink.sublime-settings`: Choose the above colour scheme by default and turns on word wrapping by default for ink.
+ * `ink.tmTheme`: A custom colour scheme for using ink. Unfortunately, it's necessary to use this since ink requires unique semantic markup that doesn't map very nicely to standard programming and markup concepts. We'd welcome other themes (like the dark version `ink-dark.thTheme`) that use the ink symbol names.
+ * `ink.sublime-settings`: Choose the above colour scheme by default and turns on word wrapping by default for ink. If you want to use the alternate dark scheme, you may change it there.
  * `ink-comments.tmPreferences`: Defines characters to insert when user uses comment shortcut in Sublime.
  * `ink-global-symbols.tmPreferences` and `ink-local-symbols.tmPreferences`: Defines which symbols appear in Sublime's *Goto Symbol...* and *Goto Symbol In Project...* options.
 
