@@ -222,13 +222,25 @@ namespace Ink.Runtime
         public JToken jsonToken
         {
             get {
+				
+				var obj = new JObject ();
 
+				JObject choiceThreads = null;
                 foreach (Choice c in currentChoices) {
                     c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
-                }
 
-                var obj = new JObject ();
+					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
+						if( choiceThreads == null )
+							choiceThreads = new JObject();
+
+						choiceThreads[c.originalThreadIndex.ToString()] = c.threadAtGeneration.jsonToken;
+					}
+                }
+				if( choiceThreads != null )
+					obj["choiceThreads"] = choiceThreads;
+
+                
                 obj ["callstackThreads"] = callStack.GetJsonToken();
                 obj ["variablesState"] = variablesState.jsonToken;
 
@@ -300,9 +312,17 @@ namespace Ink.Runtime
                 currentTurnIndex = jObject ["turnIdx"].ToObject<int> ();
                 storySeed = jObject ["storySeed"].ToObject<int> ();
 
+				var jChoiceThreads = jObject["choiceThreads"] as JObject;
                 foreach (var c in currentChoices) {
                     c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
-                    c.threadAtGeneration = callStack.ThreadWithIndex(c.originalThreadIndex);
+
+					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
+					if( foundActiveThread != null ) {
+						c.threadAtGeneration = foundActiveThread;
+					} else {
+						var jSavedChoiceThread = jChoiceThreads[c.originalThreadIndex.ToString()];
+						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
+					}
                 }
             }
         }
