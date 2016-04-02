@@ -61,13 +61,13 @@ namespace Ink
 
         void OnError(string message, int index, int lineIndex, bool isWarning)
         {
-            var warningType = isWarning ? "Warning" : "Error";
+            var warningType = isWarning ? "WARNING:" : "ERROR:";
             string fullMessage;
 
             if (_filename != null) {
-                fullMessage = string.Format(warningType+" in '{0}' line {1}: {2}",  _filename, (lineIndex+1), message);
+                fullMessage = string.Format(warningType+" '{0}' line {1}: {2}",  _filename, (lineIndex+1), message);
             } else {
-                fullMessage = string.Format(warningType+" on line {0}: {1}", (lineIndex+1), message);
+                fullMessage = string.Format(warningType+" line {0}: {1}", (lineIndex+1), message);
             }
 
             if (_externalErrorHandler != null) {

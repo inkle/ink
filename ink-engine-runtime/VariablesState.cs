@@ -148,7 +148,7 @@ namespace Ink.Runtime
             varValue = _callStack.GetTemporaryVariableWithName (name, contextIndex);
 
             if (varValue == null)
-                throw new System.Exception ("Runtime error: Variable '"+name+"' could not be found in context '"+contextIndex+"'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
+                throw new System.Exception ("RUNTIME ERROR: Variable '"+name+"' could not be found in context '"+contextIndex+"'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
 
             return varValue;
         }
