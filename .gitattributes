@@ -1,0 +1,2 @@
+# All files will always convert to LF line endings upon checkin.
+* text eol=lf

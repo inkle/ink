@@ -3,21 +3,6 @@ using Ink;
 using Ink.Runtime;
 using System.Collections.Generic;
 
-/*
- * WINDOWS USERS:
- *
- * If certain string comparison tests are failing and the details are similar to: 
- *      Expected: "a\r\nb  \r\nc" But was: "a\nb  \nc"
- * this means your system has changed the line endings in this file in a way that breaks these tests.
- *
- * You'll need to restore this file to use LF (i.e, "\n") line terminations to fix this problem. 
- * (In Visual Studio, you can do this using File -> Advanced Save Options. You'll probably want to correct 
- * the root cause of the problem rather than resaving the file repeatedly, though.)
- *
- * One way you can run into this issue is if you have Git configured with core.autocrlf = true,
- * which automatically converts \n to \r\n upon checkout. Some Git for Windows packages install with this setting set to true.
- */
-
 namespace Tests
 {
     public enum TestMode
