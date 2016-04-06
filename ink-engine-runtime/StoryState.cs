@@ -52,7 +52,7 @@ namespace Ink.Runtime
         /// been enountered by the ink engine.</returns>
         /// <param name="pathString">The dot-separated path string of
         /// the specific knot or stitch.</param>
-        internal int VisitCountAtPathString(string pathString)
+        public int VisitCountAtPathString(string pathString)
         {
             int visitCountOut;
             if (visitCounts.TryGetValue (pathString, out visitCountOut))

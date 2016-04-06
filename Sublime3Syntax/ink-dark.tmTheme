@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+
+	Name:		ink dark colour scheme
+    Author:   Julien Zamor, troisyaourts - Dark scheme
+    Author:		Joseph Humfrey, inkle - Initial light scheme
+    License:	MIT License
+    URL:		https://github.com/inkle/ink
+
+    Adapted from 3024 (Day) by Jan T. Sott
+
+-->
+<plist version="1.0">
+<dict>
+	<key>author</key>
+	<string>Joseph Humfrey, inkle </string>
+	<key>name</key>
+	<string>ink dark theme</string>
+	<key>comment</key>
+	<string>https://github.com/inkle/ink</string>
+	<key>semanticClass</key>
+	<string>theme.dark.ink</string>
+	<key>colorSpaceName</key>
+	<string>sRGB</string>
+	<key>settings</key>
+	<array>
+		<dict>
+			<key>settings</key>
+			<dict>
+				<key>background</key>
+				<string>#282828</string>
+				<key>caret</key>
+				<string>#F8F8F0</string>
+				<key>foreground</key>
+				<string>#F8F8F2</string>
+				<key>invisibles</key>
+				<string>#49483E</string>
+				<key>lineHighlight</key>
+				<string>#49483E</string>
+				<key>selection</key>
+				<string>#49483E</string>
+			</dict>
+		</dict>
+
+
+		<dict>
+			<key>name</key>
+			<string>Knot and stitch declarations</string>
+			<key>scope</key>
+			<string>meta.knot.declaration, meta.stitch.declaration</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string>bold</string>
+				<key>foreground</key>
+				<string>#66D9EF</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Weave punctuation - choices, gather bullets and brackets</string>
+			<key>scope</key>
+			<string>keyword.operator.weaveBullet, keyword.operator.weaveBracket</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#F92672</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Label for choice or gather</string>
+			<key>scope</key>
+			<string>meta.label, entity.name.label</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#66D9EF</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Divert</string>
+			<key>scope</key>
+			<string>meta.divert, keyword.operator.divert, variable.divertTarget</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#66D9EF</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>General logic</string>
+			<key>scope</key>
+			<string>meta.logic, keyword.operator, meta.multilineLogic, meta.logicBegin, entity.inlineConditional</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#A6E22E</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Global</string>
+			<key>scope</key>
+			<string>meta.variable</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#AE81FF</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>TODO</string>
+			<key>scope</key>
+			<string>comment.todo</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#FD971F</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>TODO</string>
+			<key>scope</key>
+			<string>comment.todo.TODO</string>
+			<key>settings</key>
+			<dict>
+				<key>background</key>
+				<string>#FFD569</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Comments</string>
+			<key>scope</key>
+			<string>comment, punctuation.definition.comment</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#888</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Operators</string>
+			<key>scope</key>
+			<string>keyword.done, keyword.end</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#66D9EF</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Bold-italic text</string>
+			<key>scope</key>
+			<string>string.boldItalic</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string>bold, italic</string>
+				<key>foreground</key>
+				<string>#FFF</string>
+			</dict>
+		</dict>
+
+		<dict>
+			<key>name</key>
+			<string>Bold text</string>
+			<key>scope</key>
+			<string>string.bold</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string>bold</string>
+				<key>foreground</key>
+				<string>#FFF</string>
+			</dict>
+		</dict>
+
+
+		<dict>
+			<key>name</key>
+			<string>Italic text</string>
+			<key>scope</key>
+			<string>string.italic</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string>italic</string>
+			</dict>
+		</dict>
+
+		<!-- Keep main content at the end as a "last resort" -->
+		<dict>
+			<key>name</key>
+			<string>Main content</string>
+			<key>scope</key>
+			<string>string</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#fff</string>
+			</dict>
+		</dict>
+
+	</array>
+	<key>uuid</key>
+	<string>14875ac8-6a02-493d-9cfa-1701c764e24b</string>
+</dict>
+</plist>

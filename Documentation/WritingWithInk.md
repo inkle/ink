@@ -1232,9 +1232,9 @@ The if syntax takes its cue from the other conditionals used so far, with the `{
 Else conditions can be provided:
 
 	{ x > 0:
-		~ y = x - 1:
+		~ y = x - 1
 	- else:
-		~ y = x + 1;
+		~ y = x + 1
 	}
 	
 ### Extended if/else if/else blocks
@@ -1254,9 +1254,9 @@ And using this form we can include 'else-if' conditions:
 		- x == 0:
 			~ y = 0
 		- x > 0:
-			~ y = x - 1:
+			~ y = x - 1
 		- else:
-			~ y = x + 1;
+			~ y = x + 1
 	}
 
 (Note, as with everything else, the white-space is purely for readability and has no syntactic meaning.)
@@ -1750,7 +1750,7 @@ Inside the tunnel itself, the syntax is simplified from the parameterised exampl
 	...
 	- 	->->
 
-Note that tunnel knots aren't declared as such, so the compiler won't check that tunnels really do end in `->->` statements, except at run-time. So you will need to write carefully to sensure that all the flows into a tunnel really do come out again.
+Note that tunnel knots aren't declared as such, so the compiler won't check that tunnels really do end in `->->` statements, except at run-time. So you will need to write carefully to ensure that all the flows into a tunnel really do come out again.
 
 Tunnels can also be chained together, or finish on a normal divert:
 
