@@ -1676,8 +1676,10 @@ VAR x = 5
             var story = CompileString (@"
 EXTERNAL message(x)
 EXTERNAL multiply(x,y)
+EXTERNAL times(i,str)
 ~ message(""hello world"")
 {multiply(5.0, 3)}
+{times(3, ""knock "")}
 ");
             string message = null;
 
@@ -1685,12 +1687,22 @@ EXTERNAL multiply(x,y)
                 message = "MESSAGE: "+arg;
             });
 
-            story.BindExternalFunction ("multiply", (int arg1, float arg2) => {
+            story.BindExternalFunction ("multiply", (float arg1, int arg2) => {
                 return arg1 * arg2;
             });
 
+            story.BindExternalFunction ("times", (int numberOfTimes, string str) => {
+                string result = "";
+                for(int i=0; i<numberOfTimes; i++) {
+                    result += str;
+                }
+                return result;
+            });
+
             
-            Assert.AreEqual ("15\n", story.ContinueMaximally());
+            Assert.AreEqual ("15\n", story.Continue());
+
+            Assert.AreEqual ("knock knock knock \n", story.Continue());
 
             Assert.AreEqual ("MESSAGE: hello world", message);
         }
