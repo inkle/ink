@@ -2,7 +2,11 @@
 
 At this point, we're assuming that you're up and running: you have at least a basic `.ink` file that's compiling to a `.json` output. (If not, perhaps see the [Getting Started](https://github.com/inkle/ink) section in the main readme.)
 
-## Unity setup
+## Unity setup - Quick start
+
+Download the [latest version of the ink-unity-integration Unity package](https://github.com/inkle/ink-unity-integration/releases), and add to your project.
+
+## Unity 
 
 *(Note that if you're not using Unity, skip to the section below; we'll assume that you've loaded your `.json` file into a string, ready to go.)*
 

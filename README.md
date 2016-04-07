@@ -37,9 +37,23 @@ Broadly, the engine is made up of two components:
 
 # Getting started
 
-## Writing
+We have different workflows depending on whether you're happy with using Unity, or would prefer a more barebones approach, there are two writing w
 
-**Warning:** Since the engine is in alpha, it hasn't been neatly packaged up for non-technical writers. Right now, you need basic knowledge of the command line to try out your stories.
+* Working directly with Unity is more straightforward, especially if you already have it installed and know the basics.
+* Working on the command line is more "lightweight", if you don't already have Unity installed, but is more technical, and you need basic knowledge of the command line.
+
+If in doubt, we'd recommend using Unity.
+
+## Writing (Unity)
+
+* Download the **ink-unity-integration** package from the asset store, and place in your project.
+* Create a `.ink` text file such as `myStory.ink`, containing the text `Hello, world!`.
+* Select the file in Unity, and you should see a *Play* button in the file's inspector.
+* Click it, and you should get an Editor window that lets you play (preview) your story.
+* Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
+
+
+## Writing (command line)
 
  * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
@@ -62,7 +76,11 @@ Broadly, the engine is made up of two components:
 
 ## Integrating into your game
 
-We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unity, and you'll also need the included `Newtonsoft.Json.dll`. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster, and is all you need to get started:
+Download the [latest version of the ink-unity-integration](https://github.com/inkle/ink-unity-integration/releases) tools, and add them to your project.
+
+To simply test out your story, follow the **Writing (Unity)** instructions above. However, to integrate into your game fully, read on!
+
+**ink** isn't designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster of the code you need to get started:
 
     using Ink.Runtime;
 
