@@ -1044,6 +1044,10 @@ namespace Ink.Runtime
                 arguments.Add (valueObj);
             }
 
+            // Reverse arguments from the order they were popped,
+            // so they're the right way round again.
+            arguments.Reverse ();
+
             // Run the function!
             object funcResult = func (arguments.ToArray());
 
