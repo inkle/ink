@@ -190,11 +190,17 @@ namespace Ink.Parsed
             } else {
                 sb.Append ("ERROR: ");
             }
+                
+            if (source && source.debugMetadata != null && source.debugMetadata.startLineNumber >= 1 ) {
+
+                if (source.debugMetadata.fileName != null) {
+                    sb.AppendFormat ("'{0}' ", source.debugMetadata.fileName);
+                }
+
+                sb.AppendFormat ("line {0}: ", source.debugMetadata.startLineNumber);
+            }
 
             sb.Append (message);
-            if (source && source.debugMetadata != null && source.debugMetadata.startLineNumber >= 1 ) {
-                sb.Append (" on "+source.debugMetadata.ToString());
-            }
 
             message = sb.ToString ();
 

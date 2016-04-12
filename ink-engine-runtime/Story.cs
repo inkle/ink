@@ -1634,10 +1634,10 @@ namespace Ink.Runtime
 
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-                message = string.Format ("Runtime error in {0} line {1}: {2}", dm.fileName, lineNum, message);
+                message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
             }
             else {
-                message = "Runtime error" + ": " + message;
+                message = "RUNTIME ERROR: " + message;
             }
 
             state.AddError (message);

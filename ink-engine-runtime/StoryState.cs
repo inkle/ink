@@ -213,16 +213,34 @@ namespace Ink.Runtime
             return copy;
         }
             
-        internal JToken jsonToken
+        /// <summary>
+        /// Object representation of full JSON state. Usually you should use
+        /// LoadJson and ToJson since they serialise directly to string for you.
+        /// But, if your game uses Json.Net itself, it may be useful to get
+        /// the JToken so that you can integrate it into your own save format.
+        /// </summary>
+        public JToken jsonToken
         {
             get {
+				
+				var obj = new JObject ();
 
+				JObject choiceThreads = null;
                 foreach (Choice c in currentChoices) {
                     c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
-                }
 
-                var obj = new JObject ();
+					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
+						if( choiceThreads == null )
+							choiceThreads = new JObject();
+
+						choiceThreads[c.originalThreadIndex.ToString()] = c.threadAtGeneration.jsonToken;
+					}
+                }
+				if( choiceThreads != null )
+					obj["choiceThreads"] = choiceThreads;
+
+                
                 obj ["callstackThreads"] = callStack.GetJsonToken();
                 obj ["variablesState"] = variablesState.jsonToken;
 
@@ -232,8 +250,12 @@ namespace Ink.Runtime
 
                 obj ["currentChoices"] = Json.ListToJArray (currentChoices);
 
-                if (_currentRightGlue)
-                    obj ["currRightGlue"] = _outputStream.IndexOf (_currentRightGlue);
+				if (_currentRightGlue) {
+					int rightGluePos = _outputStream.IndexOf (_currentRightGlue);
+					if( rightGluePos != -1 ) {
+						obj ["currRightGlue"] = _outputStream.IndexOf (_currentRightGlue);
+					}
+				}
 
                 if( divertedTargetObject != null )
                     obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
@@ -273,7 +295,10 @@ namespace Ink.Runtime
 
                 JToken propValue;
                 if( jObject.TryGetValue("currRightGlue", out propValue ) ) {
-                    _currentRightGlue = _outputStream [propValue.ToObject<int> ()] as Glue;
+					int gluePos = propValue.ToObject<int> ();
+					if( gluePos >= 0 ) {
+						_currentRightGlue = _outputStream [gluePos] as Glue;
+					}
                 }
 
                 JToken currentDivertTargetPath = jObject ["currentDivertTarget"];
@@ -287,9 +312,17 @@ namespace Ink.Runtime
                 currentTurnIndex = jObject ["turnIdx"].ToObject<int> ();
                 storySeed = jObject ["storySeed"].ToObject<int> ();
 
+				var jChoiceThreads = jObject["choiceThreads"] as JObject;
                 foreach (var c in currentChoices) {
                     c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
-                    c.threadAtGeneration = callStack.ThreadWithIndex(c.originalThreadIndex);
+
+					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
+					if( foundActiveThread != null ) {
+						c.threadAtGeneration = foundActiveThread;
+					} else {
+						var jSavedChoiceThread = jChoiceThreads[c.originalThreadIndex.ToString()];
+						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
+					}
                 }
             }
         }

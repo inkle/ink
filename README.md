@@ -32,14 +32,26 @@ Broadly, the engine is made up of two components:
  * **inklecate** is the command-line compiler for ink. It takes one or more text files with an `.ink` extension, and produces a `.json` file. It can also be used in *play* mode, for testing a story on the command line.
  * The **ink runtime engine** is a C# library that can be used within Unity or any other C# environment.
 
+We also have an [ink Unity integration](https://github.com/inkle/ink-unity-integration) package so that you don't have to worry about the details of how to compile your ink files for Unity games.
+
 **Warning:** **ink** is in alpha. Features may change, bugs may be encountered. We're yet to complete a project with this major rewrite of ink - it's a work in progress!
 
 
 # Getting started
 
-## Writing
+If you're happy to use Unity, we'd recommend following **Writing with Unity**, below.
 
-**Warning:** Since the engine is in alpha, it hasn't been neatly packaged up for non-technical writers. Right now, you need basic knowledge of the command line to try out your stories.
+If you would prefer a more barebones and technical approach, (or you aren't using Unity at all), you can also compile and play ink stories on the command line.
+
+## Writing with Unity
+
+* Download the latest [ink-unity-integration package](https://github.com/inkle/ink-unity-integration/releases), or grab it from the Unity AssetStore, and place in your project.
+* Create a `.ink` text file such as `myStory.ink`, containing the text `Hello, world!`.
+* Select the file in Unity, and you should see a *Play* button in the file's inspector.
+* Click it, and you should get an Editor window that lets you play (preview) your story.
+* Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
+
+## Using inklecate on the command line
 
  * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
@@ -54,15 +66,17 @@ Broadly, the engine is made up of two components:
     * To run on Linux, you need the Mono runtime and the Mono System.Core library (for CLI 4.0). If you have access to the debian repository, you can install these using: <br>
     `sudo apt-get install mono-runtime libmono-system-core4.0-cil`
 
-    The `-p` option uses play mode so that you can see the result immediately.
-    
-    Optionally, you may want to install **inklecate** at a system level (e.g. on Mac copy to `/usr/local/bin`).
+    The `-p` option uses play mode so that you can see the result immediately. If you want to get a compiled `.json` file, just remove the `-p` option from the examples above.
     
  * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
 ## Integrating into your game
 
-We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unity, and you'll also need the included `Newtonsoft.Json.dll`. It has a very simple API, so is easy integrate. It's not designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster, and is all you need to get started:
+*Full article: see [Running Your Ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).*
+
+*For a sample Unity project, see [The Intercept](http://www.inklestudios.com/ink/theintercept).*
+
+**ink** isn't designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster of the code you need to get started:
 
     using Ink.Runtime;
 
@@ -78,11 +92,8 @@ We currently have a C# runtime DLL `ink-engine.dll`, for example for use in Unit
     _story.ChooseChoiceIndex(0);
 
     // 4) Back to 2
-    ... 
+    ...
 
-For information on getting started, see [Running Your Ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
-
-For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
 
 ## Building
 
@@ -133,7 +144,6 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
 ### Definitely coming
 
  - Punctuation and whitespace cleaner. Although the ink engine does the best it can at fixing various issues such including the right amount of whitespace, there are certain things that are hard or impossible to deal with, due to the text being inherently interactive and unpredictable. For *Sorcery!* and *80 Days* we had a cleaning function which tidied up spacing and punctuation, and we intend to do the same with this latest version of the ink engine. A similar feature exists in HTML due to the inclusion of markup within text - for example, multiple spaces are collapsed down into one.
- - Improve succinctness of JSON representation - it’s currently much larger than it needs to be. Big problem when you have 10MB+ of source ink, as we've had on past games.
  - Tighten implementation to prevent certain "features" that aren't intentional (a wide class of bugs). For example, we currently allow content on the same line after the closing brace of a multi-line piece of logic.
  - Other bug fixes!
  
@@ -151,6 +161,7 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
  - Consider changing multi-bullet weave indentation to Python-style whitespace indentation. This would be a huge syntax-breaking change, but we'd welcome a discussion and/or an experimental implementation.
  - Plugin architecture, to allow you to extract information from the ink while it's being compiled. Currently there's a basic example in the codebase, but it currently has to be built directly into the compiler, rather than via DLLs.
  - Audio and localisation. Difficult problems that need some thought.
+ - Further succinctness improvements in JSON representation. We've rewritten it from scratch, but it could still do with a bit of work. Size can be a problem when you have 10MB+ of source ink, as we've had on past games.
 
 ## Architectural overview
 
