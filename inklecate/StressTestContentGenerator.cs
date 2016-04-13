@@ -9,7 +9,7 @@ namespace Ink
 
         public StressTestContentGenerator (int repetitions)
         {
-            var initialContent = "~ var myVar = 5 + 5 + (3 * 2 * 9) + 1.2\n\n";
+            var initialContent = "VAR myVar = 5\n\n";
 
             var repeatingContent = @"== test__X__ ==
 This is some content in a test knot with the number {myVar}.
@@ -34,13 +34,12 @@ This is some more content.
  - A final gather.
  Nice one.
  Isn't this great?
- ==> test__Y__
- ~ done
+ -> somewhere_else__X__
 
 
 == somewhere_else__X__ ==
  This is somewhere else
- ~ done
+ -> END
 
 ";
 
@@ -57,7 +56,7 @@ This is some more content.
 
             var finalContent = @" == test__X__
     Done!
-    ~ done";
+    -> END";
 
             finalContent = finalContent.Replace ("__X__", (repetitions+1).ToString ());
             sb.AppendFormat (finalContent, repetitions.ToString());
