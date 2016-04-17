@@ -31,9 +31,9 @@ Examples:
 
 * `[5, 6, null]` - A Container with two integer values, and no additional attributes.
 
-* `["$Hello world", {"#n": "hello"}]` - A Container named "hello" with the text object "Hello world".
+* `["^Hello world", {"#n": "hello"}]` - A Container named "hello" with the text object "Hello world".
 
-* `["$test", {"subContainer": [5, 6, null], "#f": 3}]`
+* `["^test", {"subContainer": [5, 6, null], "#f": 3}]`
 
    A container with the text object "test", flags 1 and 2, and a nested container named "subContainer" that resembles the first example.
 
@@ -189,7 +189,7 @@ Example of the full JSON output, including the ChoicePoint object, when generati
       
       // Evaluate content inside square brackets (simply '.')
       "str",
-      "$.",
+      "^.",
       "/str",
       
       // Evaluation of choice text complete
@@ -210,7 +210,7 @@ Example of the full JSON output, including the ChoicePoint object, when generati
       {
         // Inner container for start content is labelled 's'
         "s": [
-          "$Hello",
+          "^Hello",
           null
         ],
         
@@ -221,7 +221,7 @@ Example of the full JSON output, including the ChoicePoint object, when generati
           {
             "f()": "0.0.s"
           },
-          "$, world.",
+          "^, world.",
           "\n",
           "\n",
           
