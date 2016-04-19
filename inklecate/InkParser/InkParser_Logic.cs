@@ -168,7 +168,7 @@ namespace Ink
 
 
             if (includedString != null ) {
-                InkParser parser = new InkParser(includedString, filename, _rootDirectory);
+                InkParser parser = new InkParser(includedString, filename, _rootDirectory, _externalErrorHandler);
                 includedStory = parser.Parse();
 
                 if( includedStory == null ) {

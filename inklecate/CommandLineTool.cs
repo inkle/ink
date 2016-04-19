@@ -149,7 +149,7 @@ namespace Ink
             PrintMessages (warnings, ConsoleColor.Blue);
             PrintMessages (errors, ConsoleColor.Red);
 
-            if (story == null) {
+            if (story == null || errors.Count > 0) {
 				Environment.Exit (ExitCodeError);
 			}
                 
