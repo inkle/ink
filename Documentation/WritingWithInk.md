@@ -883,7 +883,7 @@ If the player chooses the "murder" option, they'll have two choices in a row on 
 
 #### Advanced: What gathers do
 
-Gathers are, hopefully, work intuitively, but their behaviou is a little harder to put into words: in general, after an option has been taken, the story finds the next gather down that isn't on a lower level, and diverts to it. 
+Gathers are hopefully intuitive, but their behaviour is a little harder to put into words: in general, after an option has been taken, the story finds the next gather down that isn't on a lower level, and diverts to it. 
 
 The basic idea is this: options separate the paths of the story, and gathers bring them back together. (Hence the name, "weave"!)
 
