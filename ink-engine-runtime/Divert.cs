@@ -17,6 +17,7 @@ namespace Ink.Runtime
             }
             set {
                 _targetPath = value;
+                _targetContent = null;
             } 
         }
         Path _targetPath;
