@@ -287,9 +287,9 @@ namespace Ink.Runtime
             AddOpToNativeFunc (name, 2, ValueType.String, op);
         }
 
-        static void AddFloatUnaryOp(string name, UnaryOp<int> op)
+        static void AddFloatUnaryOp(string name, UnaryOp<float> op)
         {
-            AddOpToNativeFunc (name, 1, ValueType.Int, op);
+            AddOpToNativeFunc (name, 1, ValueType.Float, op);
         }
 
         public override string ToString ()
