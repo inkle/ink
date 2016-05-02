@@ -59,6 +59,11 @@ namespace Ink.Runtime
 
             return null;
         }
+
+        public override Object Copy()
+        {
+            return Create (valueObject);
+        }
     }
 
     internal abstract class Value<T> : Value
@@ -258,6 +263,11 @@ namespace Ink.Runtime
         public override string ToString ()
         {
             return "VariablePointerValue(" + variableName + ")";
+        }
+
+        public override Object Copy()
+        {
+            return new VariablePointerValue (variableName, contextIndex);
         }
     }
         

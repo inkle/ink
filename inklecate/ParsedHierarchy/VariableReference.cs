@@ -34,7 +34,7 @@ namespace Ink.Parsed
 
             // If it's a constant reference, just generate the literal expression value
             if ( varName != null && story.constants.TryGetValue (varName, out constantValue) ) {
-                constantValue.GenerateIntoContainer (container);
+                constantValue.GenerateConstantIntoContainer (container);
                 isConstantReference = true;
             } else {
                 _runtimeVarRef = new Runtime.VariableReference (name);

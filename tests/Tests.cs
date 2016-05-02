@@ -2099,6 +2099,18 @@ Nothing
 ");
         }
 
+        [Test ()]
+        public void TestMultipleConstantReferences()
+        {
+            var story = CompileString (@"
+CONST CONST_STR = ""ConstantString""
+VAR varStr = CONST_STR
+{varStr == CONST_STR:success}
+");
+
+            Assert.AreEqual ("success\n", story.Continue ());
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
