@@ -214,7 +214,9 @@ namespace Ink
 
             Whitespace ();
 
-            List<FlowBase.Argument> parameterNames = Parse (BracketedKnotDeclArguments);
+            var parameterNames = Expect (BracketedKnotDeclArguments, "declaration of arguments for EXTERNAL, even if empty, i.e. 'EXTERNAL "+funcName+"()'") as List<FlowBase.Argument>;
+            if (parameterNames == null)
+                parameterNames = new List<FlowBase.Argument> ();
 
             var argNames = parameterNames.ConvertAll<string> (arg => arg.name);
 
