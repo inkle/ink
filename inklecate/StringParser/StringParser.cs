@@ -638,17 +638,13 @@ namespace Ink
             int ruleId = BeginRule();
 
             // Optional \r, definite \n to support Windows (\r\n) and Mac/Unix (\n)
-            var r = ParseString ("\r");
-            var n = ParseString ("\n");
+            // 2nd May 2016: Always collapse \r\n to just \n
+            ParseString ("\r");
 
-            if (r != null && n != null) {
-                n = r + n;
-            }
-
-            if( n == null ) {
+            if( ParseString ("\n") == null ) {
                 return (string) FailRule(ruleId);
             } else {
-                return (string) SucceedRule(ruleId, n);
+                return (string) SucceedRule(ruleId, "\n");
             }
         }
 

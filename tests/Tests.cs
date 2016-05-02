@@ -2207,6 +2207,22 @@ A * A * / A
             Assert.AreEqual(expected, result);
         }
 
+
+        [Test ()]
+        public void TestCommentEliminatorMixedNewlines ()
+        {
+            var testContent = 
+                "A B\nC D // comment\nA B\r\nC D // comment\r\n/* block comment\r\nsecond line\r\n */ ";
+
+            CommentEliminator p = new CommentEliminator (testContent);
+            var result = p.Process ();
+
+            var expected = 
+                "A B\nC D \nA B\nC D \n\n\n ";
+
+            Assert.AreEqual(expected, result);
+        }
+
 	}
 }
 

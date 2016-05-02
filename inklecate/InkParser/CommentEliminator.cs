@@ -1,7 +1,12 @@
 ﻿
 namespace Ink
 {
-    // Perform comment elimination as a pre-pass to simplify the parse rules in the main parser
+    /// <summary>
+    /// Pre-pass before main ink parser runs. It actually performs two main tasks:
+    ///  - comment elimination to simplify the parse rules in the main parser
+    ///  - Conversion of Windows line endings (\r\n) to the simpler Unix style (\n), so
+    ///    we don't have to worry about them later.
+    /// </summary>
     internal class CommentEliminator : StringParser
     {
         public CommentEliminator (string input) : base(input)
@@ -11,7 +16,7 @@ namespace Ink
         public string Process()
         {
             // Make both comments and non-comments optional to handle trivial empty file case (or *only* comments)
-            var stringList = Interleave<string>(Optional (Comment), Optional(NonComment));
+            var stringList = Interleave<string>(Optional (CommentsAndNewlines), Optional(MainInk));
 
             if (stringList != null) {
                 return string.Join("", stringList);
@@ -20,14 +25,25 @@ namespace Ink
             }
         }
 
-        string NonComment()
+        string MainInk()
         {
-            return ParseUntil (Comment, _commentStartCharacter, null);
+            return ParseUntil (CommentsAndNewlines, _commentOrNewlineStartCharacter, null);
+        }
+
+        string CommentsAndNewlines()
+        {
+            var newlines = Interleave<string> (Optional (ParseNewline), Optional (ParseSingleComment));
+
+            if (newlines != null) {
+                return string.Join ("", newlines);
+            } else {
+                return null;
+            }
         }
 
         // Valid comments always return either an empty string or pure newlines,
         // which we want to keep so that line numbers stay the same
-        string Comment()
+        string ParseSingleComment()
         {
             return (string) OneOf (EndOfLineComment, BlockComment);
         }
@@ -69,7 +85,7 @@ namespace Ink
             }
         }
           
-        CharacterSet _commentStartCharacter = new CharacterSet ("/");
+        CharacterSet _commentOrNewlineStartCharacter = new CharacterSet ("/\r\n");
         CharacterSet _commentBlockEndCharacter = new CharacterSet("*");
         CharacterSet _newlineCharacters = new CharacterSet ("\n\r");
     }
