@@ -56,13 +56,15 @@ namespace Ink
             if (opts.inputFile == null) {
                 ExitWithUsageInstructions ();
             }
-
-            if (opts.outputFile == null) {
-                opts.outputFile = Path.ChangeExtension (opts.inputFile, ".ink.json");
-            }
-
+                
             string inputString = null;
             string workingDirectory = Directory.GetCurrentDirectory();
+
+            if (opts.outputFile == null)
+                opts.outputFile = Path.ChangeExtension (opts.inputFile, ".ink.json");
+
+            if( !Path.IsPathRooted(opts.outputFile) )
+                opts.outputFile = Path.Combine (workingDirectory, opts.outputFile);
 
             if (opts.stressTest) {
 
@@ -191,7 +193,7 @@ namespace Ink
                 try {
                     File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
                 } catch {
-                    Console.WriteLine ("Could write to output file '" + opts.outputFile+"'");
+                    Console.WriteLine ("Could not write to output file '" + opts.outputFile+"'");
                     Environment.Exit (ExitCodeError);
                 }
             }
