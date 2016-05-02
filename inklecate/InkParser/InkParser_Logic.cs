@@ -61,6 +61,8 @@ namespace Ink
                 result = new ContentList (funCall, new Parsed.Text ("\n"));
             }
 
+            Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
+
             return result as Parsed.Object;
         }
 
@@ -121,8 +123,6 @@ namespace Ink
             var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
             if (!(expr is Number || expr is DivertTarget || expr is StringExpression)) {
                 Error ("initial value for a constant must be a number or divert target");
-
-
             }
 
             // Ensure string expressions are simple
