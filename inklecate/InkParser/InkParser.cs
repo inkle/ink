@@ -1,17 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Ink
 {
 	internal partial class InkParser : StringParser
 	{
-        public InkParser(string str, string filenameForMetadata = null, string rootDirectory = null, Ink.ErrorHandler externalErrorHandler = null) : base(str) { 
-            _filename = filenameForMetadata;
-            _rootDirectory = rootDirectory;
+        public InkParser(string str, string filenameForMetadata = null, Ink.ErrorHandler externalErrorHandler = null) 
+            : this(str, filenameForMetadata, externalErrorHandler, null) 
+        {  }
+
+        InkParser(string str, string inkFilename = null, Ink.ErrorHandler externalErrorHandler = null, InkParser rootParser = null) : base(str) { 
+            _filename = inkFilename;
 			RegisterExpressionOperators ();
             GenerateStatementLevelRules ();
             this.errorHandler = OnError;
             _externalErrorHandler = externalErrorHandler;
+
+            if (rootParser == null) {
+                _rootParser = this;
+
+                _openFilenames = new HashSet<string> ();
+
+                if (inkFilename != null) {
+
+                    var workingDir = Directory.GetCurrentDirectory();
+                    var fullRootInkPath = Path.Combine (workingDir, inkFilename);
+                    
+                    _openFilenames.Add (fullRootInkPath);
+                }
+
+            } else {
+                _rootParser = rootParser;
+            }
+
 		}
 
         // Main entry point
@@ -80,7 +102,6 @@ namespace Ink
         Ink.ErrorHandler _externalErrorHandler;
 
         string _filename;
-        string _rootDirectory;
 	}
 }
 

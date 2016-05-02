@@ -66,7 +66,7 @@ namespace Tests
             _errorMessages.Clear ();
             _warningMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, null, TestErrorHandler);
+            InkParser parser = new InkParser(str, null, TestErrorHandler);
 			var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
                 
@@ -88,7 +88,7 @@ namespace Tests
             _errorMessages.Clear ();
             _warningMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, null, TestErrorHandler);
+            InkParser parser = new InkParser(str, null, TestErrorHandler);
             var parsedStory = parser.Parse();
             Assert.IsFalse (parsedStory.hadError);
 
@@ -775,7 +775,7 @@ This is default.
         public void TestReturnTextWarning()
         {
             InkParser parser = new InkParser("== test ==\n return something", 
-                null, null, 
+                null, 
                 (string message, ErrorType errorType) => {
                     if (errorType == ErrorType.Warning) {
                         throw new TestWarningException ();
@@ -1644,7 +1644,7 @@ Hello {""world""} 2.
         public void TestEmptyChoice()
         {
             int warningCount = 0;
-            InkParser parser = new InkParser("*", null, null, (string message, ErrorType errorType) => {
+            InkParser parser = new InkParser("*", null, (string message, ErrorType errorType) => {
                 if( errorType == ErrorType.Warning ) {
                     warningCount++;
                     Assert.IsTrue (message.Contains ("completely empty"));
