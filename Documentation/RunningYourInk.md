@@ -1,14 +1,21 @@
 # Running your ink
 
-At this point, we're assuming that you're up and running: you have at least a basic `.ink` file that's compiling to a `.json` output. (If not, perhaps see the [Getting Started](https://github.com/inkle/ink) section in the main readme.)
+## Quick Start
 
-## Unity setup
+*Note that although these instructions are written with Unity in mind, it's possible (and straightforward) to run your ink in a non-Unity C# environment.*
 
-*(Note that if you're not using Unity, skip to the section below; we'll assume that you've loaded your `.json` file into a string, ready to go.)*
+* Download the [latest version of the ink-unity-integration Unity package](https://github.com/inkle/ink-unity-integration/releases), and add to your project.
+* Select your `.ink` file in Unity, and you should see a *Play* button in the file's inspector.
+* Click it, and you should get an Editor window that lets you play (preview) your story.
+* To integrate into your game, see **Getting started with the runtime API**, below.
 
-Add your compiled `.json` story to Unity, and it'll be imported as a TextAsset. You'll also need to add the `ink-engine.dll` and `Newtonsoft.Json.dll` libraries.
+## Further information
 
-Change API compatibility for .NET: Go into `Edit -> Project settings -> Player -> Other settings` and change API compatibility level from .NET 2.0 subset (the default) to .NET 2.0. (If you get the error `TypeLoadException: Could not load type 'Newtonsoft.Json.Linq.JArray' from assembly 'Newtonsoft.Json`..., this is what's wrong.)
+Ink uses an intermediate `.json` format, which is compiled from the original `.ink` files. ink's Unity integration package automatically compiles ink files for you, but you can also compile them on the command line. See **Using inklecate on the command line** in the [README](http://www.github.com/inkle/ink) for more information.
+
+The main runtime code is included in the `ink-engine.dll`, and we also have a dependency on the `Newtonsoft.Json.dll` library, which is also included in the integration package.
+
+You may need to change API compatibility for .NET: Go into `Edit -> Project settings -> Player -> Other settings` and change API compatibility level from .NET 2.0 subset (the default) to .NET 2.0. (If you get the error `TypeLoadException: Could not load type 'Newtonsoft.Json.Linq.JArray' from assembly 'Newtonsoft.Json`..., this is what's wrong.)
 
 We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
 
@@ -22,10 +29,11 @@ We recommend that you create a wrapper MonoBehaviour component for the **ink** `
 		// The ink story that we're wrapping
 		Story _inkStory;
 
-
 ## Getting started with the runtime API
 
-The API for loading and running your story is very straightforward. Construct a new `Story` object, passing in json string. For example, in Unity:
+As mentioned above, your `.ink` file(s) are compiled to a single `.json` file. This is treated by Unity as a TextAsset, that you can then load up in your game.
+
+The API for loading and running your story is very straightforward. Construct a new `Story` object, passing in the JSON string from the TextAsset. For example, in Unity:
 
     using Ink.Runtime;
 
