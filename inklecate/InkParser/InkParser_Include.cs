@@ -25,7 +25,7 @@ namespace Ink
 
             if (FilenameIsAlreadyOpen (fullFilename)) {
                 Error ("Recursive INCLUDE detected: '" + fullFilename + "' is already open.");
-                SkipToNextLine ();
+                ParseUntilCharactersFromString("\r\n");
                 return new IncludedFile(null);
             } else {
                 AddOpenFilename (fullFilename);
