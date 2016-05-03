@@ -35,7 +35,9 @@ namespace Ink
             Whitespace ();
 
             string inkFilename = ParseUntilCharactersFromCharSet (_newlineCharacterSet);
-            inkFilename = inkFilename.Trim ();
+
+            if( inkFilename != null )
+                inkFilename = inkFilename.Trim ();
 
             if (inkFilename == null || inkFilename.Length == 0) {
                 Error ("Expected filename after INCLUDE declaration");
