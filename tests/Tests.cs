@@ -2114,7 +2114,7 @@ VAR varStr = CONST_STR
         [Test ()]
         public void TestPaths()
         {
-            // Different instances should insure different instances of individual components
+            // Different instances should ensure different instances of individual components
             var path1 = new Path ("hello.1.world");
             var path2 = new Path ("hello.1.world");
 
