@@ -2111,6 +2111,23 @@ VAR varStr = CONST_STR
             Assert.AreEqual ("success\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestPaths()
+        {
+            // Different instances should insure different instances of individual components
+            var path1 = new Path ("hello.1.world");
+            var path2 = new Path ("hello.1.world");
+
+            var path3 = new Path (".hello.1.world");
+            var path4 = new Path (".hello.1.world");
+
+            Assert.AreEqual (path1, path2);
+
+            Assert.AreEqual (path3, path4);
+
+            Assert.AreNotEqual (path1, path3);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
