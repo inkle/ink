@@ -17,6 +17,7 @@ namespace Ink
             public string outputFile;
             public bool indentedJson;
             public bool countAllVisits;
+            public bool extractIncludeFilenamesOnly;
 		}
 
 		public static int ExitCodeError = 1;
@@ -35,6 +36,7 @@ namespace Ink
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
                 "   -i:              Use indentation in output JSON\n"+
+                "   -e:              Extract INCLUDE filenames only, do not compile\n"+
                 "   -v:              Verbose mode - print compilation timings\n"+
                 "   -x <pluginname>: Use external plugin. 'ChoiceListPlugin' is only available plugin right now.\n"+
                 "   -t:              Test mode - loads up test.ink\n"+
@@ -99,6 +101,11 @@ namespace Ink
                     Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
                     Environment.Exit (ExitCodeError);
                 }
+            }
+
+            if (opts.extractIncludeFilenamesOnly) {
+                ExtractAndPrintIncludesFilenames (inputString);
+                return;
             }
 
             InkParser parser = null;
@@ -280,6 +287,9 @@ namespace Ink
                         case 'i':
                             opts.indentedJson = true;
                             break;
+                        case 'e':
+                            opts.extractIncludeFilenamesOnly = true;
+                            break;
                         case 'c':
                             opts.countAllVisits = true;
                             break;
@@ -323,6 +333,18 @@ namespace Ink
                 Console.WriteLine ("{0} took {1}s", opDescription, duration / 1000.0f);  
             } else {
                 Console.WriteLine ("{0} took {1}ms", opDescription, duration);  
+            }
+        }
+
+        void ExtractAndPrintIncludesFilenames(string inkString)
+        {
+            var commentEliminator = new CommentEliminator(inkString);
+            var commentFreeFile = commentEliminator.Process ();
+
+            var includeExtractor = new IncludeExtractor (commentFreeFile);
+            var includes = includeExtractor.ExtractIncludes ();
+            foreach (var include in includes) {
+                Console.WriteLine (include);
             }
         }
 
