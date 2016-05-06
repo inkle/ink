@@ -45,7 +45,7 @@ If you would prefer a more barebones and technical approach, (or you aren't usin
 
 ## Writing with Unity
 
-* Download the latest [ink-unity-integration package](https://github.com/inkle/ink-unity-integration/releases), or grab it from the Unity AssetStore, and place in your project.
+* Download the latest [ink-unity-integration package](https://github.com/inkle/ink/releases), or grab it from the Unity AssetStore, and place in your project.
 * Create a `.ink` text file such as `myStory.ink`, containing the text `Hello, world!`.
 * Select the file in Unity, and you should see a *Play* button in the file's inspector.
 * Click it, and you should get an Editor window that lets you play (preview) your story.
