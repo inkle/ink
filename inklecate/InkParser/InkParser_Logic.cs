@@ -61,6 +61,8 @@ namespace Ink
                 result = new ContentList (funCall, new Parsed.Text ("\n"));
             }
 
+            Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
+
             return result as Parsed.Object;
         }
 
@@ -121,8 +123,6 @@ namespace Ink
             var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
             if (!(expr is Number || expr is DivertTarget || expr is StringExpression)) {
                 Error ("initial value for a constant must be a number or divert target");
-
-
             }
 
             // Ensure string expressions are simple
@@ -135,55 +135,6 @@ namespace Ink
 
             var result = new ConstantDeclaration (varName, expr);
             return result;
-        }
-
-        protected object IncludeStatement()
-        {
-            Whitespace ();
-
-            if (ParseString ("INCLUDE") == null)
-                return null;
-
-            Whitespace ();
-
-            var filename = (string) Expect(() => ParseUntilCharactersFromString ("\n\r"), "filename for include statement");
-            filename = filename.TrimEnd (' ', '\t');
-
-            var fullFilename = filename;
-            if (_rootDirectory != null) {
-                fullFilename = System.IO.Path.Combine (_rootDirectory, filename);
-            }
-
-            Parsed.Story includedStory = null;
-            string includedString = null;
-            try {
-                includedString = System.IO.File.ReadAllText(fullFilename);
-            }
-            catch {
-                string message = "Failed to load: " + filename;
-                if (_rootDirectory != null)
-                    message += "' (root directory is " + _rootDirectory + "). File not found perhaps?";
-                Error (message);
-            }
-
-
-            if (includedString != null ) {
-                InkParser parser = new InkParser(includedString, filename, _rootDirectory);
-                includedStory = parser.Parse();
-
-                if( includedStory == null ) {
-                    // This error should never happen: if the includedStory isn't
-                    // returned, then it should've been due to some error that
-                    // has already been reported, so this is a last resort.
-                    if( !parser.hadError ) {
-                        Error ("Failed to parse included file '" + filename);
-                    }
-                }
-            }
-
-            // Return valid IncludedFile object even when story failed to parse and we have a null story:
-            // we don't want to attempt to re-parse the include line as something else
-            return new IncludedFile (includedStory);
         }
 
         protected Parsed.Object InlineLogicOrGlue()

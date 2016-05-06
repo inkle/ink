@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using Ink.Runtime;
 
 namespace Ink.Runtime
 {
-	internal class Path
+    internal class Path : IEquatable<Path>
 	{
         static string parentId = "^";
 
         // Immutable Component
-		internal class Component
+        internal class Component : IEquatable<Component>
 		{
 			public int index { get; private set; }
 			public string name { get; private set; }
@@ -51,7 +52,11 @@ namespace Ink.Runtime
 
             public override bool Equals (object obj)
             {
-                var otherComp = obj as Component;
+                return Equals (obj as Component);
+            }
+
+            public bool Equals(Component otherComp)
+            {
                 if (otherComp != null && otherComp.isIndex == this.isIndex) {
                     if (isIndex) {
                         return index == otherComp.index;   
@@ -213,7 +218,11 @@ namespace Ink.Runtime
 
         public override bool Equals (object obj)
         {
-            var otherPath = obj as Path;
+            return Equals (obj as Path);
+        }
+
+        public bool Equals (Path otherPath)
+        {
             if (otherPath == null)
                 return false;
 
@@ -223,17 +232,7 @@ namespace Ink.Runtime
             if (otherPath.isRelative != this.isRelative)
                 return false;
 
-            // This function call doesn't seem to be equivalent - not sure why not?
-            //return otherPath.components.SequenceEqual (this.components);
-            for (int i = 0; i < this.components.Count; ++i) {
-                var c1 = this.components [i];
-                var c2 = otherPath.components [i];
-                if (!c1.Equals (c2)) {
-                    return false;
-                }
-            }
-
-            return true;
+            return otherPath.components.SequenceEqual (this.components);
         }
 
         public override int GetHashCode ()

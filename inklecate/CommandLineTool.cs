@@ -15,7 +15,6 @@ namespace Ink
 			public bool playMode;
 			public string inputFile;
             public string outputFile;
-            public string workingDirectory;
             public bool indentedJson;
             public bool countAllVisits;
 		}
@@ -32,7 +31,6 @@ namespace Ink
             Console.WriteLine (
                 "Usage: inklecate2 <options> <ink file> \n"+
                 "   -o <filename>:   Output file name\n"+
-                "   -d <path>:       Working directory (for includes)\n"+
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
@@ -58,16 +56,15 @@ namespace Ink
             if (opts.inputFile == null) {
                 ExitWithUsageInstructions ();
             }
-
-            if (opts.outputFile == null) {
-                opts.outputFile = Path.ChangeExtension (opts.inputFile, ".ink.json");
-            }
-
+                
             string inputString = null;
-            string rootDirectory = System.IO.Directory.GetCurrentDirectory();
-            if (opts.workingDirectory != null) {
-                rootDirectory = Path.GetFullPath(opts.workingDirectory);
-            }
+            string workingDirectory = Directory.GetCurrentDirectory();
+
+            if (opts.outputFile == null)
+                opts.outputFile = Path.ChangeExtension (opts.inputFile, ".ink.json");
+
+            if( !Path.IsPathRooted(opts.outputFile) )
+                opts.outputFile = Path.Combine (workingDirectory, opts.outputFile);
 
             if (opts.stressTest) {
 
@@ -84,10 +81,19 @@ namespace Ink
                 try {
                     string fullFilename = opts.inputFile;
                     if(!Path.IsPathRooted(fullFilename)) {
-                        fullFilename = Path.Combine(rootDirectory, fullFilename);
+                        fullFilename = Path.Combine(workingDirectory, fullFilename);
                     }
 
-                    inputString = File.ReadAllText(fullFilename);
+                    // Make the working directory the directory for the root ink file,
+                    // so that relative paths for INCLUDE files are correct.
+                    workingDirectory = Path.GetDirectoryName(fullFilename);
+                    Directory.SetCurrentDirectory(workingDirectory);
+
+                    // Now make the input file relative to the working directory,
+                    // but just getting the file's actual name.
+                    opts.inputFile = Path.GetFileName(fullFilename);
+
+                    inputString = File.ReadAllText(opts.inputFile);
                 }
                 catch {
                     Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
@@ -108,7 +114,7 @@ namespace Ink
             // Loading a normal ink file (as opposed to an already compiled json file)
             if (!inputIsJson) {
                 TimeOperation ("Creating parser", () => {
-                    parser = new InkParser (inputString, opts.inputFile, rootDirectory, OnError);
+                    parser = new InkParser (inputString, opts.inputFile, OnError);
                 });
 
                 TimeOperation ("Parsing", () => {
@@ -149,7 +155,7 @@ namespace Ink
             PrintMessages (warnings, ConsoleColor.Blue);
             PrintMessages (errors, ConsoleColor.Red);
 
-            if (story == null) {
+            if (story == null || errors.Count > 0) {
 				Environment.Exit (ExitCodeError);
 			}
                 
@@ -187,7 +193,7 @@ namespace Ink
                 try {
                     File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
                 } catch {
-                    Console.WriteLine ("Could write to output file '" + opts.outputFile+"'");
+                    Console.WriteLine ("Could not write to output file '" + opts.outputFile+"'");
                     Environment.Exit (ExitCodeError);
                 }
             }
@@ -232,7 +238,6 @@ namespace Ink
             pluginNames = new List<string> ();
 
             bool nextArgIsOutputFilename = false;
-            bool nextArgIsWorkingDir = false;
             bool nextArgIsPlugin = false;
 
 			// Process arguments
@@ -242,9 +247,6 @@ namespace Ink
                 if (nextArgIsOutputFilename) {
                     opts.outputFile = arg;
                     nextArgIsOutputFilename = false;
-                } else if (nextArgIsWorkingDir) {
-                    opts.workingDirectory = arg;
-                    nextArgIsWorkingDir = false;
                 } else if (nextArgIsPlugin) {
                     pluginNames.Add (arg);
                     nextArgIsPlugin = false;
@@ -283,9 +285,6 @@ namespace Ink
                             break;
                         case 'x':
                             nextArgIsPlugin = true;
-                            break;
-                        case 'd':
-                            nextArgIsWorkingDir = true;
                             break;
                         default:
                             Console.WriteLine ("Unsupported argument type: '{0}'", argChar);

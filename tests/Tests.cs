@@ -66,7 +66,7 @@ namespace Tests
             _errorMessages.Clear ();
             _warningMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, null, TestErrorHandler);
+            InkParser parser = new InkParser(str, null, TestErrorHandler);
 			var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
                 
@@ -88,7 +88,7 @@ namespace Tests
             _errorMessages.Clear ();
             _warningMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, null, TestErrorHandler);
+            InkParser parser = new InkParser(str, null, TestErrorHandler);
             var parsedStory = parser.Parse();
             Assert.IsFalse (parsedStory.hadError);
 
@@ -775,7 +775,7 @@ This is default.
         public void TestReturnTextWarning()
         {
             InkParser parser = new InkParser("== test ==\n return something", 
-                null, null, 
+                null, 
                 (string message, ErrorType errorType) => {
                     if (errorType == ErrorType.Warning) {
                         throw new TestWarningException ();
@@ -1644,7 +1644,7 @@ Hello {""world""} 2.
         public void TestEmptyChoice()
         {
             int warningCount = 0;
-            InkParser parser = new InkParser("*", null, null, (string message, ErrorType errorType) => {
+            InkParser parser = new InkParser("*", null, (string message, ErrorType errorType) => {
                 if( errorType == ErrorType.Warning ) {
                     warningCount++;
                     Assert.IsTrue (message.Contains ("completely empty"));
@@ -2099,6 +2099,35 @@ Nothing
 ");
         }
 
+        [Test ()]
+        public void TestMultipleConstantReferences()
+        {
+            var story = CompileString (@"
+CONST CONST_STR = ""ConstantString""
+VAR varStr = CONST_STR
+{varStr == CONST_STR:success}
+");
+
+            Assert.AreEqual ("success\n", story.Continue ());
+        }
+
+        [Test ()]
+        public void TestPaths()
+        {
+            // Different instances should ensure different instances of individual components
+            var path1 = new Path ("hello.1.world");
+            var path2 = new Path ("hello.1.world");
+
+            var path3 = new Path (".hello.1.world");
+            var path4 = new Path (".hello.1.world");
+
+            Assert.AreEqual (path1, path2);
+
+            Assert.AreEqual (path3, path4);
+
+            Assert.AreNotEqual (path1, path3);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]
@@ -2191,6 +2220,22 @@ A * A * / A
 
 
 ";
+
+            Assert.AreEqual(expected, result);
+        }
+
+
+        [Test ()]
+        public void TestCommentEliminatorMixedNewlines ()
+        {
+            var testContent = 
+                "A B\nC D // comment\nA B\r\nC D // comment\r\n/* block comment\r\nsecond line\r\n */ ";
+
+            CommentEliminator p = new CommentEliminator (testContent);
+            var result = p.Process ();
+
+            var expected = 
+                "A B\nC D \nA B\nC D \n\n\n ";
 
             Assert.AreEqual(expected, result);
         }

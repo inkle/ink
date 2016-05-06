@@ -27,8 +27,28 @@ namespace Ink.Parsed
             return container;
 		}
 
+        // When generating the value of a constant expression,
+        // we can't just keep generating the same constant expression into
+        // different places where the constant value is referenced, since then
+        // the same runtime objects would be used in multiple places, which
+        // is impossible since each runtime object should have one parent.
+        // Instead, we generate a prototype of the runtime object(s), then
+        // copy them each time they're used.
+        public void GenerateConstantIntoContainer(Runtime.Container container)
+        {
+            if( _prototypeRuntimeConstantExpression == null ) {
+                _prototypeRuntimeConstantExpression = new Runtime.Container ();
+                GenerateIntoContainer (_prototypeRuntimeConstantExpression);
+            }
+
+            foreach (var runtimeObj in _prototypeRuntimeConstantExpression.content) {
+                container.AddContent (runtimeObj.Copy());
+            }
+        }
+
         public abstract void GenerateIntoContainer (Runtime.Container container);
 
+        Runtime.Container _prototypeRuntimeConstantExpression;
 	}
 
 	internal class BinaryExpression : Expression

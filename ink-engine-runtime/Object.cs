@@ -193,6 +193,11 @@ namespace Ink.Runtime
 		{
 		}
 
+        public virtual Object Copy()
+        {
+            throw new System.NotImplementedException (GetType ().Name + " doesn't support copying");
+        }
+
         internal void SetChild<T>(ref T obj, T value) where T : Runtime.Object
         {
             if (obj)
