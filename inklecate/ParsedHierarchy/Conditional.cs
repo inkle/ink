@@ -38,10 +38,6 @@ namespace Ink.Parsed
                 container.AddContent (branchContainer);
             }
 
-            // If no branches matched, tidy up after ourselves
-            if (this.initialCondition)
-                container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
-
             // Target for branches to rejoin to
             _reJoinTarget = Runtime.ControlCommand.NoOp ();
             container.AddContent (_reJoinTarget);

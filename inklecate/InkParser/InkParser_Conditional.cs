@@ -51,9 +51,9 @@ namespace Ink
                             // Also allow a final "- else:" clause
                             var elseBranch = Parse(SingleMultilineCondition);
                             if (elseBranch) {
-                                if (!elseBranch.alwaysMatch) {
+                                if (!elseBranch.isElse) {
                                     ErrorWithParsedObject ("Expected an '- else:' clause here rather than an extra condition", elseBranch);
-                                    elseBranch.alwaysMatch = true;
+                                    elseBranch.isElse = true;
                                 }
                                 alternatives.Add (elseBranch);
                             }
@@ -85,7 +85,7 @@ namespace Ink
 
                         // Else (final branch)
                         else if (earlierBranchesHaveOwnExpression && isLast) {
-                            branch.alwaysMatch = true;
+                            branch.isElse = true;
                         } 
 
                         // Binary condition:
@@ -98,8 +98,10 @@ namespace Ink
                             if (!isLast && alternatives.Count > 2) {
                                 ErrorWithParsedObject ("Only final branch can be an 'else'. Did you miss a ':'?", branch);
                             } else {
-                                branch.isBoolCondition = true;
-                                branch.boolRequired = i == 0 ? true : false;
+                                if (i == 0)
+                                    branch.isTrueBranch = true;
+                                else
+                                    branch.isElse = true;
                             }
                         }
                     }
@@ -118,12 +120,12 @@ namespace Ink
                         bool isLast = (i == alternatives.Count - 1);
                         if (alt.ownExpression == null) {
                             if (isLast) {
-                                alt.alwaysMatch = true;
+                                alt.isElse = true;
                             } else {
-                                if (alt.alwaysMatch) {
+                                if (alt.isElse) {
                                     // Do we ALSO have a valid "else" at the end? Let's report the error there.
                                     var finalClause = alternatives [alternatives.Count - 1];
-                                    if (finalClause.alwaysMatch) {
+                                    if (finalClause.isElse) {
                                         ErrorWithParsedObject ("Multiple 'else' cases. Can have a maximum of one, at the end.", finalClause);
                                     } else {
                                         ErrorWithParsedObject ("'else' case in conditional should always be the final one", alt);
@@ -167,15 +169,13 @@ namespace Ink
             } else {
                 
                 var trueBranch = new ConditionalSingleBranch (listOfLists[0]);
-                trueBranch.boolRequired = true;
-                trueBranch.isBoolCondition = true;
+                trueBranch.isTrueBranch = true;
                 result.Add (trueBranch);
 
                 if (listOfLists.Count > 1) {
-                    var falseBranch = new ConditionalSingleBranch (listOfLists[1]);
-                    falseBranch.boolRequired = false;
-                    falseBranch.isBoolCondition = true;
-                    result.Add (falseBranch);
+                    var elseBranch = new ConditionalSingleBranch (listOfLists[1]);
+                    elseBranch.isElse = true;
+                    result.Add (elseBranch);
                 }
             }
 
@@ -234,7 +234,7 @@ namespace Ink
 
             var branch = new ConditionalSingleBranch (content);
             branch.ownExpression = expr;
-            branch.alwaysMatch = isElse;
+            branch.isElse = isElse;
             return branch;
         }
 

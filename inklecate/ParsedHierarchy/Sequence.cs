@@ -101,7 +101,8 @@ namespace Ink.Parsed
 
                 // Divert branch for this sequence element
                 var sequenceDivert = new Runtime.Divert ();
-                container.AddContent (new Runtime.Branch (sequenceDivert));
+                sequenceDivert.isConditional = true;
+                container.AddContent (sequenceDivert);
 
                 // Generate content for this sequence element
                 var contentContainerForSequenceBranch = (Runtime.Container) el.runtimeObject;
