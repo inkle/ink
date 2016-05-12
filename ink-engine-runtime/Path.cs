@@ -100,13 +100,15 @@ namespace Ink.Runtime
 				if (components.Count >= 2) {
 					List<Component> tailComps = components.GetRange (1, components.Count - 1);
 					return new Path(tailComps);
-				} else {
-					return null;
+				} 
+
+                else {
+                    return Path.self;
 				}
 
 			}
 		}
-
+            
 		public int length { get { return components.Count; } }
 
 		public Component lastComponent 
@@ -151,6 +153,14 @@ namespace Ink.Runtime
         public Path(string componentsString) : this()
         {
             this.componentsString = componentsString;
+        }
+
+        public static Path self {
+            get {
+                var path = new Path ();
+                path.isRelative = true;
+                return path;
+            }
         }
 
 		public Path PathByAppendingPath(Path pathToAppend)

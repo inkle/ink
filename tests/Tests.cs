@@ -2128,6 +2128,30 @@ VAR varStr = CONST_STR
             Assert.AreNotEqual (path1, path3);
         }
 
+        [Test ()]
+        public void TestPathToSelf()
+        {
+            var story = CompileString (@"
+- (dododo) 
+-> tunnel ->
+-> dododo
+
+== tunnel 
++ A
+->->
+");
+            // We're only checking that the story copes
+            // okay without crashing
+            // (internally the "-> dododo" ends up generating
+            //  a very short path: ".^", and after walking into
+            // the parent, it didn't cope with the "." before
+            // I fixed it!)
+            story.Continue ();
+            story.ChooseChoiceIndex (0);
+            story.Continue ();
+            story.ChooseChoiceIndex (0);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

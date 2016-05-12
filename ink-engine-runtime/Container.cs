@@ -232,7 +232,7 @@ namespace Ink.Runtime
                 partialPathLength = path.components.Count;
             
             Container currentContainer = this;
-            Runtime.Object currentObj = null;
+            Runtime.Object currentObj = this;
 
             for (int i = 0; i < partialPathLength; ++i) {
                 var comp = path.components [i];
