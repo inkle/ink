@@ -106,6 +106,7 @@ namespace Ink.Parsed
                 // Generate content for this sequence element
                 var contentContainerForSequenceBranch = (Runtime.Container) el.runtimeObject;
                 contentContainerForSequenceBranch.name = "s" + elIndex;
+                contentContainerForSequenceBranch.InsertContent (Runtime.ControlCommand.PopEvaluatedValue (), 0);
 
                 // When sequence element is complete, divert back to end of sequence
                 var seqBranchCompleteDivert = new Runtime.Divert ();
