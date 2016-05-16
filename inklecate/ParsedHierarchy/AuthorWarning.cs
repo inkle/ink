@@ -12,7 +12,7 @@ namespace Ink.Parsed
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            Warning (warningMessage+" --");
+            Warning (warningMessage);
             return null;
         }
     }
