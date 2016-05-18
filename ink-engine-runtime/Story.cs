@@ -1589,7 +1589,8 @@ namespace Ink.Runtime
 
             int numElements = numElementsIntVal.value;
 
-            var seqCount = VisitCountForContainer (seqContainer);
+            var seqCountVal = state.PopEvaluationStack () as IntValue;
+            var seqCount = seqCountVal.value;
             var loopIndex = seqCount / numElements;
             var iterationIndex = seqCount % numElements;
 
