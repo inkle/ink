@@ -1642,6 +1642,9 @@ namespace Ink.Runtime
             }
 
             state.AddError (message);
+
+            // In a broken state don't need to know about any other errors.
+            state.ForceEndFlow ();
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)
