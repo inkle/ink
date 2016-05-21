@@ -140,10 +140,10 @@ namespace Ink
                     foreach (var errorMsg in story.currentErrors) {
                         Console.WriteLine (errorMsg, ConsoleColor.Red);
                     }
-                    story.ResetErrors ();
                 }
             }
 
+            story.ResetErrors ();
         } 
 	}
 }
