@@ -108,21 +108,8 @@ Diverts can take the following forms:
 * `{"->t->": "path.tunnel"}` - a tunnel, which works similarly to a function call by pushing an element to the callstack. The only difference is that the callstack is aware of the type of element that was pushed, for error checking.
 * `{"x()": "externalFuncName", "exArgs": 5}` - an external (game-side) function call, that optionally takes the specified number of arguments.
 
-## Branch
+Additionally, a `"c"` property set to `true` indicates that the divert is conditional, and should therefore pop a value off the evaluation stack to determine whether the divert should actually happen.
 
-Branches are objects that contain one or two diverts, depending on whether a popped value from the evaluation stack is true or false (or to be more accurate, *truthy* or not.) They can contain one or both of the fields `"t?"` and `"f?"` for true or false diverts.
-
-For example:
-
-* `{ "f?": {"->": "a_knot"} }` - Pops a value from the evaluation stack. If it's zero, divert to `a_knot`, otherwise continue as normal.
-
-* Pop a value from the evaluation stack. If it's non-zero, divert to `eat`, otherwise divert to `starve`:
-    
-        { 
-            "t?": {"->": "eat"}, 
-            "f?": {"->": "starve"} 
-        }
-        
 ## Variable assignment
 
 Pops a value from the evaluation stack, and assigns it to a named variable, either globally or locally (in a `temp`, or a passed parameter). The `"re"` property being set indicates that it's a re-assignment rather than a brand new declaration.

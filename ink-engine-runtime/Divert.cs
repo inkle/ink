@@ -58,6 +58,8 @@ namespace Ink.Runtime
         public bool isExternal { get; set; }
         public int externalArgs { get; set; }
 
+        public bool isConditional { get; set; }
+
 		public Divert ()
 		{
             pushesToStack = false;

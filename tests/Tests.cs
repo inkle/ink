@@ -2152,6 +2152,29 @@ VAR varStr = CONST_STR
             story.ChooseChoiceIndex (0);
         }
 
+        public void TestShuffleStackMuddying()
+        {
+            var story = CompileString (@"
+* {condFunc()} [choice 1]
+* {condFunc()} [choice 2]
+* {condFunc()} [choice 3]
+* {condFunc()} [choice 4]
+
+
+=== function condFunc() ===
+{shuffle:
+    - ~ return false
+    - ~ return true
+    - ~ return true
+    - ~ return false
+}
+");
+
+            story.Continue ();
+
+            Assert.AreEqual (2, story.currentChoices.Count);
+        }
+
 		//------------------------------------------------------------------------
 
 		[Test ()]

@@ -101,11 +101,13 @@ namespace Ink.Parsed
 
                 // Divert branch for this sequence element
                 var sequenceDivert = new Runtime.Divert ();
-                container.AddContent (new Runtime.Branch (sequenceDivert));
+                sequenceDivert.isConditional = true;
+                container.AddContent (sequenceDivert);
 
                 // Generate content for this sequence element
                 var contentContainerForSequenceBranch = (Runtime.Container) el.runtimeObject;
                 contentContainerForSequenceBranch.name = "s" + elIndex;
+                contentContainerForSequenceBranch.InsertContent (Runtime.ControlCommand.PopEvaluatedValue (), 0);
 
                 // When sequence element is complete, divert back to end of sequence
                 var seqBranchCompleteDivert = new Runtime.Divert ();

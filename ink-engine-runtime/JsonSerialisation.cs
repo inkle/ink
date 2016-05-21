@@ -106,14 +106,11 @@ namespace Ink.Runtime
         //                     }
         //                 ]
         // 
-        // Divert:         {"->": "path.target"}
+        // Divert:         {"->": "path.target", "c": true }
         //                 {"->": "path.target", "var": true}
         //                 {"f()": "path.func"}
         //                 {"->t->": "path.tunnel"}
         //                 {"x()": "externalFuncName", "exArgs": 5}
-        // 
-        // Branch:         {"t?": divert if true }
-        //                 {"f?": divert if false }
         // 
         // Var Assign:     {"VAR=": "varName", "re": true}   // reassignment
         //                 {"temp=": "varName"}
@@ -227,6 +224,8 @@ namespace Ink.Runtime
                     else
                         divert.targetPathString = target;
 
+                    divert.isConditional = obj.TryGetValue("c", out propValue);
+
                     if (external) {
                         if (obj.TryGetValue ("exArgs", out propValue))
                             divert.externalArgs = propValue.ToObject<int> ();
@@ -271,18 +270,6 @@ namespace Ink.Runtime
                     var varAss = new VariableAssignment (varName, isNewDecl);
                     varAss.isGlobal = isGlobalVar;
                     return varAss;
-                }
-
-                Divert trueDivert = null;
-                Divert falseDivert = null;
-                if (obj.TryGetValue ("t?", out propValue)) {
-                    trueDivert = JTokenToRuntimeObject(propValue) as Divert;
-                }
-                if (obj.TryGetValue ("f?", out propValue)) {
-                    falseDivert = JTokenToRuntimeObject(propValue) as Divert;
-                }
-                if (trueDivert || falseDivert) {
-                    return new Branch (trueDivert, falseDivert);
                 }
 
                 if (obj ["originalChoicePath"] != null)
@@ -330,6 +317,9 @@ namespace Ink.Runtime
 
                 if (divert.hasVariableTarget)
                     jObj ["var"] = true;
+
+                if (divert.isConditional)
+                    jObj ["c"] = true;
 
                 if (divert.externalArgs > 0)
                     jObj ["exArgs"] = divert.externalArgs;
@@ -420,17 +410,7 @@ namespace Ink.Runtime
 
                 return jObj;
             }
-
-            var branch = obj as Branch;
-            if (branch) {
-                var jObj = new JObject ();
-                if (branch.trueDivert)
-                    jObj ["t?"] = RuntimeObjectToJToken (branch.trueDivert);
-                if (branch.falseDivert)
-                    jObj ["f?"] = RuntimeObjectToJToken (branch.falseDivert);
-                return jObj;
-            }
-
+                
             var voidObj = obj as Void;
             if (voidObj)
                 return "void";
