@@ -28,9 +28,9 @@ namespace Tests
         public Tests(TestMode mode)
         {
             _mode = mode;
-            if (Directory.GetCurrentDirectory().Contains("tests"))
+            if (Directory.GetCurrentDirectory().Contains("tests/bin/Debug/"))
             {
-                Directory.SetCurrentDirectory("..");
+                Directory.SetCurrentDirectory(@"..\..\..");
             }
         }
 
