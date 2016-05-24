@@ -11,10 +11,6 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ink-engine-runtime", "ink-e
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ink-engine-dll", "ink-engine-dll\ink-engine-dll.csproj", "{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ink-engine-nuget", "ink-engine-nuget", "{7B8667E2-2A4D-4D79-B6C7-1CFB57ED6C18}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Inkle.Ink.Engine", "ink-engine-nuget\Inkle.Ink.Engine\Inkle.Ink.Engine.xproj", "{992897BE-5819-4C0F-B8AD-934F1E581631}"
-EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ink-engine-runtime\ink-engine-runtime.projitems*{f68d0ee2-1831-4a06-8ffa-cbd0315efd0e}*SharedItemsImports = 4
@@ -65,24 +61,9 @@ Global
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|Any CPU.ActiveCfg = Release|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|x86.ActiveCfg = Release|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|x86.Build.0 = Release|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Debug|x86.Build.0 = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Release|Any CPU.Build.0 = Release|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Release|x86.ActiveCfg = Release|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Release|x86.Build.0 = Release|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Test|Any CPU.ActiveCfg = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Test|Any CPU.Build.0 = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Test|x86.ActiveCfg = Debug|Any CPU
-		{992897BE-5819-4C0F-B8AD-934F1E581631}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{992897BE-5819-4C0F-B8AD-934F1E581631} = {7B8667E2-2A4D-4D79-B6C7-1CFB57ED6C18}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
