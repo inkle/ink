@@ -2,6 +2,8 @@
 using Ink.Runtime;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.IO;
+using Path = Ink.Runtime.Path;
 
 namespace Tests
 {
@@ -26,6 +28,10 @@ namespace Tests
         public Tests(TestMode mode)
         {
             _mode = mode;
+            if (Directory.GetCurrentDirectory().Contains("tests"))
+            {
+                Directory.SetCurrentDirectory("..");
+            }
         }
 
         [Test()]
