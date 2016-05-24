@@ -1,0 +1,32 @@
+﻿{
+  "version": "0.3.4",
+  "title": "Ink Engine",
+  "dependencies": {
+    "Newtonsoft.Json": "8.0.3"
+  },
+  "buildOptions": {
+    "compile": {
+      "include": "../../ink-engine-runtime/*.cs"
+    },
+    "outputName": "Inkle.Ink.Engine"
+  },
+
+  "packOptions": {    
+    "iconUrl": "https://avatars2.githubusercontent.com/u/1987090",
+    "licenseUrl": "https://opensource.org/licenses/MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/inkle/ink"
+    },
+    "requireLicenseAcceptance": true,
+    "owners": [ "InkleStudios" ],
+    "summary": "Ink is inkle's scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring."
+  },
+  "description": "Runtime engine for the ink scripting language",
+  "frameworks": {
+    "net35": {
+    },
+    "net451": {
+    }        
+  }
+}
