@@ -1,1 +1,1 @@
-﻿INCLUDE ink/tests/test_included_file4.ink
+﻿INCLUDE test_included_file4.ink

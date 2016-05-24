@@ -28,9 +28,9 @@ namespace Tests
         public Tests(TestMode mode)
         {
             _mode = mode;
-            if (Directory.GetCurrentDirectory().Contains("tests/bin/Debug/"))
+            if (!Directory.GetCurrentDirectory().Contains(@"Debug"))
             {
-                Directory.SetCurrentDirectory(@"..\..\..");
+                Directory.SetCurrentDirectory(@".\ink\tests\bin\Debug\");
             }
         }
 
@@ -984,8 +984,8 @@ five
         {
             var storyStr =
                 @"
-INCLUDE ink/tests/test_included_file.ink
-  INCLUDE ink/tests/test_included_file2.ink
+INCLUDE test_included_file.ink
+  INCLUDE test_included_file2.ink
 
 This is the main file.
                 ";
@@ -1197,7 +1197,7 @@ This is place 2.
         {
             var storyStr =
                 @"
-INCLUDE ink/tests/test_included_file3.ink
+INCLUDE test_included_file3.ink
 
 This is the main file
 
