@@ -15,7 +15,7 @@ bld/
 
 
 # Don't ignore packages, since they're needed when running from command line without having run Xamarin
-# packages/
+packages/
 
 
 # globs
