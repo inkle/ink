@@ -45,18 +45,18 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="test_included_file.ink">
+    <Content Include="test_included_file.ink">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file2.ink">
+    </Content>
+    <Content Include="test_included_file2.ink">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file3.ink">
+    </Content>
+    <Content Include="test_included_file3.ink">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file4.ink">
+    </Content>
+    <Content Include="test_included_file4.ink">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

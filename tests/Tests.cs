@@ -1,8 +1,10 @@
-﻿using Ink;
+﻿using System;
+using Ink;
 using Ink.Runtime;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Path = Ink.Runtime.Path;
 
 namespace Tests
@@ -27,11 +29,12 @@ namespace Tests
 
         public Tests(TestMode mode)
         {
-            _mode = mode;
-            if (!Directory.GetCurrentDirectory().Contains(@"Debug"))
-            {
-                Directory.SetCurrentDirectory(@".\ink\tests\bin\Debug\");
-            }
+            _mode = mode;            
+            var codeBase = Assembly.GetExecutingAssembly().Location;
+            var uri = new UriBuilder(codeBase);
+            var path = Uri.UnescapeDataString(uri.Path);
+                path = System.IO.Path.GetDirectoryName(path);
+            Directory.SetCurrentDirectory(path);            
         }
 
         [Test()]

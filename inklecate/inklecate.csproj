@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProjectGuid>{D10ED1A8-CF83-4E58-B505-3714B3A16215}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>Ink</RootNamespace>
     <AssemblyName>inklecate</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
