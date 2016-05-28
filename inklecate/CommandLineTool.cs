@@ -26,6 +26,9 @@ namespace Ink
 			new CommandLineTool(args);
 		}
 
+        //Holds the console's normal foreground color
+        ConsoleColor normalForegroundColor;
+
         void ExitWithUsageInstructions()
         {
             Console.WriteLine (
@@ -178,10 +181,16 @@ namespace Ink
             // the test script is also played
             if (opts.playMode) {
 
+                //Save the starting foreground text color
+                normalForegroundColor = Console.ForegroundColor;
+
                 // Always allow ink external fallbacks
                 story.allowExternalFunctionFallbacks = true;
 
                 var player = new CommandLinePlayer (story, false, parsedStory);
+
+                //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
+                Console.CancelKeyPress += OnExit;
                 player.Begin ();
             } 
 
@@ -197,6 +206,11 @@ namespace Ink
                     Environment.Exit (ExitCodeError);
                 }
             }
+        }
+
+        private void OnExit(object sender, ConsoleCancelEventArgs e)
+        {
+            Console.ForegroundColor = normalForegroundColor;
         }
 
         void OnError(string message, ErrorType errorType)
