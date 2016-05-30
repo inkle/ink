@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -32,8 +32,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)Value.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChoicePoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Choice.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Newtonsoft.Json.dll" />
   </ItemGroup>
 </Project>
