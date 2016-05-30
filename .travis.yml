@@ -2,6 +2,7 @@ language: csharp
 solution: ink.sln
 install:
   - sudo apt-get install nunit-console
+  
 before_script:
   - nuget restore ink.sln
 script:
