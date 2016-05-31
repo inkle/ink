@@ -2183,6 +2183,49 @@ VAR val = 5
             Assert.AreEqual("Hello!\nWorld.\n", story.ContinueMaximally());
         }
 
+        [Test()]
+        public void TestVisitCountsWhenChoosing()
+        {
+            var storyStr =
+                @"
+== TestKnot ==
+this is a test
++ Next -> TestKnot2
+
+== TestKnot2 ==
+this is the end
+-> END
+";
+
+            Story story = CompileString(storyStr);
+
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.ChoosePathString ("TestKnot");
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.Continue ();
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.ChooseChoiceIndex (0);
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+
+            // At this point, we have made the choice, but the divert *within* the choice
+            // won't yet have been evaluated.
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.Continue ();
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot2"));
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

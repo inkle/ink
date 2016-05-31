@@ -58,7 +58,7 @@ namespace Ink.Runtime
             if (visitCounts.TryGetValue (pathString, out visitCountOut))
                 return visitCountOut;
 
-            return -1;
+            return 0;
         }
 
         // REMEMBER! REMEMBER! REMEMBER!
@@ -96,7 +96,6 @@ namespace Ink.Runtime
         }
 
         internal Runtime.Object currentContentObject {
-            
             get {
                 return callStack.currentElement.currentObject;
             }
@@ -108,6 +107,15 @@ namespace Ink.Runtime
         internal Container currentContainer {
             get {
                 return callStack.currentElement.currentContainer;
+            }
+        }
+
+        internal Runtime.Object previousContentObject { 
+            get {
+                return callStack.currentThread.previousContentObject;
+            }
+            set {
+                callStack.currentThread.previousContentObject = value;
             }
         }
             
@@ -202,6 +210,8 @@ namespace Ink.Runtime
 
             if (divertedTargetObject != null)
                 copy.divertedTargetObject = divertedTargetObject;
+
+            copy.previousContentObject = previousContentObject;
 
             copy.visitCounts = new Dictionary<string, int> (visitCounts);
             copy.turnIndices = new Dictionary<string, int> (turnIndices);

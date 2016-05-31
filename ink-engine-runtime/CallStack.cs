@@ -66,6 +66,7 @@ namespace Ink.Runtime
         {
             public List<Element> callstack;
             public int threadIndex;
+            public Runtime.Object previousContentObject;
 
             public Thread() {
                 callstack = new List<Element>();
@@ -102,6 +103,12 @@ namespace Ink.Runtime
 
 					callstack.Add (el);
 				}
+
+                JToken prevContentObjPath = jThreadObj["previousContentObject"];
+                if( prevContentObjPath != null ) {
+                    var prevPath = new Path(prevContentObjPath.ToString());
+                    previousContentObject = storyContext.ContentAtPath(prevPath);
+                }
 			}
 
             public Thread Copy() {
@@ -110,6 +117,7 @@ namespace Ink.Runtime
                 foreach(var e in callstack) {
                     copy.callstack.Add(e.Copy());
                 }
+                copy.previousContentObject = previousContentObject;
                 return copy;
             }
 
@@ -132,6 +140,9 @@ namespace Ink.Runtime
 
 					threadJObj ["callstack"] = jThreadCallstack;
 					threadJObj ["threadIndex"] = threadIndex;
+
+                    if (previousContentObject != null)
+                        threadJObj ["previousContentObject"] = previousContentObject.path.ToString();
 
 					return threadJObj;
 				}
