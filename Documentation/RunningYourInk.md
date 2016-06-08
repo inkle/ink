@@ -60,7 +60,7 @@ From there, you make calls to the story in a loop. There are two repeating stage
         {
             for (int i = 0; i < _inkStory.currentChoices.Count; ++i) {
                 Choice choice = _inkStory.currentChoices [i];
-                Debug.Log("Choice " + (i + 1) + ". " + choice.choiceText);
+                Debug.Log("Choice " + (i + 1) + ". " + choice.text);
             }
         }
         
