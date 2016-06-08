@@ -26,9 +26,6 @@ namespace Ink
 			new CommandLineTool(args);
 		}
 
-        //Holds the console's normal foreground color
-        ConsoleColor normalForegroundColor;
-
         void ExitWithUsageInstructions()
         {
             Console.WriteLine (
@@ -181,9 +178,6 @@ namespace Ink
             // the test script is also played
             if (opts.playMode) {
 
-                //Save the starting foreground text color
-                normalForegroundColor = Console.ForegroundColor;
-
                 // Always allow ink external fallbacks
                 story.allowExternalFunctionFallbacks = true;
 
@@ -210,9 +204,8 @@ namespace Ink
 
         private void OnExit(object sender, ConsoleCancelEventArgs e)
         {
-            Console.ForegroundColor = normalForegroundColor;
+            Console.ResetColor();
         }
-
         void OnError(string message, ErrorType errorType)
         {
             switch (errorType) {
