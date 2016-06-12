@@ -182,6 +182,9 @@ namespace Ink
                 story.allowExternalFunctionFallbacks = true;
 
                 var player = new CommandLinePlayer (story, false, parsedStory);
+
+                //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
+                Console.CancelKeyPress += OnExit;
                 player.Begin ();
             } 
 
@@ -199,6 +202,10 @@ namespace Ink
             }
         }
 
+        private void OnExit(object sender, ConsoleCancelEventArgs e)
+        {
+            Console.ResetColor();
+        }
         void OnError(string message, ErrorType errorType)
         {
             switch (errorType) {
