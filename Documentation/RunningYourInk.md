@@ -158,7 +158,7 @@ You can define game-side functions in C# that can be called directly from **ink*
 
         EXTERNAL multiply(x,y)
 
-2. **Before** calling `story.Begin()`, bind your C# function. For example:
+2. Bind your C# function. For example:
 
         _inkStory.BindExternalFunction ("multiply", (int arg1, float arg2) => {
             return arg1 * arg2;
