@@ -391,7 +391,7 @@ This means stitches and knots can't share names, but several knots can contain t
 
 The compiler will warn you if ambiguous names are used.
 
-### Script files can combined
+### Script files can be combined
 
 You can also split your content across multiple files, using an include statement.
 
@@ -401,7 +401,7 @@ You can also split your content across multiple files, using an include statemen
 	
 Include statements should always go at the top of a file, and not inside knots.
 
-There are no rules about what file a knot must be in to be diverted to. (In other words, separating files has no effect on the game's namespacing.)
+There are no rules about what file a knot must be in to be diverted to. (In other words, separating files has no effect on the game's namespacing).
 
 
 ## 8) Varying Choices 
