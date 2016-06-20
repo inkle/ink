@@ -47,6 +47,8 @@ namespace Ink
 
 
                     do {
+                        // Prompt
+                        Console.Write("?> ");
                         string userInput = Console.ReadLine ();
 
                         var inputParser = new InkParser (userInput);

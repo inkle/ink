@@ -50,6 +50,7 @@ Thumbs.db
 *.dotCover
 
 ReleaseBinary
+DebugMacBinary
 PerformanceReports
 RuntimeDLL
 
