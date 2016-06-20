@@ -503,17 +503,22 @@ namespace Ink.Runtime
             }
         }
 
-        void VisitChangedContainersDueToDivert(Runtime.Object previousContentObject, Runtime.Object newContentObject)
+        void VisitChangedContainersDueToDivert()
         {
-            if (!previousContentObject || !newContentObject)
+            var previousContentObject = state.previousContentObject;
+            var newContentObject = state.currentContentObject;
+
+            if (!newContentObject)
                 return;
             
             // First, find the previously open set of containers
             var prevContainerSet = new HashSet<Container> ();
-            Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
-            while (prevAncestor) {
-                prevContainerSet.Add (prevAncestor);
-                prevAncestor = prevAncestor.parent as Container;
+            if (previousContentObject) {
+                Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
+                while (prevAncestor) {
+                    prevContainerSet.Add (prevAncestor);
+                    prevAncestor = prevAncestor.parent as Container;
+                }
             }
 
             // If the new object is a container itself, it will be visited automatically at the next actual
@@ -619,6 +624,15 @@ namespace Ink.Runtime
             if (contentObj is Divert) {
                 
                 Divert currentDivert = (Divert)contentObj;
+
+                if (currentDivert.isConditional) {
+                    var conditionValue = state.PopEvaluationStack ();
+
+                    // False conditional? Cancel divert
+                    if (!IsTruthy (conditionValue))
+                        return true;
+                }
+
                 if (currentDivert.hasVariableTarget) {
                     var varName = currentDivert.variableDivertName;
 
@@ -662,19 +676,6 @@ namespace Ink.Runtime
                     }
                 }
 
-                return true;
-            } 
-
-            // Branch (conditional divert)
-            else if (contentObj is Branch) {
-                var branch = (Branch)contentObj;
-                var conditionValue = state.PopEvaluationStack ();
-
-                if (IsTruthy (conditionValue))
-                    state.divertedTargetObject = branch.trueDivert.targetContent;
-                else if (branch.falseDivert)
-                    state.divertedTargetObject = branch.falseDivert.targetContent;
-                
                 return true;
             } 
 
@@ -940,14 +941,10 @@ namespace Ink.Runtime
             
         internal void ChoosePath(Path path)
         {
-            var prevContentObj = state.currentContentObject;
-
             state.SetChosenPath (path);
 
-            var newContentObj = state.currentContentObject;
-
             // Take a note of newly visited containers for read counts etc
-            VisitChangedContainersDueToDivert (prevContentObj, newContentObj);
+            VisitChangedContainersDueToDivert ();
         }
 
         /// <summary>
@@ -1419,20 +1416,17 @@ namespace Ink.Runtime
 
 		private void NextContent()
 		{
+            // Setting previousContentObject is critical for VisitChangedContainersDueToDivert
+            state.previousContentObject = state.currentContentObject;
+
 			// Divert step?
 			if (state.divertedTargetObject != null) {
-
-                var prevObj = state.currentContentObject;
 
                 state.currentContentObject = state.divertedTargetObject;
                 state.divertedTargetObject = null;
 
-                // Check for newly visited containers
-                // Rather than using state.currentContentObject and state.divertedTargetObject,
-                // we have to make sure that both come via the state.currentContentObject property,
-                // since it can actually get transformed slightly when set (it can end up stepping 
-                // into a container).
-                VisitChangedContainersDueToDivert (prevObj, state.currentContentObject);
+                // Internally uses state.previousContentObject and state.currentContentObject
+                VisitChangedContainersDueToDivert ();
 
                 // Diverted location has valid content?
                 if (state.currentContentObject != null) {
@@ -1589,7 +1583,8 @@ namespace Ink.Runtime
 
             int numElements = numElementsIntVal.value;
 
-            var seqCount = VisitCountForContainer (seqContainer);
+            var seqCountVal = state.PopEvaluationStack () as IntValue;
+            var seqCount = seqCountVal.value;
             var loopIndex = seqCount / numElements;
             var iterationIndex = seqCount % numElements;
 
@@ -1645,6 +1640,9 @@ namespace Ink.Runtime
             }
 
             state.AddError (message);
+
+            // In a broken state don't need to know about any other errors.
+            state.ForceEndFlow ();
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)

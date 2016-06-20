@@ -367,7 +367,10 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            return target.ToString();
+            if (target != null)
+                return target.ToString ();
+            else
+                return "-> <empty divert>";
         }
 
 	}

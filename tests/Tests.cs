@@ -1578,6 +1578,30 @@ as fast as we could.
         }
 
         [Test()]
+        public void TestShuffleStackMuddying()
+        {
+            var story = CompileString (@"
+* {condFunc()} [choice 1]
+* {condFunc()} [choice 2]
+* {condFunc()} [choice 3]
+* {condFunc()} [choice 4]
+
+
+=== function condFunc() ===
+{shuffle:
+    - ~ return false
+    - ~ return true
+    - ~ return true
+    - ~ return false
+}
+");
+
+            story.Continue ();
+
+            Assert.AreEqual (2, story.currentChoices.Count);
+        }
+
+        [Test()]
         public void TestSimpleGlue()
         {
             var storyStr = "Some <> \ncontent<> with glue.\n";
@@ -1667,7 +1691,6 @@ CONST kX = ""hi""
             Assert.AreEqual(expected, results);
         }
 
-        //------------------------------------------------------------------------
         [Test()]
         public void TestStringParserB()
         {
@@ -2158,6 +2181,49 @@ VAR val = 5
 
             Story story = CompileString(storyStr);
             Assert.AreEqual("Hello!\nWorld.\n", story.ContinueMaximally());
+        }
+
+        [Test()]
+        public void TestVisitCountsWhenChoosing()
+        {
+            var storyStr =
+                @"
+== TestKnot ==
+this is a test
++ Next -> TestKnot2
+
+== TestKnot2 ==
+this is the end
+-> END
+";
+
+            Story story = CompileString(storyStr);
+
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.ChoosePathString ("TestKnot");
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.Continue ();
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.ChooseChoiceIndex (0);
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+
+            // At this point, we have made the choice, but the divert *within* the choice
+            // won't yet have been evaluated.
+            Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
+
+            story.Continue ();
+
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
+            Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot2"));
         }
 
         // Helper compile function
