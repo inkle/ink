@@ -1,5 +1,8 @@
 cd "`dirname "$0"`"
 
+# Ensure we have latest packages
+mono NuGet.exe restore ink.sln
+
 # Build the debug code
 xbuild /p:Configuration=Debug ink.sln
 

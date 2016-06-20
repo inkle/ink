@@ -1,5 +1,8 @@
 cd "`dirname "$0"`"
 
+# Ensure we have latest packages
+mono NuGet.exe restore ink.sln
+
 # Build the release code
 xbuild /p:Configuration=Release ink.sln
 
