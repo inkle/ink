@@ -292,11 +292,11 @@ namespace Ink.Runtime
         public Runtime.Object GetTemporaryVariableWithName(string name, int contextIndex = -1)
         {
             if (contextIndex == -1)
-                contextIndex = currentElementIndex;
+                contextIndex = currentElementIndex+1;
             
             Runtime.Object varValue = null;
 
-            var contextElement = callStack [contextIndex];
+            var contextElement = callStack [contextIndex-1];
 
             if (contextElement.temporaryVariables.TryGetValue (name, out varValue)) {
                 return varValue;
@@ -308,9 +308,9 @@ namespace Ink.Runtime
         public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew, int contextIndex = -1)
         {
             if (contextIndex == -1)
-                contextIndex = currentElementIndex;
+                contextIndex = currentElementIndex+1;
 
-            var contextElement = callStack [contextIndex];
+            var contextElement = callStack [contextIndex-1];
             
             if (!declareNew && !contextElement.temporaryVariables.ContainsKey(name)) {
                 throw new StoryException ("Could not find temporary variable to set: " + name);
@@ -328,12 +328,12 @@ namespace Ink.Runtime
             // Current temporary context?
             // (Shouldn't attempt to access contexts higher in the callstack.)
             if (currentElement.temporaryVariables.ContainsKey (name)) {
-                return currentElementIndex;
+                return currentElementIndex+1;
             } 
 
             // Global
             else {
-                return -1;
+                return 0;
             }
         }
             

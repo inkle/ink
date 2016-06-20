@@ -240,7 +240,7 @@ namespace Ink.Runtime
         // Where the variable is located
         // -1 = default, unknown, yet to be determined
         // 0  = in global scope
-        // 1+ = callstack element index
+        // 1+ = callstack element index + 1 (so that the first doesn't conflict with special global scope)
         public int contextIndex { get; set; }
 
         public VariablePointerValue(string variableName, int contextIndex = -1) : base(variableName)

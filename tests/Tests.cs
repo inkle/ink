@@ -2226,6 +2226,32 @@ this is the end
             Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot2"));
         }
 
+        [Test()]
+        public void TestTempGlobalConflict()
+        {
+            // Test bug where temp was being treated as a global
+            var storyStr =
+                @"
+=== outer
+~ temp x = 0
+~ f(x)
+{x}
+-> DONE
+
+=== function f(ref x)
+~temp local
+~x=x
+{setTo3(local)}
+
+=== function setTo3(ref x)
+~x = 3
+";
+
+            Story story = CompileString(storyStr);
+
+            Assert.AreEqual ("0\n", story.Continue ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
