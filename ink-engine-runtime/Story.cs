@@ -17,7 +17,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 11;
+        public const int inkVersionCurrent = 12;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -34,7 +34,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The minimum legacy version of ink that can be loaded by the current version of the code.
         /// </summary>
-        const int inkVersionMinimumCompatible = 11;
+        const int inkVersionMinimumCompatible = 12;
 
         /// <summary>
         /// The list of Choice objects available at the current point in
