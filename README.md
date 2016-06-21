@@ -43,6 +43,8 @@ If you're happy to use Unity, we'd recommend following **Writing with Unity**, b
 
 If you would prefer a more barebones and technical approach, (or you aren't using Unity at all), you can also compile and play ink stories on the command line.
 
+To keep up to date with the latest news about ink [sign up for the mailing list](http://www.inklestudios.com/ink#signup).
+
 ## Writing with Unity
 
 * Download the latest [ink-unity-integration package](https://github.com/inkle/ink/releases), or grab it from the Unity AssetStore, and place in your project.
