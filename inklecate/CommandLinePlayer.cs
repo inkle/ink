@@ -39,6 +39,10 @@ namespace Ink
 
                     Console.ForegroundColor = ConsoleColor.Blue;
 
+                    // Add extra newline to ensure that the choice is
+                    // on a separate line.
+                    Console.WriteLine ();
+
 					int i = 1;
 					foreach (Choice choice in choices) {
 						Console.WriteLine ("{0}: {1}", i, choice.text);
@@ -137,6 +141,8 @@ namespace Ink
                 story.Continue ();
 
                 Console.Write(story.currentText);
+
+                story.currentText.EndsWith ("\n");
 
                 if (story.hasError) {
                     foreach (var errorMsg in story.currentErrors) {
