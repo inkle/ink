@@ -97,7 +97,10 @@ namespace Ink
 
                                 // Divert
                                 if( evaluatedInput is Parsed.Divert ) {
-                                    userDivertedPath = ((Parsed.Divert)evaluatedInput).runtimeDivert.targetPath;
+                                    var parsedDivert = evaluatedInput as Parsed.Divert;
+                                    parsedDivert.GenerateRuntimeObject();
+                                    parsedDivert.ResolveReferences(parsedStory);
+                                    userDivertedPath = parsedDivert.runtimeDivert.targetPath;
                                 }
 
                                 // Expression or variable assignment
