@@ -198,6 +198,8 @@ namespace Ink
             SequenceType? explicitSeqType = (SequenceType?) ParseObject(SequenceTypeAnnotation);
             if (explicitSeqType != null) {
                 var contentLists = (List<ContentList>) Expect(InnerSequenceObjects, "sequence elements (for cycle/stoping etc)");
+                if (contentLists == null)
+                    return null;
                 return new Sequence (contentLists, (SequenceType) explicitSeqType);
             }
 
