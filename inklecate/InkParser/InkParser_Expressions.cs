@@ -239,6 +239,9 @@ namespace Ink
             if (divert == null)
                 return null;
 
+            if (divert.isThread)
+                return null;
+
             Whitespace ();
 
             return new DivertTarget (divert);

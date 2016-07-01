@@ -2252,6 +2252,28 @@ this is the end
             Assert.AreEqual ("0\n", story.Continue ());
         }
 
+        [Test()]
+        public void TestThreadInLogic()
+        {
+            var storyStr =
+                @"
+-> once ->
+-> once ->
+
+== once ==
+{<- content|}
+->->
+
+== content ==
+Content
+-> DONE
+";
+
+            Story story = CompileString(storyStr);
+
+            Assert.AreEqual ("Content\n", story.Continue ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

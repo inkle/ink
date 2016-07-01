@@ -6,10 +6,21 @@ namespace Ink
 {
     internal partial class InkParser
     {
-        protected List<Parsed.Object> MultiStepTunnelDivert()
+        protected List<Parsed.Object> MultiDivert()
         {
             Whitespace ();
 
+            List<Parsed.Object> diverts = null;
+
+            // Try single thread first
+            var threadDivert = Parse(StartThread);
+            if (threadDivert) {
+                diverts = new List<Object> ();
+                diverts.Add (threadDivert);
+                return diverts;
+            }
+
+            // Normal diverts and tunnels
             var arrowsAndDiverts = Interleave<object> (
                 ParseDivertArrowOrTunnelOnwards,
                 DivertIdentifierWithArguments);
@@ -17,7 +28,7 @@ namespace Ink
             if (arrowsAndDiverts == null)
                 return null;
 
-            var diverts = new List<Parsed.Object> ();
+            diverts = new List<Parsed.Object> ();
 
             // Divert arrow only:
             // ->
@@ -94,7 +105,7 @@ namespace Ink
         {
             Whitespace ();
 
-            if (ParseString ("<-") == null)
+            if (ParseThreadArrow() == null)
                 return null;
 
             Whitespace ();
@@ -125,7 +136,7 @@ namespace Ink
 
         protected Divert SingleDivert()
         {            
-            var diverts = Parse (MultiStepTunnelDivert);
+            var diverts = Parse (MultiDivert);
             if (diverts == null)
                 return null;
 
@@ -178,6 +189,11 @@ namespace Ink
         protected string ParseDivertArrow()
         {
             return ParseString ("->");
+        }
+
+        protected string ParseThreadArrow()
+        {
+            return ParseString ("<-");
         }
     }
 }

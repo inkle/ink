@@ -70,7 +70,7 @@ namespace Ink
             //  The divert on the end of the body of a choice is handled specially.)
             if (!_parsingChoice) {
 
-                var diverts = Parse (MultiStepTunnelDivert);
+                var diverts = Parse (MultiDivert);
                 if (diverts != null) {
 
                     // May not have had any results at all if there's *only* a divert!
@@ -156,7 +156,7 @@ namespace Ink
             }
 
             // When the ParseUntil pauses, check these rules in case they evaluate successfully
-            ParseRule nonTextRule = () => OneOf (ParseDivertArrow, EndOfLine, Glue);
+            ParseRule nonTextRule = () => OneOf (ParseDivertArrow, ParseThreadArrow, EndOfLine, Glue);
 
             CharacterSet endChars = null;
             if (parsingStringExpression) {
