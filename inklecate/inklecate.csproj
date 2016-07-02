@@ -49,7 +49,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandLineTool.cs" />
     <Compile Include="CharacterSet.cs" />
-    <Compile Include="CommandLinePlayer.cs" />
     <Compile Include="StressTestContentGenerator.cs" />
     <Compile Include="ParsedHierarchy\Choice.cs" />
     <Compile Include="ParsedHierarchy\Conditional.cs" />
@@ -104,6 +103,7 @@
     <Compile Include="Plugins\ChoiceListPlugin.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="InkParser\InkParser_Include.cs" />
+    <Compile Include="CommandLinePlayer.cs" />
   </ItemGroup>
   <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" Condition="Exists('..\ink-engine-runtime\ink-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

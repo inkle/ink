@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Ink.Runtime;
 
 namespace Ink
@@ -14,6 +15,8 @@ namespace Ink
 			this.story = story;
 			this.autoPlay = autoPlay;
             this.parsedStory = parsedStory;
+
+            _debugSourceListByLine = new List<DebugSourceRange> ();
 		}
 
 		public void Begin()
@@ -56,12 +59,12 @@ namespace Ink
                         string userInput = Console.ReadLine ();
 
                         var inputParser = new InkParser (userInput);
-                        object evaluatedInput = inputParser.CommandLineUserInput();
+                        var input = inputParser.CommandLineUserInput();
 
                         // Choice
-                        if( evaluatedInput is int? ) {
+                        if (input.choiceInput != null) {
 
-                            choiceIdx = ((int)evaluatedInput) - 1;
+                            choiceIdx = ((int)input.choiceInput) - 1;
 
                             if (choiceIdx < 0 || choiceIdx >= choices.Count) {
                                 Console.WriteLine ("Choice out of range");
@@ -71,23 +74,34 @@ namespace Ink
                         }
 
                         // Help
-                        else if( evaluatedInput is string && (string)evaluatedInput == "help" ) {
-                            Console.WriteLine("Type a choice number, a divert (e.g. '==> myKnot'), an expression, or a variable assignment (e.g. 'x = 5')");
+                        else if (input.isHelp) {
+                            Console.WriteLine ("Type a choice number, a divert (e.g. '-> myKnot'), an expression, or a variable assignment (e.g. 'x = 5')");
                         }
-                            
+
+                        // Request for debug source line number
+                        else if (input.debugSource != null) {
+                            var offset = (int)input.debugSource;
+                            var dm = DebugMetadataForContentAtOffset (offset);
+                            if (dm != null)
+                                Console.WriteLine (dm.ToString ());
+                            else
+                                Console.WriteLine ("Unknown source");
+                        }
+
                         // User entered some ink
-                        else if( evaluatedInput is Parsed.Object ) {
+                        else if (input.userImmediateModeStatement != null ) {
+
+                            var parsedObj = input.userImmediateModeStatement as Parsed.Object;
 
                             // Variable assignment: create in Parsed.Story as well as the Runtime.Story
                             // so that we don't get an error message during reference resolution
-                            if( evaluatedInput is Parsed.VariableAssignment ) {
-                                var varAssign = (Parsed.VariableAssignment) evaluatedInput;
+                            if( parsedObj is Parsed.VariableAssignment ) {
+                                var varAssign = (Parsed.VariableAssignment) parsedObj;
                                 if( varAssign.isNewTemporaryDeclaration ) {
                                     parsedStory.TryAddNewVariableDeclaration(varAssign);
                                 }
                             }
 
-                            var parsedObj = (Parsed.Object) evaluatedInput;
                             parsedObj.parent = parsedStory;
                             var runtimeObj = parsedObj.runtimeObject;
 
@@ -96,13 +110,13 @@ namespace Ink
                             if( !parsedStory.hadError ) {
 
                                 // Divert
-                                if( evaluatedInput is Parsed.Divert ) {
-                                    var parsedDivert = evaluatedInput as Parsed.Divert;
+                                if( parsedObj is Parsed.Divert ) {
+                                    var parsedDivert = parsedObj as Parsed.Divert;
                                     userDivertedPath = parsedDivert.runtimeDivert.targetPath;
                                 }
 
                                 // Expression or variable assignment
-                                else if( evaluatedInput is Parsed.Expression || evaluatedInput is Parsed.VariableAssignment ) {
+                                else if( parsedObj is Parsed.Expression || parsedObj is Parsed.VariableAssignment ) {
                                     var result = story.EvaluateExpression((Container)runtimeObj);
                                     if( result != null ) {
                                         Console.WriteLine(result.ToString());
@@ -135,15 +149,17 @@ namespace Ink
 			}
 		}
 
-        void EvaluateStory()
+        void EvaluateStory ()
         {
+            _debugSourceListByLine.Clear ();
+
             while (story.canContinue) {
-                
+
                 story.Continue ();
 
-                Console.Write(story.currentText);
+                LogDebugSourceForLine ();
 
-                story.currentText.EndsWith ("\n");
+                Console.Write (story.currentText);
 
                 if (story.hasError) {
                     foreach (var errorMsg in story.currentErrors) {
@@ -153,7 +169,44 @@ namespace Ink
             }
 
             story.ResetErrors ();
-        } 
+        }
+
+        void LogDebugSourceForLine ()
+        {
+            foreach (var outputObj in story.state.outputStream) {
+                var textContent = outputObj as StringValue;
+                if (textContent != null) {
+                    var range = new DebugSourceRange ();
+                    range.length = textContent.value.Length;
+                    range.debugMetadata = textContent.debugMetadata;
+                    _debugSourceListByLine.Add (range);
+
+                }
+            }
+        }
+
+        DebugMetadata DebugMetadataForContentAtOffset (int offset)
+        {
+            int currOffset = 0;
+
+            foreach (var range in _debugSourceListByLine) {
+                if (offset > currOffset && offset < currOffset + range.length)
+                    return range.debugMetadata;
+                currOffset += range.length;
+            }
+
+            return null;
+        }
+
+        internal struct DebugSourceRange
+        {
+            public int length;
+            public DebugMetadata debugMetadata;
+        }
+
+        List<DebugSourceRange> _debugSourceListByLine;
 	}
+
+
 }
 
