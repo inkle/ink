@@ -89,17 +89,15 @@ namespace Ink
 
                             var parsedObj = (Parsed.Object) evaluatedInput;
                             parsedObj.parent = parsedStory;
-                            parsedObj.GenerateRuntimeObject();
-                            parsedObj.ResolveReferences(parsedStory);
                             var runtimeObj = parsedObj.runtimeObject;
+
+                            parsedObj.ResolveReferences(parsedStory);
 
                             if( !parsedStory.hadError ) {
 
                                 // Divert
                                 if( evaluatedInput is Parsed.Divert ) {
                                     var parsedDivert = evaluatedInput as Parsed.Divert;
-                                    parsedDivert.GenerateRuntimeObject();
-                                    parsedDivert.ResolveReferences(parsedStory);
                                     userDivertedPath = parsedDivert.runtimeDivert.targetPath;
                                 }
 
@@ -107,7 +105,7 @@ namespace Ink
                                 else if( evaluatedInput is Parsed.Expression || evaluatedInput is Parsed.VariableAssignment ) {
                                     var result = story.EvaluateExpression((Container)runtimeObj);
                                     if( result != null ) {
-                                        Console.WriteLine(result);
+                                        Console.WriteLine(result.ToString());
                                     }
                                 }
                             } else {
