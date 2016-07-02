@@ -16,7 +16,7 @@ namespace Ink
 			this.autoPlay = autoPlay;
             this.parsedStory = parsedStory;
 
-            _debugSourceListByLine = new List<DebugSourceRange> ();
+            _debugSourceRanges = new List<DebugSourceRange> ();
 		}
 
 		public void Begin()
@@ -83,9 +83,9 @@ namespace Ink
                             var offset = (int)input.debugSource;
                             var dm = DebugMetadataForContentAtOffset (offset);
                             if (dm != null)
-                                Console.WriteLine (dm.ToString ());
+                                Console.WriteLine ("DebugSource: "+dm.ToString ());
                             else
-                                Console.WriteLine ("Unknown source");
+                                Console.WriteLine ("DebugSource: Unknown source");
                         }
 
                         // User entered some ink
@@ -151,8 +151,6 @@ namespace Ink
 
         void EvaluateStory ()
         {
-            _debugSourceListByLine.Clear ();
-
             while (story.canContinue) {
 
                 story.Continue ();
@@ -179,8 +177,8 @@ namespace Ink
                     var range = new DebugSourceRange ();
                     range.length = textContent.value.Length;
                     range.debugMetadata = textContent.debugMetadata;
-                    _debugSourceListByLine.Add (range);
-
+                    range.text = textContent.value;
+                    _debugSourceRanges.Add (range);
                 }
             }
         }
@@ -189,9 +187,14 @@ namespace Ink
         {
             int currOffset = 0;
 
-            foreach (var range in _debugSourceListByLine) {
-                if (offset > currOffset && offset < currOffset + range.length)
-                    return range.debugMetadata;
+            DebugMetadata lastValidMetadata = null;
+            foreach (var range in _debugSourceRanges) {
+                if (range.debugMetadata != null)
+                    lastValidMetadata = range.debugMetadata;
+                
+                if (offset >= currOffset && offset < currOffset + range.length)
+                    return lastValidMetadata;
+
                 currOffset += range.length;
             }
 
@@ -202,9 +205,10 @@ namespace Ink
         {
             public int length;
             public DebugMetadata debugMetadata;
+            public string text;
         }
 
-        List<DebugSourceRange> _debugSourceListByLine;
+        List<DebugSourceRange> _debugSourceRanges;
 	}
 
 
