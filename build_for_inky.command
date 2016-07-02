@@ -41,5 +41,5 @@ mkbundle --static --deps inklecate.exe Newtonsoft.Json.dll -o inklecate_mac
 #      /gac/System.EnterpriseServices/4.0.0.0__b03f5f7f11d50a3a/System.EnterpriseServices.dll
 
 cp inklecate_mac ../../../BuildForInky/
-cp inklecate.exe ../../../BuildForInky/inklecate_win
+cp inklecate.exe ../../../BuildForInky/inklecate_win.exe
 cp inklecate.exe.mdb ../../../BuildForInky
