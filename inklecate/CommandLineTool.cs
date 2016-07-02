@@ -17,6 +17,7 @@ namespace Ink
             public string outputFile;
             public bool indentedJson;
             public bool countAllVisits;
+            public bool keepOpenAfterStoryFinish;
 		}
 
 		public static int ExitCodeError = 1;
@@ -39,7 +40,8 @@ namespace Ink
                 "   -x <pluginname>: Use external plugin. 'ChoiceListPlugin' is only available plugin right now.\n"+
                 "   -t:              Test mode - loads up test.ink\n"+
                 "   -s:              Stress test mode - generates test content and \n" +
-                "                    times compilation\n");
+                "                    times compilation\n" + 
+                "   -k:              Keep inklecate running in play mode even after story is complete\n");
             Environment.Exit (ExitCodeError);
         }
             
@@ -184,7 +186,7 @@ namespace Ink
                 // Always allow ink external fallbacks
                 story.allowExternalFunctionFallbacks = true;
 
-                var player = new CommandLinePlayer (story, false, parsedStory);
+                var player = new CommandLinePlayer (story, false, parsedStory, opts.keepOpenAfterStoryFinish);
 
                 //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
                 Console.CancelKeyPress += OnExit;
@@ -295,6 +297,9 @@ namespace Ink
                             break;
                         case 'x':
                             nextArgIsPlugin = true;
+                            break;
+                        case 'k':
+                            opts.keepOpenAfterStoryFinish = true;
                             break;
                         default:
                             Console.WriteLine ("Unsupported argument type: '{0}'", argChar);

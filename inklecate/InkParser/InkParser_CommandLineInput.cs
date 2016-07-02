@@ -4,6 +4,7 @@ namespace Ink
     public class CommandLineInput
     {
         public bool isHelp;
+        public bool isExit;
         public int? choiceInput;
         public int? debugSource;
         public object userImmediateModeStatement;
@@ -25,6 +26,11 @@ namespace Ink
 
             if (ParseString ("help") != null) {
                 result.isHelp = true;
+                return result;
+            }
+
+            if (ParseString ("exit") != null || ParseString ("quit") != null) {
+                result.isExit = true;
                 return result;
             }
 

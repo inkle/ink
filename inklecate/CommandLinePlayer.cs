@@ -9,12 +9,14 @@ namespace Ink
 		public Story story { get; protected set; }
 		public bool autoPlay { get; set; }
         public Parsed.Story parsedStory { get; set; }
+        public bool keepOpenAfterStoryFinish { get; set; }
 
-        public CommandLinePlayer (Story story, bool autoPlay = false, Parsed.Story parsedStory = null)
+        public CommandLinePlayer (Story story, bool autoPlay = false, Parsed.Story parsedStory = null, bool keepOpenAfterStoryFinish = false)
 		{
 			this.story = story;
 			this.autoPlay = autoPlay;
             this.parsedStory = parsedStory;
+            this.keepOpenAfterStoryFinish = keepOpenAfterStoryFinish;
 
             _debugSourceRanges = new List<DebugSourceRange> ();
 		}
@@ -25,7 +27,7 @@ namespace Ink
 
 			var rand = new Random ();
 
-            while (story.currentChoices.Count > 0) {
+            while (story.currentChoices.Count > 0 || this.keepOpenAfterStoryFinish) {
 				var choices = story.currentChoices;
 				
                 var choiceIdx = 0;
@@ -76,6 +78,11 @@ namespace Ink
                         // Help
                         else if (input.isHelp) {
                             Console.WriteLine ("Type a choice number, a divert (e.g. '-> myKnot'), an expression, or a variable assignment (e.g. 'x = 5')");
+                        }
+
+                        // Quit
+                        else if (input.isExit) {
+                            return;
                         }
 
                         // Request for debug source line number
@@ -164,6 +171,10 @@ namespace Ink
                         Console.WriteLine (errorMsg, ConsoleColor.Red);
                     }
                 }
+            }
+
+            if (story.currentChoices.Count == 0 && keepOpenAfterStoryFinish) {
+                Console.WriteLine ("--- End of story ---");
             }
 
             story.ResetErrors ();
