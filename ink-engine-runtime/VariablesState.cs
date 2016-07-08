@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
@@ -106,13 +105,13 @@ namespace Ink.Runtime
             }
         }
             
-        internal JToken jsonToken
+        internal Dictionary<string, object> jsonToken
         {
             get {
                 return Json.DictionaryRuntimeObjsToJObject(_globalVariables);
             }
             set {
-                _globalVariables = Json.JObjectToDictionaryRuntimeObjs ((JObject)value);
+                _globalVariables = Json.JObjectToDictionaryRuntimeObjs (value);
             }
         }
 

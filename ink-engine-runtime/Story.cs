@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
@@ -107,13 +105,13 @@ namespace Ink.Runtime
         /// </summary>
         public Story(string jsonString) : this((Container)null)
         {
-            JObject rootObject = JObject.Parse (jsonString);
+            Dictionary<string, object> rootObject = SimpleJson.TextToDictionary (jsonString);
 
-            var versionObj = rootObject ["inkVersion"];
+            object versionObj = rootObject ["inkVersion"];
             if (versionObj == null)
                 throw new System.Exception ("ink version number not found. Are you sure it's a valid .ink.json file?");
 
-            int formatFromFile = versionObj.ToObject<int> ();
+            int formatFromFile = (int)versionObj;
             if (formatFromFile > inkVersionCurrent) {
                 throw new System.Exception ("Version of ink used to build story was newer than the current verison of the engine");
             } else if (formatFromFile < inkVersionMinimumCompatible) {
@@ -135,18 +133,15 @@ namespace Ink.Runtime
         /// <summary>
         /// The Story itself in JSON representation.
         /// </summary>
-        /// <param name="indented">
-        /// Whether to indent or 'pretty print' the JSON. Not avisable, except
-        /// for debugging purposes of small stories.</param>
-        public string ToJsonString(bool indented = false)
+        public string ToJsonString()
         {
-            var rootContainerToken = Json.RuntimeObjectToJToken (_mainContentContainer);
+            var rootContainerJsonList = (List<object>) Json.RuntimeObjectToJToken (_mainContentContainer);
 
-            var rootObject = new JObject ();
-            rootObject ["inkVersion"] = new JValue (inkVersionCurrent);
-            rootObject ["root"] = rootContainerToken;
+            var rootObject = new Dictionary<string, object> ();
+            rootObject ["inkVersion"] = inkVersionCurrent;
+            rootObject ["root"] = rootContainerJsonList;
 
-            return rootObject.ToString (indented ? Formatting.Indented : Formatting.None);
+            return SimpleJson.DictionaryToText (rootObject);
         }
             
         /// <summary>
@@ -1717,7 +1712,6 @@ namespace Ink.Runtime
             }
         }
 
-        [JsonProperty]
         private Container _mainContentContainer;
 
         Dictionary<string, ExternalFunction> _externals;

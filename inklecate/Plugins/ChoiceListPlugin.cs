@@ -3,8 +3,7 @@ using System.Text;
 using System.IO;
 using Ink;
 using Ink.Parsed;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 
 namespace InkPlugin
@@ -24,7 +23,7 @@ namespace InkPlugin
 
         public void PostExport(Ink.Parsed.Story parsedStory, Ink.Runtime.Story runtimeStory)
         {
-            var choiceJsonArray = new JArray ();
+            var choiceJsonArray = new List<object> ();
 
             var allChoices = parsedStory.FindAll<Choice>();
             foreach (Ink.Parsed.Choice choice in allChoices) {
@@ -46,9 +45,9 @@ namespace InkPlugin
                 var choiceTextApproximation = sb.ToString ();
                 var filename = choice.debugMetadata.fileName;
 
-                var jsonObj = new JObject ();
+                var jsonObj = new Dictionary<string, object> ();
                 jsonObj ["filename"] = filename;
-                jsonObj ["choiceText"] = choiceTextApproximation.ToString ();
+                jsonObj ["choiceText"] = choiceTextApproximation;
 
                 choiceJsonArray.Add (jsonObj);
             }

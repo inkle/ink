@@ -1,21 +1,20 @@
 ﻿using System;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
     internal static class Json
     {
-        public static JArray ListToJArray<T>(List<T> serialisables) where T : Runtime.Object
+        public static List<object> ListToJArray<T>(List<T> serialisables) where T : Runtime.Object
         {
-            var jArray = new JArray ();
+            var jArray = new List<object> ();
             foreach (var s in serialisables) {
                 jArray.Add (RuntimeObjectToJToken(s));
             }
             return jArray;
         }
 
-        public static List<T> JArrayToRuntimeObjList<T>(JArray jArray, bool skipLast=false) where T : Runtime.Object
+        public static List<T> JArrayToRuntimeObjList<T>(List<object> jArray, bool skipLast=false) where T : Runtime.Object
         {
             int count = jArray.Count;
             if (skipLast)
@@ -32,14 +31,14 @@ namespace Ink.Runtime
             return list;
         }
 
-        public static List<Runtime.Object> JArrayToRuntimeObjList(JArray jArray, bool skipLast=false)
+        public static List<Runtime.Object> JArrayToRuntimeObjList(List<object> jArray, bool skipLast=false)
         {
             return JArrayToRuntimeObjList<Runtime.Object> (jArray, skipLast);
         }
 
-        public static JObject DictionaryRuntimeObjsToJObject(Dictionary<string, Runtime.Object> dictionary)
+        public static Dictionary<string, object> DictionaryRuntimeObjsToJObject(Dictionary<string, Runtime.Object> dictionary)
         {
-            var jsonObj = new JObject ();
+            var jsonObj = new Dictionary<string, object> ();
 
             foreach (var keyVal in dictionary) {
                 var runtimeObj = keyVal.Value as Runtime.Object;
@@ -50,7 +49,7 @@ namespace Ink.Runtime
             return jsonObj;
         }
 
-        public static Dictionary<string, Runtime.Object> JObjectToDictionaryRuntimeObjs(JObject jObject)
+        public static Dictionary<string, Runtime.Object> JObjectToDictionaryRuntimeObjs(Dictionary<string, object> jObject)
         {
             var dict = new Dictionary<string, Runtime.Object> (jObject.Count);
 
@@ -61,18 +60,18 @@ namespace Ink.Runtime
             return dict;
         }
 
-        public static Dictionary<string, int> JObjectToIntDictionary(JObject jObject)
+        public static Dictionary<string, int> JObjectToIntDictionary(Dictionary<string, object> jObject)
         {
             var dict = new Dictionary<string, int> (jObject.Count);
             foreach (var keyVal in jObject) {
-                dict [keyVal.Key] = keyVal.Value.ToObject<int> ();
+                dict [keyVal.Key] = (int)keyVal.Value;
             }
             return dict;
         }
 
-        public static JObject IntDictionaryToJObject(Dictionary<string, int> dict)
+        public static Dictionary<string, object> IntDictionaryToJObject(Dictionary<string, int> dict)
         {
-            var jObj = new JObject ();
+            var jObj = new Dictionary<string, object> ();
             foreach (var keyVal in dict) {
                 jObj [keyVal.Key] = keyVal.Value;
             }
@@ -123,14 +122,14 @@ namespace Ink.Runtime
         //
         // Choice:         Nothing too clever, it's only used in the save state,
         //                 there's not likely to be many of them.
-        public static Runtime.Object JTokenToRuntimeObject(JToken token)
+        public static Runtime.Object JTokenToRuntimeObject(object token)
         {
-            if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float) {
-                return Value.Create (((JValue)token).Value);
+            if (token is int || token is float) {
+                return Value.Create (token);
             }
             
-            if (token.Type == JTokenType.String) {
-                string str = token.ToString ();
+            if (token is string) {
+                string str = (string)token;
 
                 // String value
                 char firstChar = str[0];
@@ -170,20 +169,20 @@ namespace Ink.Runtime
                     return new Runtime.Void ();
             }
 
-            if (token.Type == JTokenType.Object) {
+            if (token is Dictionary<string, object>) {
 
-                JObject obj = (JObject)token;
-                JToken propValue;
+                var obj = (Dictionary < string, object> )token;
+                object propValue;
 
                 // Divert target value to path
                 if (obj.TryGetValue ("^->", out propValue))
-                    return new DivertTargetValue (new Path (propValue.ToString()));
+                    return new DivertTargetValue (new Path ((string)propValue));
 
                 // VariablePointerValue
                 if (obj.TryGetValue ("^var", out propValue)) {
-                    var varPtr = new VariablePointerValue (propValue.ToString ());
+                    var varPtr = new VariablePointerValue ((string)propValue);
                     if (obj.TryGetValue ("ci", out propValue))
-                        varPtr.contextIndex = propValue.ToObject<int> ();
+                        varPtr.contextIndex = (int)propValue;
                     return varPtr;
                 }
 
@@ -228,7 +227,7 @@ namespace Ink.Runtime
 
                     if (external) {
                         if (obj.TryGetValue ("exArgs", out propValue))
-                            divert.externalArgs = propValue.ToObject<int> ();
+                            divert.externalArgs = (int)propValue;
                     }
 
                     return divert;
@@ -240,7 +239,7 @@ namespace Ink.Runtime
                     choice.pathStringOnChoice = propValue.ToString();
 
                     if (obj.TryGetValue ("flg", out propValue))
-                        choice.flags = propValue.ToObject<int>();
+                        choice.flags = (int)propValue;
 
                     return choice;
                 }
@@ -277,17 +276,17 @@ namespace Ink.Runtime
             }
 
             // Array is always a Runtime.Container
-            if (token.Type == JTokenType.Array) {
-                return JArrayToContainer((JArray)token);
+            if (token is List<object>) {
+                return JArrayToContainer((List<object>)token);
             }
 
-            if (token.Type == JTokenType.Null)
+            if (token == null)
                 return null;
 
             throw new System.Exception ("Failed to convert token to runtime object: " + token);
         }
 
-        public static JToken RuntimeObjectToJToken(Runtime.Object obj)
+        public static object RuntimeObjectToJToken(Runtime.Object obj)
         {
             var container = obj as Container;
             if (container) {
@@ -312,7 +311,7 @@ namespace Ink.Runtime
                 else
                     targetStr = divert.targetPathString;
 
-                var jObj = new JObject();
+                var jObj = new Dictionary<string, object> ();
                 jObj[divTypeKey] = targetStr;
 
                 if (divert.hasVariableTarget)
@@ -329,7 +328,7 @@ namespace Ink.Runtime
 
             var choicePoint = obj as ChoicePoint;
             if (choicePoint) {
-                var jObj = new JObject ();
+                var jObj = new Dictionary<string, object> ();
                 jObj ["*"] = choicePoint.pathStringOnChoice;
                 jObj ["flg"] = choicePoint.flags;
                 return jObj;
@@ -352,17 +351,19 @@ namespace Ink.Runtime
             }
 
             var divTargetVal = obj as DivertTargetValue;
-            if (divTargetVal)
-                return new JObject (
-                    new JProperty("^->", divTargetVal.value.componentsString)
-                );
+            if (divTargetVal) {
+                var divTargetJsonObj = new Dictionary<string, object> ();
+                divTargetJsonObj ["^->"] = divTargetVal.value.componentsString;
+                return divTargetJsonObj;
+            }
 
             var varPtrVal = obj as VariablePointerValue;
-            if (varPtrVal)
-                return new JObject (
-                    new JProperty("^var", varPtrVal.value),
-                    new JProperty("ci", varPtrVal.contextIndex)
-                );
+            if (varPtrVal) {
+                var varPtrJsonObj = new Dictionary<string, object> ();
+                varPtrJsonObj ["^var"] = varPtrVal.value;
+                varPtrJsonObj ["ci"] = varPtrVal.contextIndex;
+                return varPtrJsonObj;
+            }
 
             var glue = obj as Runtime.Glue;
             if (glue) {
@@ -386,7 +387,7 @@ namespace Ink.Runtime
             // Variable reference
             var varRef = obj as VariableReference;
             if (varRef) {
-                var jObj = new JObject ();
+                var jObj = new Dictionary<string, object> ();
                 string readCountPath = varRef.pathStringForCount;
                 if (readCountPath != null) {
                     jObj ["CNT?"] = readCountPath;
@@ -401,7 +402,7 @@ namespace Ink.Runtime
             var varAss = obj as VariableAssignment;
             if (varAss) {
                 string key = varAss.isGlobal ? "VAR=" : "temp=";
-                var jObj = new JObject ();
+                var jObj = new Dictionary<string, object> ();
                 jObj [key] = varAss.variableName;
 
                 // Reassignment?
@@ -423,7 +424,7 @@ namespace Ink.Runtime
             throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
         }
 
-        static JToken ContainerToJArray(Container container)
+        static List<object> ContainerToJArray(Container container)
         {
             var jArray = ListToJArray (container.content);
 
@@ -436,15 +437,15 @@ namespace Ink.Runtime
             var countFlags = container.countFlags;
             if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0 || container.name != null) {
 
-                JObject terminatingObj;
+                Dictionary<string, object> terminatingObj;
                 if (namedOnlyContent != null) {
                     terminatingObj = DictionaryRuntimeObjsToJObject (namedOnlyContent);
 
                     // Strip redundant names from containers if necessary
                     foreach (var namedContentObj in terminatingObj) {
-                        var subContainerJArray = namedContentObj.Value as JArray;
+                        var subContainerJArray = namedContentObj.Value as List<object>;
                         if (subContainerJArray != null) {
-                            var attrJObj = subContainerJArray [subContainerJArray.Count - 1] as JObject;
+                            var attrJObj = subContainerJArray [subContainerJArray.Count - 1] as Dictionary<string, object>;
                             if (attrJObj != null) {
                                 attrJObj.Remove ("#n");
                                 if (attrJObj.Count == 0)
@@ -454,7 +455,7 @@ namespace Ink.Runtime
                     }
 
                 } else
-                    terminatingObj = new JObject ();
+                    terminatingObj = new Dictionary<string, object> ();
 
                 if( countFlags > 0 )
                     terminatingObj ["#f"] = countFlags;
@@ -473,7 +474,7 @@ namespace Ink.Runtime
             return jArray;
         }
 
-        static Container JArrayToContainer(JArray jArray)
+        static Container JArrayToContainer(List<object> jArray)
         {
             var container = new Container ();
             container.content = JArrayToRuntimeObjList (jArray, skipLast:true);
@@ -482,14 +483,14 @@ namespace Ink.Runtime
             //  - named content
             //  - a "#" key with the countFlags
             // (if either exists at all, otherwise null)
-            var terminatingObj = jArray [jArray.Count - 1] as JObject;
+            var terminatingObj = jArray [jArray.Count - 1] as Dictionary<string, object>;
             if (terminatingObj != null) {
 
                 var namedOnlyContent = new Dictionary<string, Runtime.Object> (terminatingObj.Count);
 
                 foreach (var keyVal in terminatingObj) {
                     if (keyVal.Key == "#f") {
-                        container.countFlags = keyVal.Value.ToObject<int> ();
+                        container.countFlags = (int)keyVal.Value;
                     } else if (keyVal.Key == "#n") {
                         container.name = keyVal.Value.ToString ();
                     } else {
@@ -507,19 +508,19 @@ namespace Ink.Runtime
             return container;
         }
 
-        static Choice JObjectToChoice(JObject jObj)
+        static Choice JObjectToChoice(Dictionary<string, object> jObj)
         {
             var choice = new Choice();
             choice.text = jObj ["text"].ToString();
-            choice.index = jObj ["index"].ToObject<int>();
+            choice.index = (int)jObj ["index"];
             choice.originalChoicePath = jObj ["originalChoicePath"].ToString();
-            choice.originalThreadIndex = jObj ["originalThreadIndex"].ToObject<int>();
+            choice.originalThreadIndex = (int)jObj ["originalThreadIndex"];
             return choice;
         }
 
-        static JObject ChoiceToJObject(Choice choice)
+        static Dictionary<string, object> ChoiceToJObject(Choice choice)
         {
-            var jObj = new JObject ();
+            var jObj = new Dictionary<string, object> ();
             jObj ["text"] = choice.text;
             jObj ["index"] = choice.index;
             jObj ["originalChoicePath"] = choice.originalChoicePath;

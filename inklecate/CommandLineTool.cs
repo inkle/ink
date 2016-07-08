@@ -15,7 +15,6 @@ namespace Ink
 			public bool playMode;
 			public string inputFile;
             public string outputFile;
-            public bool indentedJson;
             public bool countAllVisits;
             public bool keepOpenAfterStoryFinish;
 		}
@@ -35,7 +34,6 @@ namespace Ink
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
-                "   -i:              Use indentation in output JSON\n"+
                 "   -v:              Verbose mode - print compilation timings\n"+
                 "   -x <pluginname>: Use external plugin. 'ChoiceListPlugin' is only available plugin right now.\n"+
                 "   -t:              Test mode - loads up test.ink\n"+
@@ -196,7 +194,7 @@ namespace Ink
             // Compile mode
             else {
                 
-                var jsonStr = story.ToJsonString (opts.indentedJson);
+                var jsonStr = story.ToJsonString ();
 
                 try {
                     File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
@@ -288,9 +286,6 @@ namespace Ink
                             break;
                         case 'o':
                             nextArgIsOutputFilename = true;   
-                            break;
-                        case 'i':
-                            opts.indentedJson = true;
                             break;
                         case 'c':
                             opts.countAllVisits = true;

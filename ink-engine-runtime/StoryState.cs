@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Ink.Runtime
 {
@@ -26,9 +24,8 @@ namespace Ink.Runtime
         /// Exports the current state to json format, in order to save the game.
         /// </summary>
         /// <returns>The save state in json format.</returns>
-        /// <param name="indented">Whether to 'pretty print' using whitespace.</param>
-        public string ToJson(bool indented=false) {
-            return jsonToken.ToString (indented ? Formatting.Indented : Formatting.None);
+        public string ToJson() {
+            return SimpleJson.DictionaryToText (jsonToken);
         }
 
         /// <summary>
@@ -37,7 +34,7 @@ namespace Ink.Runtime
         /// <param name="json">The JSON string to load.</param>
         public void LoadJson(string json)
         {
-            jsonToken = JToken.Parse (json);
+            jsonToken = SimpleJson.TextToDictionary (json);
         }
 
         /// <summary>
@@ -229,20 +226,20 @@ namespace Ink.Runtime
         /// But, if your game uses Json.Net itself, it may be useful to get
         /// the JToken so that you can integrate it into your own save format.
         /// </summary>
-        public JToken jsonToken
+        public Dictionary<string, object> jsonToken
         {
             get {
 				
-				var obj = new JObject ();
+				var obj = new Dictionary<string, object> ();
 
-				JObject choiceThreads = null;
+				Dictionary<string, object> choiceThreads = null;
                 foreach (Choice c in currentChoices) {
                     c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
 					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
 						if( choiceThreads == null )
-							choiceThreads = new JObject();
+							choiceThreads = new Dictionary<string, object> ();
 
 						choiceThreads[c.originalThreadIndex.ToString()] = c.threadAtGeneration.jsonToken;
 					}
@@ -284,45 +281,45 @@ namespace Ink.Runtime
             }
             set {
 
-                var jObject = (JObject)value;
+                var jObject = value;
 
                 var jSaveVersion = jObject ["inkSaveVersion"];
                 if (jSaveVersion == null) {
                     throw new StoryException ("ink save format incorrect, can't load.");
                 }
-                else if (jSaveVersion.ToObject<int> () < kMinCompatibleLoadVersion) {
+                else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
                     throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
                 }
 
-                callStack.SetJsonToken (jObject ["callstackThreads"], story);
-                variablesState.jsonToken = jObject["variablesState"];
+                callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+                variablesState.jsonToken = (Dictionary < string, object> )jObject["variablesState"];
 
-                evaluationStack = Json.JArrayToRuntimeObjList ((JArray)jObject ["evalStack"]);
+                evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 
-                _outputStream = Json.JArrayToRuntimeObjList ((JArray)jObject ["outputStream"]);
+                _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
 
-                currentChoices = Json.JArrayToRuntimeObjList<Choice>((JArray)jObject ["currentChoices"]);
+                currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
-                JToken propValue;
+                object propValue;
                 if( jObject.TryGetValue("currRightGlue", out propValue ) ) {
-					int gluePos = propValue.ToObject<int> ();
+                    int gluePos = (int)propValue;
 					if( gluePos >= 0 ) {
 						_currentRightGlue = _outputStream [gluePos] as Glue;
 					}
                 }
 
-                JToken currentDivertTargetPath = jObject ["currentDivertTarget"];
+                object currentDivertTargetPath = jObject ["currentDivertTarget"];
                 if (currentDivertTargetPath != null) {
                     var divertPath = new Path (currentDivertTargetPath.ToString ());
                     divertedTargetObject = story.ContentAtPath (divertPath);
                 }
                     
-                visitCounts = Json.JObjectToIntDictionary ((JObject)jObject ["visitCounts"]);
-                turnIndices = Json.JObjectToIntDictionary ((JObject)jObject ["turnIndices"]);
-                currentTurnIndex = jObject ["turnIdx"].ToObject<int> ();
-                storySeed = jObject ["storySeed"].ToObject<int> ();
+                visitCounts = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["visitCounts"]);
+                turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
+                currentTurnIndex = (int)jObject ["turnIdx"];
+                storySeed = (int)jObject ["storySeed"];
 
-				var jChoiceThreads = jObject["choiceThreads"] as JObject;
+				var jChoiceThreads = jObject["choiceThreads"] as Dictionary<string, object>;
                 foreach (var c in currentChoices) {
                     c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
 
@@ -330,7 +327,7 @@ namespace Ink.Runtime
 					if( foundActiveThread != null ) {
 						c.threadAtGeneration = foundActiveThread;
 					} else {
-						var jSavedChoiceThread = jChoiceThreads[c.originalThreadIndex.ToString()];
+                        var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
 						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
 					}
                 }

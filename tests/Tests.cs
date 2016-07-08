@@ -2291,7 +2291,7 @@ Content
             // Convert to json and back again
             if (_mode == TestMode.JsonRoundTrip)
             {
-                var jsonStr = story.ToJsonString(indented: true);
+                var jsonStr = story.ToJsonString();
                 story = new Story(jsonStr);
             }
 
