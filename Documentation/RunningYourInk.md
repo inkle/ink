@@ -179,8 +179,8 @@ The **ink** engine is still in a nascent stage (alpha!), and you may well encoun
 
 We recommend we debug the compiler so that you get a breakpoint in its code when compiling and/or playing your ink file. To do so, open **ink.sln** in Xamarin or Visual Studio, and run the compiler code in the Test configuration. You should supply command line parameters in the project settings. (In Xamarin, right-click on *inklecate*, click *Options*, and in *Run > General* and modify the parameters field.) You could use something like:
 
-    -p -d <path to your game's ink files directory> yourMainFile.ink
+    -p path/to/yourMainFile.ink
     
-The `-d` switch allows you to specify the root directory for your ink files, which may be necessary depending on where your game files are compared to the ink repo, and whether you have ink `INCLUDE` statements. The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
+The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
 
 When your story hits an assertion, you may be able to glean a little more information from the state of the ink engine. See the [Architecture and Development](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) document for help understanding and debugging the engine code.
