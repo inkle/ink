@@ -18,7 +18,7 @@ export CC="cc -arch i386 -framework CoreFoundation -lobjc -liconv"
 # "Bundles in addition support a –static flag. The –static flag causes mkbundle to generate a static executable that statically links the Mono runtime. Be advised that this option will trigger the LGPL requirement that you still distribute the independent pieces to your user so he can manually upgrade his Mono runtime if he chooses to do so. Alternatively, you can obtain a proprietary license of Mono by contacting Xamarin."
 # http://www.mono-project.com/archived/guiderunning_mono_applications/
 cd ./inklecate/bin/Debug/
-mkbundle --static --deps inklecate.exe Newtonsoft.Json.dll -o inklecate_mac
+mkbundle --static --deps inklecate.exe -o inklecate_mac
 
 # TODO: See if you can whittle down the dependencies a bit instead of using the --deps option above?
 # It mentions all of the dependencies below, but I'm not convinced they're all necessary?

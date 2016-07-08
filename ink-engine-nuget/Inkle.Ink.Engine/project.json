@@ -2,7 +2,6 @@
   "version": "0.3.4",
   "title": "Ink Engine",
   "dependencies": {
-    "Newtonsoft.Json": "8.0.3"
   },
   "buildOptions": {
     "compile": {
