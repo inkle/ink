@@ -181,9 +181,9 @@ namespace Ink.Runtime
                 Expect ("\"");
 
                 var str = _text.Substring (startOffset, _offset - startOffset - 1);
-                #warning TODO: Cope with \r
                 str = str.Replace ("\\\\", "\\");
                 str = str.Replace ("\\\"", "\"");
+                str = str.Replace ("\\r", "");
                 str = str.Replace ("\\n", "\n");
                 return str;
             }
@@ -296,10 +296,10 @@ namespace Ink.Runtime
                     string str = (string)obj;
 
                     // Escape backslashes, quotes and newlines
-                    #warning TODO: Cope with \r
                     str = str.Replace ("\\", "\\\\");
                     str = str.Replace ("\"", "\\\"");
                     str = str.Replace ("\n", "\\n");
+                    str = str.Replace ("\r", "");
 
                     _sb.AppendFormat ("\"{0}\"", str);
                 } else if (obj is Dictionary<string, object>) {
