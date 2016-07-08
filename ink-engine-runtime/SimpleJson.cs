@@ -192,8 +192,10 @@ namespace Ink.Runtime
             {
                 var startOffset = _offset;
 
+                bool isFloat = false;
                 for (; _offset < _text.Length; _offset++) {
                     var c = _text [_offset];
+                    if (c == '.') isFloat = true;
                     if (IsNumberChar (c))
                         continue;
                     else
@@ -202,14 +204,16 @@ namespace Ink.Runtime
 
                 string numStr = _text.Substring (startOffset, _offset - startOffset);
 
-                float f;
-                if (float.TryParse (numStr, out f)) {
-                    return f;
-                }
-
-                int i;
-                if (int.TryParse (numStr, out i)) {
-                    return i;
+                if (isFloat) {
+                    float f;
+                    if (float.TryParse (numStr, out f)) {
+                        return f;
+                    }
+                } else {
+                    int i;
+                    if (int.TryParse (numStr, out i)) {
+                        return i;
+                    }
                 }
 
                 throw new System.Exception ("Failed to parse number value");
@@ -281,7 +285,9 @@ namespace Ink.Runtime
                 if (obj is int) {
                     _sb.Append ((int)obj);
                 } else if (obj is float) {
-                    _sb.Append ((float)obj);
+                    string floatStr = obj.ToString ();
+                    _sb.Append (floatStr);
+                    if (!floatStr.Contains (".")) _sb.Append (".0");
                 } else if( obj is bool) {
                     _sb.Append ((bool)obj == true ? "true" : "false");
                 } else if (obj == null) {
