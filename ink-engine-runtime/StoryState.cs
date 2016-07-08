@@ -283,8 +283,8 @@ namespace Ink.Runtime
 
                 var jObject = value;
 
-                var jSaveVersion = jObject ["inkSaveVersion"];
-                if (jSaveVersion == null) {
+				object jSaveVersion = null;
+				if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
                     throw new StoryException ("ink save format incorrect, can't load.");
                 }
                 else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
@@ -308,8 +308,8 @@ namespace Ink.Runtime
 					}
                 }
 
-                object currentDivertTargetPath = jObject ["currentDivertTarget"];
-                if (currentDivertTargetPath != null) {
+				object currentDivertTargetPath;
+				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
                     var divertPath = new Path (currentDivertTargetPath.ToString ());
                     divertedTargetObject = story.ContentAtPath (divertPath);
                 }
@@ -319,18 +319,22 @@ namespace Ink.Runtime
                 currentTurnIndex = (int)jObject ["turnIdx"];
                 storySeed = (int)jObject ["storySeed"];
 
-				var jChoiceThreads = jObject["choiceThreads"] as Dictionary<string, object>;
-                foreach (var c in currentChoices) {
-                    c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
+				object jChoiceThreadsObj = null;
+				jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
+				var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
+
+				foreach (var c in currentChoices) {
+					c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
 
 					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 					if( foundActiveThread != null ) {
 						c.threadAtGeneration = foundActiveThread;
 					} else {
-                        var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
+						var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
 						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
 					}
-                }
+				}
+
             }
         }
             

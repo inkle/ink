@@ -102,9 +102,9 @@ namespace Ink.Runtime
 					callstack.Add (el);
 				}
 
-                string prevContentObjPath = (string) jThreadObj["previousContentObject"];
-                if( prevContentObjPath != null ) {
-                    var prevPath = new Path(prevContentObjPath);
+				object prevContentObjPath;
+				if( jThreadObj.TryGetValue("previousContentObject", out prevContentObjPath) ) {
+					var prevPath = new Path((string)prevContentObjPath);
                     previousContentObject = storyContext.ContentAtPath(prevPath);
                 }
 			}
