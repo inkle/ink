@@ -42,39 +42,28 @@ namespace Ink.Runtime
             {
                 var currentChar = _text [_offset];
 
-                object obj = null;
-                switch (currentChar) {
-                case '{':
-                    obj = ReadDictionary ();
-                    break;
-                case '[':
-                    obj = ReadArray ();
-                    break;
-                case '"':
-                    obj = ReadString ();
-                    break;
-                default:
-                    if (IsNumberChar(currentChar)) {
-                        obj = ReadNumber ();
-                        break;
-                    }
+                if( currentChar == '{' )
+                    return ReadDictionary ();
+                
+                else if (currentChar == '[')
+                    return ReadArray ();
 
-                    if (TryRead ("true")) {
-                        return true;
-                    }
+                else if (currentChar == '"')
+                    return ReadString ();
 
-                    if (TryRead ("false")) {
-                        return false;
-                    }
+                else if (IsNumberChar(currentChar))
+                    return ReadNumber ();
 
-                    if (TryRead ("null")) {
-                        return null;
-                    }
+                else if (TryRead ("true"))
+                    return true;
 
-                    throw new System.Exception ("Unhandled object type in JSON: "+_text.Substring (_offset, 30));
-                }
+                else if (TryRead ("false"))
+                    return false;
 
-                return obj;
+                else if (TryRead ("null"))
+                    return null;
+
+                throw new System.Exception ("Unhandled object type in JSON: "+_text.Substring (_offset, 30));
             }
 
             Dictionary<string, object> ReadDictionary ()
@@ -90,6 +79,8 @@ namespace Ink.Runtime
                     return dict;
 
                 do {
+
+                    SkipWhitespace ();
 
                     // Key
                     var key = ReadString ();
@@ -111,14 +102,7 @@ namespace Ink.Runtime
 
                     SkipWhitespace ();
 
-                    if (TryRead (",")) {
-                        SkipWhitespace ();
-                        continue;
-                    } else {
-                        break;
-                    }
-
-                } while (true);
+                } while ( TryRead (",") );
 
                 Expect ("}");
 
@@ -139,6 +123,8 @@ namespace Ink.Runtime
 
                 do {
 
+                    SkipWhitespace ();
+
                     // Value
                     var val = ReadObject ();
 
@@ -147,14 +133,7 @@ namespace Ink.Runtime
 
                     SkipWhitespace ();
 
-                    if (TryRead (",")) {
-                        SkipWhitespace ();
-                        continue;
-                    } else {
-                        break;
-                    }
-
-                } while (true);
+                } while (TryRead (","));
 
                 Expect ("]");
 
