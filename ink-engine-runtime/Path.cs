@@ -79,7 +79,7 @@ namespace Ink.Runtime
 
 		public List<Component> components { get; private set; }
 
-        public bool isRelative { get; set; }
+        public bool isRelative { get; private set; }
 
 		public Component head 
 		{ 
@@ -145,9 +145,10 @@ namespace Ink.Runtime
 			components.AddRange (tail.components);
 		}
 
-		public Path(IEnumerable<Component> components) : this()
+		public Path(IEnumerable<Component> components, bool relative = false) : this()
 		{
 			this.components.AddRange (components);
+            this.isRelative = relative;
 		}
 
         public Path(string componentsString) : this()

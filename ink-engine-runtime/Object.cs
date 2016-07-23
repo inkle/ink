@@ -152,8 +152,7 @@ namespace Ink.Runtime
             for (int down = lastSharedPathCompIndex + 1; down < globalPath.components.Count; ++down)
                 newPathComps.Add (globalPath.components [down]);
 
-            var relativePath = new Path (newPathComps);
-            relativePath.isRelative = true;
+            var relativePath = new Path (newPathComps, relative:true);
             return relativePath;
         }
 
