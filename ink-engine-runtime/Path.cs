@@ -195,18 +195,25 @@ namespace Ink.Runtime
                 else
                     return compsStr;
             }
-            set {
+            private set {
                 components.Clear ();
 
                 var componentsStr = value;
+
+                // Empty path, empty components
+                // (path is to root, like "/" in file system)
+                if (string.IsNullOrEmpty(componentsStr))
+                    return;
 
                 // When components start with ".", it indicates a relative path, e.g.
                 //   .^.^.hello.5
                 // is equivalent to file system style path:
                 //  ../../hello/5
                 if (componentsStr [0] == '.') {
-                    isRelative = true;
+                    this.isRelative = true;
                     componentsStr = componentsStr.Substring (1);
+                } else {
+                    this.isRelative = false;
                 }
 
                 var componentStrings = componentsStr.Split('.');
