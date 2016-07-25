@@ -99,9 +99,10 @@ namespace Ink.Parsed
             //
             // [
             //     EvalStart
+            //     assign $r = $r1   -- return target = return label 1
             //     BeginString
-            //     PUSH (function)
             //     -> s
+            //     [(r1)]            -- return label 1 (after start content)
             //     EndString
             //     BeginString
             //     ... choice only content
@@ -110,10 +111,14 @@ namespace Ink.Parsed
             //     choice: -> "c"
             //     (s) = [
             //         start content
+            //         -> r          -- goto return label 1 or 2
             //     ]
             //     (c) = [
-            //         PUSH (function)
+            //         EvalStart
+            //         assign $r = $r2   -- return target = return label 2
+            //         EndEval
             //         -> s
+            //         [(r2)]            -- return label 1 (after start content)
             //         inner content
             //     ]
             // ]
@@ -130,18 +135,38 @@ namespace Ink.Parsed
             // when the choice is chosen.
             if (startContent) {
 
+                // Generate start content and return
+                //  - We can't use a function since it uses a call stack element, which would
+                //    put temporary values out of scope. Instead we manually divert around.
+                //  - $r is a variable divert target contains the return point
+                _returnToR1 = new Runtime.DivertTargetValue ();
+                _outerContainer.AddContent (_returnToR1);
+                var varAssign = new Runtime.VariableAssignment ("$r", true);
+                _outerContainer.AddContent (varAssign);
+
                 // Mark the start of the choice text generation, so that the runtime
                 // knows where to rewind to to extract the content from the output stream.
                 _outerContainer.AddContent (Runtime.ControlCommand.BeginString ());
 
-                // "Function call" to generate start content
-                _divertToStartContentOuter = new Runtime.Divert (Runtime.PushPopType.Function);
+                _divertToStartContentOuter = new Runtime.Divert ();
                 _outerContainer.AddContent (_divertToStartContentOuter);
 
                 // Start content itself in a named container
                 _startContentRuntimeContainer = startContent.GenerateRuntimeObject () as Runtime.Container;
                 _startContentRuntimeContainer.name = "s";
+
+                // Effectively, the "return" statement - return to the point specified by $r
+                var varDivert = new Runtime.Divert ();
+                varDivert.variableDivertName = "$r";
+                _startContentRuntimeContainer.AddContent (varDivert);
+
+                // Add the container
                 _outerContainer.AddToNamedContentOnly (_startContentRuntimeContainer);
+
+                // This is the label to return to
+                _r1Label = new Runtime.Container ();
+                _r1Label.name = "$r1";
+                _outerContainer.AddContent (_r1Label);
 
                 _outerContainer.AddContent (Runtime.ControlCommand.EndString ());
 
@@ -178,8 +203,24 @@ namespace Ink.Parsed
 
             // Repeat start content by diverting to its container
             if (startContent) {
-                _divertToStartContentInner = new Runtime.Divert (Runtime.PushPopType.Function);
+
+                // Set the return point when jumping back into the start content
+                //  - In this case, it's the $r2 point, within the choice content "c".
+                _returnToR2 = new Runtime.DivertTargetValue ();
+                _innerContentContainer.AddContent (Runtime.ControlCommand.EvalStart ());
+                _innerContentContainer.AddContent (_returnToR2);
+                _innerContentContainer.AddContent (Runtime.ControlCommand.EvalEnd ());
+                var varAssign = new Runtime.VariableAssignment ("$r", true);
+                _innerContentContainer.AddContent (varAssign);
+
+                // Main divert into start content
+                _divertToStartContentInner = new Runtime.Divert ();
                 _innerContentContainer.AddContent (_divertToStartContentInner);
+
+                // Define label to return to
+                _r2Label = new Runtime.Container ();
+                _r2Label.name = "$r2";
+                _innerContentContainer.AddContent (_r2Label);
             }
 
             // Choice's own inner content
@@ -222,6 +263,12 @@ namespace Ink.Parsed
                     _innerContentContainer.visitsShouldBeCounted = true;
             }
 
+            if (_returnToR1)
+                _returnToR1.targetPath = _r1Label.path;
+
+            if (_returnToR2)
+                _returnToR2.targetPath = _r2Label.path;
+
             if( _divertToStartContentOuter )
                 _divertToStartContentOuter.targetPath = _startContentRuntimeContainer.path;
 
@@ -246,6 +293,10 @@ namespace Ink.Parsed
         Runtime.Container _startContentRuntimeContainer;
         Runtime.Divert _divertToStartContentOuter;
         Runtime.Divert _divertToStartContentInner;
+        Runtime.Container _r1Label;
+        Runtime.Container _r2Label;
+        Runtime.DivertTargetValue _returnToR1;
+        Runtime.DivertTargetValue _returnToR2;
         Expression _condition;
 	}
 
