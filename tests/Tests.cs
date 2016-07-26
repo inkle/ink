@@ -2274,6 +2274,31 @@ Content
             Assert.AreEqual ("Content\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestTempUsageInOptions ()
+        {
+            var storyStr =
+                @"
+~ temp one = 1
+* \ {one}
+- End of choice 
+    -> another
+* (another) this [is] another
+ -> DONE
+";
+
+            Story story = CompileString (storyStr);
+            story.Continue ();
+                 
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual (" 1", story.currentChoices[0].text);
+            story.ChooseChoiceIndex (0);
+
+            Assert.AreEqual (" 1\nEnd of choice\nthis  another\n", story.ContinueMaximally ());
+
+            Assert.AreEqual (0, story.currentChoices.Count);
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
