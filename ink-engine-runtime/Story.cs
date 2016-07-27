@@ -317,7 +317,7 @@ namespace Ink.Runtime
                         Error("Thread available to pop, threads should always be flat by the end of evaluation?");
                     }
 
-                    if( currentChoices.Count == 0 && !state.didSafeExit ) {
+                    if( currentChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
                         if( state.callStack.CanPop(PushPopType.Tunnel) ) {
                             Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
                         } else if( state.callStack.CanPop(PushPopType.Function) ) {
