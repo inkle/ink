@@ -965,6 +965,12 @@ namespace Ink.Runtime
 
         public object EvaluateFunction (string functionName)
         {
+            string _;
+            return EvaluateFunction (functionName, out _);
+        }
+
+        public object EvaluateFunction (string functionName, out string textOutput)
+        {
             Runtime.Container funcContainer = null;
             try {
                 funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
@@ -983,9 +989,14 @@ namespace Ink.Runtime
 
             int evalStackHeight = state.evaluationStack.Count;
 
+            var stringOutput = new StringBuilder ();
+
             // Evaluate the function
-            while (state.callStack.elements.Count > startCallStackHeight && canContinue)
-                Continue ();
+            while (state.callStack.elements.Count > startCallStackHeight && canContinue) {
+                stringOutput.Append (Continue ());
+            }
+
+            textOutput = stringOutput.ToString ();
 
             // Should have completed the function, which should
             // have popped, but just in case we didn't for some reason,
