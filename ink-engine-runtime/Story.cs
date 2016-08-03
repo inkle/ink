@@ -963,6 +963,57 @@ namespace Ink.Runtime
             ChoosePath (choiceToChoose.choicePoint.choiceTarget.path);
         }
 
+        public object EvaluateFunction (string functionName)
+        {
+            Runtime.Container funcContainer = null;
+            try {
+                funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
+            } catch (StoryException e) {
+                if (e.Message.Contains ("not found"))
+                    throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
+                else
+                    throw e;
+            }
+
+            int startCallStackHeight = state.callStack.elements.Count;
+
+            // Divert into the function
+            state.callStack.Push (PushPopType.Function);
+            state.currentContentObject = funcContainer;
+
+            int evalStackHeight = state.evaluationStack.Count;
+
+            // Evaluate the function
+            while (state.callStack.elements.Count > startCallStackHeight && canContinue)
+                Continue ();
+
+            // Should have completed the function, which should
+            // have popped, but just in case we didn't for some reason,
+            // manually pop to restore the state (including currentPath).
+            if (state.callStack.elements.Count > startCallStackHeight) {
+                state.callStack.Pop ();
+            }
+
+            // Do we have a returned value?
+            int endStackHeight = state.evaluationStack.Count;
+            if (endStackHeight > evalStackHeight) {
+                var returnVal = state.PopEvaluationStack () as Runtime.Value;
+
+                // DivertTargets get returned as the string of components
+                // (rather than a Path, which isn't public)
+                if (returnVal.valueType == ValueType.DivertTarget) {
+                    return returnVal.valueObject.ToString ();
+                }
+
+                // Other types can just have their exact object type:
+                // int, float, string. VariablePointers get returned as strings.
+                return returnVal.valueObject;
+                
+            } else {
+                return null;
+            }
+        }
+
         // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
         // CommandLinePlayer.
         internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)

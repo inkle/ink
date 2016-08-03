@@ -2299,6 +2299,32 @@ Content
             Assert.AreEqual (0, story.currentChoices.Count);
         }
 
+
+        [Test ()]
+        public void TestEvaluatingInkFunctionsFromGame ()
+        {
+            var storyStr =
+                @"
+Top level content
+* choice
+
+== somewhere ==
+= else
+-> DONE
+
+== function test ==
+~ return -> somewhere.else
+";
+
+            Story story = CompileString (storyStr);
+            story.Continue ();
+
+            var returnedDivertTarget = story.EvaluateFunction ("test");
+
+            // Divert target should get returned as a string
+            Assert.AreEqual ("somewhere.else", returnedDivertTarget);
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
