@@ -968,7 +968,7 @@ namespace Ink.Runtime
         /// </summary>
         /// <returns>True if the function exists, else false.</returns>
         /// <param name="functionName">The name of the function as declared in ink.</param>
-        public bool FunctionExists (string functionName)
+        public bool HasFunction (string functionName)
         {
             try {
                 return ContentAtPath (new Path (functionName)) is Runtime.Container;
