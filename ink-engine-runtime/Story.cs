@@ -973,7 +973,7 @@ namespace Ink.Runtime
             try {
                 return ContentAtPath (new Path (functionName)) is Runtime.Container;
             } catch (StoryException e) {
-                return false
+                return false;
             }
         }
 
