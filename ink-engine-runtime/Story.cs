@@ -964,6 +964,20 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Checks if a function exists.
+        /// </summary>
+        /// <returns>True if the function exists, else false.</returns>
+        /// <param name="functionName">The name of the function as declared in ink.</param>
+        public bool FunctionExists (string functionName)
+        {
+            try {
+                return ContentAtPath (new Path (functionName)) is Runtime.Container;
+            } catch (StoryException e) {
+                return false
+            }
+        }
+
+        /// <summary>
         /// Evaluates a function defined in ink.
         /// </summary>
         /// <returns>The return value as returned from the ink function with `~ return myValue`, or null if nothing is returned.</returns>
