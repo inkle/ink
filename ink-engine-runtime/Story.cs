@@ -1368,11 +1368,22 @@ namespace Ink.Runtime
                     INamedContent fallbackFunction = null;
                     bool fallbackFound = mainContentContainer.namedContent.TryGetValue (name, out fallbackFunction);
 
+                    string message = null;
                     if (!allowExternalFunctionFallbacks)
-                        Error ("Missing function binding for external '" + name + "' (ink fallbacks disabled)");
+                        message = "Missing function binding for external '" + name + "' (ink fallbacks disabled)";
                     else if( !fallbackFound ) {
-                        Error ("Missing function binding for external '" + name + "', and no fallback ink function found.");
+                        message = "Missing function binding for external '" + name + "', and no fallback ink function found.";
                     }
+
+                    if (message != null) {
+                        string errorPreamble = "ERROR: ";
+                        if (divert.debugMetadata != null) {
+                            errorPreamble += string.Format ("'{0}' line {1}: ", divert.debugMetadata.fileName, divert.debugMetadata.startLineNumber);
+                        }
+
+                        throw new StoryException (errorPreamble + message);
+                    }
+
                 }
             }
         }

@@ -188,7 +188,17 @@ namespace Ink
 
                 //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
                 Console.CancelKeyPress += OnExit;
-                player.Begin ();
+
+                try {
+                    player.Begin ();
+                } catch (Runtime.StoryException e) {
+                    if (e.Message.Contains ("Missing function binding")) {
+                        OnError (e.Message, ErrorType.Error);
+                        PrintAllMessages ();
+                    } else {
+                        throw e;
+                    }
+                }
             } 
 
             // Compile mode
