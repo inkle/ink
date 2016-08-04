@@ -1007,6 +1007,16 @@ namespace Ink.Runtime
             state.callStack.currentElement.currentContainer = mainContentContainer;
             state.callStack.currentElement.currentContentIndex = 0;
 
+            if (arguments != null) {
+                for (int i = 0; i < arguments.Length; i++) {
+                    if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string)) {
+                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
+                    }
+
+                    state.evaluationStack.Add (Runtime.Value.Create(arguments[i]));
+                }
+            }
+
             // Jump into the function!
             state.callStack.Push (PushPopType.Function);
             state.currentContentObject = funcContainer;
@@ -1022,13 +1032,22 @@ namespace Ink.Runtime
             state.callStack = originalCallstack;
 
             // Do we have a returned value?
-            if (state.evaluationStack.Count > originalEvaluationStackHeight) {
-                var poppedVal = state.PopEvaluationStack ();
-                if (poppedVal is Runtime.Void)
+            // Potentially pop multiple values off the stack, in case we need
+            // to clean up after ourselves (e.g. caller of EvaluateFunction may 
+            // have passed too many arguments, and we currently have no way to check for that)
+            Runtime.Object returnedObj = null;
+            while (state.evaluationStack.Count > originalEvaluationStackHeight) {
+                var poppedObj = state.PopEvaluationStack ();
+                if (returnedObj == null)
+                    returnedObj = poppedObj;
+            }
+
+            if (returnedObj) {
+                if (returnedObj is Runtime.Void)
                     return null;
 
                 // Some kind of value, if not void
-                var returnVal = poppedVal as Runtime.Value;
+                var returnVal = returnedObj as Runtime.Value;
 
                 // DivertTargets get returned as the string of components
                 // (rather than a Path, which isn't public)

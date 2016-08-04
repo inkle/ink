@@ -2325,6 +2325,50 @@ Top level content
             Assert.AreEqual ("somewhere.else", returnedDivertTarget);
         }
 
+        [Test ()]
+        public void TestEvaluatingInkFunctionsFromGame2 ()
+        {
+            var storyStr =
+                @"
+One
+Two
+Three
+
+== function func1 ==
+This is a function
+~ return 5
+
+== function func2 ==
+This is a function without a return value
+~ return
+
+== function add(x,y) ==
+x = {x}, y = {y}
+~ return x + y
+";
+
+            Story story = CompileString (storyStr);
+
+            string textOutput;
+            var funcResult = story.EvaluateFunction ("func1", out textOutput);
+            Assert.AreEqual ("This is a function\n", textOutput);
+            Assert.AreEqual (5, funcResult);
+
+            Assert.AreEqual ("One\n", story.Continue());
+
+            funcResult = story.EvaluateFunction ("func2", out textOutput);
+            Assert.AreEqual ("This is a function without a return value\n", textOutput);
+            Assert.AreEqual (null, funcResult);
+
+            Assert.AreEqual ("Two\n", story.Continue ());
+
+            funcResult = story.EvaluateFunction ("add", out textOutput, 1, 2);
+            Assert.AreEqual ("x = 1, y = 2\n", textOutput);
+            Assert.AreEqual (3, funcResult);
+
+            Assert.AreEqual ("Three\n", story.Continue ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
