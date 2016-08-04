@@ -66,7 +66,7 @@ namespace Ink.Runtime
         internal List<Choice> currentChoices { get; private set; }
         internal List<string> currentErrors { get; private set; }
         internal VariablesState variablesState { get; private set; }
-        internal CallStack callStack { get; private set; }
+        internal CallStack callStack { get; set; }
         internal List<Runtime.Object> evaluationStack { get; private set; }
         internal Runtime.Object divertedTargetObject { get; set; }
         internal Dictionary<string, int> visitCounts { get; private set; }

@@ -968,10 +968,10 @@ namespace Ink.Runtime
         /// </summary>
         /// <returns>The return value as returned from the ink function with `~ return myValue`, or null if nothing is returned.</returns>
         /// <param name="functionName">The name of the function as declared in ink.</param>
-        public object EvaluateFunction (string functionName)
+        public object EvaluateFunction (string functionName, params object [] arguments)
         {
             string _;
-            return EvaluateFunction (functionName, out _);
+            return EvaluateFunction (functionName, out _, arguments);
         }
 
         /// <summary>
@@ -980,7 +980,7 @@ namespace Ink.Runtime
         /// </summary>
         /// <returns>The return value as returned from the ink function with `~ return myValue`, or null if nothing is returned.</returns>
         /// <param name="functionName">The name of the function as declared in ink.</param>
-        public object EvaluateFunction (string functionName, out string textOutput)
+        public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
             Runtime.Container funcContainer = null;
             try {
@@ -992,34 +992,43 @@ namespace Ink.Runtime
                     throw e;
             }
 
-            int startCallStackHeight = state.callStack.elements.Count;
+            // We'll start a new callstack, so keep hold of the original,
+            // as well as the evaluation stack so we know if the function 
+            // returned something
+            var originalCallstack = state.callStack;
+            int originalEvaluationStackHeight = state.evaluationStack.Count;
 
-            // Divert into the function
+            // Create a new base call stack element.
+            // By making it point at element 0 of the base, when NextContent is
+            // called, it'll actually step past the entire content of the game (!)
+            // and straight onto the Done. Bit of a hack :-/ We don't really have
+            // a better way of creating a temporary context that ends correctly.
+            state.callStack = new CallStack (mainContentContainer);
+            state.callStack.currentElement.currentContainer = mainContentContainer;
+            state.callStack.currentElement.currentContentIndex = 0;
+
+            // Jump into the function!
             state.callStack.Push (PushPopType.Function);
             state.currentContentObject = funcContainer;
 
-            int evalStackHeight = state.evaluationStack.Count;
-
+            // Evaluate the function, and collect the string output
             var stringOutput = new StringBuilder ();
-
-            // Evaluate the function
-            while (state.callStack.elements.Count > startCallStackHeight && canContinue) {
+            while (canContinue) {
                 stringOutput.Append (Continue ());
             }
-
             textOutput = stringOutput.ToString ();
 
-            // Should have completed the function, which should
-            // have popped, but just in case we didn't for some reason,
-            // manually pop to restore the state (including currentPath).
-            if (state.callStack.elements.Count > startCallStackHeight) {
-                state.callStack.Pop ();
-            }
+            // Restore original stack
+            state.callStack = originalCallstack;
 
             // Do we have a returned value?
-            int endStackHeight = state.evaluationStack.Count;
-            if (endStackHeight > evalStackHeight) {
-                var returnVal = state.PopEvaluationStack () as Runtime.Value;
+            if (state.evaluationStack.Count > originalEvaluationStackHeight) {
+                var poppedVal = state.PopEvaluationStack ();
+                if (poppedVal is Runtime.Void)
+                    return null;
+
+                // Some kind of value, if not void
+                var returnVal = poppedVal as Runtime.Value;
 
                 // DivertTargets get returned as the string of components
                 // (rather than a Path, which isn't public)
@@ -1030,10 +1039,9 @@ namespace Ink.Runtime
                 // Other types can just have their exact object type:
                 // int, float, string. VariablePointers get returned as strings.
                 return returnVal.valueObject;
-                
-            } else {
-                return null;
             }
+
+            return null;
         }
 
         // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
