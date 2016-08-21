@@ -56,7 +56,7 @@ namespace Ink.Runtime
             public Element Copy()
             {
                 var copy = new Element (this.type, this.currentContainer, this.currentContentIndex, this.inExpressionEvaluation);
-                copy.temporaryVariables = this.temporaryVariables;
+                copy.temporaryVariables = new Dictionary<string,Object>(this.temporaryVariables);
                 return copy;
             }
         }
