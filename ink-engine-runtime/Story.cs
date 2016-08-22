@@ -972,7 +972,7 @@ namespace Ink.Runtime
         {
             try {
                 return ContentAtPath (new Path (functionName)) is Runtime.Container;
-            } catch (StoryException e) {
+            } catch {
                 return false;
             }
         }
@@ -1203,7 +1203,7 @@ namespace Ink.Runtime
             if (value == null)
                 return null;
 
-            if (value.GetType () == typeof(T))
+            if (value is T)
                 return (T) value;
 
             if (value is float && typeof(T) == typeof(int)) {

@@ -56,7 +56,7 @@ namespace Ink.Runtime
             public Element Copy()
             {
                 var copy = new Element (this.type, this.currentContainer, this.currentContentIndex, this.inExpressionEvaluation);
-                copy.temporaryVariables = this.temporaryVariables;
+                copy.temporaryVariables = new Dictionary<string,Object>(this.temporaryVariables);
                 return copy;
             }
         }
@@ -246,7 +246,7 @@ namespace Ink.Runtime
             if (canPopThread) {
                 _threads.Remove (currentThread);
             } else {
-                Debug.Fail ("Can't pop thread");
+				throw new System.Exception("Can't pop thread");
             }
         }
 
@@ -280,7 +280,7 @@ namespace Ink.Runtime
                 callStack.RemoveAt (callStack.Count - 1);
                 return;
             } else {
-                Debug.Fail ("Mismatched push/pop in Callstack");
+				throw new System.Exception("Mismatched push/pop in Callstack");
             }
         }
 
