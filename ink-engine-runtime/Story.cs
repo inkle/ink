@@ -1197,7 +1197,7 @@ namespace Ink.Runtime
             if (value == null)
                 return null;
 
-            if (value.GetType () == typeof(T))
+            if (value is T)
                 return (T) value;
 
             if (value is float && typeof(T) == typeof(int)) {
