@@ -999,6 +999,12 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+			if(functionName == null) {
+				throw new System.Exception ("Function is null");
+			} else if(functionName == string.Empty || functionName.Trim() == string.Empty) {
+				throw new System.Exception ("Function is empty or white space.");
+			}
+
             Runtime.Container funcContainer = null;
             try {
                 funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
