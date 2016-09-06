@@ -623,7 +623,7 @@ namespace Ink
                 if (ParseString (".") != null) {
 
                     var afterDecimalPointStr = ParseCharactersFromCharSet (numbersCharacterSet);
-                    return float.Parse (leadingInt+"." + afterDecimalPointStr);
+                    return float.Parse (leadingInt+"." + afterDecimalPointStr, System.Globalization.CultureInfo.InvariantCulture);
                 }
             }
 
