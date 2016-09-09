@@ -672,7 +672,7 @@ namespace Ink.Runtime
         }
 
 
-        internal void ForceEndFlow()
+        public void ForceEnd()
         {
             currentContentObject = null;
 
@@ -683,6 +683,8 @@ namespace Ink.Runtime
                 callStack.Pop ();
 
             currentChoices.Clear();
+
+            previousContentObject = null;
 
             didSafeExit = true;
         }

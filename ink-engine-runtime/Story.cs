@@ -174,7 +174,7 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetCallstack()
         {
-            _state.ForceEndFlow ();
+            _state.ForceEnd ();
         }
 
         void ResetGlobals()
@@ -844,7 +844,7 @@ namespace Ink.Runtime
                 
                 // Force flow to end completely
                 case ControlCommand.CommandType.End:
-                    state.ForceEndFlow ();
+                    state.ForceEnd ();
                     break;
 
                 default:
@@ -1771,7 +1771,7 @@ namespace Ink.Runtime
             state.AddError (message);
 
             // In a broken state don't need to know about any other errors.
-            state.ForceEndFlow ();
+            state.ForceEnd ();
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)
