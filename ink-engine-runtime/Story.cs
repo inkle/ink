@@ -823,18 +823,19 @@ namespace Ink.Runtime
                         Error ("Invalid value for maximum parameter of RANDOM(min, max)");
 
                     // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
-                    //var randomRange = maxInt.value - minInt.value + 1;
-                    if (maxInt.value < minInt.value)
+                    var randomRange = maxInt.value - minInt.value + 1;
+                    if (randomRange <= 0)
                         Error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
 
-                    var resultSeed = state.storySeed + state.randomIndex;
+                    var resultSeed = state.storySeed + state.previousRandom;
                     var random = new Random(resultSeed);
 
-                    var chosenValue = random.Next (minInt.value, maxInt.value+1);// //(random.Next () % randomRange) + minInt.value;
+                    var nextRandom = random.Next ();
+                    var chosenValue = (nextRandom % randomRange) + minInt.value;
                     state.PushEvaluationStack (new IntValue (chosenValue));
 
                     // Next random number (rather than keeping the Random object around)
-                    state.randomIndex++;
+                    state.previousRandom = nextRandom;
                     break;
 
                 case ControlCommand.CommandType.SeedRandom:
@@ -844,6 +845,10 @@ namespace Ink.Runtime
 
                     // Story seed affects both RANDOM and shuffle behaviour
                     state.storySeed = seed.value;
+                    state.previousRandom = 0;
+
+                    // SEED_RANDOM returns nothing.
+                    state.PushEvaluationStack (new Runtime.Void ());
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:

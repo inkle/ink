@@ -80,7 +80,7 @@ namespace Ink.Parsed
             } 
 
             else if (isSeedRandom) {
-                if (arguments.Count != 2)
+                if (arguments.Count != 1)
                     Error ("SEED_RANDOM should take 1 parameter - an integer seed");
 
                 var num = arguments [0] as Number;
