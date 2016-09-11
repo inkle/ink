@@ -59,6 +59,19 @@ namespace Ink.Parsed
         //         (owner Conditional is in control of this target point)
         public override Runtime.Object GenerateRuntimeObject ()
         {
+            // Check for common mistake, of putting "else:" instead of "- else:"
+            if (_innerWeave) {
+                foreach (var c in _innerWeave.content) {
+                    var text = c as Parsed.Text;
+                    if (text) {
+                        // Don't need to trim at the start since the parser handles that already
+                        if (text.text.StartsWith ("else:", System.StringComparison.InvariantCulture)) {
+                            Warning ("Saw the text 'else:' which is being treated as content. Did you mean '- else:'?", text);
+                        }
+                    }
+                }
+            }
+                                           
             var container = new Runtime.Container ();
 
             // Are we testing against a condition that's used for more than just this
