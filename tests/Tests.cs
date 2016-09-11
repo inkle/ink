@@ -2369,6 +2369,20 @@ x = {x}, y = {y}
             Assert.AreEqual ("Three\n", story.Continue ());
         }
 
+        [Test ()]
+        public void TestDoneStopsThread ()
+        {
+            var storyStr =
+                @"
+-> DONE
+This content is inaccessible.
+";
+
+            Story story = CompileString (storyStr);
+
+            Assert.AreEqual (string.Empty, story.ContinueMaximally ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

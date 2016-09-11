@@ -838,6 +838,9 @@ namespace Ink.Runtime
                     // In normal flow - allow safe exit without warning
                     else {
                         state.didSafeExit = true;
+
+                        // Stop flow in current thread
+                        state.currentContentObject = null;
                     }
 
                     break;
