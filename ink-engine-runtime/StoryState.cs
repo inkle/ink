@@ -72,7 +72,8 @@ namespace Ink.Runtime
         internal Dictionary<string, int> visitCounts { get; private set; }
         internal Dictionary<string, int> turnIndices { get; private set; }
         internal int currentTurnIndex { get; private set; }
-        internal int storySeed { get; private set; }
+        internal int storySeed { get; set; }
+        internal int randomIndex { get; set; }
         internal bool didSafeExit { get; set; }
 
         internal Story story { get; set; }
@@ -167,6 +168,7 @@ namespace Ink.Runtime
             // Seed the shuffle random numbers
             int timeSeed = DateTime.Now.Millisecond;
             storySeed = (new Random (timeSeed)).Next () % 100;
+            randomIndex = 0;
 
             currentChoices = new List<Choice> ();
 
@@ -214,6 +216,7 @@ namespace Ink.Runtime
             copy.turnIndices = new Dictionary<string, int> (turnIndices);
             copy.currentTurnIndex = currentTurnIndex;
             copy.storySeed = storySeed;
+            copy.randomIndex = randomIndex;
 
             copy.didSafeExit = didSafeExit;
 
@@ -271,6 +274,7 @@ namespace Ink.Runtime
                 obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
                 obj ["turnIdx"] = currentTurnIndex;
                 obj ["storySeed"] = storySeed;
+                obj ["randomIndex"] = randomIndex;
 
                 obj ["inkSaveVersion"] = kInkSaveStateVersion;
 
@@ -318,6 +322,7 @@ namespace Ink.Runtime
                 turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
                 currentTurnIndex = (int)jObject ["turnIdx"];
                 storySeed = (int)jObject ["storySeed"];
+                randomIndex = (int)jObject ["randomIndex"];
 
 				object jChoiceThreadsObj = null;
 				jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);

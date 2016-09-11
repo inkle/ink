@@ -15,7 +15,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 12;
+        public const int inkVersionCurrent = 13;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -810,6 +810,40 @@ namespace Ink.Runtime
                     var container = ContentAtPath (divertTarget.targetPath) as Container;
                     int turnCount = TurnsSinceForContainer (container);
                     state.PushEvaluationStack (new IntValue (turnCount));
+                    break;
+
+                case ControlCommand.CommandType.Random:
+                    var maxInt = state.PopEvaluationStack () as IntValue;
+                    var minInt = state.PopEvaluationStack () as IntValue;
+
+                    if (minInt == null)
+                        Error ("Invalid value for minimum parameter of RANDOM(min, max)");
+
+                    if (maxInt == null)
+                        Error ("Invalid value for maximum parameter of RANDOM(min, max)");
+
+                    // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
+                    //var randomRange = maxInt.value - minInt.value + 1;
+                    if (maxInt.value < minInt.value)
+                        Error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
+
+                    var resultSeed = state.storySeed + state.randomIndex;
+                    var random = new Random(resultSeed);
+
+                    var chosenValue = random.Next (minInt.value, maxInt.value+1);// //(random.Next () % randomRange) + minInt.value;
+                    state.PushEvaluationStack (new IntValue (chosenValue));
+
+                    // Next random number (rather than keeping the Random object around)
+                    state.randomIndex++;
+                    break;
+
+                case ControlCommand.CommandType.SeedRandom:
+                    var seed = state.PopEvaluationStack () as IntValue;
+                    if (seed == null)
+                        Error ("Invalid value passed to SEED_RANDOM");
+
+                    // Story seed affects both RANDOM and shuffle behaviour
+                    state.storySeed = seed.value;
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:

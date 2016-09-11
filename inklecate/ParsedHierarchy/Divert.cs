@@ -223,8 +223,8 @@ namespace Ink.Parsed
 
             if (target.numberOfComponents == 1 ) {
 
-                // BuiltIn means TURNS_SINCE or CHOICE_COUNT
-                isBuiltIn = FunctionCall.IsValidName (target.firstComponent);
+                // BuiltIn means TURNS_SINCE, CHOICE_COUNT, RANDOM or SEED_RANDOM
+                isBuiltIn = FunctionCall.IsBuiltIn (target.firstComponent);
 
                 // Client-bound function?
                 isExternal = context.IsExternal (target.firstComponent);

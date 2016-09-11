@@ -19,6 +19,8 @@ namespace Ink.Runtime
             NoOp,
             ChoiceCount,
             TurnsSince,
+            Random,
+            SeedRandom,
             VisitIndex,
             SequenceShuffleIndex,
             StartThread,
@@ -98,6 +100,16 @@ namespace Ink.Runtime
 
         public static ControlCommand TurnsSince() {
             return new ControlCommand(CommandType.TurnsSince);
+        }
+
+        public static ControlCommand Random ()
+        {
+            return new ControlCommand (CommandType.Random);
+        }
+
+        public static ControlCommand SeedRandom ()
+        {
+            return new ControlCommand (CommandType.SeedRandom);
         }
 
         public static ControlCommand VisitIndex() {
