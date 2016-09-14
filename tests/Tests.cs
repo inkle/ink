@@ -2405,6 +2405,27 @@ Should be able to get here!
             Assert.IsTrue (HadError ("it shouldn't be preceded by '->'"));
         }
 
+        [Test ()]
+        public void TestLeftRightGlueMatching ()
+        {
+            var storyStr =
+                @"
+A line.
+{ f():
+    Another line.
+}
+
+== function f ==
+{false:nothing}
+~ return true
+
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("A line.\nAnother line.\n", story.ContinueMaximally ());
+        }
+
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
