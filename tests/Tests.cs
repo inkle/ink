@@ -2383,6 +2383,28 @@ This content is inaccessible.
             Assert.AreEqual (string.Empty, story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestWrongVariableDivertTargetReference ()
+        {
+            var storyStr =
+                @"
+-> go_to_broken(-> SOMEWHERE)
+
+== go_to_broken(-> b)
+ -> go_to(-> b) // INSTEAD OF: -> go_to(b)
+
+== go_to(-> a)
+  -> a
+
+== SOMEWHERE ==
+Should be able to get here!
+-> DONE
+";
+            CompileStringWithoutRuntime (storyStr, testingErrors:true);
+
+            Assert.IsTrue (HadError ("it shouldn't be preceded by '->'"));
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

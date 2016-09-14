@@ -85,6 +85,17 @@ namespace Ink.Parsed
                 usageContext = usageParent;
             }
 
+            // Example ink for this class:
+            //
+            //     VAR x = -> blah
+            //
+            // ...which means that "blah" is expected to be a literal stitch  target rather
+            // than a variable name. We can't really intelligently recover from this (e.g. if blah happens to
+            // contain a divert target itself) since really we should be generating a variable reference
+            // rather than a concrete DivertTarget, so we list it as an error.
+            if (_runtimeDivert.hasVariableTarget)
+                Error ("Since '"+divert.target.dotSeparatedComponents+"' is a variable, it shouldn't be preceded by '->' here.");
+
             _runtimeDivertTargetValue.targetPath = _runtimeDivert.targetPath;
         }
             
