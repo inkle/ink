@@ -170,7 +170,17 @@ You can define game-side functions in C# that can be called directly from **ink*
 
 The types you can use as parameters and return values are int, float, bool (automatically converted from **ink**’s internal ints) and string.
 
-    
+### Fallbacks for external functions
+
+When testing your story, either in [Inky](https://github.com/inkle/inky) or in the [ink-unity integration](https://github.com/inkle/ink-unity-integration/) player window, you don't get an opportunity to bind a game function before running the story. To get around this, you can define a *fallback function* within ink, which is run if the `EXTERNAL` function can't be found. To do so, simply create an ink function with the same name and parameters. For example, for the above `multiply` example, create the ink function:
+
+```
+=== function multiply(x,y) ===
+// Usually external functions can only return placeholder
+// results, otherwise they'd be defined in ink!
+~ return 1 
+```
+
 ## Debugging ink engine issues
 
 The **ink** engine is still in a nascent stage (alpha!), and you may well encounter bugs, or unhelpful error messages and exceptions.
