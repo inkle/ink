@@ -13,9 +13,7 @@
 
 Ink uses an intermediate `.json` format, which is compiled from the original `.ink` files. ink's Unity integration package automatically compiles ink files for you, but you can also compile them on the command line. See **Using inklecate on the command line** in the [README](http://www.github.com/inkle/ink) for more information.
 
-The main runtime code is included in the `ink-engine.dll`, and we also have a dependency on the `Newtonsoft.Json.dll` library, which is also included in the integration package.
-
-You may need to change API compatibility for .NET: Go into `Edit -> Project settings -> Player -> Other settings` and change API compatibility level from .NET 2.0 subset (the default) to .NET 2.0. (If you get the error `TypeLoadException: Could not load type 'Newtonsoft.Json.Linq.JArray' from assembly 'Newtonsoft.Json`..., this is what's wrong.)
+The main runtime code is included in the `ink-engine.dll`.
 
 We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
 
