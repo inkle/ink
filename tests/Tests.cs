@@ -181,7 +181,6 @@ Hello
         {
             var storyStr =
                 @"
-                === eight
                    { six() + two() }
                     -> END
 
@@ -336,7 +335,6 @@ two ({num})
         {
             var storyStr =
                 @"
-== test ==
 - start
  {
     - true: * [go to a stitch] -> a_stitch
@@ -1016,6 +1014,7 @@ VAR x = 5
         public void TestKnotDotGather()
         {
             var story = CompileString(@"
+-> knot
 === knot
 -> knot.gather
 - (gather) g
@@ -1045,6 +1044,7 @@ CONST Y = 2
         public void TestKnotThreadInteraction()
         {
             Story story = CompileString(@"
+-> knot
 === knot
     <- threadB
     -> tunnel ->
@@ -1078,6 +1078,7 @@ CONST Y = 2
         public void TestKnotThreadInteraction2()
         {
             Story story = CompileString(@"
+-> knot
 === knot
     <- threadA
     When should this get printed?
@@ -1168,6 +1169,7 @@ VAR varStr = CONST_STR
         public void TestMultiThread()
         {
             Story story = CompileString(@"
+-> start
 == start ==
 -> tunnel ->
 The end
@@ -1243,6 +1245,7 @@ VAR globalVal = 5
         {
             var storyStr =
                 @"
+-> knot
 == knot
    *   option text[]. {true: Conditional bit.} -> next
    -> DONE
@@ -1264,6 +1267,7 @@ VAR globalVal = 5
         public void TestOnceOnlyChoicesCanLinkBackToSelf()
         {
             var story = CompileString(@"
+-> opts
 = opts
 *   (firstOpt) [First choice]   ->  opts
 *   {firstOpt} [Second choice]  ->  opts
@@ -1480,7 +1484,6 @@ In second.
         public void TestReadCountAcrossThreads()
         {
             var story = CompileString(@"
-=== empty_world ===
     -> top
 
 = top
@@ -1550,6 +1553,7 @@ hi
         public void TestSameLineDivertIsInline()
         {
             var story = CompileString(@"
+-> hurry_home
 === hurry_home ===
 We hurried home to Savile Row -> as_fast_as_we_could
 
@@ -1615,6 +1619,7 @@ as fast as we could.
         public void TestStickyChoicesStaySticky()
         {
             var story = CompileString(@"
+-> test
 == test ==
 First line.
 Second line.
@@ -1847,6 +1852,7 @@ Done.
         public void TestTurnsSinceNested()
         {
             var story = CompileString(@"
+-> empty_world
 === empty_world ===
     {TURNS_SINCE(-> then)} = -1
     * (then) stuff
@@ -2151,6 +2157,7 @@ VAR val = 5
         {
             var storyStr =
                 @"
+					-> test
                     === test
                         * Hello[.], world.
                         -> END
@@ -2170,6 +2177,7 @@ VAR val = 5
         {
             var storyStr =
 @"
+-> firstKnot
 === firstKnot
     Hello!
     -> anotherKnot
@@ -2232,6 +2240,7 @@ this is the end
             // Test bug where temp was being treated as a global
             var storyStr =
                 @"
+-> outer
 === outer
 ~ temp x = 0
 ~ f(x)
