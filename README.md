@@ -3,7 +3,7 @@
 [![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/gkq2pSLqU)
 [![CI Status](http://img.shields.io/travis/inkle/ink.svg?style=flat)](https://travis-ci.org/inkle/ink)
 
-Ink is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
+[Ink](http://www.inklestudios.com/ink) is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
 
 Here's a taster [from the tutorial](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
@@ -26,6 +26,8 @@ Here's a taster [from the tutorial](https://github.com/inkle/ink/blob/master/Doc
     *   ... but I said nothing[] and <> 
     - we passed the day in silence.
     - -> END
+    
+We'd recommend downloading [Inky, our ink editor](https://github.com/inkle/inky), and the follow [the tutorial](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md), if you want to give ink a try.
 
 Broadly, the engine is made up of two components:
 
