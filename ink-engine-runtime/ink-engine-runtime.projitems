@@ -33,5 +33,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ChoicePoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Choice.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimpleJson.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tag.cs" />
   </ItemGroup>
 </Project>

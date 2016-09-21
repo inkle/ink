@@ -47,6 +47,8 @@ namespace Ink
                 TrimEndWhitespace (result, terminateWithSpace:false);
             }
 
+            ParseTagsAndAddTo (result [0]);
+
             // Add newline since it's the end of the line
             result.Add (new Text ("\n"));
 

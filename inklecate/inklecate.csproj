@@ -101,6 +101,7 @@
     <Compile Include="Error.cs" />
     <Compile Include="InkParser\InkParser_Include.cs" />
     <Compile Include="CommandLinePlayer.cs" />
+    <Compile Include="InkParser\InkParser_Tags.cs" />
   </ItemGroup>
   <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" Condition="Exists('..\ink-engine-runtime\ink-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

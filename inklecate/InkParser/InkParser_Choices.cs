@@ -155,10 +155,14 @@ namespace Ink
             // Optional name for the gather
             string optionalName = Parse(BracketedName);
 
+            var gather = new Gather (optionalName, gatherDashCount);
+
+            ParseTagsAndAddTo (gather);
+
             // Optional newline before gather's content begins
             Newline ();
 
-            return new Gather (optionalName, gatherDashCount);
+            return gather;
         }
 
         protected object GatherDashes()

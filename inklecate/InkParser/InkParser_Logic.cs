@@ -61,6 +61,9 @@ namespace Ink
                 result = new ContentList (funCall, new Parsed.Text ("\n"));
             }
 
+            // Try parsing an end of line tag
+            ParseTagsAndAddTo (result);
+
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 
             return result as Parsed.Object;

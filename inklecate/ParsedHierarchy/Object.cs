@@ -22,6 +22,15 @@ namespace Ink.Parsed
         }
         private Runtime.DebugMetadata _debugMetadata;
 
+        public Runtime.Tag [] tags { get { return _tags == null ? null : _tags.ToArray (); } }
+        List<Runtime.Tag> _tags;
+
+        public void AddTags (List<Runtime.Tag> tags)
+        {
+            if (_tags == null) _tags = new List<Runtime.Tag> ();
+            _tags.AddRange (tags);
+        }
+
 		public Parsed.Object parent { get; set; }
         public List<Parsed.Object> content { get; protected set; }
 

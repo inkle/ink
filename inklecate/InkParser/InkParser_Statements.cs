@@ -73,7 +73,7 @@ namespace Ink
                 List<ParseRule> breakingRules = new List<ParseRule> ();
 
                 // Diverts can go anywhere
-                rulesAtLevel.Add(Line(MultiDivert));
+                rulesAtLevel.Add(Line(MultiDivert, allowTags:true));
 
                 if (level >= StatementLevel.Top) {
 
@@ -82,7 +82,7 @@ namespace Ink
                     rulesAtLevel.Add (ExternalDeclaration);
                 }
 
-                rulesAtLevel.Add(Line(Choice));
+                rulesAtLevel.Add(Line(Choice, allowTags:true));
 
                 rulesAtLevel.Add(Line(AuthorWarning));
 
@@ -98,8 +98,8 @@ namespace Ink
                 }
 
                 // Global variable declarations can go anywhere
-                rulesAtLevel.Add(Line(VariableDeclaration));
-                rulesAtLevel.Add(Line(ConstDeclaration));
+                rulesAtLevel.Add(Line(VariableDeclaration, allowTags:true));
+                rulesAtLevel.Add(Line(ConstDeclaration, allowTags:true));
 
                 // Global include can go anywhere
                 rulesAtLevel.Add(Line(IncludeStatement));
@@ -142,13 +142,28 @@ namespace Ink
 		// Modifier to turn a rule into one that expects a newline on the end.
 		// e.g. anywhere you can use "MixedTextAndLogic" as a rule, you can use 
 		// "Line(MixedTextAndLogic)" to specify that it expects a newline afterwards.
-		protected ParseRule Line(ParseRule inlineRule)
+		protected ParseRule Line(ParseRule inlineRule, bool allowTags = false)
 		{
 			return () => {
 				var result = ParseObject(inlineRule);
 				if( result == null ) {
 					return null;
 				}
+
+                if (allowTags) {
+
+                    Parsed.Object objToAddTagsTo = result as Parsed.Object;
+                    if (objToAddTagsTo == null) {
+                        var objList = result as List<Parsed.Object>;
+                        if (objList == null)
+                            Error ("Expected an object that tags could be added to");
+                        else
+                            objToAddTagsTo = objList [0];
+                    }
+
+                    if (objToAddTagsTo)
+                        ParseTagsAndAddTo (objToAddTagsTo);
+                }
 
 				Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 

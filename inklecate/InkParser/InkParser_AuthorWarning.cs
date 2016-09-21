@@ -1,6 +1,4 @@
 ﻿using Ink.Parsed;
-//using System.Text;
-//using System.Collections.Generic;
 
 namespace Ink
 {

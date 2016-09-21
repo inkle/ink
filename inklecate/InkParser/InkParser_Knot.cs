@@ -10,6 +10,7 @@ namespace Ink
             public string name;
             public List<FlowBase.Argument> arguments;
             public bool isFunction;
+            public List<Runtime.Tag> tags;
         }
 
 		protected Knot KnotDefinition()
@@ -19,6 +20,9 @@ namespace Ink
                 return null;
 
 			Expect(EndOfLine, "end of line after knot name definition", recoveryRule: SkipToNextLine);
+
+            // Knot tags
+            knotDecl.tags = Interleave<Runtime.Tag> (Tags, Exclude (EndOfLine), flatten:true);
 
 			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
 
@@ -78,6 +82,9 @@ namespace Ink
                 return null;
 
 			Expect(EndOfLine, "end of line after stitch name", recoveryRule: SkipToNextLine);
+
+            // Stitch tags
+            decl.tags = Interleave<Runtime.Tag> (Tags, Exclude (EndOfLine), flatten: true);
 
 			ParseRule innerStitchStatements = () => StatementsAtLevel (StatementLevel.Stitch);
 
