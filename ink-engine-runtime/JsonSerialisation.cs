@@ -122,6 +122,8 @@ namespace Ink.Runtime
         //
         // Choice:         Nothing too clever, it's only used in the save state,
         //                 there's not likely to be many of them.
+        // 
+        // Tag:            {"#": "the tag text"}
         public static Runtime.Object JTokenToRuntimeObject(object token)
         {
             if (token is int || token is float) {
@@ -271,6 +273,12 @@ namespace Ink.Runtime
                     return varAss;
                 }
 
+                // Tag
+                if (obj.TryGetValue ("#", out propValue)) {
+                    return new Runtime.Tag ((string)propValue);
+                }
+
+                // Used when serialising save state only
                 if (obj ["originalChoicePath"] != null)
                     return JObjectToChoice (obj);
             }
@@ -412,9 +420,18 @@ namespace Ink.Runtime
                 return jObj;
             }
                 
+            // Void
             var voidObj = obj as Void;
             if (voidObj)
                 return "void";
+
+            // Tag
+            var tag = obj as Tag;
+            if (tag) {
+                var jObj = new Dictionary<string, object> ();
+                jObj ["#"] = tag.text;
+                return jObj;
+            }
 
             // Used when serialising save state only
             var choice = obj as Choice;
@@ -481,7 +498,7 @@ namespace Ink.Runtime
 
             // Final object in the array is always a combination of
             //  - named content
-            //  - a "#" key with the countFlags
+            //  - a "#f" key with the countFlags
             // (if either exists at all, otherwise null)
             var terminatingObj = jArray [jArray.Count - 1] as Dictionary<string, object>;
             if (terminatingObj != null) {

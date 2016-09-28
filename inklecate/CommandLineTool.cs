@@ -161,18 +161,18 @@ namespace Ink
 			}
                 
             // JSON round trip testing
-//            if (opts.testMode) {
-//                var jsonStr = story.ToJsonString (indented:true);
-//                Console.WriteLine (jsonStr);
-//
-//                Console.WriteLine ("---------------------------------------------------");
-//
-//                var reloadedStory = new Runtime.Story (jsonStr);
-//                var newJsonStr = reloadedStory.ToJsonString (indented: true);
-//                Console.WriteLine (newJsonStr);
-//
-//                story = reloadedStory;
-//            }
+            //if (opts.testMode) {
+            //    var jsonStr = story.ToJsonString ();
+            //    Console.WriteLine (jsonStr);
+
+            //    Console.WriteLine ("---------------------------------------------------");
+
+            //    var reloadedStory = new Runtime.Story (jsonStr);
+            //    var newJsonStr = reloadedStory.ToJsonString ();
+            //    Console.WriteLine (newJsonStr);
+
+            //    story = reloadedStory;
+            //}
 
 			// Play mode
             // Test mode may use "-tp" in commmand line args to specify that
