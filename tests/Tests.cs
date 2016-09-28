@@ -2447,6 +2447,7 @@ This is the content
 == knot ==
 # knot tag
 Knot content
+# end of knot tag
 -> END
 
 = stitch
@@ -2464,6 +2465,10 @@ Stitch content
             var knotTags = new List<string> ();
             knotTags.Add ("knot tag");
 
+            var knotTagsWhenRun = new List<string> ();
+            knotTagsWhenRun.Add ("knot tag");
+            knotTagsWhenRun.Add ("end of knot tag");
+
             var stitchTags = new List<string> ();
             stitchTags.Add ("stitch tag");
 
@@ -2473,6 +2478,10 @@ Stitch content
 
             Assert.AreEqual (knotTags, story.TagsForContentAtPath("knot"));
             Assert.AreEqual (stitchTags, story.TagsForContentAtPath ("knot.stitch"));
+
+            story.ChoosePathString ("knot");
+            Assert.AreEqual ("Knot content\n", story.Continue ());
+            Assert.AreEqual (knotTagsWhenRun, story.currentTags);
         }
 
 
