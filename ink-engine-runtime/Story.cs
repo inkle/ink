@@ -1579,9 +1579,10 @@ namespace Ink.Runtime
         /// Get any global tags associated with the story. These are defined as
         /// hash tags defined at the very top of the story.
         /// </summary>
-        public List<string> GlobalTags ()
-        {
-            return TagsAtStartOfFlowContainerAtPathString ("");
+        public List<string> globalTags {
+            get {
+                return TagsAtStartOfFlowContainerWithPathString ("");
+            }
         }
 
         /// <summary>
@@ -1592,10 +1593,10 @@ namespace Ink.Runtime
         /// <param name="path">The path of the knot or stitch, in the form "knot" or "knot.stitch".</param>
         public List<string> TagsForContentAtPath (string path)
         {
-            return TagsAtStartOfFlowContainerAtPathString (path);
+            return TagsAtStartOfFlowContainerWithPathString (path);
         }
 
-        List<string> TagsAtStartOfFlowContainerAtPathString (string pathString)
+        List<string> TagsAtStartOfFlowContainerWithPathString (string pathString)
         {
             var path = new Runtime.Path (pathString);
 

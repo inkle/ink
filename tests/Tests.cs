@@ -2434,6 +2434,47 @@ A line.
             Assert.AreEqual ("A line.\nAnother line.\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestTags ()
+        {
+            var storyStr =
+                @"
+VAR x = 2 
+# author: Joe
+# title: My Great Story
+This is the content
+
+== knot ==
+# knot tag
+Knot content
+-> END
+
+= stitch
+# stitch tag
+Stitch content
+# this tag is below some content so isn't included in the static tags for the stitch
+-> END
+";
+            var story = CompileString (storyStr);
+
+            var globalTags = new List<string> ();
+            globalTags.Add ("author: Joe");
+            globalTags.Add ("title: My Great Story");
+
+            var knotTags = new List<string> ();
+            knotTags.Add ("knot tag");
+
+            var stitchTags = new List<string> ();
+            stitchTags.Add ("stitch tag");
+
+            Assert.AreEqual (globalTags, story.globalTags);
+            Assert.AreEqual("This is the content\n", story.Continue ());
+            Assert.AreEqual (globalTags, story.currentTags);
+
+            Assert.AreEqual (knotTags, story.TagsForContentAtPath("knot"));
+            Assert.AreEqual (stitchTags, story.TagsForContentAtPath ("knot.stitch"));
+        }
+
 
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
