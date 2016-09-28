@@ -15,7 +15,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 13;
+        public const int inkVersionCurrent = 14;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -61,6 +61,12 @@ namespace Ink.Runtime
         /// The latest line of text to be generated from a Continue() call.
         /// </summary>
 		public string currentText { get  { return state.currentText; } }
+
+        /// <summary>
+        /// Gets a list of tags as defined with '#' in source that were seen
+        /// during the latest Continue() call.
+        /// </summary>
+        public List<string> currentTags { get { return state.currentTags; } }
 
         /// <summary>
         /// Any errors generated during evaluation of the Story.
