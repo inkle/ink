@@ -157,8 +157,6 @@ namespace Ink
 
             var gather = new Gather (optionalName, gatherDashCount);
 
-            ParseTagsAndAddTo (gather);
-
             // Optional newline before gather's content begins
             Newline ();
 

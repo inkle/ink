@@ -1,6 +1,7 @@
 ﻿using Ink.Parsed;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ink
 {
@@ -47,7 +48,6 @@ namespace Ink
                 TrimEndWhitespace (result, terminateWithSpace:false);
             }
 
-            ParseTagsAndAddTo (result [0]);
 
             // Add newline since it's the end of the line
             result.Add (new Text ("\n"));
@@ -84,6 +84,15 @@ namespace Ink
                     results.AddRange (diverts);
                 }
 
+            }
+
+            // Terminating tag
+            var tags = Parse (Tags);
+            if (tags != null) {
+                if (results == null)
+                    results = tags.Cast<Parsed.Object>().ToList();
+                else
+                    results.AddRange (tags);
             }
                 
             if (results == null)
@@ -150,7 +159,7 @@ namespace Ink
             // "{" for start of logic
             // "|" for mid logic branch
             if (_nonTextEndCharacters == null) {
-                _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\");
+                _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\#");
                 _notTextEndCharactersChoice = new CharacterSet (_nonTextEndCharacters);
                 _notTextEndCharactersChoice.AddCharacters ("[]");
                 _notTextEndCharactersString = new CharacterSet (_nonTextEndCharacters);

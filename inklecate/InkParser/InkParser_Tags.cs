@@ -6,7 +6,7 @@ namespace Ink
 {
     internal partial class InkParser
     {
-        protected Runtime.Tag Tag ()
+        protected Parsed.Tag Tag ()
         {
             Whitespace ();
 
@@ -31,26 +31,17 @@ namespace Ink
                 break;
             } while ( true );
 
-            var fullTagText = sb.ToString ();
+            var fullTagText = sb.ToString ().Trim();
 
-            return new Runtime.Tag (fullTagText);
+            return new Parsed.Tag (new Runtime.Tag (fullTagText));
         }
 
-        protected List<Runtime.Tag> Tags ()
+        protected List<Parsed.Tag> Tags ()
         {
             var tags = OneOrMore (Tag);
             if (tags == null) return null;
 
-            return tags.Cast<Runtime.Tag>().ToList();
-        }
-
-        protected void ParseTagsAndAddTo (Parsed.Object parsedObj)
-        {
-            // Try parsing an end of line tag
-            var tags = Parse (Tags);
-            if (tags != null) {
-                parsedObj.AddTags (tags);
-            }
+            return tags.Cast<Parsed.Tag>().ToList();
         }
 
         CharacterSet _endOfTagCharSet = new CharacterSet ("#\n\r\\");

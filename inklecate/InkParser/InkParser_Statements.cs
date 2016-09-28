@@ -145,24 +145,27 @@ namespace Ink
 		protected ParseRule Line(ParseRule inlineRule, bool allowTags = false)
 		{
 			return () => {
-				var result = ParseObject(inlineRule);
+				object result = ParseObject(inlineRule);
 				if( result == null ) {
 					return null;
 				}
 
                 if (allowTags) {
 
-                    Parsed.Object objToAddTagsTo = result as Parsed.Object;
-                    if (objToAddTagsTo == null) {
-                        var objList = result as List<Parsed.Object>;
-                        if (objList == null)
-                            Error ("Expected an object that tags could be added to");
-                        else
-                            objToAddTagsTo = objList [0];
-                    }
+                    var tags = Parse (Tags);
+                    if (tags != null) {
+                        var resultList = result as List<Parsed.Object>;
+                        if (resultList == null) {
+                            resultList = new List<Parsed.Object> ();
+                            resultList.Add (result as Parsed.Object);
+                        }
 
-                    if (objToAddTagsTo)
-                        ParseTagsAndAddTo (objToAddTagsTo);
+                        resultList.AddRange (tags);
+
+                        result = resultList;
+                    }
+                } else {
+                    if (Parse (Tag) != null) Error ("Sorry, tags aren't allowed here");
                 }
 
 				Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);

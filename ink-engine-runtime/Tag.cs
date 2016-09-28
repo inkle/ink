@@ -10,6 +10,11 @@ namespace Ink.Runtime
         {
             this.text = tagText;
         }
+
+        public override string ToString ()
+        {
+            return "# " + text;
+        }
     }
 }
 
