@@ -1576,6 +1576,49 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Get any global tags associated with the story. These are defined as
+        /// hash tags defined at the very top of the story.
+        /// </summary>
+        public List<string> GlobalTags ()
+        {
+            return TagsAtStartOfFlowContainerAtPathString ("");
+        }
+
+        /// <summary>
+        /// Gets any tags associated with a particular knot or knot.stitch.
+        /// These are defined as hash tags defined at the very top of a 
+        /// knot or stitch.
+        /// </summary>
+        /// <param name="path">The path of the knot or stitch, in the form "knot" or "knot.stitch".</param>
+        public List<string> TagsForContentAtPath (string path)
+        {
+            return TagsAtStartOfFlowContainerAtPathString (path);
+        }
+
+        List<string> TagsAtStartOfFlowContainerAtPathString (string pathString)
+        {
+            var path = new Runtime.Path (pathString);
+
+            // Expected to be global story, knot or stitch
+            var flowContainer = ContentAtPath (path) as Container;
+
+            // First element of the above constructs is a compiled weave
+            var innerWeaveContainer = flowContainer.content [0] as Container;
+
+            // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
+            List<string> tags = null;
+            foreach (var c in innerWeaveContainer.content) {
+                var tag = c as Runtime.Tag;
+                if (tag) {
+                    if (tags == null) tags = new List<string> ();
+                    tags.Add (tag.text);
+                } else break;
+            }
+
+            return tags;
+        }
+
+        /// <summary>
         /// Useful when debugging a (very short) story, to visualise the state of the
         /// story. Add this call as a watch and open the extended text. A left-arrow mark
         /// will denote the current point of the story.
