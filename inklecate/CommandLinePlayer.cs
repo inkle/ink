@@ -167,7 +167,7 @@ namespace Ink
                 Console.Write (story.currentText);
 
                 var tags = story.state.currentTags;
-                if (tags != null)
+                if (tags.Count > 0)
                     Console.WriteLine ("# tags: " + string.Join (", ", tags));
 
                 if (story.hasError) {

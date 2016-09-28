@@ -73,7 +73,7 @@ namespace Ink
                 List<ParseRule> breakingRules = new List<ParseRule> ();
 
                 // Diverts can go anywhere
-                rulesAtLevel.Add(Line(MultiDivert, allowTags:true));
+                rulesAtLevel.Add(Line(MultiDivert));
 
                 if (level >= StatementLevel.Top) {
 
@@ -82,7 +82,7 @@ namespace Ink
                     rulesAtLevel.Add (ExternalDeclaration);
                 }
 
-                rulesAtLevel.Add(Line(Choice, allowTags:true));
+                rulesAtLevel.Add(Line(Choice));
 
                 rulesAtLevel.Add(Line(AuthorWarning));
 
@@ -98,8 +98,8 @@ namespace Ink
                 }
 
                 // Global variable declarations can go anywhere
-                rulesAtLevel.Add(Line(VariableDeclaration, allowTags:true));
-                rulesAtLevel.Add(Line(ConstDeclaration, allowTags:true));
+                rulesAtLevel.Add(Line(VariableDeclaration));
+                rulesAtLevel.Add(Line(ConstDeclaration));
 
                 // Global include can go anywhere
                 rulesAtLevel.Add(Line(IncludeStatement));
@@ -142,30 +142,12 @@ namespace Ink
 		// Modifier to turn a rule into one that expects a newline on the end.
 		// e.g. anywhere you can use "MixedTextAndLogic" as a rule, you can use 
 		// "Line(MixedTextAndLogic)" to specify that it expects a newline afterwards.
-		protected ParseRule Line(ParseRule inlineRule, bool allowTags = false)
+		protected ParseRule Line(ParseRule inlineRule)
 		{
 			return () => {
 				object result = ParseObject(inlineRule);
-				if( result == null ) {
-					return null;
-				}
-
-                if (allowTags) {
-
-                    var tags = Parse (Tags);
-                    if (tags != null) {
-                        var resultList = result as List<Parsed.Object>;
-                        if (resultList == null) {
-                            resultList = new List<Parsed.Object> ();
-                            resultList.Add (result as Parsed.Object);
-                        }
-
-                        resultList.AddRange (tags);
-
-                        result = resultList;
-                    }
-                } else {
-                    if (Parse (Tag) != null) Error ("Sorry, tags aren't allowed here");
+                if (result == null) {
+                    return null;
                 }
 
 				Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);

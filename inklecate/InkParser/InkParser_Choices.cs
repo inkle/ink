@@ -88,6 +88,15 @@ namespace Ink
                 Warning ("Choice is completely empty. Interpretting as a default fallback choice. Add a divert arrow to remove this warning: * ->");
             }
 
+            var tags = Parse (Tags);
+            if (tags != null) {
+                if (hasWeaveStyleInlineBrackets) {
+                    innerContent.AddContent (tags);
+                } else {
+                    startContent.AddContent (tags);
+                }
+            }
+
             var choice = new Choice (startContent, optionOnlyContent, innerContent, divert);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
