@@ -2465,9 +2465,8 @@ Stitch content
             var knotTags = new List<string> ();
             knotTags.Add ("knot tag");
 
-            var knotTagsWhenRun = new List<string> ();
-            knotTagsWhenRun.Add ("knot tag");
-            knotTagsWhenRun.Add ("end of knot tag");
+            var knotTagWhenContinuedTwice = new List<string> ();
+            knotTagWhenContinuedTwice.Add ("end of knot tag");
 
             var stitchTags = new List<string> ();
             stitchTags.Add ("stitch tag");
@@ -2481,7 +2480,9 @@ Stitch content
 
             story.ChoosePathString ("knot");
             Assert.AreEqual ("Knot content\n", story.Continue ());
-            Assert.AreEqual (knotTagsWhenRun, story.currentTags);
+            Assert.AreEqual (knotTags, story.currentTags);
+            Assert.AreEqual ("", story.Continue ());
+            Assert.AreEqual (knotTagWhenContinuedTwice, story.currentTags);
         }
 
 

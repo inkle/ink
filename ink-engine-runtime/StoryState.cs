@@ -145,12 +145,11 @@ namespace Ink.Runtime
         {
             get 
             {
-                List<string> tags = null;
+                List<string> tags = new List<string>();
 
                 foreach (var outputObj in _outputStream) {
                     var tag = outputObj as Tag;
                     if (tag != null) {
-                        if (tags == null) tags = new List<string> ();
                         tags.Add (tag.text);
                     }
                 }
