@@ -269,8 +269,14 @@ namespace Ink.Runtime
                             string currText = currentText;
                             int prevTextLength = stateAtLastNewline.currentText.Length;
 
+                            // Take tags into account too, so that a tag following a content line:
+                            //   Content
+                            //   # tag
+                            // ... doesn't cause the tag to be wrongly associated with the content above.
+                            int prevTagCount = stateAtLastNewline.currentTags.Count;
+
                             // Output has been extended?
-                            if( !currText.Equals(stateAtLastNewline.currentText) ) {
+                            if( !currText.Equals(stateAtLastNewline.currentText) || prevTagCount != currentTags.Count ) {
 
                                 // Original newline still exists?
                                 if( currText.Length >= prevTextLength && currText[prevTextLength-1] == '\n' ) {
