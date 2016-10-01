@@ -56,6 +56,12 @@ namespace Ink.Runtime
                     return null;
             }
             set {
+
+                // This is the main 
+                if (!_globalVariables.ContainsKey (variableName)) {
+                    throw new StoryException ("Variable '" + variableName + "' doesn't exist, so can't be set.");
+                }
+
                 var val = Runtime.Value.Create(value);
                 if (val == null) {
                     if (value == null) {
