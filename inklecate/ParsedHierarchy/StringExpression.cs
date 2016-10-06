@@ -43,6 +43,28 @@ namespace Ink.Parsed
             }
             return sb.ToString ();
         }
+
+        // Equals override necessary in order to check for CONST multiple definition equality
+        public override bool Equals (object obj)
+        {
+            var otherStr = obj as StringExpression;
+            if (otherStr == null) return false;
+
+            // Can only compare direct equality on single strings rather than
+            // complex string expressions that contain dynamic logic
+            if (!this.isSingleString || !otherStr.isSingleString) {
+                return false;
+            }
+
+            var thisTxt = this.ToString ();
+            var otherTxt = otherStr.ToString ();
+            return thisTxt.Equals (otherTxt);
+        }
+
+        public override int GetHashCode ()
+        {
+            return this.ToString ().GetHashCode ();
+        }
     }
 }
 

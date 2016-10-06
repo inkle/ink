@@ -2451,6 +2451,37 @@ Hello {x}.
             });
         }
 
+        [Test ()]
+        public void TestConstRedefinition ()
+        {
+            var storyStr =
+                @"
+CONST pi = 3.1415
+CONST pi = 3.1415
+
+CONST x = ""Hello""
+CONST x = ""World""
+
+CONST y = 3
+CONST y = 3.0
+
+CONST z = -> somewhere
+CONST z = -> elsewhere
+
+== somewhere ==
+-> DONE
+
+== elsewhere ==
+-> DONE
+";
+            CompileStringWithoutRuntime (storyStr, testingErrors:true);
+
+            Assert.IsFalse (HadError ("'pi' has been redefined"));
+            Assert.IsTrue (HadError ("'x' has been redefined"));
+            Assert.IsTrue (HadError ("'y' has been redefined"));
+            Assert.IsTrue (HadError ("'z' has been redefined"));
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
@@ -2483,9 +2514,16 @@ Hello {x}.
 
             InkParser parser = new InkParser(str, null, TestErrorHandler);
             var parsedStory = parser.Parse();
-            Assert.IsFalse(parsedStory.hadError);
 
-            parsedStory.ExportRuntime(TestErrorHandler);
+            if (!testingErrors) {
+                Assert.IsNotNull (parsedStory);
+                Assert.IsFalse (parsedStory.hadError);
+            }
+
+            if (parsedStory) {
+                parsedStory.ExportRuntime (TestErrorHandler);
+            }
+
             return parsedStory;
         }
 

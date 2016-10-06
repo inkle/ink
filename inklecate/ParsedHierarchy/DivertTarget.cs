@@ -98,6 +98,24 @@ namespace Ink.Parsed
 
             _runtimeDivertTargetValue.targetPath = _runtimeDivert.targetPath;
         }
+
+        // Equals override necessary in order to check for CONST multiple definition equality
+        public override bool Equals (object obj)
+        {
+            var otherDivTarget = obj as DivertTarget;
+            if (otherDivTarget == null) return false;
+
+            var targetStr = this.divert.target.dotSeparatedComponents;
+            var otherTargetStr = otherDivTarget.divert.target.dotSeparatedComponents;
+
+            return targetStr.Equals (otherTargetStr);
+        }
+
+        public override int GetHashCode ()
+        {
+            var targetStr = this.divert.target.dotSeparatedComponents;
+            return targetStr.GetHashCode ();
+        }
             
         Runtime.DivertTargetValue _runtimeDivertTargetValue;
         Runtime.Divert _runtimeDivert;

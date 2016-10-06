@@ -115,6 +115,16 @@ namespace Ink.Parsed
             // whether to generate a runtime variable reference or the literal value
             constants = new Dictionary<string, Expression> ();
             foreach (var constDecl in FindAll<ConstantDeclaration> ()) {
+
+                // Check for duplicate definitions
+                Parsed.Expression existingDefinition = null;
+                if (constants.TryGetValue (constDecl.constantName, out existingDefinition)) {
+                    if (!existingDefinition.Equals (constDecl.expression)) {
+                        var errorMsg = string.Format ("CONST '{0}' has been redefined with a different value. Multiple definitions of the same CONST are valid so long as they contain the same value. Initial definition was on {1}.", constDecl.constantName, existingDefinition.debugMetadata);
+                        Error (errorMsg, constDecl, isWarning:false);
+                    }
+                }
+
                 constants [constDecl.constantName] = constDecl.expression;
             }
 
