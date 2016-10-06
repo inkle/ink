@@ -145,10 +145,10 @@ namespace Ink
 		protected ParseRule Line(ParseRule inlineRule)
 		{
 			return () => {
-				var result = ParseObject(inlineRule);
-				if( result == null ) {
-					return null;
-				}
+				object result = ParseObject(inlineRule);
+                if (result == null) {
+                    return null;
+                }
 
 				Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 

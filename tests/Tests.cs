@@ -2482,6 +2482,73 @@ CONST z = -> elsewhere
             Assert.IsTrue (HadError ("'z' has been redefined"));
         }
 
+        public void TestTags ()
+        {
+            var storyStr =
+                @"
+VAR x = 2 
+# author: Joe
+# title: My Great Story
+This is the content
+
+== knot ==
+# knot tag
+Knot content
+# end of knot tag
+-> END
+
+= stitch
+# stitch tag
+Stitch content
+# this tag is below some content so isn't included in the static tags for the stitch
+-> END
+";
+            var story = CompileString (storyStr);
+
+            var globalTags = new List<string> ();
+            globalTags.Add ("author: Joe");
+            globalTags.Add ("title: My Great Story");
+
+            var knotTags = new List<string> ();
+            knotTags.Add ("knot tag");
+
+            var knotTagWhenContinuedTwice = new List<string> ();
+            knotTagWhenContinuedTwice.Add ("end of knot tag");
+
+            var stitchTags = new List<string> ();
+            stitchTags.Add ("stitch tag");
+
+            Assert.AreEqual (globalTags, story.globalTags);
+            Assert.AreEqual("This is the content\n", story.Continue ());
+            Assert.AreEqual (globalTags, story.currentTags);
+
+            Assert.AreEqual (knotTags, story.TagsForContentAtPath("knot"));
+            Assert.AreEqual (stitchTags, story.TagsForContentAtPath ("knot.stitch"));
+
+            story.ChoosePathString ("knot");
+            Assert.AreEqual ("Knot content\n", story.Continue ());
+            Assert.AreEqual (knotTags, story.currentTags);
+            Assert.AreEqual ("", story.Continue ());
+            Assert.AreEqual (knotTagWhenContinuedTwice, story.currentTags);
+        }
+
+        [Test ()]
+        public void TestSetNonExistantVariable ()
+        {
+            var storyStr =
+                @"
+VAR x = ""world""
+Hello {x}.
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("Hello world.\n", story.Continue());
+
+            Assert.Throws<StoryException>(() => {
+                story.variablesState ["y"] = "earth";
+            });
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

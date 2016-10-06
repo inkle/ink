@@ -15,7 +15,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 13;
+        public const int inkVersionCurrent = 14;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -61,6 +61,12 @@ namespace Ink.Runtime
         /// The latest line of text to be generated from a Continue() call.
         /// </summary>
 		public string currentText { get  { return state.currentText; } }
+
+        /// <summary>
+        /// Gets a list of tags as defined with '#' in source that were seen
+        /// during the latest Continue() call.
+        /// </summary>
+        public List<string> currentTags { get { return state.currentTags; } }
 
         /// <summary>
         /// Any errors generated during evaluation of the Story.
@@ -263,8 +269,14 @@ namespace Ink.Runtime
                             string currText = currentText;
                             int prevTextLength = stateAtLastNewline.currentText.Length;
 
+                            // Take tags into account too, so that a tag following a content line:
+                            //   Content
+                            //   # tag
+                            // ... doesn't cause the tag to be wrongly associated with the content above.
+                            int prevTagCount = stateAtLastNewline.currentTags.Count;
+
                             // Output has been extended?
-                            if( !currText.Equals(stateAtLastNewline.currentText) ) {
+                            if( !currText.Equals(stateAtLastNewline.currentText) || prevTagCount != currentTags.Count ) {
 
                                 // Original newline still exists?
                                 if( currText.Length >= prevTextLength && currText[prevTextLength-1] == '\n' ) {
@@ -1567,6 +1579,50 @@ namespace Ink.Runtime
 
                 observers (variableName, val.valueObject);
             }
+        }
+
+        /// <summary>
+        /// Get any global tags associated with the story. These are defined as
+        /// hash tags defined at the very top of the story.
+        /// </summary>
+        public List<string> globalTags {
+            get {
+                return TagsAtStartOfFlowContainerWithPathString ("");
+            }
+        }
+
+        /// <summary>
+        /// Gets any tags associated with a particular knot or knot.stitch.
+        /// These are defined as hash tags defined at the very top of a 
+        /// knot or stitch.
+        /// </summary>
+        /// <param name="path">The path of the knot or stitch, in the form "knot" or "knot.stitch".</param>
+        public List<string> TagsForContentAtPath (string path)
+        {
+            return TagsAtStartOfFlowContainerWithPathString (path);
+        }
+
+        List<string> TagsAtStartOfFlowContainerWithPathString (string pathString)
+        {
+            var path = new Runtime.Path (pathString);
+
+            // Expected to be global story, knot or stitch
+            var flowContainer = ContentAtPath (path) as Container;
+
+            // First element of the above constructs is a compiled weave
+            var innerWeaveContainer = flowContainer.content [0] as Container;
+
+            // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
+            List<string> tags = null;
+            foreach (var c in innerWeaveContainer.content) {
+                var tag = c as Runtime.Tag;
+                if (tag) {
+                    if (tags == null) tags = new List<string> ();
+                    tags.Add (tag.text);
+                } else break;
+            }
+
+            return tags;
         }
 
         /// <summary>

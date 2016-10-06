@@ -141,6 +141,23 @@ namespace Ink.Runtime
             }
         }
 
+        internal List<string> currentTags 
+        {
+            get 
+            {
+                List<string> tags = new List<string>();
+
+                foreach (var outputObj in _outputStream) {
+                    var tag = outputObj as Tag;
+                    if (tag != null) {
+                        tags.Add (tag.text);
+                    }
+                }
+
+                return tags;
+            }
+        }
+
         internal bool inExpressionEvaluation {
             get {
                 return callStack.currentElement.inExpressionEvaluation;

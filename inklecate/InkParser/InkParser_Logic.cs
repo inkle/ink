@@ -142,14 +142,14 @@ namespace Ink
             return (Parsed.Object) OneOf (InlineLogic, Glue);
         }
 
-        protected Parsed.Wrap<Runtime.Glue> Glue()
+        protected Parsed.Glue Glue()
         {
             // Don't want to parse whitespace, since it might be important
             // surrounding the glue.
             var glueStr = ParseString("<>");
             if (glueStr != null) {
                 var glue = new Runtime.Glue (Runtime.GlueType.Bidirectional);
-                return new Parsed.Wrap<Runtime.Glue> (glue);
+                return new Parsed.Glue (glue);
             } else {
                 return null;
             }
@@ -175,8 +175,8 @@ namespace Ink
             // Create left-glue. Like normal glue, except it only absorbs newlines to
             // the left, ensuring that the logic is inline, but without having the side effect
             // of possibly absorbing desired newlines that come after.
-            var rightGlue = new Parsed.Wrap<Runtime.Glue>(new Runtime.Glue (Runtime.GlueType.Right));
-            var leftGlue = new Parsed.Wrap<Runtime.Glue>(new Runtime.Glue (Runtime.GlueType.Left));
+            var rightGlue = new Parsed.Glue(new Runtime.Glue (Runtime.GlueType.Right));
+            var leftGlue = new Parsed.Glue(new Runtime.Glue (Runtime.GlueType.Left));
             contentList.InsertContent (0, rightGlue);
             contentList.AddContent (leftGlue);
                 

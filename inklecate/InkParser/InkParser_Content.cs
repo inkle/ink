@@ -1,6 +1,7 @@
 ﻿using Ink.Parsed;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ink
 {
@@ -24,6 +25,19 @@ namespace Ink
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
         {
             var result = Parse(MixedTextAndLogic);
+
+            // Terminating tag
+            bool onlyTags = false;
+            var tags = Parse (Tags);
+            if (tags != null) {
+                if (result == null) {
+                    result = tags.Cast<Parsed.Object> ().ToList ();
+                    onlyTags = true;
+                } else {
+                    result.AddRange (tags);
+                }
+            }
+
             if (result == null || result.Count == 0)
                 return null;
 
@@ -48,7 +62,9 @@ namespace Ink
             }
 
             // Add newline since it's the end of the line
-            result.Add (new Text ("\n"));
+            // (so long as it's a line with only tags)
+            if( !onlyTags )
+                result.Add (new Text ("\n"));
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 
@@ -148,7 +164,7 @@ namespace Ink
             // "{" for start of logic
             // "|" for mid logic branch
             if (_nonTextEndCharacters == null) {
-                _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\");
+                _nonTextEndCharacters = new CharacterSet ("{}|\n\r\\#");
                 _notTextEndCharactersChoice = new CharacterSet (_nonTextEndCharacters);
                 _notTextEndCharactersChoice.AddCharacters ("[]");
                 _notTextEndCharactersString = new CharacterSet (_nonTextEndCharacters);
