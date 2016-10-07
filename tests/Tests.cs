@@ -2532,23 +2532,6 @@ Stitch content
             Assert.AreEqual (knotTagWhenContinuedTwice, story.currentTags);
         }
 
-        [Test ()]
-        public void TestSetNonExistantVariable ()
-        {
-            var storyStr =
-                @"
-VAR x = ""world""
-Hello {x}.
-";
-            var story = CompileString (storyStr);
-
-            Assert.AreEqual ("Hello world.\n", story.Continue());
-
-            Assert.Throws<StoryException>(() => {
-                story.variablesState ["y"] = "earth";
-            });
-        }
-
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
