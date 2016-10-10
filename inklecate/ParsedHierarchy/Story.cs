@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 [assembly: InternalsVisibleTo("tests")]
 
@@ -169,6 +170,9 @@ namespace Ink.Parsed
             if (hadError)
                 return null;
 
+            // Optimisation step - inline containers that can be
+            FlattenContainers ();
+
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
 			// resolve referenced symbols such as variables and paths.
@@ -186,6 +190,27 @@ namespace Ink.Parsed
 
 			return runtimeStory;
 		}
+
+        void FlattenContainers ()
+        {
+            foreach (var container in _containersToFlatten) {
+
+                if (container.namedContent.Count > 0 || container.hasValidName)
+                    continue;
+
+                var parentContainer = container.parent as Runtime.Container;
+                if (parentContainer) {
+                    var contentIdx = parentContainer.content.IndexOf (container);
+                    parentContainer.content.RemoveAt (contentIdx);
+
+                    foreach (var innerContent in container.content) {
+                        innerContent.parent = null;
+                        parentContainer.InsertContent (innerContent, contentIdx);
+                        contentIdx++;
+                    }
+                }
+            }
+        }
 
         public override void Error(string message, Parsed.Object source, bool isWarning)
 		{
@@ -243,10 +268,16 @@ namespace Ink.Parsed
                 externals [decl.name] = decl;
             }
         }
+
+        public void CanFlattenContainer (Runtime.Container container)
+        {
+            _containersToFlatten.Add (container);
+        }
             
         ErrorHandler _errorHandler;
         bool _hadError;
         bool _hadWarning;
+        List<Runtime.Container> _containersToFlatten = new List<Runtime.Container>();
 	}
 }
 

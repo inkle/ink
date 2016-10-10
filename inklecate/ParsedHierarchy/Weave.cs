@@ -220,6 +220,8 @@ namespace Ink.Parsed
             // Pass any loose ends up the hierarhcy
             PassLooseEndsToAncestors();
 
+            story.CanFlattenContainer (_rootContainer);
+
             return _rootContainer;
         }
 

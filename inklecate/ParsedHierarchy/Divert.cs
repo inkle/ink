@@ -137,6 +137,8 @@ namespace Ink.Parsed
                 // Jump into the "function" (knot/stitch)
                 container.AddContent (runtimeDivert);
 
+                story.CanFlattenContainer (container);
+
                 return container;
             } 
 

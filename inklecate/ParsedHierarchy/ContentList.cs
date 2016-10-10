@@ -52,6 +52,9 @@ namespace Ink.Parsed
                     container.AddContent (obj.runtimeObject);
                 }
             }
+
+            story.CanFlattenContainer (container);
+
             return container;
         }
 

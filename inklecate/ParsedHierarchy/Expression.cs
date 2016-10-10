@@ -24,6 +24,8 @@ namespace Ink.Parsed
             // Tell Runtime to stop evaluating the content as an expression
             container.AddContent (Runtime.ControlCommand.EvalEnd());
 
+            this.story.CanFlattenContainer (container);
+
             return container;
 		}
 

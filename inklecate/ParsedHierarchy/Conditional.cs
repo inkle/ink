@@ -42,6 +42,8 @@ namespace Ink.Parsed
             _reJoinTarget = Runtime.ControlCommand.NoOp ();
             container.AddContent (_reJoinTarget);
 
+            story.CanFlattenContainer (container);
+
             return container;
         }
 

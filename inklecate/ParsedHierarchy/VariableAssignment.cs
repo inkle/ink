@@ -50,6 +50,8 @@ namespace Ink.Parsed
 
             container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
 
+            story.CanFlattenContainer (container);
+
             return container;
         }
 

@@ -30,7 +30,9 @@
 
             // Then pop the call stack
             // (the evaluated expression will leave the return value on the evaluation stack)
-            container.AddContent (Runtime.ControlCommand.PopFunction()); 
+            container.AddContent (Runtime.ControlCommand.PopFunction());
+
+            story.CanFlattenContainer (container);
 
             return container;
         }
