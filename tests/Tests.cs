@@ -2532,6 +2532,26 @@ Stitch content
             Assert.AreEqual (knotTagWhenContinuedTwice, story.currentTags);
         }
 
+        public void TestTunnelOnwardsDivertOverride ()
+        {
+            var storyStr =
+                @"
+-> A ->
+We will never return to here!
+
+== A ==
+This is A
+->-> B
+
+== B ==
+Now in B.
+-> END
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("This is A\nNow in B.\n", story.ContinueMaximally());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
