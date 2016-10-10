@@ -345,8 +345,8 @@ namespace Ink.Runtime
             }
         }
 
-        private List<Thread> _threads;
-        public int _threadCounter;
+        List<Thread> _threads;
+        int _threadCounter;
     }
 }
 
