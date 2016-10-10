@@ -64,6 +64,21 @@ namespace Ink
                 md.endLineNumber = stateAtEnd.lineIndex + 1;
                 md.fileName = _filename;
                 parsedObj.debugMetadata = md;
+                return;
+            }
+
+            // A list of objects that doesn't already have metadata?
+            var parsedListObjs = result as List<Parsed.Object>;
+            if (parsedListObjs != null) {
+                foreach (var parsedListObj in parsedListObjs) {
+                    if (!parsedListObj.hasOwnDebugMetadata) {
+                        var md = new Runtime.DebugMetadata ();
+                        md.startLineNumber = stateAtStart.lineIndex + 1;
+                        md.endLineNumber = stateAtEnd.lineIndex + 1;
+                        md.fileName = _filename;
+                        parsedListObj.debugMetadata = md;
+                    }
+                }
             }
         }
             

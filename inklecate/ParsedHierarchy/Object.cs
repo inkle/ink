@@ -22,6 +22,13 @@ namespace Ink.Parsed
         }
         private Runtime.DebugMetadata _debugMetadata;
 
+        public bool hasOwnDebugMetadata {
+            get {
+                return _debugMetadata != null;
+            }
+        }
+
+
 		public Parsed.Object parent { get; set; }
         public List<Parsed.Object> content { get; protected set; }
 

@@ -15,7 +15,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 14;
+        public const int inkVersionCurrent = 15;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -32,7 +32,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The minimum legacy version of ink that can be loaded by the current version of the code.
         /// </summary>
-        const int inkVersionMinimumCompatible = 12;
+        const int inkVersionMinimumCompatible = 15;
 
         /// <summary>
         /// The list of Choice objects available at the current point in
@@ -738,6 +738,17 @@ namespace Ink.Runtime
 
                     var popType = evalCommand.commandType == ControlCommand.CommandType.PopFunction ?
                         PushPopType.Function : PushPopType.Tunnel;
+
+                    // Tunnel onwards is allowed to specify an optional override
+                    // divert to go to immediately after returning: ->-> target
+                    DivertTargetValue overrideTunnelReturnTarget = null;
+                    if (popType == PushPopType.Tunnel) {
+                        var popped = state.PopEvaluationStack ();
+                        overrideTunnelReturnTarget = popped as DivertTargetValue;
+                        if (overrideTunnelReturnTarget == null) {
+                            Assert (popped is Void, "Expected void if ->-> doesn't override target");
+                        }
+                    }
                     
                     if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
 
@@ -757,7 +768,12 @@ namespace Ink.Runtime
 
                     else {
                         state.callStack.Pop ();
+
+                        // Does tunnel onwards override by diverting to a new ->-> target?
+                        if( overrideTunnelReturnTarget )
+                            state.divertedTargetObject = ContentAtPath (overrideTunnelReturnTarget.targetPath);
                     }
+
                     break;
 
                 case ControlCommand.CommandType.BeginString:
