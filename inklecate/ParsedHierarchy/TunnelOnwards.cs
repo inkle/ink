@@ -20,8 +20,6 @@
 
             container.AddContent (Runtime.ControlCommand.PopTunnel ());
 
-            this.story.CanFlattenContainer (container);
-
             return container;
         }
 

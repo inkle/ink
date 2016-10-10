@@ -53,8 +53,6 @@ namespace Ink.Parsed
                 }
             }
 
-            story.CanFlattenContainer (container);
-
             return container;
         }
 

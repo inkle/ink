@@ -171,7 +171,7 @@ namespace Ink.Parsed
                 return null;
 
             // Optimisation step - inline containers that can be
-            FlattenContainers ();
+            FlattenContainersIn (rootContainer);
 
 			// Now that the story has been fulled parsed into a hierarchy,
 			// and the derived runtime hierarchy has been built, we can
@@ -191,23 +191,50 @@ namespace Ink.Parsed
 			return runtimeStory;
 		}
 
-        void FlattenContainers ()
+        void FlattenContainersIn (Runtime.Container container)
         {
-            foreach (var container in _containersToFlatten) {
+            // Need to create a collection to hold the inner containers
+            // because otherwise we'd end up modifying during iteration
+            var innerContainers = new HashSet<Runtime.Container> ();
 
-                if (container.namedContent.Count > 0 || container.hasValidName)
-                    continue;
+            foreach (var c in container.content) {
+                var innerContainer = c as Runtime.Container;
+                if (innerContainer)
+                    innerContainers.Add (innerContainer);
+            }
 
-                var parentContainer = container.parent as Runtime.Container;
-                if (parentContainer) {
-                    var contentIdx = parentContainer.content.IndexOf (container);
-                    parentContainer.content.RemoveAt (contentIdx);
+            // Can't flatten the named inner containers, but we can at least
+            // iterate through their children
+            if (container.namedContent != null) {
+                foreach (var keyValue in container.namedContent) {
+                    var namedInnerContainer = keyValue.Value as Runtime.Container;
+                    if (namedInnerContainer)
+                        innerContainers.Add (namedInnerContainer);
+                }
+            }
 
-                    foreach (var innerContent in container.content) {
-                        innerContent.parent = null;
-                        parentContainer.InsertContent (innerContent, contentIdx);
-                        contentIdx++;
-                    }
+            foreach (var innerContainer in innerContainers) {
+                TryFlattenContainer (innerContainer);
+                FlattenContainersIn (innerContainer);
+            }
+        }
+
+        void TryFlattenContainer (Runtime.Container container)
+        {
+            if (container.namedContent.Count > 0 || container.hasValidName)
+                return;
+
+            // Inline all the content in container into the parent
+            var parentContainer = container.parent as Runtime.Container;
+            if (parentContainer) {
+
+                var contentIdx = parentContainer.content.IndexOf (container);
+                parentContainer.content.RemoveAt (contentIdx);
+
+                foreach (var innerContent in container.content) {
+                    innerContent.parent = null;
+                    parentContainer.InsertContent (innerContent, contentIdx);
+                    contentIdx++;
                 }
             }
         }
@@ -268,16 +295,10 @@ namespace Ink.Parsed
                 externals [decl.name] = decl;
             }
         }
-
-        public void CanFlattenContainer (Runtime.Container container)
-        {
-            _containersToFlatten.Add (container);
-        }
             
         ErrorHandler _errorHandler;
         bool _hadError;
         bool _hadWarning;
-        List<Runtime.Container> _containersToFlatten = new List<Runtime.Container>();
 	}
 }
 
