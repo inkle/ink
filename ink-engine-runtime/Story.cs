@@ -749,8 +749,11 @@ namespace Ink.Runtime
                             Assert (popped is Void, "Expected void if ->-> doesn't override target");
                         }
                     }
-                    
-                    if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
+
+                    if (state.TryExitExternalFunctionEvaluation ()) {
+                        break;
+                    }
+                    else if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
 
                         var names = new Dictionary<PushPopType, string> ();
                         names [PushPopType.Function] = "function return statement (~ return)";
@@ -1075,6 +1078,7 @@ namespace Ink.Runtime
 				throw new System.Exception ("Function is empty or white space.");
 			}
 
+            // Get the content that we need to run
             Runtime.Container funcContainer = null;
             try {
                 funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
@@ -1085,34 +1089,8 @@ namespace Ink.Runtime
                     throw e;
             }
 
-            // We'll start a new callstack, so keep hold of the original,
-            // as well as the evaluation stack so we know if the function 
-            // returned something
-            var originalCallstack = state.callStack;
-            int originalEvaluationStackHeight = state.evaluationStack.Count;
-
-            // Create a new base call stack element.
-            // By making it point at element 0 of the base, when NextContent is
-            // called, it'll actually step past the entire content of the game (!)
-            // and straight onto the Done. Bit of a hack :-/ We don't really have
-            // a better way of creating a temporary context that ends correctly.
-            state.callStack = new CallStack (mainContentContainer);
-            state.callStack.currentElement.currentContainer = mainContentContainer;
-            state.callStack.currentElement.currentContentIndex = 0;
-
-            if (arguments != null) {
-                for (int i = 0; i < arguments.Length; i++) {
-                    if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string)) {
-                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
-                    }
-
-                    state.evaluationStack.Add (Runtime.Value.Create(arguments[i]));
-                }
-            }
-
-            // Jump into the function!
-            state.callStack.Push (PushPopType.Function);
-            state.currentContentObject = funcContainer;
+            // State will temporarily replace the callstack in order to evaluate
+            state.StartExternalFunctionEvaluation (funcContainer, arguments);
 
             // Evaluate the function, and collect the string output
             var stringOutput = new StringBuilder ();
@@ -1121,39 +1099,9 @@ namespace Ink.Runtime
             }
             textOutput = stringOutput.ToString ();
 
-            // Restore original stack
-            state.callStack = originalCallstack;
-
-            // Do we have a returned value?
-            // Potentially pop multiple values off the stack, in case we need
-            // to clean up after ourselves (e.g. caller of EvaluateFunction may 
-            // have passed too many arguments, and we currently have no way to check for that)
-            Runtime.Object returnedObj = null;
-            while (state.evaluationStack.Count > originalEvaluationStackHeight) {
-                var poppedObj = state.PopEvaluationStack ();
-                if (returnedObj == null)
-                    returnedObj = poppedObj;
-            }
-
-            if (returnedObj) {
-                if (returnedObj is Runtime.Void)
-                    return null;
-
-                // Some kind of value, if not void
-                var returnVal = returnedObj as Runtime.Value;
-
-                // DivertTargets get returned as the string of components
-                // (rather than a Path, which isn't public)
-                if (returnVal.valueType == ValueType.DivertTarget) {
-                    return returnVal.valueObject.ToString ();
-                }
-
-                // Other types can just have their exact object type:
-                // int, float, string. VariablePointers get returned as strings.
-                return returnVal.valueObject;
-            }
-
-            return null;
+            // Finish evaluation, and see whether anything was produced
+            var result = state.CompleteExternalFunctionEvaluation ();
+            return result;
         }
 
         // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
@@ -1702,12 +1650,12 @@ namespace Ink.Runtime
                     }
 
                     didPop = true;
-                } 
-
-                else if (state.callStack.canPopThread) {
+                } else if (state.callStack.canPopThread) {
                     state.callStack.PopThread ();
 
                     didPop = true;
+                } else {
+                    state.TryExitExternalFunctionEvaluation ();
                 }
 
                 // Step past the point where we last called out

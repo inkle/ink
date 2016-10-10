@@ -710,6 +710,87 @@ namespace Ink.Runtime
             currentTurnIndex++;
         }
 
+        internal void StartExternalFunctionEvaluation (Container funcContainer, params object[] arguments)
+        {
+            // We'll start a new callstack, so keep hold of the original,
+            // as well as the evaluation stack so we know if the function 
+            // returned something
+            _originalCallstack = callStack;
+            _originalEvaluationStackHeight = evaluationStack.Count;
+
+            // Create a new base call stack element.
+            callStack = new CallStack (funcContainer);
+            callStack.currentElement.type = PushPopType.Function;
+
+            // By setting ourselves in external function evaluation mode,
+            // we're saying it's okay to end the flow without a Done or End,
+            // but with a ~ return instead.
+            _isExternalFunctionEvaluation = true;
+
+            // Pass arguments onto the evaluation stack
+            if (arguments != null) {
+                for (int i = 0; i < arguments.Length; i++) {
+                    if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string)) {
+                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
+                    }
+
+                    evaluationStack.Add (Runtime.Value.Create (arguments [i]));
+                }
+            }
+        }
+            
+        internal bool TryExitExternalFunctionEvaluation ()
+        {
+            if (_isExternalFunctionEvaluation && callStack.elements.Count == 1 && callStack.currentElement.type == PushPopType.Function) {
+                currentContentObject = null;
+                didSafeExit = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        internal object CompleteExternalFunctionEvaluation ()
+        {
+            
+            // Do we have a returned value?
+            // Potentially pop multiple values off the stack, in case we need
+            // to clean up after ourselves (e.g. caller of EvaluateFunction may 
+            // have passed too many arguments, and we currently have no way to check for that)
+            Runtime.Object returnedObj = null;
+            while (evaluationStack.Count > _originalEvaluationStackHeight) {
+                var poppedObj = PopEvaluationStack ();
+                if (returnedObj == null)
+                    returnedObj = poppedObj;
+            }
+
+            // Restore our own state
+            callStack = _originalCallstack;
+            _originalCallstack = null;
+            _originalEvaluationStackHeight = 0;
+
+            // What did we get back?
+            if (returnedObj) {
+                if (returnedObj is Runtime.Void)
+                    return null;
+
+                // Some kind of value, if not void
+                var returnVal = returnedObj as Runtime.Value;
+
+                // DivertTargets get returned as the string of components
+                // (rather than a Path, which isn't public)
+                if (returnVal.valueType == ValueType.DivertTarget) {
+                    return returnVal.valueObject.ToString ();
+                }
+
+                // Other types can just have their exact object type:
+                // int, float, string. VariablePointers get returned as strings.
+                return returnVal.valueObject;
+            }
+
+            return null;
+        }
+
         internal void AddError(string message)
         {
             // TODO: Could just add to output?
@@ -725,6 +806,12 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
             
         List<Runtime.Object> _outputStream;
+
+
+        // Temporary state only, during externally called function evaluation
+        bool _isExternalFunctionEvaluation;
+        CallStack _originalCallstack;
+        int _originalEvaluationStackHeight;
     }
 }
 
