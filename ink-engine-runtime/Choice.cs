@@ -21,6 +21,16 @@ namespace Ink.Runtime
         public string pathStringOnChoice { get { return choicePoint.pathStringOnChoice; } }
 
         /// <summary>
+        /// Get the path to the original choice point - where was this choice defined in the story?
+        /// </summary>
+        /// <value>A dot separated path into the story data.</value>
+        public string sourcePath {
+            get {
+                return choicePoint.path.componentsString;
+            }
+        }
+
+        /// <summary>
         /// The original index into currentChoices list on the Story when
         /// this Choice was generated, for convenience.
         /// </summary>
