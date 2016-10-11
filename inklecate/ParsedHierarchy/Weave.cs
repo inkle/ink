@@ -252,7 +252,7 @@ namespace Ink.Parsed
             // by name so that it isn't stepped into automatically, but only via
             // a divert from a loose end.
             else {
-                currentContainer.AddToNamedContentOnly (gatherContainer);
+                _rootContainer.AddToNamedContentOnly (gatherContainer);
             }
 
             // Consume loose ends: divert them to this gather
