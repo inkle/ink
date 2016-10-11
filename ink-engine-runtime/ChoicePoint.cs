@@ -9,11 +9,26 @@ namespace Ink.Runtime
     /// </summary>
 	internal class ChoicePoint : Runtime.Object
 	{
-        internal Path pathOnChoice { get; set; }
+        internal Path pathOnChoice {
+            get {
+                // Resolve any relative paths to global ones as we come across them
+                if (_pathOnChoice != null && _pathOnChoice.isRelative) {
+                    var choiceTargetObj = choiceTarget;
+                    if (choiceTargetObj) {
+                        _pathOnChoice = choiceTargetObj.path;
+                    }
+                }
+                return _pathOnChoice;
+            }
+            set {
+                _pathOnChoice = value;
+            }
+        }
+        Path _pathOnChoice;
 
         internal Container choiceTarget {
             get {
-                return this.ResolvePath (pathOnChoice) as Container;
+                return this.ResolvePath (_pathOnChoice) as Container;
             }
         }
 
