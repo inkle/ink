@@ -1405,25 +1405,50 @@ namespace Ink.Runtime
         /// </summary>
         public void ValidateExternalBindings()
         {
-            ValidateExternalBindings (_mainContentContainer);
+			var missingExternals = new HashSet<string>();
+
+			ValidateExternalBindings (_mainContentContainer, missingExternals);
             _hasValidatedExternals = true;
+
+			// No problem! Validation complete
+			if( missingExternals.Count == 0 ) {
+				_hasValidatedExternals = true;
+			} 
+
+			// Error for all missing externals
+			else {
+				var message = string.Format("Missing function binding for external{0}: '{1}' {2}",
+					missingExternals.Count > 1 ? "s" : string.Empty,
+					string.Join("', '", missingExternals.ToArray()),
+					allowExternalFunctionFallbacks ? ", and no fallback ink function found." : " (ink fallbacks disabled)"
+				);
+					
+				string errorPreamble = "ERROR: ";
+				if (_mainContentContainer.debugMetadata != null) {
+					errorPreamble += string.Format ("'{0}' line {1}: ", _mainContentContainer.debugMetadata.fileName, _mainContentContainer.debugMetadata.startLineNumber);
+				}
+
+				Error(message);
+			}
         }
 
-        void ValidateExternalBindings(Container c)
+		void ValidateExternalBindings(Container c, HashSet<string> missingExternals)
         {
             foreach (var innerContent in c.content) {
-                ValidateExternalBindings (innerContent);
+				var container = innerContent as Container;
+				if( container == null || !container.hasValidName )
+					ValidateExternalBindings (innerContent, missingExternals);
             }
             foreach (var innerKeyValue in c.namedContent) {
-                ValidateExternalBindings (innerKeyValue.Value as Runtime.Object);
+				ValidateExternalBindings (innerKeyValue.Value as Runtime.Object, missingExternals);
             }
         }
 
-        void ValidateExternalBindings(Runtime.Object o)
+		void ValidateExternalBindings(Runtime.Object o, HashSet<string> missingExternals)
         {
             var container = o as Container;
             if (container) {
-                ValidateExternalBindings (container);
+                ValidateExternalBindings (container, missingExternals);
                 return;
             }
 
@@ -1432,26 +1457,14 @@ namespace Ink.Runtime
                 var name = divert.targetPathString;
 
                 if (!_externals.ContainsKey (name)) {
-
-                    INamedContent fallbackFunction = null;
-                    bool fallbackFound = mainContentContainer.namedContent.TryGetValue (name, out fallbackFunction);
-
-                    string message = null;
-                    if (!allowExternalFunctionFallbacks)
-                        message = "Missing function binding for external '" + name + "' (ink fallbacks disabled)";
-                    else if( !fallbackFound ) {
-                        message = "Missing function binding for external '" + name + "', and no fallback ink function found.";
-                    }
-
-                    if (message != null) {
-                        string errorPreamble = "ERROR: ";
-                        if (divert.debugMetadata != null) {
-                            errorPreamble += string.Format ("'{0}' line {1}: ", divert.debugMetadata.fileName, divert.debugMetadata.startLineNumber);
-                        }
-
-                        throw new StoryException (errorPreamble + message);
-                    }
-
+					if( allowExternalFunctionFallbacks ) {
+						bool fallbackFound = mainContentContainer.namedContent.ContainsKey(name);
+						if( !fallbackFound ) {
+							missingExternals.Add(name);
+						}
+					} else {
+						missingExternals.Add(name);
+					}
                 }
             }
         }
