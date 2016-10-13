@@ -90,7 +90,7 @@ Nothing
 { 2 * (5-1) }
 ");
 
-            Assert.AreEqual("36\n2\n3\n2\n2.333333\n8\n8\n", story.ContinueMaximally());
+            Assert.AreEqual("36\n2\n3\n2\n2"+System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator+"333333\n8\n8\n", story.ContinueMaximally());
         }
 
         [Test()]
@@ -327,7 +327,7 @@ two ({num})
 ->->
 ");
 
-            Assert.AreEqual("one (1)\none and a half (1.5)\ntwo (2)\nthree (3)\n", story.ContinueMaximally());
+            Assert.AreEqual("one (1)\none and a half (1"+ System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator+"5)\ntwo (2)\nthree (3)\n", story.ContinueMaximally());
         }
 
         [Test()]
@@ -1996,7 +1996,7 @@ VAR x = 5
 
             story.variablesState["x"] = 8.5f;
             story.ChooseChoiceIndex(0);
-            Assert.AreEqual("8.5\n", story.ContinueMaximally());
+            Assert.AreEqual("8"+ System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator+"5\n", story.ContinueMaximally());
             Assert.AreEqual(8.5f, story.variablesState["x"]);
 
             story.variablesState["x"] = "a string";
