@@ -25,7 +25,11 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            return value.ToString ();
+            if (value is float) {
+                return ((float)value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            } else {
+                return value.ToString();
+            }
         }
 
         // Equals override necessary in order to check for CONST multiple definition equality
