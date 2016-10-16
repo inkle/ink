@@ -138,7 +138,7 @@ namespace Ink.Runtime
             }
 
             if (newType == ValueType.String) {
-                return new StringValue("" + this.value);
+                return new StringValue("" + this.value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
             throw new System.Exception ("Unexpected type cast of Value to new ValueType");
@@ -191,7 +191,7 @@ namespace Ink.Runtime
 
             if (newType == ValueType.Float) {
                 float parsedFloat;
-                if (float.TryParse (value, out parsedFloat)) {
+                if (float.TryParse (value, System.Globalization.NumberStyles.Float ,System.Globalization.CultureInfo.InvariantCulture, out parsedFloat)) {
                     return new FloatValue (parsedFloat);
                 } else {
                     return null;

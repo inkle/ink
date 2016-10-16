@@ -185,7 +185,7 @@ namespace Ink.Runtime
 
                 if (isFloat) {
                     float f;
-                    if (float.TryParse (numStr, out f)) {
+                    if (float.TryParse (numStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f)) {
                         return f;
                     }
                 } else {
@@ -264,7 +264,7 @@ namespace Ink.Runtime
                 if (obj is int) {
                     _sb.Append ((int)obj);
                 } else if (obj is float) {
-                    string floatStr = obj.ToString ();
+                    string floatStr = ((float)obj).ToString(System.Globalization.CultureInfo.InvariantCulture);
                     _sb.Append (floatStr);
                     if (!floatStr.Contains (".")) _sb.Append (".0");
                 } else if( obj is bool) {
