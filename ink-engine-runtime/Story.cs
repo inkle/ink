@@ -1417,17 +1417,12 @@ namespace Ink.Runtime
 
 			// Error for all missing externals
 			else {
-				var message = string.Format("Missing function binding for external{0}: '{1}' {2}",
+				var message = string.Format("ERROR: Missing function binding for external{0}: '{1}' {2}",
 					missingExternals.Count > 1 ? "s" : string.Empty,
 					string.Join("', '", missingExternals.ToArray()),
 					allowExternalFunctionFallbacks ? ", and no fallback ink function found." : " (ink fallbacks disabled)"
 				);
 					
-				string errorPreamble = "ERROR: ";
-				if (_mainContentContainer.debugMetadata != null) {
-					errorPreamble += string.Format ("'{0}' line {1}: ", _mainContentContainer.debugMetadata.fileName, _mainContentContainer.debugMetadata.startLineNumber);
-				}
-
 				Error(message);
 			}
         }
