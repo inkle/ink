@@ -327,25 +327,6 @@ namespace Ink
             };
         }
 
-        public SpecificParseRule<G> Then<T,G>(SpecificParseRule<T> m, Func<T,SpecificParseRule<G>> f) where T : class where G : class
-        {
-            return () => {
-                var x = Parse(m);
-                return Parse(f(x));
-            };
-        }
-
-        public SpecificParseRule<G> Require<T,G>(SpecificParseRule<T> required, Func<T,SpecificParseRule<G>> f) where T : class where G : class
-        {
-            return () =>
-            {
-                var x = Parse(required);
-                if (x == null)
-                    return null;
-                return Parse(f(x));
-            };
-        }
-
         // Convenience method for creating more readable ParseString rules that can be combined
         // in other structuring rules (like OneOf etc)
         // e.g. OneOf(String("one"), String("two"))

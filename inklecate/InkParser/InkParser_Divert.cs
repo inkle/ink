@@ -100,50 +100,64 @@ namespace Ink
 
         protected List<Object> ParseTunnelContinue()
         {
-            System.Func<Object, SpecificParseRule<List<Object>>> helper = x => () =>
-              {
-                  var ret = new List<Object>();
-                  ret.Add(x);
-                  return ret;
-              };
-
             //  -> div -> div ->->   (etc)
-            SpecificParseRule<List<Object>> divThenTunnelOnwards =
-                Require(DivertIdentifierWithArguments, x =>
-                    Require<TunnelOnwards, List<Object>>(ParseTunnelOnwards, y =>
-                        () => {
-                            var ls = new List<Object>();
-                            x.isTunnel = true;
-                            ls.Add(x);
-                            ls.Add(y);
-                            return ls;
-                        }));
- 
-            System.Func<Divert, SpecificParseRule<List<Object>>> furtherTunnelingHelper = 
-                x => Require<List<Object>,List<Object>>(helper(x), ls => 
-                    () => {
-                        x.isTunnel = true;
-                        var cont = ParseTunnelContinue();
-                        if (cont != null)
-                        {
-                            ls.AddRange(cont);
-                        }
-                        return ls;
-                    });
+            ParseRule divThenTunnelOnwards = () =>
+            {
+                var x = Parse(DivertIdentifierWithArguments);
+                if (x == null)
+                    return null;
+                var y = Parse(ParseTunnelOnwards);
+                if (y == null)
+                    return null;
+                var ls = new List<Object>();
+                x.isTunnel = true;
+                ls.Add(x);
+                ls.Add(y);
+                return ls;
+            };
+
             //  -> div ->->          -- tunnel then tunnel continue
             // only parsing 1 -> since the other is already parsed for tunnel detection
-            SpecificParseRule<List<Object>> tunnelOnwards = () =>
+            ParseRule tunnelOnwards = () =>
             {
                 if (ParseString("->") == null)
                     return null;
-                return helper(new TunnelOnwards())();
+                var ret = new List<Object>();
+                ret.Add(new TunnelOnwards());
+                return ret;
             };
+
             //  -> div -> div ->     -- tunnel then tunnel
-            var furtherTunneling = Require(DivertIdentifierWithArguments, x => Require<string,List<Object>>(() => ParseString("->"), y => furtherTunnelingHelper(x)));
+            ParseRule furtherTunneling = () =>
+            {
+                var x = Parse(DivertIdentifierWithArguments);
+                if (x == null)
+                    return null;
+                if (ParseString("->") == null)
+                    return null;
+                var ret = new List<Object>();
+                x.isTunnel = true;
+                ret.Add(x);
+                var cont = ParseTunnelContinue();
+                if (cont != null)
+                {
+                    ret.AddRange(cont);
+                }
+                return ret;
+            };
+
             //  -> div -> div        -- tunnel then divert
-            var endingDiv = Require(DivertIdentifierWithArguments, helper);
+            ParseRule endingDiv = () =>
+            {
+                var x = Parse(DivertIdentifierWithArguments);
+                if (x == null)
+                    return null;
+                var ret = new List<Object>();
+                ret.Add(x);
+                return ret;
+            };
             // note: order is important, since furtherTunneling also works for endingDiv, so we need to do most specific first, most general last
-            return (List<Object>)OneOf(() => tunnelOnwards(), () => divThenTunnelOnwards(), () => furtherTunneling(), () => endingDiv());
+            return (List<Object>)OneOf(tunnelOnwards,divThenTunnelOnwards,furtherTunneling,endingDiv);
         }
         
 
