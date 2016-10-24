@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Ink.Parsed;
 
-
 namespace Ink
 {
     internal partial class InkParser
@@ -19,96 +18,134 @@ namespace Ink
                 diverts.Add (threadDivert);
                 return diverts;
             }
-
-            // Normal diverts and tunnels
-            var arrowsAndDiverts = Interleave<object> (
-                ParseDivertArrowOrTunnelOnwards,
-                DivertIdentifierWithArguments);
-            
-            if (arrowsAndDiverts == null)
-                return null;
-
-            diverts = new List<Parsed.Object> ();
-
-            // Possible patterns:
-            //  ->                   -- explicit gather
-            //  ->->                 -- tunnel onwards
-            //  -> div               -- normal divert
-            //  ->-> div             -- tunnel onwards, followed by override divert
-            //  -> div ->            -- normal tunnel
-            //  -> div ->->          -- tunnel then tunnel continue
-            //  -> div -> div        -- tunnel then divert
-            //  -> div -> div ->     -- tunnel then tunnel
-            //  -> div -> div ->->   (etc)
-
-            bool hasInitialTunnelOnwards = false;
-            bool hasFinalTunnelOnwards = false;
-
-            // Look at the arrows and diverts
-            for (int i = 0; i < arrowsAndDiverts.Count; ++i) {
-                bool isArrow = (i % 2) == 0;
-
-                // Arrow string
-                if (isArrow) {
-                    string arrow = arrowsAndDiverts [i] as string;
-                    if (arrow == "->->") {
-                        if (i == 0) {
-                            hasInitialTunnelOnwards = true;
-                        } else if (i == arrowsAndDiverts.Count - 1) {
-                            hasFinalTunnelOnwards = true;
-                        } else {
-                            Error ("Tunnel onwards '->->' must only come at the begining or the start of a divert");
-                        }
-                    }
-                }
-
-                // Divert
-                else {
-
-                    var divert = arrowsAndDiverts [i] as Divert;
-
-                    // More to come? (further arrows) Must be tunnelling.
-                    if (i < arrowsAndDiverts.Count - 1) {
-                        divert.isTunnel = true;
-                    }
-
-                    diverts.Add (divert);
-                }
+            diverts = Parse(ParseMultiTunnel);
+            if (diverts == null)
+            {
+                var res = (Object)OneOf(ParseTunnelOnwardsWithOverride, ParseTunnelOnwards, ParseNormalDivert,ParseGather);
+                if (res == null)
+                    return null;
+                diverts = new List<Object>();
+                diverts.Add(res);
             }
-
-            // ->-> (with optional override divert)
-            if (hasInitialTunnelOnwards) {
-                if (arrowsAndDiverts.Count > 2) {
-                    Error ("Tunnel onwards '->->' must either be on its own or followed by a single target");
-                }
-
-                var tunnelOnwards = new TunnelOnwards ();
-
-                // Optional override target to divert to after tunnel onwards?
-                // Replace divert with the tunnel onwards to that target.
-                if (arrowsAndDiverts.Count > 1) {
-                    var overrideDivert = diverts [0] as Parsed.Divert;
-                    tunnelOnwards.overrideReturnPath = overrideDivert.target;
-                    diverts.RemoveAt (0);
-                }
-
-                diverts.Add (tunnelOnwards);
-            }
-
-            // Single ->
-            else if (diverts.Count == 0 && arrowsAndDiverts.Count == 1) {
-                var gatherDivert = new Divert ((Parsed.Object)null);
-                gatherDivert.isToGather = true;
-                diverts.Add (gatherDivert);
-            }
-
-            // Divert that terminates in ->->
-            else if (hasFinalTunnelOnwards) {
-                diverts.Add (new TunnelOnwards ());
-            }
-
             return diverts;
         }
+
+        protected Divert ParseNormalDivert()
+        {
+            //  -> div               -- normal divert
+            if (ParseString("->") == null)
+                return null;
+
+            return Parse(DivertIdentifierWithArguments);
+        }
+
+        protected Divert ParseGather()
+        {
+            //  ->                   -- explicit gather
+            if (ParseString("->") == null)
+                return null;
+
+            var div = new Divert(null);
+            div.isToGather = true;
+            return div;
+        }
+
+        protected TunnelOnwards ParseTunnelOnwards()
+        {
+            //  ->->                 -- tunnel onwards
+            if (ParseString("->->") == null)
+                return null;
+
+            return new TunnelOnwards();
+        }
+
+        protected TunnelOnwards ParseTunnelOnwardsWithOverride()
+        {
+            //  ->-> div             -- tunnel onwards, followed by override divert
+            if (ParseString("->->") == null)
+                return null;
+
+            var tunnelOnwards = new TunnelOnwards();
+
+            var div = Parse<Divert>(DivertIdentifierWithArguments);
+
+            if (div == null)
+                return null;
+
+            // Override target to divert to after tunnel onwards?
+            // Replace divert with the tunnel onwards to that target.
+            tunnelOnwards.overrideReturnPath = div.target;
+            return tunnelOnwards;
+        }
+
+        protected List<Object> ParseMultiTunnel()
+        {
+            //  -> div ->            -- normal tunnel
+            // also parses everything that starts with -> div ->
+            if (ParseString("->") == null)
+                return null;
+            var div = Parse<Divert>(DivertIdentifierWithArguments);
+            if (div == null)
+                return null;
+            if (ParseString("->") == null)
+                return null;
+            div.isTunnel = true;
+            var continuedParse = Parse(ParseTunnelContinue);
+            var ret = new List<Object>();
+            ret.Add(div);
+            if(continuedParse != null)
+                ret.AddRange(continuedParse);
+            return ret;
+        }
+
+        protected List<Object> ParseTunnelContinue()
+        {
+            System.Func<Object, SpecificParseRule<List<Object>>> helper = x => () =>
+              {
+                  var ret = new List<Object>();
+                  ret.Add(x);
+                  return ret;
+              };
+
+            //  -> div -> div ->->   (etc)
+            SpecificParseRule<List<Object>> divThenTunnelOnwards =
+                Require(DivertIdentifierWithArguments, x =>
+                    Require<TunnelOnwards, List<Object>>(ParseTunnelOnwards, y =>
+                        () => {
+                            var ls = new List<Object>();
+                            x.isTunnel = true;
+                            ls.Add(x);
+                            ls.Add(y);
+                            return ls;
+                        }));
+ 
+            System.Func<Divert, SpecificParseRule<List<Object>>> furtherTunnelingHelper = 
+                x => Require<List<Object>,List<Object>>(helper(x), ls => 
+                    () => {
+                        x.isTunnel = true;
+                        var cont = ParseTunnelContinue();
+                        if (cont != null)
+                        {
+                            ls.AddRange(cont);
+                        }
+                        return ls;
+                    });
+            //  -> div ->->          -- tunnel then tunnel continue
+            // only parsing 1 -> since the other is already parsed for tunnel detection
+            SpecificParseRule<List<Object>> tunnelOnwards = () =>
+            {
+                if (ParseString("->") == null)
+                    return null;
+                return helper(new TunnelOnwards())();
+            };
+            //  -> div -> div ->     -- tunnel then tunnel
+            var furtherTunneling = Require(DivertIdentifierWithArguments, x => Require<string,List<Object>>(() => ParseString("->"), y => furtherTunnelingHelper(x)));
+            //  -> div -> div        -- tunnel then divert
+            var endingDiv = Require(DivertIdentifierWithArguments, helper);
+            // note: order is important, since furtherTunneling also works for endingDiv, so we need to do most specific first, most general last
+            return (List<Object>)OneOf(() => tunnelOnwards(), () => divThenTunnelOnwards(), () => furtherTunneling(), () => endingDiv());
+        }
+        
 
         protected Divert StartThread()
         {
@@ -144,55 +181,13 @@ namespace Ink
         }
 
         protected Divert SingleDivert()
-        {            
-            var diverts = Parse (MultiDivert);
-            if (diverts == null)
-                return null;
-
-            if (diverts.Count != 1) {
-                Error ("Expected just one single divert");
-            }
-
-            var singleDivert = diverts [0];
-            if (singleDivert is TunnelOnwards) {
-                return null;
-            }
-
-            var divert = diverts [0] as Divert;
-            if (divert.isTunnel) {
-                Error ("Didn't expect tunnel, but a normal divert");
-
-                // Convert to normal divert to continue parsing
-                divert.isTunnel = false;
-            }
-
-            return divert;
+        {
+            return (Divert)OneOf(ParseNormalDivert, ParseGather);
         }
 
         List<string> DotSeparatedDivertPathComponents()
         {
             return Interleave<string> (Spaced (Identifier), Exclude (String (".")));
-        }
-
-        protected string ParseDivertArrowOrTunnelOnwards()
-        {
-            int numArrows = 0;
-            while (ParseString ("->") != null)
-                numArrows++;
-
-            if (numArrows == 0)
-                return null;
-
-            else if (numArrows == 1)
-                return "->";
-
-            else if (numArrows == 2)
-                return "->->";
-            
-            else {
-                Error ("Unexpected number of arrows in divert. Should only have '->' or '->->'");
-                return "->->";
-            }
         }
 
         protected string ParseDivertArrow()
