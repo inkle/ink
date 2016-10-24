@@ -47,7 +47,7 @@ namespace Ink.Parsed
                         if (!(binaryExprParent.leftExpression is DivertTarget || binaryExprParent.leftExpression is VariableReference)) {
                             badUsage = true;
                         }
-                        if (!(binaryExprParent.leftExpression is DivertTarget || binaryExprParent.leftExpression is VariableReference)) {
+                        if (!(binaryExprParent.rightExpression is DivertTarget || binaryExprParent.rightExpression is VariableReference)) {
                             badUsage = true;
                         }
                     }
