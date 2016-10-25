@@ -100,22 +100,6 @@ namespace Ink
 
         protected List<Object> ParseTunnelContinue()
         {
-            //  -> div -> div ->->   (etc)
-            ParseRule divThenTunnelOnwards = () =>
-            {
-                var x = Parse(DivertIdentifierWithArguments);
-                if (x == null)
-                    return null;
-                var y = Parse(ParseTunnelOnwards);
-                if (y == null)
-                    return null;
-                var ls = new List<Object>();
-                x.isTunnel = true;
-                ls.Add(x);
-                ls.Add(y);
-                return ls;
-            };
-
             //  -> div ->->          -- tunnel then tunnel continue
             // only parsing 1 -> since the other is already parsed for tunnel detection
             ParseRule tunnelOnwards = () =>
@@ -128,6 +112,7 @@ namespace Ink
             };
 
             //  -> div -> div ->     -- tunnel then tunnel
+            //  -> div -> div ->->   (etc) subsumed into this case
             ParseRule furtherTunneling = () =>
             {
                 var x = Parse(DivertIdentifierWithArguments);
@@ -157,7 +142,7 @@ namespace Ink
                 return ret;
             };
             // note: order is important, since furtherTunneling also works for endingDiv, so we need to do most specific first, most general last
-            return (List<Object>)OneOf(tunnelOnwards,divThenTunnelOnwards,furtherTunneling,endingDiv);
+            return (List<Object>)OneOf(tunnelOnwards,furtherTunneling,endingDiv);
         }
         
 
