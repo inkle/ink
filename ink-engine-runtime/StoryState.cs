@@ -697,7 +697,6 @@ namespace Ink.Runtime
 
         public void ForceEnd()
         {
-            currentContentObject = null;
 
             while (callStack.canPopThread)
                 callStack.PopThread ();
@@ -707,6 +706,7 @@ namespace Ink.Runtime
 
             currentChoices.Clear();
 
+            currentContentObject = null;
             previousContentObject = null;
 
             didSafeExit = true;

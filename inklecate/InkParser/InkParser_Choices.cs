@@ -91,7 +91,9 @@ namespace Ink
             var tags = Parse (Tags);
             if (tags != null) {
                 if (hasWeaveStyleInlineBrackets) {
-                    innerContent.AddContent (tags);
+                    if (!innerContent)
+                        innerContent = new ContentList();
+                    innerContent.AddContent(tags);
                 } else {
                     startContent.AddContent (tags);
                 }
