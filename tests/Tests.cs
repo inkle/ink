@@ -980,6 +980,39 @@ five
             Assert.AreEqual("I have five eggs.\n", story.Continue());
         }
 
+        [Test ()]
+        public void TestImplicitInlineGlueB ()
+        {
+            var story = CompileString (@"
+A {f():B} 
+X
+
+=== function f() ===
+{true: 
+    ~ return false
+}
+");
+
+            Assert.AreEqual ("A \nX\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestImplicitInlineGlueC ()
+        {
+            var story = CompileString (@"
+A
+{f():X}
+C
+
+=== function f()
+{ true: 
+    ~ return false
+}
+");
+
+            Assert.AreEqual ("A\nC\n", story.ContinueMaximally ());
+        }
+
         [Test()]
         public void TestInclude()
         {
