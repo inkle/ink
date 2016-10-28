@@ -5,6 +5,8 @@ namespace Ink.Parsed
 {
     internal class ContentList : Parsed.Object
     {
+        public bool dontFlatten { get; set; }
+
         public Runtime.Container runtimeContainer {
             get {
                 return (Runtime.Container) this.runtimeObject;
@@ -52,6 +54,9 @@ namespace Ink.Parsed
                     container.AddContent (obj.runtimeObject);
                 }
             }
+
+            if( dontFlatten )
+                story.DontFlattenContainer (container);
 
             return container;
         }

@@ -179,6 +179,7 @@ namespace Ink
             var leftGlue = new Parsed.Glue(new Runtime.Glue (Runtime.GlueType.Left));
             contentList.InsertContent (0, rightGlue);
             contentList.AddContent (leftGlue);
+            contentList.dontFlatten = true;
                 
             Whitespace ();
 

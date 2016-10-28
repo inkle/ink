@@ -221,7 +221,7 @@ namespace Ink.Parsed
 
         void TryFlattenContainer (Runtime.Container container)
         {
-            if (container.namedContent.Count > 0 || container.hasValidName)
+            if (container.namedContent.Count > 0 || container.hasValidName || _dontFlattenContainers.Contains(container))
                 return;
 
             // Inline all the content in container into the parent
@@ -295,10 +295,17 @@ namespace Ink.Parsed
                 externals [decl.name] = decl;
             }
         }
+
+        public void DontFlattenContainer (Runtime.Container container)
+        {
+            _dontFlattenContainers.Add (container);
+        }
             
         ErrorHandler _errorHandler;
         bool _hadError;
         bool _hadWarning;
+
+        HashSet<Runtime.Container> _dontFlattenContainers = new HashSet<Runtime.Container>();
 	}
 }
 

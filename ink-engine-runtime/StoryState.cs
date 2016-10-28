@@ -465,14 +465,15 @@ namespace Ink.Runtime
             if (glue) {
 
                 // Found matching left-glue for right-glue? Close it.
-                var existingRightGlue = currentRightGlue;
-                bool foundMatchingLeftGlue = glue.isLeft && existingRightGlue && glue.parent == existingRightGlue.parent;
+                Glue matchingRightGlue = null;
+                if (glue.isLeft)
+                    matchingRightGlue = MatchRightGlueForLeftGlue (glue);
 
                 // Left/Right glue is auto-generated for inline expressions 
                 // where we want to absorb newlines but only in a certain direction.
                 // "Bi" glue is written by the user in their ink with <>
                 if (glue.isLeft || glue.isBi) {
-                    TrimNewlinesFromOutputStream(stopAndRemoveRightGlue:foundMatchingLeftGlue);
+                    TrimNewlinesFromOutputStream(matchingRightGlue);
                 }
 
                 includeInOutput = glue.isBi || glue.isRight;
@@ -505,7 +506,7 @@ namespace Ink.Runtime
             }
         }
 
-        void TrimNewlinesFromOutputStream(bool stopAndRemoveRightGlue)
+        void TrimNewlinesFromOutputStream(Glue rightGlueToStopAt)
         {
             int removeWhitespaceFrom = -1;
             int rightGluePos = -1;
@@ -524,9 +525,9 @@ namespace Ink.Runtime
 
                 if (cmd || (txt && txt.isNonWhitespace)) {
                     foundNonWhitespace = true;
-                    if( !stopAndRemoveRightGlue )
+                    if( rightGlueToStopAt == null )
                         break;
-                } else if (stopAndRemoveRightGlue && glue && glue.isRight) {
+                } else if (rightGlueToStopAt && glue == rightGlueToStopAt) {
                     rightGluePos = i;
                     break;
                 } else if (txt && txt.isNewline && !foundNonWhitespace) {
@@ -550,8 +551,18 @@ namespace Ink.Runtime
 
             // Remove the glue (it will come before the whitespace,
             // so index is still valid)
-            if (stopAndRemoveRightGlue && rightGluePos > -1)
-                _outputStream.RemoveAt (rightGluePos);
+            // Also remove any other non-matching right glues that come after,
+            // since they'll have lost their matching glues already
+            if (rightGlueToStopAt && rightGluePos > -1) {
+                i = rightGluePos;
+                while(i < _outputStream.Count) {
+                    if (_outputStream [i] is Glue && ((Glue)_outputStream [i]).isRight) {
+                        _outputStream.RemoveAt (i);
+                    } else {
+                        i++;
+                    }
+                }
+            }
         }
 
         void TrimFromExistingGlue()
@@ -594,20 +605,22 @@ namespace Ink.Runtime
             }
         }
 
-        Runtime.Glue currentRightGlue {
-            get {
-                for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                    var c = _outputStream [i];
-                    var glue = c as Glue;
-                    if (glue && glue.isRight)
-                        return glue;
-                    else if (c is ControlCommand) // e.g. BeginString
-                        break;
-                }
-                return null;
-            }
-        }
+        Runtime.Glue MatchRightGlueForLeftGlue (Glue leftGlue)
+        {
+            if (!leftGlue.isLeft) return null;
 
+            for (int i = _outputStream.Count - 1; i >= 0; i--) {
+                var c = _outputStream [i];
+                var g = c as Glue;
+                if (g && g.isRight && g.parent == leftGlue.parent) {
+                    return g;
+                } else if (c is ControlCommand) // e.g. BeginString
+                    break;
+            }
+
+            return null;
+        }
+            
         internal bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
