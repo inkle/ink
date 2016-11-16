@@ -6,7 +6,7 @@
     <ProjectGuid>{C48016BB-CF8B-4357-B052-E4DC63AED06B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>tests</RootNamespace>
-    <AssemblyName>ink-tests</AssemblyName>
+    <AssemblyName>tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
