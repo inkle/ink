@@ -14,8 +14,8 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyCulture ("")]
 
 // Required to allow access of inernal types to 'inklecate' and the 'tests' project
-[assembly: InternalsVisibleTo("inklecate")]
-[assembly: InternalsVisibleTo("tests")]
+[assembly: InternalsVisibleTo ("inklecate")]
+[assembly: InternalsVisibleTo ("ink-tests")]
 
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
