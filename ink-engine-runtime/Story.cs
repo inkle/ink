@@ -38,7 +38,7 @@ namespace Ink.Runtime
         /// The list of Choice objects available at the current point in
         /// the Story. This list will be populated as the Story is stepped
         /// through with the Continue() method. Once canContinue becomes
-        /// false, this list will be fully populated, and is usually
+        /// false, this list will be populated, and is usually
         /// (but not always) on the final Continue() step.
         /// </summary>
         public List<Choice> currentChoices
@@ -329,7 +329,7 @@ namespace Ink.Runtime
                         Error("Thread available to pop, threads should always be flat by the end of evaluation?");
                     }
 
-                    if( currentChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
+					if( state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
                         if( state.callStack.CanPop(PushPopType.Tunnel) ) {
                             Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
                         } else if( state.callStack.CanPop(PushPopType.Function) ) {
@@ -364,7 +364,7 @@ namespace Ink.Runtime
         public bool canContinue
         {
             get {
-                return state.currentContentObject != null && !state.hasError;
+				return state.canContinue;
             }
         }
 
@@ -450,7 +450,7 @@ namespace Ink.Runtime
             if (choicePoint) {
                 var choice = ProcessChoice (choicePoint);
                 if (choice) {
-                    state.currentChoices.Add (choice);
+                    state.generatedChoices.Add (choice);
                 }
 
                 currentContentObj = null;
@@ -823,7 +823,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.ChoiceCount:
-                    var choiceCount = currentChoices.Count;
+					var choiceCount = state.generatedChoices.Count;
                     state.PushEvaluationStack (new Runtime.IntValue (choiceCount));
                     break;
 
