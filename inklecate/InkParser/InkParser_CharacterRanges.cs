@@ -12,18 +12,18 @@ namespace Ink
 
 		internal static readonly CharacterRange LatinBasic = 
 			CharacterRange.Define ('\u0030', '\u007A', excludes: new CharacterSet().AddRange('\u003A', '\u003F').AddRange('\u005B', '\u0060'));
-		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100','\u017F');
-		internal static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180','\u024F');
+		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
+		internal static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180', '\u024F'); // no excludes here
 		internal static readonly CharacterRange Greek = 
-           	CharacterRange.Define('\u0370','\u03FF', excludes: new CharacterSet().AddCharacters("\u0374\u0375\u037A\u0387").AddRange('\u037E', '\u0385'));
+           	CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddCharacters("\u0374\u0375\u037A\u0387").AddRange('\u037E', '\u0385'));
 		internal static readonly CharacterRange Cyrillic = 
-			CharacterRange.Define ('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489'));
+			CharacterRange.Define('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489'));
 		internal static readonly CharacterRange Armenian = 
-			CharacterRange.Define ('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
+			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
 		internal static readonly CharacterRange Hebrew = 
-			CharacterRange.Define('\u0590','\u05FF');
+			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
 		internal static readonly CharacterRange Arabic = 
-			CharacterRange.Define('\u0600','\u06FF');
+			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
 
 		protected string EnableCharacterRange()
 		{
@@ -59,6 +59,7 @@ namespace Ink
 			// Basic Latin and aliases
 			{ "Basic Latin", 			LatinBasic },
 			{ "Latin", 					LatinBasic },
+			{ "Latin Basic",			LatinBasic },
 			{ "latin-basic", 			LatinBasic },
 			//
 			{ "Latin Extended A", 		LatinExtendedA },
