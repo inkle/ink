@@ -267,11 +267,19 @@ namespace Ink
         protected string Identifier()
         {
             if (_identifierCharSet == null) {
-                _identifierCharSet = new CharacterSet ();
-                _identifierCharSet.AddRange ('A', 'Z');
-                _identifierCharSet.AddRange ('a', 'z');
-                _identifierCharSet.AddRange ('0', '9');
-                _identifierCharSet.Add ('_');
+                (_identifierCharSet = new CharacterSet ())
+                	.AddRange ('A', 'Z')
+                	.AddRange ('a', 'z')
+                	.AddRange ('0', '9')
+                	.Add ('_');
+				foreach (string key in _enabledCharacterRanges)
+				{
+					CharacterRange range;
+					if (_characterRangesByName.TryGetValue (key, out range)) 
+					{
+						_identifierCharSet.AddCharacters (range.ToCharacterSet ());
+					}
+				}
             }
 
             // Parse remaining characters (if any)
