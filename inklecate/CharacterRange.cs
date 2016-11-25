@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ink
 {
@@ -7,19 +8,21 @@ namespace Ink
 	/// </summary>
 	internal sealed class CharacterRange
 	{
-		public static CharacterRange Define(char start, char end)
+		public static CharacterRange Define(char start, char end, IEnumerable<char> excludes = null)
 		{
-			return new CharacterRange (start, end);
+			return new CharacterRange (start, end, excludes);
 		}
 
 		private readonly char start;
 		private readonly char end;
+		private readonly IEnumerable<char> exludes;
 		private readonly CharacterSet correspondingCharSet = new CharacterSet();
 
-		private CharacterRange (char start, char end)
+		private CharacterRange (char start, char end, IEnumerable<char> excludes)
 		{
 			this.start = start;
 			this.end = end;
+			this.exludes = exludes == null ? string.Empty : exludes;
 		}
 
 		/// <summary>
@@ -34,7 +37,14 @@ namespace Ink
 		{
 			if (correspondingCharSet.Count == 0) 
 			{
-				correspondingCharSet.AddRange (start, end);
+				for (char c = start; c <= end; c++)
+				{
+					if (exludes.Contains(c))
+					{
+						continue;
+					}
+					correspondingCharSet.Add(c);
+				}
 			}
 			return correspondingCharSet;
 		}
