@@ -21,7 +21,7 @@ export CC="cc -arch i386 -framework CoreFoundation -lobjc -liconv"
 
 # "Bundles in addition support a –static flag. The –static flag causes mkbundle to generate a static executable that statically links the Mono runtime. Be advised that this option will trigger the LGPL requirement that you still distribute the independent pieces to your user so he can manually upgrade his Mono runtime if he chooses to do so. Alternatively, you can obtain a proprietary license of Mono by contacting Xamarin."
 # http://www.mono-project.com/archived/guiderunning_mono_applications/
-mkbundle ./inklecate/bin/Release/inklecate.exe --deps --static -o ./ReleaseBinary/inklecate
+mkbundle ./inklecate/bin/Release/inklecate.exe ./inklecate/bin/Release/ink-engine-runtime.dll --deps --static -o ./ReleaseBinary/inklecate
 zip --junk-paths ReleaseBinary/inklecate_mac.zip ReleaseBinary/inklecate ink-engine-runtime/bin/Release/ink-engine-runtime.dll
 
 rm ReleaseBinary/inklecate
