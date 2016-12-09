@@ -272,15 +272,6 @@ namespace Ink
                 	.AddRange ('a', 'z')
                 	.AddRange ('0', '9')
                 	.Add ('_');
-				foreach (string key in _enabledCharacterRanges)
-				{
-					CharacterRange range;
-					if (_characterRangesByName.TryGetValue (key, out range)) 
-					{
-						_identifierCharSet.AddCharacters (range.ToCharacterSet ());
-						System.Console.WriteLine ("Added chrange {0}", key);
-					}
-				}
             }
 
             // Parse remaining characters (if any)

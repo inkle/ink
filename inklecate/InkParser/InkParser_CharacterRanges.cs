@@ -48,7 +48,11 @@ namespace Ink
 			// We do not care now if the range is added multiple times, hash set will take care for us of duplicates
 			// Thus may have to change later if we need to disable character ranges, but this currently does not make much sense.
 			_enabledCharacterRanges.Add (charRange);
-			System.Console.WriteLine ("Enabled chrange {0}", charRange);
+            CharacterRange range;
+            if (_characterRangesByName.TryGetValue (charRange, out range)) 
+            {
+                _identifierCharSet.AddCharacters (range.ToCharacterSet ());
+            }
 
 			return new CharacterRangeInlcude (charRange);
 		}

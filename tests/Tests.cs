@@ -2633,12 +2633,10 @@ CONST {3} = 3
 #-> DONE
 ", name, piIdentifier, xIdentifier, yIdentifier, zIdentifier, divertIdentifier);
 
-				Console.WriteLine (storyStr);
-
 	            var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);
 
-				//Assert.IsNotNull (compiledStory);
-				//Assert.IsNotNull (compiledStory.constants);
+				Assert.IsNotNull (compiledStory);
+                Assert.IsFalse (compiledStory.hadError);
 			}
         }
 
