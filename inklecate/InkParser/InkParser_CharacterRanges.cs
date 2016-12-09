@@ -54,7 +54,7 @@ namespace Ink
 
 		HashSet<string> _enabledCharacterRanges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-		IDictionary<string, CharacterRange> _characterRangesByName = new Dictionary<string, CharacterRange>(StringComparer.OrdinalIgnoreCase)
+		readonly IDictionary<string, CharacterRange> _characterRangesByName = new Dictionary<string, CharacterRange>(StringComparer.OrdinalIgnoreCase)
 		{
 			// Basic Latin and aliases
 			{ "Basic Latin", 			LatinBasic },

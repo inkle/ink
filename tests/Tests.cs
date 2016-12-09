@@ -5,6 +5,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using Path = Ink.Runtime.Path;
 
 namespace Tests
@@ -2585,6 +2586,46 @@ Now in B.
             Assert.AreEqual ("This is A\nNow in B.\n", story.ContinueMaximally());
         }
 
+		[Test ()]
+		public void TestCharacterRangeIdentifiers ()
+		{
+			foreach (CharacterRange range in new[] {
+					InkParser.LatinBasic, 
+					InkParser.LatinExtendedA, 
+					InkParser.LatinExtendedB, 
+					InkParser.Cyrillic, 
+					InkParser.Greek, 
+					InkParser.Arabic, 
+					InkParser.Armenian, 
+					InkParser.Hebrew }) {
+
+				var piIdentifier = GenerateIdentifierFromCharacterRange (range, "pi");
+				var xIdentifier = GenerateIdentifierFromCharacterRange (range, "x");
+				var yIdentifier = GenerateIdentifierFromCharacterRange (range, "y");
+				var zIdentifier = GenerateIdentifierFromCharacterRange (range, "z");
+				var divertIdentifier = GenerateIdentifierFromCharacterRange (range, "divert");
+
+
+					var storyStr = string.Format(@"
+CONST {0} = 3.1415
+CONST {1} = ""World""
+CONST {2} = 3
+CONST {3} = -> {4}
+
+== {4} ==
+-> DONE
+", piIdentifier, xIdentifier, yIdentifier, zIdentifier, divertIdentifier);
+
+	            var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);
+
+	            Assert.IsNotNull (compiledStory.constants[piIdentifier]);
+				Assert.IsNotNull (compiledStory.constants[xIdentifier]);
+				Assert.IsNotNull (compiledStory.constants[yIdentifier]);
+				Assert.IsNotNull (compiledStory.constants[zIdentifier]);
+
+			}
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
@@ -2665,6 +2706,18 @@ Now in B.
             else
                 Assert.Fail(message);
         }
+
+		private string GenerateIdentifierFromCharacterRange(CharacterRange range, string varNameUniquePart)
+		{
+			CharacterSet set = range.ToCharacterSet();
+			StringBuilder sb = new StringBuilder ();
+
+			foreach (var c in set) {
+				sb.Append (c);
+			}
+
+			return sb.Append(varNameUniquePart).ToString();
+		}
 
         private class TestWarningException : System.Exception
         { }
