@@ -7,11 +7,13 @@
     <ProjectGuid>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ink_engine</RootNamespace>
-    <AssemblyName>ink-engine</AssemblyName>
+    <RootNamespace>Ink.Runtime</RootNamespace>
+    <AssemblyName>ink-engine-runtime</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\ink-engine.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\ink-engine-runtime.xml</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -30,7 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\ink-engine.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\ink-engine-runtime.xml</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
@@ -39,7 +41,34 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-  <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="CallStack.cs" />
+    <Compile Include="Container.cs" />
+    <Compile Include="ControlCommand.cs" />
+    <Compile Include="DebugMetadata.cs" />
+    <Compile Include="Divert.cs" />
+    <Compile Include="Glue.cs" />
+    <Compile Include="INamedContent.cs" />
+    <Compile Include="NativeFunctionCall.cs" />
+    <Compile Include="Object.cs" />
+    <Compile Include="Path.cs" />
+    <Compile Include="Story.cs" />
+    <Compile Include="StoryException.cs" />
+    <Compile Include="StringJoinExtension.cs" />
+    <Compile Include="VariableAssignment.cs" />
+    <Compile Include="VariableReference.cs" />
+    <Compile Include="Void.cs" />
+    <Compile Include="VariablesState.cs" />
+    <Compile Include="PushPop.cs" />
+    <Compile Include="StoryState.cs" />
+    <Compile Include="JsonSerialisation.cs" />
+    <Compile Include="Value.cs" />
+    <Compile Include="ChoicePoint.cs" />
+    <Compile Include="Choice.cs" />
+    <Compile Include="SimpleJson.cs" />
+    <Compile Include="Tag.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

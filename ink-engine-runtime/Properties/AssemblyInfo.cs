@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle ("inklecate")]
+[assembly: AssemblyTitle ("ink-engine-runtime")]
 [assembly: AssemblyDescription ("")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("inkle Ltd")]
@@ -13,11 +13,13 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 
+// Required to allow access of inernal types to 'inklecate' and the 'tests' project
+[assembly: InternalsVisibleTo ("inklecate")]
+[assembly: InternalsVisibleTo ("ink-tests")]
+
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
-
-[assembly: InternalsVisibleTo("ink-tests")]
 
 [assembly: AssemblyVersion ("1.0.*")]
 

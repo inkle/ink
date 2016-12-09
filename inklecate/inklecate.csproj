@@ -105,7 +105,6 @@
     <Compile Include="CharacterRange.cs" />
     <Compile Include="InkParser\InkParser_CharacterRanges.cs" />
   </ItemGroup>
-  <Import Project="..\ink-engine-runtime\ink-engine-runtime.projitems" Label="Shared" Condition="Exists('..\ink-engine-runtime\ink-engine-runtime.projitems')" />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="test.ink">
@@ -119,5 +118,10 @@
     </None>
     <None Include="Plugins\Readme.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
+      <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
+      <Name>ink-engine-runtime</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
