@@ -15,14 +15,14 @@ namespace Ink
 
 		private readonly char start;
 		private readonly char end;
-		private readonly IEnumerable<char> exludes;
+		private readonly ICollection<char> excludes;
 		private readonly CharacterSet correspondingCharSet = new CharacterSet();
 
 		private CharacterRange (char start, char end, IEnumerable<char> excludes)
 		{
 			this.start = start;
 			this.end = end;
-			this.exludes = exludes == null ? string.Empty : exludes;
+			this.excludes = new HashSet<char>(excludes == null ? (IEnumerable<char>) string.Empty : excludes);
 		}
 
 		/// <summary>
@@ -39,11 +39,10 @@ namespace Ink
 			{
 				for (char c = start; c <= end; c++)
 				{
-					if (exludes.Contains(c))
+					if (!excludes.Contains (c)) 
 					{
-						continue;
+						correspondingCharSet.Add (c);
 					}
-					correspondingCharSet.Add(c);
 				}
 			}
 			return correspondingCharSet;

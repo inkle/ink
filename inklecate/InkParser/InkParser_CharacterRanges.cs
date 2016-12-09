@@ -11,11 +11,11 @@ namespace Ink
 		internal const string EnableCharacterRangeStatement = "ENABLE CHRANGE";
 
 		internal static readonly CharacterRange LatinBasic = 
-			CharacterRange.Define ('\u0030', '\u007A', excludes: new CharacterSet().AddRange('\u003A', '\u003F').AddRange('\u005B', '\u0060'));
+			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'));
 		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
 		internal static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180', '\u024F'); // no excludes here
 		internal static readonly CharacterRange Greek = 
-           	CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddCharacters("\u0374\u0375\u037A\u0387").AddRange('\u037E', '\u0385'));
+			CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddRange('\u0378','\u0385').AddCharacters("\u0374\u0375\u0378\u0387\u038B\u038D\u03A2"));
 		internal static readonly CharacterRange Cyrillic = 
 			CharacterRange.Define('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489'));
 		internal static readonly CharacterRange Armenian = 
@@ -25,7 +25,7 @@ namespace Ink
 		internal static readonly CharacterRange Arabic = 
 			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
 
-		protected string EnableCharacterRange()
+		protected CharacterRangeInlcude EnableCharacterRange()
 		{
 			Whitespace ();
 
@@ -48,8 +48,9 @@ namespace Ink
 			// We do not care now if the range is added multiple times, hash set will take care for us of duplicates
 			// Thus may have to change later if we need to disable character ranges, but this currently does not make much sense.
 			_enabledCharacterRanges.Add (charRange);
+			System.Console.WriteLine ("Enabled chrange {0}", charRange);
 
-			return charRange;
+			return new CharacterRangeInlcude (charRange);
 		}
 
 		HashSet<string> _enabledCharacterRanges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -70,15 +71,15 @@ namespace Ink
 			{ "Latin Extended-B", 		LatinExtendedB },
 			{ "latin-ext-b", 			LatinExtendedB },
 			//
-			{ "Greek", 					Greek },
-			//
-			{ "Cyrillic", 				Cyrillic },
+			{ "Arabic", 				Arabic },
 			//
 			{ "Armenian", 				Armenian },
 			//
-			{ "Hebrew", 				Hebrew },
+			{ "Cyrillic", 				Cyrillic },
 			//
-			{ "Arabic", 				Arabic },
+			{ "Greek", 					Greek },
+			//
+			{ "Hebrew", 				Hebrew },
 			// and so on
 		};
     }

@@ -278,6 +278,7 @@ namespace Ink
 					if (_characterRangesByName.TryGetValue (key, out range)) 
 					{
 						_identifierCharSet.AddCharacters (range.ToCharacterSet ());
+						System.Console.WriteLine ("Added chrange {0}", key);
 					}
 				}
             }
