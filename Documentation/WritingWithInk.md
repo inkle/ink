@@ -1918,5 +1918,36 @@ Note that we don't need a `-> DONE` if the flow ends with options that fail thei
 
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
  
+## 3) International character support in identifiers
 
+By default, ink has no limitations on the use of non ASCII characters inside the story content (of course, with the exception of the special ink syntax symbols). However, a limitation currently exsits
+on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements -- or in short *identifiers*.
+
+Sometimes it is inconvenient for a writer using a non-ASCII language to write their story because they have to constantly switch to naming identifiers in ASCII compatible way, which is seen as inconvenience. Also, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
+
+In an effort to assist in the above scenario, a special instruction is made available into the ink syntax -- the `ENABLE CHRANGE xxx` direcive 
+
+### Usage of the `ENABLE CHRANGE` statement
+
+Authors can trigger special currated character ranges which will extend the support for non-ASCII characters in identifiers. The instruction must be placed on a new line and be the only statement in that line:
+
+    INCLUDE CHRANGE Cyrillic
+
+The above statement will enable usage of Cyrillic characters as identifiers **immediately after its occurence**. The triggering of this character set will persist for the remainder of the story.
+
+**NOTE!** The story content *before* the statement will not be able to support the newly included characters, due to the forward-directional processing of the story content by the ink parser. In order to enable support for certain charater range in identifiers for the entire story, one must use the statement in the beginning of the story file.
+
+### Supported Identfier Character Ranges
+
+The support for the additional character ranges in ink is currently limited to a predefined list of character ranges. In future version of the software, the list could grow in size. Below is a table listing the currently supported character ranges and some examples of their possible usages. For convenience, all character range names are ***case insensitive***, and some have shorter aliases.
+
+| Character Range | Aliases | Examles (non-exhaustive) |
+|-|-|-|
+| Arabic | invariant case (Arabic, arabic, ARABIC, etc.) | `ENABLE CHRANGE arabic`<br/>`ENABLE CHRANGE Arabic` |
+| Armenian | invariant case | `ENABLE CHRANGE armenian`<br/>`ENABLE CHRANGE Armenian` |
+| Cyrillic | invariant case | `ENABLE CHRANGE cyrillic`<br/>`ENABLE CHRANGE Cyrillic` |
+| Greek | invariant case | `ENABLE CHRANGE greek`<br/>`ENABLE CHRANGE Greek` |
+| Hebrew | invariant case | `ENABLE CHRANGE hebrew`<br/>`ENABLE CHRANGE Hebrew` |
+| Latin Extended A | invariant case, `latin-ext-a`, `Latin-Extended-A` | `ENABLE CHRANGE latin-ext-a`<br/>`ENABLE CHRANGE Latin Extended A`<br/>`ENABLE CHRANGE Latin-Extended-A` |
+| Latin Extended B | invariant case, `latin-ext-b`, `Latin-Extended-B` | `ENABLE CHRANGE latin-ext-b`<br/>`ENABLE CHRANGE Latin Extended B`<br/>`ENABLE CHRANGE Latin-Extended-B` |
 
