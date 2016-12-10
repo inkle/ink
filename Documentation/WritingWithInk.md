@@ -1931,7 +1931,7 @@ In an effort to assist in the above scenario, a special instruction is made avai
 
 Authors can trigger special currated character ranges which will extend the support for non-ASCII characters in identifiers. The instruction must be placed on a new line and be the only statement in that line:
 
-    INCLUDE CHRANGE Cyrillic
+    ENABLE CHRANGE Cyrillic
 
 The above statement will enable usage of Cyrillic characters as identifiers **immediately after its occurence**. The triggering of this character set will persist for the remainder of the story.
 
