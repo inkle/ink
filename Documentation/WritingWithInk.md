@@ -1945,36 +1945,36 @@ The support for the additional character ranges in ink is currently limited to a
 
    Examples 
 
-	   ENABLE CHRANGE arabic
-	   ENABLE CHRANGE Arabic
+	     ENABLE CHRANGE arabic
+	     ENABLE CHRANGE Arabic
 	  
  - **Armenian**  
 
    Examples  
 
-	   ENABLE CHRANGE armenian
-	   ENABLE CHRANGE Armenian
+	     ENABLE CHRANGE armenian
+	     ENABLE CHRANGE Armenian
 
  - **Cyrillic**  
 
    Examples  
 
-	   ENABLE CHRANGE cyrillic
-	   ENABLE CHRANGE Cyrillic
+	     ENABLE CHRANGE cyrillic
+	     ENABLE CHRANGE Cyrillic
 
  - **Greek**  
 
    Examples  
 
-	   ENABLE CHRANGE greek
-	   ENABLE CHRANGE Greek
+	     ENABLE CHRANGE greek
+	     ENABLE CHRANGE Greek
 
  - **Hebrew**  
 
    Examples  
 
-	   ENABLE CHRANGE hebrew
-	   ENABLE CHRANGE Hebrew
+	     ENABLE CHRANGE hebrew
+	     ENABLE CHRANGE Hebrew
 
  - **Latin Extended A**  
 
@@ -1985,8 +1985,8 @@ The support for the additional character ranges in ink is currently limited to a
 
    Examples  
 
-	   ENABLE CHRANGE lating-ext-a
-	   ENABLE CHRANGE Latin Extended A
+	     ENABLE CHRANGE lating-ext-a
+	     ENABLE CHRANGE Latin Extended A
 
  - **Latin Extended B**  
 
@@ -1997,6 +1997,6 @@ The support for the additional character ranges in ink is currently limited to a
 
    Examples  
 
-	   ENABLE CHRANGE lating-ext-b
-	   ENABLE CHRANGE Latin Extended B
+	     ENABLE CHRANGE lating-ext-b
+	     ENABLE CHRANGE Latin Extended B
 
