@@ -1942,7 +1942,7 @@ The above statement will enable usage of Cyrillic characters as identifiers **im
 The support for the additional character ranges in ink is currently limited to a predefined list of character ranges. In future version of the software, the list could grow in size. Below is a table listing the currently supported character ranges and some examples of their possible usages. For convenience, all character range names are ***case insensitive***, and some have shorter aliases.
 
  - **Arabic**  
- 
+
    Examples
 	 - `ENABLE CHRANGE arabic`
 	 - `ENABLE CHRANGE Arabic`
@@ -1965,11 +1965,11 @@ The support for the additional character ranges in ink is currently limited to a
 	 - `ENABLE CHRANGE greek`
 	 - `ENABLE CHRANGE Greek`
 
- - **Hebew**  
+ - **Hebrew**  
 
    Examples
-	 - `ENABLE CHRANGE hebew`
-	 - `ENABLE CHRANGE Hebew`
+	 - `ENABLE CHRANGE hebrew`
+	 - `ENABLE CHRANGE Hebrew`
 
  - **Latin Extended A**  
 
