@@ -1941,13 +1941,55 @@ The above statement will enable usage of Cyrillic characters as identifiers **im
 
 The support for the additional character ranges in ink is currently limited to a predefined list of character ranges. In future version of the software, the list could grow in size. Below is a table listing the currently supported character ranges and some examples of their possible usages. For convenience, all character range names are ***case insensitive***, and some have shorter aliases.
 
-| Character Range | Aliases | Examles (non-exhaustive) |
-|-|-|-|
-| Arabic | invariant case (Arabic, arabic, ARABIC, etc.) | `ENABLE CHRANGE arabic`<br/>`ENABLE CHRANGE Arabic` |
-| Armenian | invariant case | `ENABLE CHRANGE armenian`<br/>`ENABLE CHRANGE Armenian` |
-| Cyrillic | invariant case | `ENABLE CHRANGE cyrillic`<br/>`ENABLE CHRANGE Cyrillic` |
-| Greek | invariant case | `ENABLE CHRANGE greek`<br/>`ENABLE CHRANGE Greek` |
-| Hebrew | invariant case | `ENABLE CHRANGE hebrew`<br/>`ENABLE CHRANGE Hebrew` |
-| Latin Extended A | invariant case, `latin-ext-a`, `Latin-Extended-A` | `ENABLE CHRANGE latin-ext-a`<br/>`ENABLE CHRANGE Latin Extended A`<br/>`ENABLE CHRANGE Latin-Extended-A` |
-| Latin Extended B | invariant case, `latin-ext-b`, `Latin-Extended-B` | `ENABLE CHRANGE latin-ext-b`<br/>`ENABLE CHRANGE Latin Extended B`<br/>`ENABLE CHRANGE Latin-Extended-B` |
+ - **Arabic**  
+ 
+   Examples
+	 - `ENABLE CHRANGE arabic`
+	 - `ENABLE CHRANGE Arabic`
+	  
+ - **Armenian**  
+
+   Examples
+	 - `ENABLE CHRANGE armenian`
+	 - `ENABLE CHRANGE Armenian`
+
+ - **Cyrillic**  
+
+   Examples
+	 - `ENABLE CHRANGE cyrillic`
+	 - `ENABLE CHRANGE Cyrillic`
+
+ - **Greek**  
+
+   Examples
+	 - `ENABLE CHRANGE greek`
+	 - `ENABLE CHRANGE Greek`
+
+ - **Hebew**  
+
+   Examples
+	 - `ENABLE CHRANGE hebew`
+	 - `ENABLE CHRANGE Hebew`
+
+ - **Latin Extended A**  
+
+   Aliases  
+	 - `latin-ext-a`
+	 - `Latin Extended-A`
+	 - `Latin Extended A`  
+
+   Examples
+	 - `ENABLE CHRANGE lating-ext-a`
+	 - `ENABLE CHRANGE Latin Extended A`
+
+ - **Latin Extended B**  
+
+   Aliases  
+	 - `latin-ext-b`
+	 - `Latin Extended-B`
+	 - `Latin Extended B`  
+
+   Examples
+	 - `ENABLE CHRANGE lating-ext-b`
+	 - `ENABLE CHRANGE Latin Extended B`
 
