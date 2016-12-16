@@ -22,8 +22,10 @@ namespace Ink
 			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
 		internal static readonly CharacterRange Hebrew = 
 			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
+
+		// Many thanks to Adelin Ghanayem for currating these ranges.
 		internal static readonly CharacterRange Arabic = 
-			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
+			CharacterRange.Define('\u0620', '\u06FF', excludes: new CharacterSet().AddCharacters('\u0640', '\u06E9').AddRange('\u064B', '\u065F').AddRange('\u066A', '\u066D').AddRange('\u06DD', '\u06DE'));
 
 		protected CharacterRangeInlcude EnableCharacterRange()
 		{
