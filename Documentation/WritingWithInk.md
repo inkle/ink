@@ -1925,19 +1925,19 @@ on the characters that can be used for names of constants, variables, stictches,
 
 Sometimes it is inconvenient for a writer using a non-ASCII language to write their story because they have to constantly switch to naming identifiers in ASCII compatible way, which is seen as inconvenience. Also, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
 
-In an effort to assist in the above scenario, a special instruction is made available into the ink syntax -- the `ENABLE CHRANGE xxx` direcive 
+In an effort to assist in the above scenario, a special instruction is made available into the ink syntax -- the `ALLOW IDENTIFIER xxx` direcive 
 
-### Usage of the `ENABLE CHRANGE` statement
+### Usage of the `ALLOW IDENTIFIER` statement
 
 Authors can trigger special currated character ranges which will extend the support for non-ASCII characters in identifiers. The instruction must be placed on a new line and be the only statement in that line:
 
-    ENABLE CHRANGE Cyrillic
+    ALLOW IDENTIFIER Cyrillic
 
 The above statement will enable usage of Cyrillic characters as identifiers **immediately after its occurence**. The triggering of this character set will persist for the remainder of the story.
 
 **NOTE!** The story content *before* the statement will not be able to support the newly included characters, due to the forward-directional processing of the story content by the ink parser. In order to enable support for certain charater range in identifiers for the entire story, one must use the statement in the beginning of the story file.
 
-### Supported Identfier Character Ranges
+### Supported Identfier Characters
 
 The support for the additional character ranges in ink is currently limited to a predefined list of character ranges. In future version of the software, the list could grow in size. Below is a table listing the currently supported character ranges and some examples of their possible usages. For convenience, all character range names are ***case insensitive***, and some have shorter aliases.
 
@@ -1945,36 +1945,36 @@ The support for the additional character ranges in ink is currently limited to a
 
    Examples 
 
-	     ENABLE CHRANGE arabic
-	     ENABLE CHRANGE Arabic
+	     ALLOW IDENTIFIER arabic
+	     ALLOW IDENTIFIER Arabic
 	  
  - **Armenian**  
 
    Examples  
 
-	     ENABLE CHRANGE armenian
-	     ENABLE CHRANGE Armenian
+	     ALLOW IDENTIFIER armenian
+	     ALLOW IDENTIFIER Armenian
 
  - **Cyrillic**  
 
    Examples  
 
-	     ENABLE CHRANGE cyrillic
-	     ENABLE CHRANGE Cyrillic
+	     ALLOW IDENTIFIER cyrillic
+	     ALLOW IDENTIFIER Cyrillic
 
  - **Greek**  
 
    Examples  
 
-	     ENABLE CHRANGE greek
-	     ENABLE CHRANGE Greek
+	     ALLOW IDENTIFIER greek
+	     ALLOW IDENTIFIER Greek
 
  - **Hebrew**  
 
    Examples  
 
-	     ENABLE CHRANGE hebrew
-	     ENABLE CHRANGE Hebrew
+	     ALLOW IDENTIFIER hebrew
+	     ALLOW IDENTIFIER Hebrew
 
  - **Latin Extended A**  
 
@@ -1985,8 +1985,8 @@ The support for the additional character ranges in ink is currently limited to a
 
    Examples  
 
-	     ENABLE CHRANGE lating-ext-a
-	     ENABLE CHRANGE Latin Extended A
+	     ALLOW IDENTIFIER lating-ext-a
+	     ALLOW IDENTIFIER Latin Extended A
 
  - **Latin Extended B**  
 
@@ -1997,6 +1997,6 @@ The support for the additional character ranges in ink is currently limited to a
 
    Examples  
 
-	     ENABLE CHRANGE lating-ext-b
-	     ENABLE CHRANGE Latin Extended B
+	     ALLOW IDENTIFIER lating-ext-b
+	     ALLOW IDENTIFIER Latin Extended B
 

@@ -8,24 +8,31 @@ namespace Ink
 {
     internal partial class InkParser
     {
-		internal const string EnableCharacterRangeStatement = "ENABLE CHRANGE";
+		internal const string EnableCharacterRangeStatement = "ALLOW IDENTIFIER";
 
 		internal static readonly CharacterRange LatinBasic = 
 			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'));
+
 		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
+
 		internal static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180', '\u024F'); // no excludes here
-		internal static readonly CharacterRange Greek = 
-			CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddRange('\u0378','\u0385').AddCharacters("\u0374\u0375\u0378\u0387\u038B\u038D\u03A2"));
+
 		internal static readonly CharacterRange Cyrillic = 
 			CharacterRange.Define('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489'));
-		internal static readonly CharacterRange Armenian = 
-			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
-		internal static readonly CharacterRange Hebrew = 
-			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
+
+		internal static readonly CharacterRange Greek = 
+			CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddRange('\u0378','\u0385').AddCharacters("\u0374\u0375\u0378\u0387\u038B\u038D\u03A2"));
 
 		// Many thanks to Adelin Ghanayem for currating these ranges.
 		internal static readonly CharacterRange Arabic = 
-			CharacterRange.Define('\u0620', '\u06FF', excludes: new CharacterSet().AddCharacters('\u0640', '\u06E9').AddRange('\u064B', '\u065F').AddRange('\u066A', '\u066D').AddRange('\u06DD', '\u06DE'));
+			CharacterRange.Define('\u0620', '\u06FF', excludes: new CharacterSet().AddCharacters("\u0640\u06E9").AddRange('\u064B', '\u065F').AddRange('\u066A', '\u066D').AddRange('\u06DD', '\u06DE'));
+
+		internal static readonly CharacterRange Armenian = 
+			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
+
+		internal static readonly CharacterRange Hebrew = 
+			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
+
 
 		protected CharacterRangeInlcude EnableCharacterRange()
 		{

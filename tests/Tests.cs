@@ -2590,7 +2590,6 @@ Now in B.
 		public void TestCharacterRangeIdentifiers ()
 		{
 			var ranges = new[] {
-				InkParser.LatinBasic, 
 				InkParser.LatinExtendedA, 
 				InkParser.LatinExtendedB, 
 				InkParser.Cyrillic, 
@@ -2600,7 +2599,6 @@ Now in B.
 				InkParser.Hebrew
 			};
 			var rangeNames = new[] {
-				"latin-basic", 
 				"latin-ext-a", 
 				"latin-ext-b", 
 				"cyrillic",
@@ -2620,18 +2618,20 @@ Now in B.
 				var zIdentifier = GenerateIdentifierFromCharacterRange (range, "z");
 				var divertIdentifier = GenerateIdentifierFromCharacterRange (range, "divert");
 
+				var storyStr = string.Format(@"
+{0} {1}
 
-					var storyStr = string.Format(@"
-ENABLE CHRANGE {0}
+CONST {2} = 3.1415
+CONST {3} = ""World""
+CONST {4} = 3
+#CONST {5} = -> {6}
 
-CONST {1} = 3.1415
-CONST {2} = ""World""
-CONST {3} = 3
-#CONST {4} = -> {5}
+== {6} ==
+-> DONE
+", InkParser.EnableCharacterRangeStatement, name, piIdentifier, xIdentifier, yIdentifier, zIdentifier, divertIdentifier);
 
-#== {5} ==
-#-> DONE
-", name, piIdentifier, xIdentifier, yIdentifier, zIdentifier, divertIdentifier);
+
+				Console.WriteLine (storyStr);
 
 	            var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);
 
