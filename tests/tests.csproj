@@ -6,7 +6,7 @@
     <ProjectGuid>{C48016BB-CF8B-4357-B052-E4DC63AED06B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>tests</RootNamespace>
-    <AssemblyName>tests</AssemblyName>
+    <AssemblyName>ink-tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -31,6 +31,7 @@
     <Reference Include="System" />
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+      <Package>nunit</Package>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -53,6 +54,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
+      <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
+      <Name>ink-engine-runtime</Name>
+    </ProjectReference>
     <ProjectReference Include="..\inklecate\inklecate.csproj">
       <Project>{D10ED1A8-CF83-4E58-B505-3714B3A16215}</Project>
       <Name>inklecate</Name>
