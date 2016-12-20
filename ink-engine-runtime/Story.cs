@@ -302,7 +302,13 @@ namespace Ink.Runtime
                             // We're going to continue stepping in case we see glue or some
                             // non-text content such as choices.
                             if( canContinue ) {
-                                stateAtLastNewline = StateSnapshot();
+
+								// Don't bother to record the state beyond the current newline.
+								// e.g.:
+								// Hello world\n			// record state at the end of here
+								// ~ complexCalculation()   // don't actually need this unless it generates text
+								if( stateAtLastNewline == null )
+                                	stateAtLastNewline = StateSnapshot();
                             } 
 
                             // Can't continue, so we're about to exit - make sure we
@@ -510,6 +516,7 @@ namespace Ink.Runtime
             }
         }
 
+		HashSet<Container> _prevContainerSet;
         void VisitChangedContainersDueToDivert()
         {
             var previousContentObject = state.previousContentObject;
@@ -519,11 +526,12 @@ namespace Ink.Runtime
                 return;
             
             // First, find the previously open set of containers
-            var prevContainerSet = new HashSet<Container> ();
+			if( _prevContainerSet == null ) _prevContainerSet = new HashSet<Container> ();
+			_prevContainerSet.Clear();
             if (previousContentObject) {
                 Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
                 while (prevAncestor) {
-                    prevContainerSet.Add (prevAncestor);
+					_prevContainerSet.Add (prevAncestor);
                     prevAncestor = prevAncestor.parent as Container;
                 }
             }
@@ -532,7 +540,7 @@ namespace Ink.Runtime
             // content step. However, we need to walk up the new ancestry to see if there are more new containers
             Runtime.Object currentChildOfContainer = newContentObject;
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
-            while (currentContainerAncestor && !prevContainerSet.Contains(currentContainerAncestor)) {
+			while (currentContainerAncestor && !_prevContainerSet.Contains(currentContainerAncestor)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
