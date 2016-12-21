@@ -147,35 +147,47 @@ namespace Ink.Runtime
         {
             get 
             {
-                var sb = new StringBuilder ();
+				if( _outputStreamTextDirty ) {
+					var sb = new StringBuilder ();
 
-                foreach (var outputObj in _outputStream) {
-                    var textContent = outputObj as StringValue;
-                    if (textContent != null) {
-                        sb.Append(textContent.value);
-                    }
-                }
+					foreach (var outputObj in _outputStream) {
+						var textContent = outputObj as StringValue;
+						if (textContent != null) {
+							sb.Append(textContent.value);
+						}
+					}
 
-                return sb.ToString ();
+					_currentText = sb.ToString ();
+
+					_outputStreamTextDirty = false;
+				}
+
+				return _currentText;
             }
         }
+		string _currentText;
 
         internal List<string> currentTags 
         {
             get 
             {
-                List<string> tags = new List<string>();
+				if( _outputStreamTagsDirty ) {
+					_currentTags = new List<string>();
 
-                foreach (var outputObj in _outputStream) {
-                    var tag = outputObj as Tag;
-                    if (tag != null) {
-                        tags.Add (tag.text);
-                    }
-                }
+					foreach (var outputObj in _outputStream) {
+						var tag = outputObj as Tag;
+						if (tag != null) {
+							_currentTags.Add (tag.text);
+						}
+					}
 
-                return tags;
+					_outputStreamTagsDirty = false;
+				}
+
+				return _currentTags;
             }
         }
+		List<string> _currentTags;
 
         internal bool inExpressionEvaluation {
             get {
@@ -191,6 +203,7 @@ namespace Ink.Runtime
             this.story = story;
 
             _outputStream = new List<Runtime.Object> ();
+			OutputStreamDirty();
 
             evaluationStack = new List<Runtime.Object> ();
 
@@ -227,6 +240,8 @@ namespace Ink.Runtime
             var copy = new StoryState(story);
 
             copy.outputStream.AddRange(_outputStream);
+			OutputStreamDirty();
+
 			copy._currentChoices.AddRange(_currentChoices);
 
             if (hasError) {
@@ -328,6 +343,7 @@ namespace Ink.Runtime
                 evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 
                 _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
+				OutputStreamDirty();
 
 				_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
@@ -370,6 +386,7 @@ namespace Ink.Runtime
         internal void ResetOutput()
         {
             _outputStream.Clear ();
+			OutputStreamDirty();
         }
 
         // Push to output stream, but split out newlines in text for consistency
@@ -388,6 +405,8 @@ namespace Ink.Runtime
             }
 
             PushToOutputStreamIndividual (obj);
+
+			OutputStreamDirty();
         }
 
 
@@ -523,6 +542,8 @@ namespace Ink.Runtime
             if (includeInOutput) {
                 _outputStream.Add (obj);
             }
+
+			OutputStreamDirty();
         }
 
         void TrimNewlinesFromOutputStream(Glue rightGlueToStopAt)
@@ -582,6 +603,8 @@ namespace Ink.Runtime
                     }
                 }
             }
+
+			OutputStreamDirty();
         }
 
         void TrimFromExistingGlue()
@@ -594,6 +617,8 @@ namespace Ink.Runtime
                 else
                     i++;
             }
+
+			OutputStreamDirty();
         }
 
 
@@ -608,6 +633,8 @@ namespace Ink.Runtime
                     break;
                 }
             }
+
+			OutputStreamDirty();
         }
 
         int currentGlueIndex {
@@ -832,11 +859,20 @@ namespace Ink.Runtime
             currentErrors.Add (message);
         }
 
+		void OutputStreamDirty()
+		{
+			_outputStreamTextDirty = true;
+			_outputStreamTagsDirty = true;
+		}
+
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method and serialisation
         // REMEMBER! REMEMBER! REMEMBER!
             
         List<Runtime.Object> _outputStream;
+		bool _outputStreamTextDirty = true;
+		bool _outputStreamTagsDirty = true;
+
 		List<Choice> _currentChoices;
 
         // Temporary state only, during externally called function evaluation
