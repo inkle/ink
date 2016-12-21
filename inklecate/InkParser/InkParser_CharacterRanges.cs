@@ -10,28 +10,38 @@ namespace Ink
     {
 		internal const string EnableCharacterRangeStatement = "ALLOW IDENTIFIER";
 
-		internal static readonly CharacterRange LatinBasic = 
-			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'));
+		internal static readonly CharacterRange[] LatinBasic = new[] {
+			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'))
+		};
 
-		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
+		internal static readonly CharacterRange[] LatinExtendedA = new[] { CharacterRange.Define('\u0100', '\u017F') }; // no excludes here
 
-		internal static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180', '\u024F'); // no excludes here
+		internal static readonly CharacterRange[] LatinExtendedB = new[] { CharacterRange.Define('\u0180', '\u024F') }; // no excludes here
 
-		internal static readonly CharacterRange Cyrillic = 
-			CharacterRange.Define('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489'));
+		internal static readonly CharacterRange[] Cyrillic = new[] {
+			CharacterRange.Define('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489')),
+			// Taken from Ubuntu's default character map for Cyrillic
+			CharacterRange.Define('\u0500', '\u0527', excludes: new CharacterSet()),
+		};
 
-		internal static readonly CharacterRange Greek = 
-			CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddRange('\u0378','\u0385').AddCharacters("\u0374\u0375\u0378\u0387\u038B\u038D\u03A2"));
+		internal static readonly CharacterRange[] Greek = new[] {
+			CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddRange('\u0378','\u0385').AddCharacters("\u0374\u0375\u0378\u0387\u038B\u038D\u03A2"))
+		};
 
 		// Many thanks to Adelin Ghanayem for currating these ranges.
-		internal static readonly CharacterRange Arabic = 
-			CharacterRange.Define('\u0620', '\u06FF', excludes: new CharacterSet().AddCharacters("\u0640\u06E9").AddRange('\u064B', '\u065F').AddRange('\u066A', '\u066D').AddRange('\u06DD', '\u06DE'));
+		internal static readonly CharacterRange[] Arabic = new[] {
+			CharacterRange.Define('\u0620', '\u06FF', excludes: new CharacterSet().AddCharacters("\u0640\u06E9").AddRange('\u064B', '\u065F').AddRange('\u066A', '\u066D').AddRange('\u06DD', '\u06DE'))
+		};
 
-		internal static readonly CharacterRange Armenian = 
-			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
+		internal static readonly CharacterRange[] Armenian = new[] {
+			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'))
+		};
 
-		internal static readonly CharacterRange Hebrew = 
-			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
+		internal static readonly CharacterRange[] Hebrew = new[] {
+			CharacterRange.Define('\u05D0', '\u05EA', excludes: new CharacterSet()),
+			// Taken from Ubuntu's default character map for Hebrew
+			CharacterRange.Define('\uFB20', '\uFB4F', excludes: new CharacterSet("\uFB37\uFB3D\uFB3F\uFB42\uFB45"))
+		};
 
 
 		protected CharacterRangeInlcude EnableCharacterRange()
@@ -57,10 +67,13 @@ namespace Ink
 			// We do not care now if the range is added multiple times, hash set will take care for us of duplicates
 			// Thus may have to change later if we need to disable character ranges, but this currently does not make much sense.
 			_enabledCharacterRanges.Add (charRange);
-            CharacterRange range;
+            IList<CharacterRange> range;
             if (_characterRangesByName.TryGetValue (charRange, out range)) 
             {
-                _identifierCharSet.AddCharacters (range.ToCharacterSet ());
+				for (int i = 0; i < range.Count; i++) 
+				{
+					_identifierCharSet.AddCharacters (range[i].ToCharacterSet ());
+				}                
             }
 
 			return new CharacterRangeInlcude (charRange);
@@ -68,7 +81,7 @@ namespace Ink
 
 		HashSet<string> _enabledCharacterRanges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-		readonly IDictionary<string, CharacterRange> _characterRangesByName = new Dictionary<string, CharacterRange>(StringComparer.OrdinalIgnoreCase)
+		readonly IDictionary<string, IList<CharacterRange>> _characterRangesByName = new Dictionary<string, IList<CharacterRange>>(StringComparer.OrdinalIgnoreCase)
 		{
 			// Basic Latin and aliases
 			{ "Basic Latin", 			LatinBasic },

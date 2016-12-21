@@ -1920,42 +1920,50 @@ Using `-> END` in this case will not end the thread, but the whole story flow. (
  
 ## 3) International character support in identifiers
 
-By default, ink has no limitations on the use of non ASCII characters inside the story content (of course, with the exception of the special ink syntax symbols). However, a limitation currently exsits
-on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements -- or in short *identifiers*.
+By default, ink has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exsits
+on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements (a.k.a. *identifiers*).
 
-Sometimes it is inconvenient for a writer using a non-ASCII language to write their story because they have to constantly switch to naming identifiers in ASCII compatible way, which is seen as inconvenience. Also, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
+Sometimes it is inconvenient for a writer using a non-ASCII language to write a story because they have to constantly switch to naming identifiers in ASCII and then switching back to whatever language they are using for the story. In addition, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
 
-In an effort to assist in the above scenario, a special instruction is made available into the ink syntax -- the `ALLOW IDENTIFIER xxx` direcive 
+In an effort to assist in the above scenario, a special instruction is made available into the ink syntax -- the `ALLOW IDENTIFIER` direcive 
 
 ### Usage of the `ALLOW IDENTIFIER` statement
 
-Authors can trigger special currated character ranges which will extend the support for non-ASCII characters in identifiers. The instruction must be placed on a new line and be the only statement in that line:
+Authors can trigger special currated character ranges which will extend the support for non-ASCII characters in identifiers. The instruction must be placed on a new line and be the only statement in that line. For example:
 
     ALLOW IDENTIFIER Cyrillic
 
-The above statement will enable usage of Cyrillic characters as identifiers **immediately after its occurence**. The triggering of this character set will persist for the remainder of the story.
+will enable usage of Cyrillic characters as identifiers **immediately after its first occurence**. The triggering of this character set will persist for the remainder of the story.
 
-**NOTE!** The story content *before* the statement will not be able to support the newly included characters, due to the forward-directional processing of the story content by the ink parser. In order to enable support for certain charater range in identifiers for the entire story, one must use the statement in the beginning of the story file.
+**NOTE!** The story content *before* the statement will not be able to support the newly included characters, due to the forward-directional processing of the story content by the ink parser. In order to enable certain charater range in identifiers for the entire story, one must place the statement in the beginning of the story file.
 
-### Supported Identfier Characters
+### Supported Identifier Characters
 
-The support for the additional character ranges in ink is currently limited to a predefined list of character ranges. In future version of the software, the list could grow in size. Below is a table listing the currently supported character ranges and some examples of their possible usages. For convenience, all character range names are ***case insensitive***, and some have shorter aliases.
+The support for the additional character ranges in ink is currently limited to a predefined list of character ranges. In future version of the software, this list could grow in size. 
 
- - **Arabic**  
+Below is a listing of the currently supported identifier ranges and some examples of their possible usages. For convenience, all character range names are ***case insensitive***, and some have shorter aliases.
+
+ - **Arabic**
+   
+   Enables characters for languages of the Arabic family and is a subset of the official *Arabic* unicode range `\u0600`-`\u06FF`.
 
    Examples 
 
 	     ALLOW IDENTIFIER arabic
 	     ALLOW IDENTIFIER Arabic
 	  
- - **Armenian**  
+ - **Armenian**
+   
+   Enables characters for the Armenian language and is a subset of the official *Armenian* unicode range `\u0530`-`\u058F`.
 
    Examples  
 
 	     ALLOW IDENTIFIER armenian
 	     ALLOW IDENTIFIER Armenian
 
- - **Cyrillic**  
+ - **Cyrillic**
+   
+   Enables characters for languages using the Cyrillic alphabet and is a subset of the official *Cyrillic* unicode range `\u0400`-`\u04FF`.
 
    Examples  
 
@@ -1963,6 +1971,8 @@ The support for the additional character ranges in ink is currently limited to a
 	     ALLOW IDENTIFIER Cyrillic
 
  - **Greek**  
+ 
+   Enables characters for languages using the Greek alphabet and is a subset of the official *Greek and Coptic* unicode range `\u0370`-`\u03FF`.
 
    Examples  
 
@@ -1970,6 +1980,8 @@ The support for the additional character ranges in ink is currently limited to a
 	     ALLOW IDENTIFIER Greek
 
  - **Hebrew**  
+ 
+   Enables characters in Hebrew using the Hebrew alphabet and is a subset of the official *Hebrew* unicode range `\u0590`-`\u05FF`.
 
    Examples  
 
@@ -1977,6 +1989,8 @@ The support for the additional character ranges in ink is currently limited to a
 	     ALLOW IDENTIFIER Hebrew
 
  - **Latin Extended A**  
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-A* unicode range `\u0100`-`\u017F`.
 
    Aliases  
 	 - `latin-ext-a`
@@ -1988,7 +2002,9 @@ The support for the additional character ranges in ink is currently limited to a
 	     ALLOW IDENTIFIER lating-ext-a
 	     ALLOW IDENTIFIER Latin Extended A
 
- - **Latin Extended B**  
+ - **Latin Extended B**
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.  
 
    Aliases  
 	 - `latin-ext-b`

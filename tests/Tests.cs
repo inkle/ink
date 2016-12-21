@@ -2608,15 +2608,13 @@ Now in B.
 				"hebrew",
 			};
 			for (int i = 0; i < ranges.Length; i++) {
-
-				var range = ranges[i];
 				var name = rangeNames[i];
 
-				var piIdentifier = GenerateIdentifierFromCharacterRange (range, "pi");
-				var xIdentifier = GenerateIdentifierFromCharacterRange (range, "x");
-				var yIdentifier = GenerateIdentifierFromCharacterRange (range, "y");
-				var zIdentifier = GenerateIdentifierFromCharacterRange (range, "z");
-				var divertIdentifier = GenerateIdentifierFromCharacterRange (range, "divert");
+				var piIdentifier = GenerateIdentifierFromCharacterRange (ranges [i], "pi");
+				var xIdentifier = GenerateIdentifierFromCharacterRange (ranges [i], "x");
+				var yIdentifier = GenerateIdentifierFromCharacterRange (ranges [i], "y");
+				var zIdentifier = GenerateIdentifierFromCharacterRange (ranges [i], "z");
+				var divertIdentifier = GenerateIdentifierFromCharacterRange (ranges [i], "divert");
 
 				var storyStr = string.Format(@"
 {0} {1}
@@ -2721,13 +2719,15 @@ CONST {4} = 3
                 Assert.Fail(message);
         }
 
-		private string GenerateIdentifierFromCharacterRange(CharacterRange range, string varNameUniquePart)
+		private string GenerateIdentifierFromCharacterRange(IEnumerable<CharacterRange> range, string varNameUniquePart)
 		{
-			CharacterSet set = range.ToCharacterSet();
 			StringBuilder sb = new StringBuilder ().Append(varNameUniquePart);
 
-			foreach (var c in set) {
-				sb.Append (c);
+			foreach (var set in range)
+			{
+				foreach (var c in set.ToCharacterSet()) {
+					sb.Append (c);
+				}
 			}
 
 			return sb.ToString();
