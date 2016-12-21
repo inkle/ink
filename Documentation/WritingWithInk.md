@@ -1999,7 +1999,7 @@ Below is a listing of the currently supported identifier ranges and some example
 
    Examples  
 
-	     ALLOW IDENTIFIER lating-ext-a
+	     ALLOW IDENTIFIER latin-ext-a
 	     ALLOW IDENTIFIER Latin Extended A
 
  - **Latin Extended B**
@@ -2013,6 +2013,6 @@ Below is a listing of the currently supported identifier ranges and some example
 
    Examples  
 
-	     ALLOW IDENTIFIER lating-ext-b
+	     ALLOW IDENTIFIER latin-ext-b
 	     ALLOW IDENTIFIER Latin Extended B
 
