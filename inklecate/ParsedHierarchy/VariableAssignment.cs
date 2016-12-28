@@ -29,7 +29,9 @@ namespace Ink.Parsed
         public VariableAssignment (string variableName, SetDefinition setDefinition)
         {
             this.variableName = variableName;
-            this.setDefinition = setDefinition;
+
+            if( setDefinition )
+                this.setDefinition = AddContent(setDefinition);
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -77,8 +79,8 @@ namespace Ink.Parsed
 
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
-                if (variableReference && !variableReference.isConstantReference) {
-                    Error ("global variable assignments cannot refer to other variables, only literal values and constants");
+                if (variableReference && !variableReference.isConstantReference && !variableReference.isSetItemReference) {
+                    Error ("global variable assignments cannot refer to other variables, only literal values, constants and set items");
                 }       
             }
 

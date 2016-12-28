@@ -360,19 +360,15 @@ namespace Ink.Runtime
             ordered.Sort((x, y) => x.Value.CompareTo(y.Value));
 
             var sb = new System.Text.StringBuilder ();
-            sb.Append ("(");
             for (int i = 0; i < ordered.Count; i++) {
                 if (i > 0)
                     sb.Append (", ");
-
-                var namedValue = ordered [i];
-                var itemName = namedValue.Key;
-                var value = namedValue.Value;
+                
+                var fullItemPath = ordered [i].Key;
+                var nameParts = fullItemPath.Split ('.');
+                var itemName = nameParts [nameParts.Length - 1];
                 sb.Append (itemName);
-                sb.Append (": ");
-                sb.Append (value);
             }
-            sb.Append (")");
 
             return sb.ToString ();
         }

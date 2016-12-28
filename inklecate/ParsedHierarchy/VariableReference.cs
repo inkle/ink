@@ -18,6 +18,7 @@ namespace Ink.Parsed
 
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
+        public bool isSetItemReference;
 
         public Runtime.VariableReference runtimeVarRef { get { return _runtimeVarRef; } }
 
@@ -31,23 +32,44 @@ namespace Ink.Parsed
             Expression constantValue = null;
 
             // If it's a constant reference, just generate the literal expression value
-            // TODO: Write a comment about why it's okay to access the constants at
-            // code generation time (it is, right?)
+            // It's okay to access the constants at code generation time, since the
+            // first thing the ExportRuntime function does it search for all the constants
+            // in the story hierarchy, so they're all available.
             if ( story.constants.TryGetValue (name, out constantValue) ) {
                 constantValue.GenerateConstantIntoContainer (container);
                 isConstantReference = true;
-            } else {
-                _runtimeVarRef = new Runtime.VariableReference (name);
-                container.AddContent(_runtimeVarRef);
+                return;
             }
+
+            _runtimeVarRef = new Runtime.VariableReference (name);
+
+            // Set item reference?
+            // Path might be to a set (setName.setItemName or just setItemName)
+            if (path.Count == 1 || path.Count == 2) {
+                string setItemName = null;
+                string setName = null;
+
+                if (path.Count == 1) setItemName = path [0];
+                else {
+                    setName = path [0];
+                    setItemName = path [1];
+                }
+
+                var setItem = story.ResolveSetItem (setName, setItemName, this);
+                if (setItem) {
+                    isSetItemReference = true;
+                }
+            }
+
+            container.AddContent (_runtimeVarRef);
         }
 
         public override void ResolveReferences (Story context)
         {
             base.ResolveReferences (context);
 
-            // Work is already done if it's a constant reference
-            if (isConstantReference) {
+            // Work is already done if it's a constant or set item reference
+            if (isConstantReference || isSetItemReference) {
                 return;
             }
                 
@@ -76,25 +98,8 @@ namespace Ink.Parsed
                 return;
             }
 
-            // Path might be to a set (setName.setItemName or just setItemName)
-            if (path.Count == 1 || path.Count == 2) {
-                string setItemName = null;
-                string setName = null;
-
-                if (path.Count == 1) setItemName = path [0];
-                else {
-                    setName = path [0];
-                    setItemName = path [1];
-                }
-
-                var setItem = story.ResolveSetItem (setName, setItemName, this);
-                if (setItem) {
-                    _runtimeVarRef.name = name;
-                    return;
-                }
-            }
-
-            // Couldn't find this multi-part path at all?
+            // Couldn't find this multi-part path at all, whether as a divert
+            // target or as a set item reference.
             if (path.Count > 1) {
                 var errorMsg = "Could not find target for read count: " + parsedPath;
                 if (path.Count <= 2)
