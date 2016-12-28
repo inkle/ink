@@ -181,7 +181,7 @@ namespace Ink.Runtime
                     var set = namedSet.Value;
                     int itemValue;
                     if (set.TryGetValueForItem (name, out itemValue)) {
-                        return new SetValue (name, itemValue);
+                        return new SetValue (set.name + "." + name, itemValue);
                     }
                 }
             }

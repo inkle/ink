@@ -147,6 +147,8 @@ namespace Ink.Runtime
         {
             ValueType valType = ValueType.Int;
 
+            SetValue specialCaseSet = null;
+
             // Find out what the output type is
             // "higher level" types infect both so that binary operations
             // use the same type on both sides. e.g. binary operation of
@@ -156,13 +158,47 @@ namespace Ink.Runtime
                 if (val.valueType > valType) {
                     valType = val.valueType;
                 }
+
+                if (val.valueType == ValueType.Set) {
+                    specialCaseSet = val as SetValue;
+                }
             }
 
             // Coerce to this chosen type
             var parametersOut = new List<Value> ();
-            foreach (Value val in parametersIn) {
-                var castedValue = val.Cast (valType);
-                parametersOut.Add (castedValue);
+
+            // Special case: Coercing to Ints to Sets
+            // We have to do it early when we have both parameters
+            // to hand - so that we can make use of the Set's origin
+            if (valType == ValueType.Set) {
+                
+                foreach (Value val in parametersIn) {
+                    if (val.valueType == ValueType.Set) {
+                        parametersOut.Add (val);
+                    } else if (val.valueType == ValueType.Int) {
+                        int intVal = (int)val.valueObject;
+                        var set = specialCaseSet.singleOriginSet;
+                        if (set == null)
+                            throw new StoryException ("Cannot mix Set and Int values here because the existing Set appears to contain items from a mixture of different Set definitions. How do we know which Set is the Int referring to?");
+                        
+                        string itemName;
+                        if (set.TryGetItemWithValue (intVal, out itemName)) {
+                            var castedValue = new SetValue (set.name + "." + itemName, intVal);
+                            parametersOut.Add (castedValue);
+                        } else
+                            throw new StoryException ("Could not find Set item with the value " + intVal + " in " + set.name);
+                    } else
+                        throw new StoryException ("Cannot mix Sets and " + val.valueType + " values in this operation");
+                }
+                
+            } 
+
+            // Normal Coercing (with standard casting)
+            else {
+                foreach (Value val in parametersIn) {
+                    var castedValue = val.Cast (valType);
+                    parametersOut.Add (castedValue);
+                }
             }
 
             return parametersOut;

@@ -304,6 +304,32 @@ namespace Ink.Runtime
             }
         }
 
+        // Story has to set this so that the value knows its origin,
+        // necessary for certain operations (e.g. interacting with ints)
+        public Set singleOriginSet;
+
+        // Runtime sets may reference items from different origin sets
+        public string singleOriginSetName {
+            get {
+                string name = null;
+
+                foreach (var fullNamedItem in value) {
+                    var setName = fullNamedItem.Key.Split ('.') [0];
+
+                    // First name - take it as the assumed single origin name
+                    if (name == null)
+                        name = setName;
+
+                    // A different one than one we've already had? No longer
+                    // single origin.
+                    else if (name != setName)
+                        return null;
+                }
+
+                return name;
+            }
+        }
+
         // Truthy if it contains any non-zero items
         public override bool isTruthy {
             get {

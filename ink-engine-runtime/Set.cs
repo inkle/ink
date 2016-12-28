@@ -20,6 +20,20 @@ namespace Ink.Runtime
             return _namedItems.TryGetValue (itemName, out val);
         }
 
+        public bool TryGetItemWithValue (int val, out string itemName)
+        {
+            itemName = null;
+
+            foreach (var namedItem in _namedItems) {
+                if (namedItem.Value == val) {
+                    itemName = namedItem.Key;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public Set (string name, Dictionary<string, int> namedItems)
         {
             _name = name;

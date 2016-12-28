@@ -995,13 +995,28 @@ namespace Ink.Runtime
             }
 
             // Native function call
-            else if( contentObj is NativeFunctionCall ) {
-                var func = (NativeFunctionCall) contentObj;
-                var funcParams = state.PopEvaluationStack(func.numberOfParameters);
-                var result = func.Call(funcParams);
-                state.evaluationStack.Add(result);
+            else if (contentObj is NativeFunctionCall) {
+                var func = (NativeFunctionCall)contentObj;
+                var funcParams = state.PopEvaluationStack (func.numberOfParameters);
+
+                // Include metadata about the origin Set for set values when
+                // they're used in NativeFunctionCalls, so that we can mix them
+                // with ints.
+                foreach (var p in funcParams) {
+                    var setValue = p as SetValue;
+                    if (setValue) {
+                        var singleOriginName = setValue.singleOriginSetName;
+                        if (singleOriginName != null)
+                            setValue.singleOriginSet = _sets [singleOriginName];
+                        else
+                            setValue.singleOriginSet = null;
+                    }
+                }
+
+                var result = func.Call (funcParams);
+                state.evaluationStack.Add (result);
                 return true;
-            }
+            } 
 
             // No control content, must be ordinary content
             return false;
