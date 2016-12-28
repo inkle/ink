@@ -6,6 +6,7 @@ namespace Ink.Parsed
     {
         public string variableName { get; protected set; }
         public Expression expression { get; protected set; }
+        public SetDefinition setDefinition { get; protected set; }
 
         public bool isGlobalDeclaration { get; set; }
         public bool isNewTemporaryDeclaration { get; set; }
@@ -23,6 +24,12 @@ namespace Ink.Parsed
             // Defensive programming in case parsing of assignedExpression failed
             if( assignedExpression )
                 this.expression = AddContent(assignedExpression);
+        }
+
+        public VariableAssignment (string variableName, SetDefinition setDefinition)
+        {
+            this.variableName = variableName;
+            this.setDefinition = setDefinition;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -46,7 +53,10 @@ namespace Ink.Parsed
             var container = new Runtime.Container ();
 
             // The expression's runtimeObject is actually another nested container
-            container.AddContent (expression.runtimeObject);
+            if( expression != null )
+                container.AddContent (expression.runtimeObject);
+            else if( setDefinition != null )
+                container.AddContent (setDefinition.runtimeObject);
 
             container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
 

@@ -100,9 +100,10 @@ namespace Ink.Runtime
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
         // For normal use, use the constructor that takes a json string.
-        internal Story (Container contentContainer)
+        internal Story (Container contentContainer, List<Runtime.Set> sets = null)
 		{
 			_mainContentContainer = contentContainer;
+            _sets = sets;
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
 
@@ -1927,7 +1928,8 @@ namespace Ink.Runtime
             }
         }
 
-        private Container _mainContentContainer;
+        Container _mainContentContainer;
+        List<Runtime.Set> _sets;
 
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;

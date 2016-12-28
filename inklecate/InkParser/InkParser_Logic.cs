@@ -84,23 +84,102 @@ namespace Ink
 
             Whitespace ();
 
-            var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
-            if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference)) {
-                Error ("initial value for a variable must be a number, constant, or divert target");
+            var definition = Expect (VariableDefinitionRValue, "initial value for ");
+
+            var expr = definition as Parsed.Expression;
+            var setDef = definition as Parsed.SetDefinition;
+
+            if (expr) {
+                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference)) {
+                    Error ("initial value for a variable must be a number, constant, or divert target");
+                }
+
+                // Ensure string expressions are simple
+                else if (expr is StringExpression) {
+                    var strExpr = expr as StringExpression;
+                    if (!strExpr.isSingleString)
+                        Error ("Constant strings cannot contain any logic.");
+                }
+
+                var result = new VariableAssignment (varName, expr);
+                result.isGlobalDeclaration = true;
+                return result;
+
+            } else if (setDef) {
+
+                setDef.name = varName;
+
+                var result = new VariableAssignment (varName, setDef);
+                result.isGlobalDeclaration = true;
+                return result;
             }
 
-            // Ensure string expressions are simple
-            else if (expr is StringExpression) {
-                var strExpr = expr as StringExpression;
-                if (!strExpr.isSingleString)
-                    Error ("Constant strings cannot contain any logic.");
-            }
-
-            var result = new VariableAssignment (varName, expr);
-            result.isGlobalDeclaration = true;
-            return result;
+            return null;
         }
 
+        protected Parsed.Object VariableDefinitionRValue ()
+        {
+            return OneOf (SetDefinition, Expression) as Parsed.Object;
+        }
+
+        protected Parsed.SetDefinition SetDefinition ()
+        {
+            AnyWhitespace ();
+
+            var firstElement = Parse(SetElementDefinition);
+            if (firstElement == null) return null;
+
+            List<SetElementDefinition> allElements = null;
+
+            do {
+                var sep = Parse (SetElementSeparator);
+                if (sep == null) break;
+
+                var nextElement = Parse (SetElementDefinition);
+                if (nextElement == null) break;
+
+                if (allElements == null) {
+                    allElements = new List<Parsed.SetElementDefinition> ();
+                    allElements.Add (firstElement);
+                }
+                allElements.Add (nextElement);
+                
+            } while (firstElement);
+
+            if (allElements == null) return null;
+
+            return new SetDefinition (allElements);
+        }
+
+        protected string SetElementSeparator ()
+        {
+            AnyWhitespace ();
+
+            if (ParseString (",") == null) return null;
+
+            AnyWhitespace ();
+
+            return ",";
+        }
+
+        protected Parsed.SetElementDefinition SetElementDefinition ()
+        {
+            var inInitialSet = ParseString ("(") != null;
+
+            Whitespace ();
+
+            var name = Parse (Identifier);
+            if (name == null)
+                return null;
+
+            Whitespace ();
+
+            if( inInitialSet )
+                Expect (String (")"), "closing ')'");
+
+            return new SetElementDefinition (name, inInitialSet);
+        }
+                
 
         protected Parsed.Object ConstDeclaration()
         {

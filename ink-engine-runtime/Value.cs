@@ -13,6 +13,7 @@ namespace Ink.Runtime
         // Used in coersion
         Int,
         Float,
+        Set,
         String,
 
         // Not used for coersion described above
@@ -55,6 +56,8 @@ namespace Ink.Runtime
                 return new StringValue ((string)val);
             } else if (val is Path) {
                 return new DivertTargetValue ((Path)val);
+            } else if (val is Dictionary<string, int>) {
+                return new SetValue ((Dictionary < string, int > )val);
             }
 
             return null;
@@ -268,6 +271,79 @@ namespace Ink.Runtime
         public override Object Copy()
         {
             return new VariablePointerValue (variableName, contextIndex);
+        }
+    }
+
+    internal class SetValue : Value<Dictionary<string, int>>
+    {
+        public override ValueType valueType {
+            get {
+                return ValueType.Set;
+            }
+        }
+
+        // Truthy if it contains any non-zero items
+        public override bool isTruthy {
+            get {
+                foreach (var kv in value) {
+                    int setItemIntValue = kv.Value;
+                    if (setItemIntValue != 0)
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        KeyValuePair<string, int> maxItem {
+            get {
+                var max = new KeyValuePair<string, int>(null, int.MinValue);
+                foreach (var kv in value) {
+                    if (kv.Value > max.Value)
+                        max = kv;
+                }
+                return max;
+            }
+        }
+                
+        public override Value Cast (ValueType newType)
+        {
+            if (newType == ValueType.Int) {
+                var max = maxItem;
+                if( max.Key == null )
+                    return new IntValue (0);
+                else
+                    return new IntValue (max.Value);
+            }
+
+            else if (newType == ValueType.Float) {
+                var max = maxItem;
+                if (max.Key == null)
+                    return new FloatValue (0.0f);
+                else
+                    return new FloatValue ((float)max.Value);
+            }
+
+            else if (newType == ValueType.String) {
+                var max = maxItem;
+                if (max.Key == null)
+                    return new StringValue ("");
+                else
+                    return new StringValue (max.Key);
+            }
+
+            if (newType == valueType)
+                return this;
+
+            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+        }
+
+        public SetValue () : base(null) {
+            value = new Dictionary<string, int> ();
+        }
+
+        public SetValue (Dictionary<string, int> dict) : base (null)
+        {
+            value = new Dictionary<string, int> (dict);
         }
     }
         

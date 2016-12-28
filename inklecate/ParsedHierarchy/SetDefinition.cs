@@ -1,0 +1,76 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Ink.Parsed
+{
+    internal class SetDefinition : Parsed.Object
+    {
+        public string name;
+        public List<SetElementDefinition> elements;
+
+        public Runtime.Set runtimeSetDefinition {
+            get {
+                var allItems = new Dictionary<string, int> ();
+                foreach (var e in elements)
+                    allItems.Add (e.name, e.seriesValue);
+                return new Runtime.Set (name, allItems);
+            }
+        }
+
+        public SetDefinition (List<SetElementDefinition> elements)
+        {
+            this.elements = elements;
+
+            int currentValue = 1;
+            bool hasDefinedInitialValue = false;
+            foreach (var e in this.elements) {
+                if (e.explicitValue != null) {
+                    currentValue = e.explicitValue.Value;
+                }
+
+                e.seriesValue = currentValue;
+
+                if (e.inInitialSet)
+                    hasDefinedInitialValue = true;
+
+                currentValue++;
+            }
+
+            // If no particular element is assigned to the initial set,
+            // make it the first one.
+            if (!hasDefinedInitialValue)
+                elements [0].inInitialSet = true;
+        }
+
+        public override Runtime.Object GenerateRuntimeObject ()
+        {
+            var initialValues = new Dictionary<string, int> ();
+            foreach (var e in elements) {
+                if (e.inInitialSet)
+                    initialValues [this.name + "." + e.name] = e.seriesValue;
+            }
+
+            return new Runtime.SetValue (initialValues);
+        }
+    }
+
+    internal class SetElementDefinition : Parsed.Object
+    {
+        public string name;
+        public int? explicitValue;
+        public int seriesValue;
+        public bool inInitialSet;
+
+        public SetElementDefinition (string name, bool inInitialSet)
+        {
+            this.name = name;
+            this.inInitialSet = inInitialSet;
+        }
+
+        public override Runtime.Object GenerateRuntimeObject ()
+        {
+            throw new System.NotImplementedException ();
+        }
+    }
+}
