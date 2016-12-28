@@ -85,6 +85,12 @@ namespace Ink.Runtime
         /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
 
+        internal Dictionary<string, Set> sets {
+            get {
+                return _sets;
+            }
+        }
+
         /// <summary>
         /// The entire current state of the story including (but not limited to):
         /// 
@@ -103,7 +109,14 @@ namespace Ink.Runtime
         internal Story (Container contentContainer, List<Runtime.Set> sets = null)
 		{
 			_mainContentContainer = contentContainer;
-            _sets = sets;
+
+            if (sets != null) {
+                _sets = new Dictionary<string, Set> ();
+                foreach (var set in sets) {
+                    _sets [set.name] = set;
+                }
+            }
+
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
 
@@ -1929,7 +1942,7 @@ namespace Ink.Runtime
         }
 
         Container _mainContentContainer;
-        List<Runtime.Set> _sets;
+        Dictionary<string, Runtime.Set> _sets;
 
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;

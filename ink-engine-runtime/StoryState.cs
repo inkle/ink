@@ -208,7 +208,7 @@ namespace Ink.Runtime
             evaluationStack = new List<Runtime.Object> ();
 
             callStack = new CallStack (story.rootContentContainer);
-            variablesState = new VariablesState (callStack);
+            variablesState = new VariablesState (callStack, story.sets);
 
             visitCounts = new Dictionary<string, int> ();
             turnIndices = new Dictionary<string, int> ();
@@ -251,8 +251,7 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack);
-            copy.variablesState.CopyFrom (variablesState);
+            copy.variablesState = new VariablesState (copy.variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
 

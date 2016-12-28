@@ -4,12 +4,13 @@ namespace Ink.Parsed
 {
     internal class VariableReference : Expression
     {
+        // - Normal variables have a single item in their "path"
+        // - Knot/stitch names for read counts are actual dot-separated paths
+        //   (though this isn't actually used at time of writing)
+        // - Set names are dot separated: setName.itemName (or just itemName)
         public string name { 
             get {
-                if (path != null && path.Count == 1)
-                    return path [0];
-                else
-                    return null;
+                return string.Join (".", path);
             } 
         }
         
@@ -29,11 +30,10 @@ namespace Ink.Parsed
         {
             Expression constantValue = null;
 
-            // Name can be null if it's actually a path to a knot/stitch etc for a read count
-            var varName = name;
-
             // If it's a constant reference, just generate the literal expression value
-            if ( varName != null && story.constants.TryGetValue (varName, out constantValue) ) {
+            // TODO: Write a comment about why it's okay to access the constants at
+            // code generation time (it is, right?)
+            if ( story.constants.TryGetValue (name, out constantValue) ) {
                 constantValue.GenerateConstantIntoContainer (container);
                 isConstantReference = true;
             } else {
@@ -74,11 +74,32 @@ namespace Ink.Parsed
                 }
 
                 return;
-            } 
+            }
 
-            // Definitely a read count, but wasn't found?
-            else if (path.Count > 1) {
-                Error ("Could not find target for read count: " + parsedPath);
+            // Path might be to a set (setName.setItemName or just setItemName)
+            if (path.Count == 1 || path.Count == 2) {
+                string setItemName = null;
+                string setName = null;
+
+                if (path.Count == 1) setItemName = path [0];
+                else {
+                    setName = path [0];
+                    setItemName = path [1];
+                }
+
+                var setItem = story.ResolveSetItem (setName, setItemName, this);
+                if (setItem) {
+                    _runtimeVarRef.name = name;
+                    return;
+                }
+            }
+
+            // Couldn't find this multi-part path at all?
+            if (path.Count > 1) {
+                var errorMsg = "Could not find target for read count: " + parsedPath;
+                if (path.Count <= 2)
+                    errorMsg += ", or couldn't find set item with the name " + string.Join (",", path);
+                Error (errorMsg);
                 return;
             }
 

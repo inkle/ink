@@ -345,6 +345,37 @@ namespace Ink.Runtime
         {
             value = new Dictionary<string, int> (dict);
         }
+
+        public SetValue (string singleItemName, int singleValue) : base (null)
+        {
+            value = new Dictionary<string, int> {
+                {singleItemName, singleValue}
+            };
+        }
+
+        public override string ToString ()
+        {
+            var ordered =  new List<KeyValuePair<string, int>> ();
+            ordered.AddRange (value);
+            ordered.Sort((x, y) => x.Value.CompareTo(y.Value));
+
+            var sb = new System.Text.StringBuilder ();
+            sb.Append ("(");
+            for (int i = 0; i < ordered.Count; i++) {
+                if (i > 0)
+                    sb.Append (", ");
+
+                var namedValue = ordered [i];
+                var itemName = namedValue.Key;
+                var value = namedValue.Value;
+                sb.Append (itemName);
+                sb.Append (": ");
+                sb.Append (value);
+            }
+            sb.Append (")");
+
+            return sb.ToString ();
+        }
     }
         
 }

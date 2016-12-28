@@ -88,22 +88,25 @@ namespace Ink.Runtime
 			return _globalVariables.Keys.GetEnumerator();
 		}
 
-        internal VariablesState (CallStack callStack)
+        internal VariablesState (CallStack callStack, Dictionary<string, Set> sets)
         {
             _globalVariables = new Dictionary<string, Object> ();
             _callStack = callStack;
+            _sets = sets;
         }
 
-        internal void CopyFrom(VariablesState varState)
+        internal VariablesState (VariablesState toCopy)
         {
-            _globalVariables = new Dictionary<string, Object> (varState._globalVariables);
-            variableChangedEvent = varState.variableChangedEvent;
+            _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
+            _sets = toCopy._sets;
 
-            if (varState.batchObservingVariableChanges != batchObservingVariableChanges) {
+            variableChangedEvent = toCopy.variableChangedEvent;
 
-                if (varState.batchObservingVariableChanges) {
+            if (toCopy.batchObservingVariableChanges != batchObservingVariableChanges) {
+
+                if (toCopy.batchObservingVariableChanges) {
                     _batchObservingVariableChanges = true;
-                    _changedVariables = new HashSet<string> (varState._changedVariables);
+                    _changedVariables = new HashSet<string> (toCopy._changedVariables);
                 } else {
                     _batchObservingVariableChanges = false;
                     _changedVariables = null;
@@ -147,6 +150,10 @@ namespace Ink.Runtime
             if (contextIndex == 0 || contextIndex == -1) {
                 if ( _globalVariables.TryGetValue (name, out varValue) )
                     return varValue;
+
+                var setItemValue = GetSetItemValueWithName (name);
+                if (setItemValue)
+                    return setItemValue;
             } 
 
             // Temporary
@@ -156,6 +163,31 @@ namespace Ink.Runtime
                 throw new System.Exception ("RUNTIME ERROR: Variable '"+name+"' could not be found in context '"+contextIndex+"'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
 
             return varValue;
+        }
+
+        SetValue GetSetItemValueWithName (string name)
+        {
+            var nameParts = name.Split ('.');
+            if (nameParts.Length == 2) {
+                var setName = nameParts [0];
+                var itemName = nameParts [1];
+
+                Set set;
+                if (_sets.TryGetValue (setName, out set)) {
+                    int itemValue = set.ValueForItem (itemName);
+                    return new SetValue (name, itemValue);
+                }
+            } else {
+                foreach (var namedSet in _sets) {
+                    var set = namedSet.Value;
+                    int itemValue;
+                    if (set.TryGetValueForItem (name, out itemValue)) {
+                        return new SetValue (name, itemValue);
+                    }
+                }
+            }
+
+            return null;
         }
 
         internal Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
@@ -270,6 +302,7 @@ namespace Ink.Runtime
         // Used for accessing temporary variables
         CallStack _callStack;
         HashSet<string> _changedVariables;
+        Dictionary<string, Set> _sets;
     }
 }
 

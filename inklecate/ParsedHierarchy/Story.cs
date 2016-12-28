@@ -139,6 +139,7 @@ namespace Ink.Parsed
             var variableInitialisation = new Runtime.Container ();
             variableInitialisation.AddContent (Runtime.ControlCommand.EvalStart ());
 
+            _setDefs = new Dictionary<string, SetDefinition> ();
             var sets = new List<Runtime.Set> ();
 
             // Global variables are those that are local to the story and marked as global
@@ -148,6 +149,7 @@ namespace Ink.Parsed
                 if (varDecl.isGlobalDeclaration) {
 
                     if (varDecl.setDefinition != null) {
+                        _setDefs[varName] = varDecl.setDefinition;
                         variableInitialisation.AddContent (varDecl.setDefinition.runtimeObject);
                         sets.Add (varDecl.setDefinition.runtimeSetDefinition);
                     } else {
@@ -200,6 +202,41 @@ namespace Ink.Parsed
 
 			return runtimeStory;
 		}
+
+        internal SetElementDefinition ResolveSetItem (string setName, string itemName, Parsed.Object source = null)
+        {
+            SetDefinition set = null;
+
+            // Search a specific set if we know its name (i.e. the form setName.itemName)
+            if (setName != null) {
+                if (!_setDefs.TryGetValue (setName, out set))
+                    return null;
+
+                return set.ItemNamed (itemName);
+            }
+
+            // Otherwise, try to search all sets
+            else {
+
+                SetElementDefinition foundItem = null;
+                SetDefinition originalFoundSet = null;
+
+                foreach (var namedSet in _setDefs) {
+                    var setToSearch = namedSet.Value;
+                    var itemInThisSet = setToSearch.ItemNamed (itemName);
+                    if (itemInThisSet) {
+                        if (foundItem != null) {
+                            Error ("Ambiguous item name '" + itemName + " found in multiple sets, including "+originalFoundSet.name+" and "+setToSearch.name, source, isWarning:false);
+                        } else {
+                            foundItem = itemInThisSet;
+                            originalFoundSet = setToSearch;
+                        }
+                    }
+                }
+
+                return foundItem;
+            }
+        }
 
         void FlattenContainersIn (Runtime.Container container)
         {
@@ -316,6 +353,8 @@ namespace Ink.Parsed
         bool _hadWarning;
 
         HashSet<Runtime.Container> _dontFlattenContainers = new HashSet<Runtime.Container>();
+
+        Dictionary<string, Parsed.SetDefinition> _setDefs;
 	}
 }
 

@@ -18,6 +18,22 @@ namespace Ink.Parsed
             }
         }
 
+        public SetElementDefinition ItemNamed (string itemName)
+        {
+            if (_elementsByName == null) {
+                _elementsByName = new Dictionary<string, SetElementDefinition> ();
+                foreach (var el in elements) {
+                    _elementsByName [el.name] = el;
+                }
+            }
+
+            SetElementDefinition foundElement;
+            if (_elementsByName.TryGetValue (itemName, out foundElement))
+                return foundElement;
+
+            return null;
+        }
+
         public SetDefinition (List<SetElementDefinition> elements)
         {
             this.elements = elements;
@@ -53,6 +69,8 @@ namespace Ink.Parsed
 
             return new Runtime.SetValue (initialValues);
         }
+
+        Dictionary<string, SetElementDefinition> _elementsByName;
     }
 
     internal class SetElementDefinition : Parsed.Object
