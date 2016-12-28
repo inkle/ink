@@ -251,7 +251,8 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.variablesState);
+            copy.variablesState = new VariablesState (copy.callStack, story.sets);
+            copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
 

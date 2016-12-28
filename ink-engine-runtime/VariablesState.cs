@@ -95,10 +95,9 @@ namespace Ink.Runtime
             _sets = sets;
         }
 
-        internal VariablesState (VariablesState toCopy)
+        internal void CopyFrom (VariablesState toCopy)
         {
             _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
-            _sets = toCopy._sets;
 
             variableChangedEvent = toCopy.variableChangedEvent;
 

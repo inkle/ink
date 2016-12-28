@@ -90,6 +90,8 @@ namespace Ink.Runtime
                 return Call<string> (coercedParams);
             } else if (coercedType == ValueType.DivertTarget) {
                 return Call<Path> (coercedParams);
+            } else if (coercedType == ValueType.Set) {
+                return Call<SetDictionary> (coercedParams);
             }
 
             return null;
@@ -239,11 +241,34 @@ namespace Ink.Runtime
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
 
+                // Set operations
+                AddSetBinaryOp (Add, (x, y) => x.UnionWith (y));
+                AddSetBinaryOp (Subtract, (x, y) => x.Without(y));
+                //AddSetBinaryOp (Multiply, (x, y) => x * y);
+                //AddSetBinaryOp (Divide, (x, y) => x / y);
+                //AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the operation we want for floats?
+                //AddSetUnaryOp (Negate, x => -x);
+
+                //AddSetBinaryOp (Equal, (x, y) => x == y ? (int)1 : (int)0);
+                //AddSetBinaryOp (Greater, (x, y) => x > y ? (int)1 : (int)0);
+                //AddSetBinaryOp (Less, (x, y) => x < y ? (int)1 : (int)0);
+                //AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x >= y ? (int)1 : (int)0);
+                //AddSetBinaryOp (LessThanOrEquals, (x, y) => x <= y ? (int)1 : (int)0);
+                //AddSetBinaryOp (NotEquals, (x, y) => x != y ? (int)1 : (int)0);
+                //AddSetUnaryOp (Not, x => (x == 0.0f) ? (int)1 : (int)0);
+
+                //AddSetBinaryOp (And, (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
+                //AddSetBinaryOp (Or, (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
+
+                //AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
+                //AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));
+
                 // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
-                    return d1.Equals(d2) ? 1 : 0;
+                    return d1.Equals (d2) ? 1 : 0;
                 };
                 AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+
             }
         }
 
@@ -285,6 +310,11 @@ namespace Ink.Runtime
         static void AddStringBinaryOp(string name, BinaryOp<string> op)
         {
             AddOpToNativeFunc (name, 2, ValueType.String, op);
+        }
+
+        static void AddSetBinaryOp (string name, BinaryOp<SetDictionary> op)
+        {
+            AddOpToNativeFunc (name, 2, ValueType.Set, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<float> op)

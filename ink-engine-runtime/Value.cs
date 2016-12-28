@@ -274,7 +274,29 @@ namespace Ink.Runtime
         }
     }
 
-    internal class SetValue : Value<Dictionary<string, int>>
+    // Helper class purely to make it less unweildly to type Dictionary<string, int> all the time.
+    internal class SetDictionary : Dictionary<string, int> {
+        public SetDictionary () { }
+        public SetDictionary (Dictionary<string, int> otherDict) : base (otherDict) { }
+
+        public SetDictionary UnionWith (SetDictionary otherDict)
+        {
+            var union = new SetDictionary (this);
+            foreach (var kv in otherDict)
+                union.Add(kv.Key, kv.Value);
+            return union;
+        }
+
+        public SetDictionary Without (SetDictionary setToRemove)
+        {
+            var result = new SetDictionary (this);
+            foreach (var kv in setToRemove)
+                result.Remove (kv.Key);
+            return result;
+        }
+    }
+
+    internal class SetValue : Value<SetDictionary>
     {
         public override ValueType valueType {
             get {
@@ -338,17 +360,22 @@ namespace Ink.Runtime
         }
 
         public SetValue () : base(null) {
-            value = new Dictionary<string, int> ();
+            value = new SetDictionary ();
+        }
+
+        public SetValue (SetDictionary dict) : base (null)
+        {
+            value = new SetDictionary (dict);
         }
 
         public SetValue (Dictionary<string, int> dict) : base (null)
         {
-            value = new Dictionary<string, int> (dict);
+            value = new SetDictionary (dict);
         }
 
         public SetValue (string singleItemName, int singleValue) : base (null)
         {
-            value = new Dictionary<string, int> {
+            value = new SetDictionary {
                 {singleItemName, singleValue}
             };
         }
