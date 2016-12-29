@@ -79,6 +79,10 @@ namespace Ink.Runtime
                     throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
             }
 
+            // Special case: Set-Int operation returns a Set (e.g. "alpha" + 1 = "beta")
+            if (parameters.Count == 2 && parameters [0] is SetValue && parameters [1] is IntValue)
+                return CallSetIntOperation (parameters);
+
             var coercedParams = CoerceValuesToSingleType (parameters);
             ValueType coercedType = coercedParams[0].valueType;
 
@@ -141,6 +145,30 @@ namespace Ink.Runtime
             else {
                 throw new System.Exception ("Unexpected number of parameters to NativeFunctionCall: " + parametersOfSingleType.Count);
             }
+        }
+
+        Value CallSetIntOperation (List<Runtime.Object> setIntParams)
+        {
+            var setVal = (SetValue)setIntParams [0];
+            var intVal = (IntValue)setIntParams [1];
+
+            var maxItem = setVal.maxItem;
+
+            var originSet = setVal.singleOriginSet;
+            if (originSet == null)
+                throw new StoryException ("Cannot increment or decrement this Set because it doesn't contain items from a single origin Set");
+
+            var coercedInts = new List<Value> {
+                    new IntValue(maxItem.Value),
+                    intVal
+                };
+            var intResult = (IntValue)Call<int> (coercedInts);
+
+            string newItemName;
+            if (originSet.TryGetItemWithValue (intResult.value, out newItemName)) {
+                return new SetValue (originSet.name + "." + newItemName, intResult.value);
+            } else
+                return new SetValue ("UNKNOWN", intResult.value);
         }
 
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
@@ -293,8 +321,8 @@ namespace Ink.Runtime
                 //AddSetBinaryOp (NotEquals, (x, y) => x != y ? (int)1 : (int)0);
                 //AddSetUnaryOp (Not, x => (x == 0.0f) ? (int)1 : (int)0);
 
-                //AddSetBinaryOp (And, (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
-                //AddSetBinaryOp (Or, (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
+                AddSetBinaryOp (And, (x, y) => x.IntersectWith(y));
+                AddSetBinaryOp (Or, (x, y) => x.UnionWith (y));
 
                 //AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
                 //AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));

@@ -287,6 +287,16 @@ namespace Ink.Runtime
             return union;
         }
 
+        public SetDictionary IntersectWith (SetDictionary otherDict)
+        {
+            var intersection = new SetDictionary ();
+            foreach (var kv in this) {
+                if (otherDict.ContainsKey (kv.Key))
+                    intersection.Add (kv.Key, kv.Value);
+            }
+            return intersection;
+        }
+
         public SetDictionary Without (SetDictionary setToRemove)
         {
             var result = new SetDictionary (this);
@@ -342,7 +352,7 @@ namespace Ink.Runtime
             }
         }
 
-        KeyValuePair<string, int> maxItem {
+        public KeyValuePair<string, int> maxItem {
             get {
                 var max = new KeyValuePair<string, int>(null, int.MinValue);
                 foreach (var kv in value) {
