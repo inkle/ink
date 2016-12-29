@@ -11,6 +11,7 @@ namespace Ink.Parsed
         public bool isTurnsSince { get { return name == "TURNS_SINCE"; } }
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
+        public bool isSetValue { get { return name == "SET_VALUE"; } }
         public bool shouldPopReturnedValue;
 
         public FunctionCall (string functionName, List<Expression> arguments)
@@ -69,10 +70,8 @@ namespace Ink.Parsed
 
 
                 container.AddContent (Runtime.ControlCommand.TurnsSince ());
-            } 
-
-            else if (isRandom) {
-                if (arguments.Count != 2) 
+            } else if (isRandom) {
+                if (arguments.Count != 2)
                     Error ("RANDOM should take 2 parameters: a minimum and a maximum integer");
 
                 // We can type check single values, but not complex expressions
@@ -81,17 +80,15 @@ namespace Ink.Parsed
                         var num = arguments [arg] as Number;
                         if (!(num.value is int)) {
                             string paramName = arg == 0 ? "minimum" : "maximum";
-                            Error ("RANDOM's "+paramName+" parameter should be an integer");
+                            Error ("RANDOM's " + paramName + " parameter should be an integer");
                         }
                     }
 
-                    arguments[arg].GenerateIntoContainer (container);
+                    arguments [arg].GenerateIntoContainer (container);
                 }
 
                 container.AddContent (Runtime.ControlCommand.Random ());
-            } 
-
-            else if (isSeedRandom) {
+            } else if (isSeedRandom) {
                 if (arguments.Count != 1)
                     Error ("SEED_RANDOM should take 1 parameter - an integer seed");
 
@@ -103,10 +100,19 @@ namespace Ink.Parsed
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
+            } 
+
+            else if (isSetValue) {
+                if (arguments.Count != 1)
+                    Error ("SET_VALUE should take 1 parameter - a set");
+
+                arguments [0].GenerateIntoContainer (container);
+
+                container.AddContent (Runtime.ControlCommand.SetValue ());
             }
 
-            // Normal function call
-            else {
+              // Normal function call
+              else {
                 container.AddContent (_proxyDivert.runtimeObject);
             }
 
@@ -151,7 +157,7 @@ namespace Ink.Parsed
 
         public static bool IsBuiltIn(string name) 
         {
-            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM";
+            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM" || name == "SET_VALUE";
         }
 
         public override string ToString ()

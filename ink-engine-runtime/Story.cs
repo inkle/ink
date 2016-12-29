@@ -964,6 +964,16 @@ namespace Ink.Runtime
                     state.PushEvaluationStack (generatedSetValue);
                     break;
 
+                case ControlCommand.CommandType.SetValue: {
+                        var popped = state.PopEvaluationStack ();
+                        var setValue = popped as SetValue;
+                        if (setValue == null)
+                            throw new StoryException ("Expected Set for SET_VALUE() but got " + popped.GetType ());
+                        var setItemIntVal = setValue.value.maxItem.Value;
+                        state.PushEvaluationStack (new IntValue (setItemIntVal));
+                        break;
+                    }
+
                 default:
                     Error ("unhandled ControlCommand: " + evalCommand);
                     break;

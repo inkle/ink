@@ -27,6 +27,7 @@ namespace Ink.Runtime
             Done,
             End,
             SetFromInt,
+            SetValue,
             //----
             TOTAL_VALUES
         }
@@ -135,6 +136,11 @@ namespace Ink.Runtime
 
         public static ControlCommand SetFromInt () {
             return new ControlCommand (CommandType.SetFromInt);
+        }
+
+        public static ControlCommand SetValue ()
+        {
+            return new ControlCommand (CommandType.SetValue);
         }
 
         public override string ToString ()
