@@ -336,6 +336,8 @@ namespace Ink.Runtime
                         return null;
                 }
 
+                if (name == "UNKNOWN") return null;
+
                 return name;
             }
         }

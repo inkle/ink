@@ -152,23 +152,20 @@ namespace Ink.Runtime
             var setVal = (SetValue)setIntParams [0];
             var intVal = (IntValue)setIntParams [1];
 
-            var maxItem = setVal.maxItem;
-
-            var originSet = setVal.singleOriginSet;
-            if (originSet == null)
-                throw new StoryException ("Cannot increment or decrement this Set because it doesn't contain items from a single origin Set");
-
             var coercedInts = new List<Value> {
-                    new IntValue(maxItem.Value),
+                    new IntValue(setVal.maxItem.Value),
                     intVal
                 };
             var intResult = (IntValue)Call<int> (coercedInts);
 
             string newItemName;
-            if (originSet.TryGetItemWithValue (intResult.value, out newItemName)) {
-                return new SetValue (originSet.name + "." + newItemName, intResult.value);
-            } else
-                return new SetValue ("UNKNOWN", intResult.value);
+            var originSet = setVal.singleOriginSet;
+            if (originSet != null && originSet.TryGetItemWithValue (intResult.value, out newItemName))
+                newItemName = originSet.name + "." + newItemName;
+            else
+                newItemName = "UNKNOWN";
+            
+            return new SetValue (newItemName, intResult.value);
         }
 
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
