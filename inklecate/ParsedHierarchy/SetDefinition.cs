@@ -80,10 +80,11 @@ namespace Ink.Parsed
         public int seriesValue;
         public bool inInitialSet;
 
-        public SetElementDefinition (string name, bool inInitialSet)
+        public SetElementDefinition (string name, bool inInitialSet, int? explicitValue = null)
         {
             this.name = name;
             this.inInitialSet = inInitialSet;
+            this.explicitValue = explicitValue;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()

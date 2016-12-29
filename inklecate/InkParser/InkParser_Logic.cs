@@ -165,6 +165,7 @@ namespace Ink
         protected Parsed.SetElementDefinition SetElementDefinition ()
         {
             var inInitialSet = ParseString ("(") != null;
+            var needsToCloseParen = inInitialSet;
 
             Whitespace ();
 
@@ -174,10 +175,37 @@ namespace Ink
 
             Whitespace ();
 
-            if( inInitialSet )
-                Expect (String (")"), "closing ')'");
 
-            return new SetElementDefinition (name, inInitialSet);
+
+            if (inInitialSet) {
+                if (ParseString (")") != null) {
+                    needsToCloseParen = false;
+                    Whitespace ();
+                }
+            }
+
+            int? elementValue = null;
+            if (ParseString ("=") != null) {
+
+                Whitespace ();
+
+                var elementValueNum = Expect (ExpressionInt, "value to be assigned to Set item") as Number;
+                if (elementValueNum != null) {
+                    elementValue = (int) elementValueNum.value;
+                }
+
+                if (needsToCloseParen) {
+                    Whitespace ();
+
+                    if (ParseString (")") != null)
+                        needsToCloseParen = false;
+                }
+            }
+
+            if (needsToCloseParen)
+                Error("Expected closing ')'");
+
+            return new SetElementDefinition (name, inInitialSet, elementValue);
         }
                 
 
