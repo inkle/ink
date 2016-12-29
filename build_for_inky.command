@@ -43,3 +43,5 @@ mkbundle --static --deps inklecate.exe ink-engine-runtime.dll -o inklecate_mac
 cp inklecate_mac ../../../BuildForInky/
 cp inklecate.exe ../../../BuildForInky/inklecate_win.exe
 cp inklecate.exe.mdb ../../../BuildForInky
+cp ink-engine-runtime.dll ../../../BuildForInky
+cp ink-engine-runtime.dll.mdb ../../../BuildForInky
