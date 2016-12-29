@@ -79,9 +79,20 @@ namespace Ink.Runtime
                     throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
             }
 
-            // Special case: Set-Int operation returns a Set (e.g. "alpha" + 1 = "beta")
+            // Special case:
+            //  - Set-Int operation returns a Set (e.g. "alpha" + 1 = "beta")
             if (parameters.Count == 2 && parameters [0] is SetValue && parameters [1] is IntValue)
                 return CallSetIntOperation (parameters);
+            
+            // Special case:
+            //  - Set inverse (!set) requires knowledge of origin set, not just
+            //    the raw set dictionary.
+            if (parameters.Count == 1 && parameters [0] is SetValue && name == "!") {
+                var setValue = (SetValue)parameters [0];
+                var inv = setValue.inverse;
+                if (inv == null) return new SetValue ("UNKNOWN", 0);
+                return inv;
+            }
 
             var coercedParams = CoerceValuesToSingleType (parameters);
             ValueType coercedType = coercedParams[0].valueType;
@@ -310,13 +321,13 @@ namespace Ink.Runtime
                 //AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the operation we want for floats?
                 //AddSetUnaryOp (Negate, x => -x);
 
-                //AddSetBinaryOp (Equal, (x, y) => x == y ? (int)1 : (int)0);
-                //AddSetBinaryOp (Greater, (x, y) => x > y ? (int)1 : (int)0);
-                //AddSetBinaryOp (Less, (x, y) => x < y ? (int)1 : (int)0);
-                //AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x >= y ? (int)1 : (int)0);
-                //AddSetBinaryOp (LessThanOrEquals, (x, y) => x <= y ? (int)1 : (int)0);
-                //AddSetBinaryOp (NotEquals, (x, y) => x != y ? (int)1 : (int)0);
-                //AddSetUnaryOp (Not, x => (x == 0.0f) ? (int)1 : (int)0);
+                AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
+                AddSetBinaryOp (Greater, (x, y) => x.Count > 0 && x.maxItem.Value > y.maxItem.Value ? (int)1 : (int)0);
+                AddSetBinaryOp (Less, (x, y) => y.Count > 0 && x.maxItem.Value < y.maxItem.Value ? (int)1 : (int)0);
+                AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x.Count > 0 && x.maxItem.Value >= y.maxItem.Value ? (int)1 : (int)0);
+                AddSetBinaryOp (LessThanOrEquals, (x, y) => y.Count > 0 && x.maxItem.Value <= y.maxItem.Value ? (int)1 : (int)0);
+                AddSetBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
+                //AddSetUnaryOp (Not, x => !x);
 
                 AddSetBinaryOp (And, (x, y) => x.IntersectWith(y));
                 AddSetBinaryOp (Or, (x, y) => x.UnionWith (y));

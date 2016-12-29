@@ -274,10 +274,31 @@ namespace Ink.Runtime
         }
     }
 
-    // Helper class purely to make it less unweildly to type Dictionary<string, int> all the time.
     internal class SetDictionary : Dictionary<string, int> {
         public SetDictionary () { }
         public SetDictionary (Dictionary<string, int> otherDict) : base (otherDict) { }
+
+        public KeyValuePair<string, int> maxItem {
+            get {
+                var max = new KeyValuePair<string, int> (null, 0);
+                foreach (var kv in this) {
+                    if (max.Key == null || kv.Value > max.Value)
+                        max = kv;
+                }
+                return max;
+            }
+        }
+
+        public KeyValuePair<string, int> minItem {
+            get {
+                var min = new KeyValuePair<string, int> (null, 0);
+                foreach (var kv in this) {
+                    if (min.Key == null || kv.Value < min.Value)
+                        min = kv;
+                }
+                return min;
+            }
+        }
 
         public SetDictionary UnionWith (SetDictionary otherDict)
         {
@@ -303,6 +324,28 @@ namespace Ink.Runtime
             foreach (var kv in setToRemove)
                 result.Remove (kv.Key);
             return result;
+        }
+
+        public override bool Equals (object other)
+        {
+            var otherSetValue = other as SetDictionary;
+            if (otherSetValue == null) return false;
+            if (otherSetValue.Count != Count) return false;
+
+            foreach (var kv in this) {
+                if (!otherSetValue.ContainsKey (kv.Key))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode ()
+        {
+            int ownHash = 0;
+            foreach (var kv in this)
+                ownHash += kv.Key.GetHashCode ();
+            return ownHash;
         }
     }
 
@@ -342,6 +385,19 @@ namespace Ink.Runtime
             }
         }
 
+        public SetValue inverse {
+            get {
+                if (singleOriginSet == null) return null;
+                var setDict = new SetDictionary ();
+                foreach (var nameValue in singleOriginSet.items) {
+                    string fullName = singleOriginSet.name + "." + nameValue.Key;
+                    if (!value.ContainsKey (fullName))
+                        setDict.Add (fullName, nameValue.Value);
+                }
+                return new SetValue (setDict);
+            }
+        }
+
         // Truthy if it contains any non-zero items
         public override bool isTruthy {
             get {
@@ -356,12 +412,7 @@ namespace Ink.Runtime
 
         public KeyValuePair<string, int> maxItem {
             get {
-                var max = new KeyValuePair<string, int>(null, int.MinValue);
-                foreach (var kv in value) {
-                    if (kv.Value > max.Value)
-                        max = kv;
-                }
-                return max;
+                return value.maxItem;
             }
         }
                 
@@ -404,11 +455,13 @@ namespace Ink.Runtime
         public SetValue (SetDictionary dict) : base (null)
         {
             value = new SetDictionary (dict);
+            TEMP_DebugAssertNames ();
         }
 
         public SetValue (Dictionary<string, int> dict) : base (null)
         {
             value = new SetDictionary (dict);
+            TEMP_DebugAssertNames ();
         }
 
         public SetValue (string singleItemName, int singleValue) : base (null)
@@ -416,19 +469,28 @@ namespace Ink.Runtime
             value = new SetDictionary {
                 {singleItemName, singleValue}
             };
+            TEMP_DebugAssertNames ();
+        }
+
+        void TEMP_DebugAssertNames ()
+        {
+            foreach (var kv in value) {
+                if (!kv.Key.Contains ("."))
+                    throw new System.Exception ("Not a full item name");
+            }
         }
 
         public override string ToString ()
         {
-            var ordered =  new List<KeyValuePair<string, int>> ();
+            var ordered = new List<KeyValuePair<string, int>> ();
             ordered.AddRange (value);
-            ordered.Sort((x, y) => x.Value.CompareTo(y.Value));
+            ordered.Sort ((x, y) => x.Value.CompareTo (y.Value));
 
             var sb = new System.Text.StringBuilder ();
             for (int i = 0; i < ordered.Count; i++) {
                 if (i > 0)
                     sb.Append (", ");
-                
+
                 var fullItemPath = ordered [i].Key;
                 var nameParts = fullItemPath.Split ('.');
                 var itemName = nameParts [nameParts.Length - 1];

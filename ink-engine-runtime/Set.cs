@@ -6,10 +6,16 @@ namespace Ink.Runtime
     {
         public string name { get { return _name; } }
 
+        public Dictionary<string, int> items {
+            get {
+                return _items;
+            }
+        }
+
         public int ValueForItem (string itemName)
         {
             int intVal;
-            if (_namedItems.TryGetValue (itemName, out intVal))
+            if (_items.TryGetValue (itemName, out intVal))
                 return intVal;
             else
                 return 0;
@@ -17,14 +23,14 @@ namespace Ink.Runtime
 
         public bool TryGetValueForItem (string itemName, out int val)
         {
-            return _namedItems.TryGetValue (itemName, out val);
+            return _items.TryGetValue (itemName, out val);
         }
 
         public bool TryGetItemWithValue (int val, out string itemName)
         {
             itemName = null;
 
-            foreach (var namedItem in _namedItems) {
+            foreach (var namedItem in _items) {
                 if (namedItem.Value == val) {
                     itemName = namedItem.Key;
                     return true;
@@ -34,13 +40,13 @@ namespace Ink.Runtime
             return false;
         }
 
-        public Set (string name, Dictionary<string, int> namedItems)
+        public Set (string name, Dictionary<string, int> items)
         {
             _name = name;
-            _namedItems = namedItems;
+            _items = items;
         }
 
         string _name;
-        Dictionary<string, int> _namedItems;
+        Dictionary<string, int> _items;
     }
 }
