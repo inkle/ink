@@ -208,6 +208,14 @@ namespace Ink.Parsed
 			return runtimeStory;
 		}
 
+        internal SetDefinition ResolveSet (string setName)
+        {
+            SetDefinition set;
+            if (!_setDefs.TryGetValue (setName, out set))
+                return null;
+            return set;
+        }
+
         internal SetElementDefinition ResolveSetItem (string setName, string itemName, Parsed.Object source = null)
         {
             SetDefinition set = null;

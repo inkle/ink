@@ -26,6 +26,7 @@ namespace Ink.Runtime
             StartThread,
             Done,
             End,
+            SetFromInt,
             //----
             TOTAL_VALUES
         }
@@ -130,6 +131,10 @@ namespace Ink.Runtime
 
         public static ControlCommand End() {
             return new ControlCommand (CommandType.End);
+        }
+
+        public static ControlCommand SetFromInt () {
+            return new ControlCommand (CommandType.SetFromInt);
         }
 
         public override string ToString ()

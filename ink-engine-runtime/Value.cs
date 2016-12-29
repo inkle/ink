@@ -475,7 +475,7 @@ namespace Ink.Runtime
         void TEMP_DebugAssertNames ()
         {
             foreach (var kv in value) {
-                if (!kv.Key.Contains ("."))
+                if (!kv.Key.Contains (".") && kv.Key != "UNKNOWN")
                     throw new System.Exception ("Not a full item name");
             }
         }

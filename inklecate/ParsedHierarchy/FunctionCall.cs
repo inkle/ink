@@ -22,7 +22,19 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            if (isChoiceCount) {
+            var foundSet = story.ResolveSet (name);
+
+            if (foundSet != null) {
+                if (arguments.Count != 1)
+                    Error ("Can currently only construct a Set from one integer");
+                container.AddContent (new Runtime.StringValue (name));
+                arguments [0].GenerateIntoContainer (container);
+                container.AddContent (Runtime.ControlCommand.SetFromInt ());
+
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
+
+            } else if (isChoiceCount) {
 
                 if (arguments.Count > 0)
                     Error ("The CHOICE_COUNT() function shouldn't take any arguments");
@@ -93,8 +105,8 @@ namespace Ink.Parsed
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
             }
 
-              // Normal function call
-              else {
+            // Normal function call
+            else {
                 container.AddContent (_proxyDivert.runtimeObject);
             }
 

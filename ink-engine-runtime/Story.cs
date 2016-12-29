@@ -942,6 +942,28 @@ namespace Ink.Runtime
                     state.ForceEnd ();
                     break;
 
+                case ControlCommand.CommandType.SetFromInt:
+                    var intVal = state.PopEvaluationStack () as IntValue;
+                    var setNameVal = state.PopEvaluationStack () as StringValue;
+
+                    SetValue generatedSetValue = null;
+
+                    Set foundSet;
+                    if (sets.TryGetValue (setNameVal.value, out foundSet)) {
+                        string foundItemName;
+                        if (foundSet.TryGetItemWithValue (intVal.value, out foundItemName)) {
+                            generatedSetValue = new SetValue (setNameVal.value + "." + foundItemName, intVal.value);
+                        }
+                    } else {
+                        throw new StoryException ("Failed to find Set called " + setNameVal.value);
+                    }
+
+                    if (generatedSetValue == null)
+                        generatedSetValue = new SetValue ("UNKNOWN", 0);
+
+                    state.PushEvaluationStack (generatedSetValue);
+                    break;
+
                 default:
                     Error ("unhandled ControlCommand: " + evalCommand);
                     break;
