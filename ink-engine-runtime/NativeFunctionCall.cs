@@ -126,7 +126,7 @@ namespace Ink.Runtime
 
                 object opForTypeObj = null;
                 if (!_operationFuncs.TryGetValue (valType, out opForTypeObj)) {
-                    throw new StoryException ("Can not perform operation '"+this.name+"' on "+valType);
+                    throw new StoryException ("Cannot perform operation '"+this.name+"' on "+valType);
                 }
 
                 // Binary

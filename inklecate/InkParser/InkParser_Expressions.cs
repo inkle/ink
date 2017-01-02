@@ -45,26 +45,27 @@ namespace Ink
 
             Whitespace();
 
-            // Optional assignment
-            Expression assignedExpression = null;
-            if (ParseString ("=") != null) {
-                assignedExpression = (Expression)Expect (Expression, "value expression to be assigned to temporary variable");
-            }
+            // += -=
+            bool isIncrement = ParseString ("+") != null;
+            bool isDecrement = ParseString ("-") != null;
+            if (isIncrement && isDecrement) Error ("Unexpected sequence '+-'");
 
-            // If it's neither an assignment nor a new declaration,
-            // it's got nothing to do with this rule (e.g. it's actually just "~ myExpr" or even "~ myFunc()"
-            else if (!isNewDeclaration) {
+            if (ParseString ("=") == null) {
+                // Definitely in an assignment expression?
+                if (isNewDeclaration) Error ("Expected '='");
                 return null;
             }
 
-            // Default zero assignment
-            else {
-                assignedExpression = new Number (0);
-            }
+            Expression assignedExpression = (Expression)Expect (Expression, "value expression to be assigned");
 
-            var result = new VariableAssignment (varName, assignedExpression);
-            result.isNewTemporaryDeclaration = isNewDeclaration;
-            return result;
+            if (isIncrement || isDecrement) {
+                var result = new IncDecExpression (varName, assignedExpression, isIncrement);
+                return result;
+            } else {
+                var result = new VariableAssignment (varName, assignedExpression);
+                result.isNewTemporaryDeclaration = isNewDeclaration;
+                return result;
+            }
         }
 
 

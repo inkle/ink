@@ -438,8 +438,11 @@ namespace Ink.Runtime
                 var max = maxItem;
                 if (max.Key == null)
                     return new StringValue ("");
-                else
-                    return new StringValue (max.Key);
+                else {
+                    var nameParts = max.Key.Split ('.');
+                    var name = nameParts [nameParts.Length - 1];
+                    return new StringValue (name);
+                }
             }
 
             if (newType == valueType)
