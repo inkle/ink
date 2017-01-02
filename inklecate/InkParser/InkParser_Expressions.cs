@@ -182,7 +182,7 @@ namespace Ink
 
             // - Since we allow numbers at the start of variable names, variable names are checked before literals
             // - Function calls before variable names in case we see parentheses
-            var expr = OneOf (ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral) as Expression;
+            var expr = OneOf (ExpressionSubset, ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
             if (expr == null && prefixOp != null) {
@@ -407,6 +407,49 @@ namespace Ink
 
             return null;
 		}
+
+        protected Parsed.Subset ExpressionSubset ()
+        {
+            Whitespace ();
+
+            if (ParseString ("(") == null)
+                return null;
+
+            Whitespace ();
+
+            // When list has:
+            //  - 0 elements (null list) - this is okay, it's an empty set: "()"
+            //  - 1 element - it could be confused for a single non-set related
+            //    identifier expression in brackets, but this is a useless thing
+            //    to do, so we reserve that syntax for a subset with one item.
+            //  - 2 or more elements - normal!
+            List<string> subsetList = SeparatedList (SubsetMember, Spaced (String (",")));
+
+            Whitespace ();
+
+            Expect (String (")"), "closing ')' for set");
+
+            return new Subset (subsetList);
+        }
+
+        protected string SubsetMember ()
+        {
+            Whitespace ();
+
+            string name = Parse (Identifier);
+            if (name == null)
+                return null;
+
+            var dot = ParseString (".");
+            if (dot != null) {
+                string name2 = Expect (Identifier, "element name within the set " + name) as string;
+                name = name + "." + name2;
+            }
+
+            Whitespace ();
+
+            return name;
+        }
 
 		void RegisterExpressionOperators()
 		{

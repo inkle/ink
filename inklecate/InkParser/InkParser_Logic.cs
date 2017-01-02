@@ -89,11 +89,11 @@ namespace Ink
             var expr = definition as Parsed.Expression;
 
             if (expr) {
-                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference)) {
-                    Error ("initial value for a variable must be a number, constant, or divert target");
+                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is Subset)) {
+                    Error ("initial value for a variable must be a number, constant, subset or divert target");
                 }
 
-                if (Parse (SetElementSeparator) != null)
+                if (Parse (SetElementDefinitionSeparator) != null)
                     Error ("Unexpected ','. If you're trying to declare a new set, use the SET keyword, not VAR");
 
                 // Ensure string expressions are simple
@@ -146,32 +146,17 @@ namespace Ink
         {
             AnyWhitespace ();
 
-            var firstElement = Parse(SetElementDefinition);
-            if (firstElement == null) return null;
+            var allElements = SeparatedList (SetElementDefinition, SetElementDefinitionSeparator);
+            if (allElements == null)
+                return null;
 
-            List<SetElementDefinition> allElements = null;
-
-            do {
-                var sep = Parse (SetElementSeparator);
-                if (sep == null) break;
-
-                var nextElement = Parse (SetElementDefinition);
-                if (nextElement == null) break;
-
-                if (allElements == null) {
-                    allElements = new List<Parsed.SetElementDefinition> ();
-                    allElements.Add (firstElement);
-                }
-                allElements.Add (nextElement);
-                
-            } while (firstElement);
-
-            if (allElements == null) return null;
+            if (allElements.Count == 1)
+                Error ("Expected more than one element in the set");
 
             return new SetDefinition (allElements);
         }
 
-        protected string SetElementSeparator ()
+        protected string SetElementDefinitionSeparator ()
         {
             AnyWhitespace ();
 
@@ -194,8 +179,6 @@ namespace Ink
                 return null;
 
             Whitespace ();
-
-
 
             if (inInitialSet) {
                 if (ParseString (")") != null) {
@@ -227,7 +210,6 @@ namespace Ink
 
             return new SetElementDefinition (name, inInitialSet, elementValue);
         }
-                
 
         protected Parsed.Object ConstDeclaration()
         {

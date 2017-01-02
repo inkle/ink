@@ -57,6 +57,8 @@ namespace Ink.Parsed
             // make it the first one.
             if (!hasDefinedInitialValue)
                 elements [0].inInitialSet = true;
+
+            AddContent (elements);
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -79,6 +81,16 @@ namespace Ink.Parsed
         public int? explicitValue;
         public int seriesValue;
         public bool inInitialSet;
+
+        public string fullName {
+            get {
+                var parentSet = parent as SetDefinition;
+                if (parentSet == null)
+                    throw new System.Exception ("Can't get full name without a parent set");
+
+                return parentSet.name + "." + name;
+            }
+        }
 
         public SetElementDefinition (string name, bool inInitialSet, int? explicitValue = null)
         {
