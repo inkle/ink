@@ -444,6 +444,16 @@ namespace Ink.Runtime
             }
         }
 
+        public SetValue all {
+            get {
+                if (singleOriginSet == null) return null;
+                var dict = new SetDictionary ();
+                foreach (var kv in singleOriginSet.items)
+                    dict.Add (singleOriginSet.name + "." + kv.Key, kv.Value);
+                return new SetValue (dict);
+            }
+        }
+
         // Truthy if it contains any non-zero items
         public override bool isTruthy {
             get {

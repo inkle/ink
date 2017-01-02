@@ -20,9 +20,7 @@ namespace Ink.Runtime
         public const string NotEquals   = "!=";
         public const string Not      = "!";
 
-        public const string Has      = "?";
-        public const string Invert   = "~";
-        public const string Intersect = "^";
+
 
         public const string And      = "&&";
         public const string Or       = "||";
@@ -30,8 +28,13 @@ namespace Ink.Runtime
         public const string Min      = "MIN";
         public const string Max      = "MAX";
 
-        public const string SetMin = "SET_MIN";
-        public const string SetMax = "SET_MAX";
+        public const string Has      = "?";
+        public const string Invert   = "~";
+        public const string Intersect = "^";
+
+        public const string SetMin   = "SET_MIN";
+        public const string SetMax   = "SET_MAX";
+        public const string All      = "SET_ALL";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
@@ -91,14 +94,23 @@ namespace Ink.Runtime
             if (parameters.Count == 2 && parameters [0] is SetValue && parameters [1] is IntValue)
                 return CallSetIntOperation (parameters);
             
-            // Special case:
-            //  - Set inverse (!set) requires knowledge of origin set, not just
-            //    the raw set dictionary.
-            if (parameters.Count == 1 && parameters [0] is SetValue && name == Invert) {
-                var setValue = (SetValue)parameters [0];
-                var inv = setValue.inverse;
-                if (inv == null) return new SetValue ("UNKNOWN", 0);
-                return inv;
+            // Special cases, where the functions require knowledge of the origin
+            // set, not just the raw set dictionary
+            if (parameters.Count == 1 && parameters [0] is SetValue) {
+
+                if (name == Invert) {
+                    var setValue = (SetValue)parameters [0];
+                    var inv = setValue.inverse;
+                    if (inv == null) return new SetValue ("UNKNOWN", 0);
+                    return inv;
+                } 
+
+                else if (name == All) {
+                    var setValue = (SetValue)parameters [0];
+                    var all = setValue.all;
+                    if (all == null) return new SetValue ("UNKNOWN", 0);
+                    return all;
+                }
             }
 
             var coercedParams = CoerceValuesToSingleType (parameters);
@@ -336,12 +348,14 @@ namespace Ink.Runtime
 
                 AddSetUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
 
-                // Placeholder to ensure that Invert gets created at all,
-                // since this function is never actually run, and is special cased in Call
-                AddSetUnaryOp (Invert, x => x);
+                // Placeholders to ensure that these special case functions can exist,
+                // since these function is never actually run, and is special cased in Call
+                AddSetUnaryOp (Invert, null);
+                AddSetUnaryOp (All, null);
 
                 AddSetUnaryOp (SetMin, (x) => x.MinAsSet());
                 AddSetUnaryOp (SetMax, (x) => x.MaxAsSet());
+
 
                 // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
