@@ -19,6 +19,8 @@ namespace Ink.Runtime
         public const string LessThanOrEquals = "<=";
         public const string NotEquals   = "!=";
         public const string Not      = "!";
+
+        public const string Has      = "?";
         public const string Invert   = "~";
 
         public const string And      = "&&";
@@ -316,11 +318,9 @@ namespace Ink.Runtime
 
                 // Set operations
                 AddSetBinaryOp (Add, (x, y) => x.UnionWith (y));
+                AddSetBinaryOp (And, (x, y) => x.UnionWith (y));
                 AddSetBinaryOp (Subtract, (x, y) => x.Without(y));
-                //AddSetBinaryOp (Multiply, (x, y) => x * y);
-                //AddSetBinaryOp (Divide, (x, y) => x / y);
-                //AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the operation we want for floats?
-                //AddSetUnaryOp (Negate, x => x.Inverse());
+                AddSetBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
 
                 AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (Greater, (x, y) => x.Count > 0 && x.maxItem.Value > y.maxItem.Value ? (int)1 : (int)0);
@@ -332,8 +332,6 @@ namespace Ink.Runtime
                 // Placeholder to ensure that Invert gets created at all,
                 // since this function is never actually run, and is special cased in Call
                 AddSetUnaryOp (Invert, x => x);
-
-                AddSetBinaryOp (And, (x, y) => x.UnionWith(y));
 
                 //AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
                 //AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));

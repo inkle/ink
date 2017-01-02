@@ -84,6 +84,9 @@ namespace Ink.Parsed
 
             if (opName == "mod")
                 return "%";
+
+            if (opName == "has")
+                return "?";
             
             return opName;
         }

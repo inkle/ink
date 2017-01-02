@@ -326,6 +326,14 @@ namespace Ink.Runtime
             return result;
         }
 
+        public bool Contains (SetDictionary otherSet)
+        {
+            foreach (var kv in otherSet) {
+                if (!this.ContainsKey (kv.Key)) return false;
+            }
+            return true;
+        }
+
         public override bool Equals (object other)
         {
             var otherSetValue = other as SetDictionary;

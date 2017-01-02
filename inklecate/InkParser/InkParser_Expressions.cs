@@ -480,13 +480,19 @@ namespace Ink
             RegisterBinaryOperator (">", precedence:2);
             RegisterBinaryOperator ("!=", precedence:2);
 
-			RegisterBinaryOperator ("+", precedence:3);
-			RegisterBinaryOperator ("-", precedence:4);
-			RegisterBinaryOperator ("*", precedence:5);
-			RegisterBinaryOperator ("/", precedence:6);
+            // (apples, oranges) + cabbages has (oranges, cabbages) == true
+            RegisterBinaryOperator ("?", precedence: 3);
+            RegisterBinaryOperator ("has", precedence: 3, requireWhitespace:true);
 
-            RegisterBinaryOperator ("%", precedence:7);
-            RegisterBinaryOperator ("mod", precedence:7, requireWhitespace:true);
+			RegisterBinaryOperator ("+", precedence:4);
+			RegisterBinaryOperator ("-", precedence:5);
+			RegisterBinaryOperator ("*", precedence:6);
+			RegisterBinaryOperator ("/", precedence:7);
+
+            RegisterBinaryOperator ("%", precedence:8);
+            RegisterBinaryOperator ("mod", precedence:8, requireWhitespace:true);
+
+
 		}
 
         void RegisterBinaryOperator(string op, int precedence, bool requireWhitespace = false)
