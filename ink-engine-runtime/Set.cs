@@ -40,6 +40,17 @@ namespace Ink.Runtime
             return false;
         }
 
+        public SetValue SetRange (int min, int max)
+        {
+            var setDict = new SetDictionary ();
+            foreach (var namedItem in _items) {
+                if (namedItem.Value >= min && namedItem.Value <= max) {
+                    setDict [name + "." + namedItem.Key] = namedItem.Value;
+                }
+            }
+            return new SetValue(setDict);
+        }
+
         public Set (string name, Dictionary<string, int> items)
         {
             _name = name;

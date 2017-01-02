@@ -11,9 +11,7 @@ namespace Ink.Parsed
         public bool isTurnsSince { get { return name == "TURNS_SINCE"; } }
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
-        public bool isSetValue { get { return name == "SET_VALUE"; } }
-        public bool isSetMin { get { return name == "SET_MIN"; } }
-        public bool isSetMax { get { return name == "SET_MAX"; } }
+        public bool isSetRange { get { return name == "SET_RANGE"; } }
 
         public bool shouldPopReturnedValue;
 
@@ -93,13 +91,18 @@ namespace Ink.Parsed
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
-            } else if (isSetValue) {
-                if (arguments.Count != 1)
-                    Error ("SET_VALUE should take 1 parameter - a set");
+            } else if (isSetRange) {
+                if (arguments.Count != 3)
+                    Error ("SET_VALUE should take 3 parameters - a set, a min and a max");
 
-                arguments [0].GenerateIntoContainer (container);
+                for (int arg = 0; arg < arguments.Count; arg++)
+                    arguments [arg].GenerateIntoContainer (container);
 
-                container.AddContent (Runtime.ControlCommand.SetValue ());
+                container.AddContent (Runtime.ControlCommand.SetRange ());
+
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
+
             } else if (Runtime.NativeFunctionCall.CallExistsWithName(name)) {
 
                 var nativeCall = Runtime.NativeFunctionCall.CallWithName (name);
@@ -116,6 +119,8 @@ namespace Ink.Parsed
 
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName (name));
 
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
             } 
             else if (foundSet != null) {
                 if (arguments.Count != 1)
@@ -126,7 +131,6 @@ namespace Ink.Parsed
 
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
-
             }
 
               // Normal function call

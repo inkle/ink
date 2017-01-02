@@ -964,13 +964,49 @@ namespace Ink.Runtime
                     state.PushEvaluationStack (generatedSetValue);
                     break;
 
-                case ControlCommand.CommandType.SetValue: {
-                        var popped = state.PopEvaluationStack ();
-                        var setValue = popped as SetValue;
-                        if (setValue == null)
-                            throw new StoryException ("Expected Set for SET_VALUE() but got " + popped.GetType ());
-                        var setItemIntVal = setValue.value.maxItem.Value;
-                        state.PushEvaluationStack (new IntValue (setItemIntVal));
+                case ControlCommand.CommandType.SetRange: {
+                        var max = state.PopEvaluationStack ();
+                        var min = state.PopEvaluationStack ();
+
+                        var targetSet = state.PopEvaluationStack () as SetValue;
+
+                        if (targetSet == null || min == null || max == null)
+                            throw new StoryException ("Expected Set, minimum and maximum for SET_RANGE");
+
+                        // Allow either int or a particular set item to be passed for the bounds,
+                        // so wrap up a function to handle this casting for us.
+                        Func<Runtime.Object, int> IntBound = (obj) => {
+                            var setValue = obj as SetValue;
+                            if (setValue) {
+                                return (int)setValue.maxItem.Value;
+                            }
+
+                            var intValue = obj as IntValue;
+                            if (intValue) {
+                                return intValue.value;
+                            }
+
+                            return -1;
+                        };
+
+                        int minVal = IntBound (min);
+                        int maxVal = IntBound (max);
+                        if (minVal == -1)
+                            throw new StoryException ("Invalid min range bound passed to SET_VALUE(): " + min);
+
+                        if (maxVal == -1)
+                            throw new StoryException ("Invalid max range bound passed to SET_VALUE(): " + max);
+
+                        // Extract the range of items from the origin set
+                        SetValue result = null;
+                        var originSet = targetSet.singleOriginSet;
+                        if (originSet == null) {
+                            result = new SetValue ();
+                        } else {
+                            result = originSet.SetRange (minVal, maxVal);
+                        }
+                            
+                        state.PushEvaluationStack (result);
                         break;
                     }
 
@@ -1021,7 +1057,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                state.evaluationStack.Add( foundValue );
+                state.PushEvaluationStack (foundValue);
 
                 return true;
             }
@@ -1030,23 +1066,8 @@ namespace Ink.Runtime
             else if (contentObj is NativeFunctionCall) {
                 var func = (NativeFunctionCall)contentObj;
                 var funcParams = state.PopEvaluationStack (func.numberOfParameters);
-
-                // Include metadata about the origin Set for set values when
-                // they're used in NativeFunctionCalls, so that we can mix them
-                // with ints.
-                foreach (var p in funcParams) {
-                    var setValue = p as SetValue;
-                    if (setValue) {
-                        var singleOriginName = setValue.singleOriginSetName;
-                        if (singleOriginName != null)
-                            setValue.singleOriginSet = _sets [singleOriginName];
-                        else
-                            setValue.singleOriginSet = null;
-                    }
-                }
-
                 var result = func.Call (funcParams);
-                state.evaluationStack.Add (result);
+                state.PushEvaluationStack (result);
                 return true;
             } 
 

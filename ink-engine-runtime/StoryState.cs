@@ -714,6 +714,19 @@ namespace Ink.Runtime
 
         internal void PushEvaluationStack(Runtime.Object obj)
         {
+            // Include metadata about the origin Set for set values when
+            // they're used, so that lower level functions can make use
+            // of the origin set to get related items, or make comparisons
+            // with the integer values etc.
+            var setValue = obj as SetValue;
+            if (setValue) {
+                var singleOriginName = setValue.singleOriginSetName;
+                if (singleOriginName != null)
+                    setValue.singleOriginSet = story.sets [singleOriginName];
+                else
+                    setValue.singleOriginSet = null;
+            }
+
             evaluationStack.Add(obj);
         }
 
@@ -792,7 +805,7 @@ namespace Ink.Runtime
                         throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
                     }
 
-                    evaluationStack.Add (Runtime.Value.Create (arguments [i]));
+                    PushEvaluationStack (Runtime.Value.Create (arguments [i]));
                 }
             }
         }
