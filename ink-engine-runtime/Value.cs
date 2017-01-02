@@ -348,12 +348,30 @@ namespace Ink.Runtime
             return minItem.Value > otherSet.maxItem.Value;
         }
 
+        public bool GreaterThanOrEquals (SetDictionary otherSet)
+        {
+            if (Count == 0) return false;
+            if (otherSet.Count == 0) return true;
+
+            return minItem.Value >= otherSet.minItem.Value 
+                && maxItem.Value >= otherSet.maxItem.Value;
+        }
+
         public bool LessThan (SetDictionary otherSet)
         {
             if (otherSet.Count == 0) return false;
             if (Count == 0) return true;
 
             return maxItem.Value < otherSet.minItem.Value;
+        }
+
+        public bool LessThanOrEquals (SetDictionary otherSet)
+        {
+            if (otherSet.Count == 0) return false;
+            if (Count == 0) return true;
+
+            return maxItem.Value <= otherSet.maxItem.Value
+                && minItem.Value <= otherSet.minItem.Value;
         }
 
         public SetDictionary MaxAsSet ()

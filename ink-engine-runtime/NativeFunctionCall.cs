@@ -342,8 +342,8 @@ namespace Ink.Runtime
                 AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (Greater, (x, y) => x.GreaterThan(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (Less, (x, y) => x.LessThan(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x.Count > 0 && x.maxItem.Value >= y.maxItem.Value ? (int)1 : (int)0);
-                AddSetBinaryOp (LessThanOrEquals, (x, y) => y.Count > 0 && x.maxItem.Value <= y.maxItem.Value ? (int)1 : (int)0);
+                AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y) ? (int)1 : (int)0);
+                AddSetBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
 
                 AddSetUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
