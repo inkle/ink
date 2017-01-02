@@ -35,6 +35,7 @@ namespace Ink.Runtime
         public const string SetMin   = "SET_MIN";
         public const string SetMax   = "SET_MAX";
         public const string All      = "SET_ALL";
+        public const string Count    = "SET_COUNT";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
@@ -355,7 +356,7 @@ namespace Ink.Runtime
 
                 AddSetUnaryOp (SetMin, (x) => x.MinAsSet());
                 AddSetUnaryOp (SetMax, (x) => x.MaxAsSet());
-
+                AddSetUnaryOp (Count,  (x) => x.Count);
 
                 // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
