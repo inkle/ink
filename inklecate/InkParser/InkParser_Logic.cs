@@ -84,15 +84,17 @@ namespace Ink
 
             Whitespace ();
 
-            var definition = Expect (VariableDefinitionRValue, "initial value for ");
+            var definition = Expect (Expression, "initial value for ");
 
             var expr = definition as Parsed.Expression;
-            var setDef = definition as Parsed.SetDefinition;
 
             if (expr) {
                 if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference)) {
                     Error ("initial value for a variable must be a number, constant, or divert target");
                 }
+
+                if (Parse (SetElementSeparator) != null)
+                    Error ("Unexpected ','. If you're trying to declare a new set, use the SET keyword, not VAR");
 
                 // Ensure string expressions are simple
                 else if (expr is StringExpression) {
@@ -104,22 +106,40 @@ namespace Ink
                 var result = new VariableAssignment (varName, expr);
                 result.isGlobalDeclaration = true;
                 return result;
-
-            } else if (setDef) {
-
-                setDef.name = varName;
-
-                var result = new VariableAssignment (varName, setDef);
-                result.isGlobalDeclaration = true;
-                return result;
             }
 
             return null;
         }
 
-        protected Parsed.Object VariableDefinitionRValue ()
+        protected Parsed.VariableAssignment SetVariableDeclaration ()
         {
-            return OneOf (SetDefinition, Expression) as Parsed.Object;
+            Whitespace ();
+
+            var id = Parse (Identifier);
+            if (id != "SET")
+                return null;
+
+            Whitespace ();
+
+            var varName = Expect (Identifier, "set name") as string;
+
+            Whitespace ();
+
+            Expect (String ("="), "the '=' for an assignment of the set definition");
+
+            Whitespace ();
+
+            var definition = Expect (SetDefinition, "set items names") as SetDefinition;
+
+            if (definition) {
+
+                definition.name = varName;
+
+                var result = new VariableAssignment (varName, definition);
+                return result;
+            }
+
+            return null;
         }
 
         protected Parsed.SetDefinition SetDefinition ()

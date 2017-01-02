@@ -32,6 +32,9 @@ namespace Ink.Parsed
 
             if( setDefinition )
                 this.setDefinition = AddContent(setDefinition);
+
+            // Set definitions are always global
+            isGlobalDeclaration = true;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
