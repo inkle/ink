@@ -151,9 +151,9 @@ namespace Ink.Parsed
         string nativeNameForOp
         {
             get {
-                // Replace "-" with "~" to make it unique
+                // Replace "-" with "_" to make it unique (compared to subtraction)
                 if (op == "-")
-                    return "~";
+                    return "_";
                 if (op == "not")
                     return "!";
                 return op;

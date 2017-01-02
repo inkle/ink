@@ -10,7 +10,7 @@ namespace Ink.Runtime
         public const string Divide   = "/";
         public const string Multiply = "*";
         public const string Mod      = "%";
-        public const string Negate   = "~";
+        public const string Negate   = "_"; // distinguish from "-" for subtraction
 
         public const string Equal    = "==";
         public const string Greater  = ">";
@@ -19,6 +19,7 @@ namespace Ink.Runtime
         public const string LessThanOrEquals = "<=";
         public const string NotEquals   = "!=";
         public const string Not      = "!";
+        public const string Invert   = "~";
 
         public const string And      = "&&";
         public const string Or       = "||";
@@ -87,7 +88,7 @@ namespace Ink.Runtime
             // Special case:
             //  - Set inverse (!set) requires knowledge of origin set, not just
             //    the raw set dictionary.
-            if (parameters.Count == 1 && parameters [0] is SetValue && name == "!") {
+            if (parameters.Count == 1 && parameters [0] is SetValue && name == Invert) {
                 var setValue = (SetValue)parameters [0];
                 var inv = setValue.inverse;
                 if (inv == null) return new SetValue ("UNKNOWN", 0);
@@ -319,7 +320,7 @@ namespace Ink.Runtime
                 //AddSetBinaryOp (Multiply, (x, y) => x * y);
                 //AddSetBinaryOp (Divide, (x, y) => x / y);
                 //AddSetBinaryOp (Mod, (x, y) => x % y); // TODO: Is this the operation we want for floats?
-                //AddSetUnaryOp (Negate, x => -x);
+                //AddSetUnaryOp (Negate, x => x.Inverse());
 
                 AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (Greater, (x, y) => x.Count > 0 && x.maxItem.Value > y.maxItem.Value ? (int)1 : (int)0);
@@ -327,10 +328,12 @@ namespace Ink.Runtime
                 AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x.Count > 0 && x.maxItem.Value >= y.maxItem.Value ? (int)1 : (int)0);
                 AddSetBinaryOp (LessThanOrEquals, (x, y) => y.Count > 0 && x.maxItem.Value <= y.maxItem.Value ? (int)1 : (int)0);
                 AddSetBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
-                //AddSetUnaryOp (Not, x => !x);
 
-                AddSetBinaryOp (And, (x, y) => x.IntersectWith(y));
-                AddSetBinaryOp (Or, (x, y) => x.UnionWith (y));
+                // Placeholder to ensure that Invert gets created at all,
+                // since this function is never actually run, and is special cased in Call
+                AddSetUnaryOp (Invert, x => x);
+
+                AddSetBinaryOp (And, (x, y) => x.UnionWith(y));
 
                 //AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
                 //AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));
@@ -387,6 +390,11 @@ namespace Ink.Runtime
         static void AddSetBinaryOp (string name, BinaryOp<SetDictionary> op)
         {
             AddOpToNativeFunc (name, 2, ValueType.Set, op);
+        }
+
+        static void AddSetUnaryOp (string name, UnaryOp<SetDictionary> op)
+        {
+            AddOpToNativeFunc (name, 1, ValueType.Set, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<float> op)

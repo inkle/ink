@@ -168,7 +168,7 @@ namespace Ink
                 return divertTarget;
             }
 
-            var prefixOp = (string) OneOf (String ("-"), String ("!"));
+            var prefixOp = (string) OneOf (String ("-"), String("~"), String ("!"));
 
             // Don't parse like the string rules above, in case its actually 
             // a variable that simply starts with "not", e.g. "notable".
@@ -427,7 +427,15 @@ namespace Ink
 
             Whitespace ();
 
-            Expect (String (")"), "closing ')' for set");
+            if (subsetList != null && subsetList.Count > 0)
+                Expect (String (")"), "closing ')' for set");
+
+            // Rather than parsing nothing, the subset list may have *failed* to
+            // parse due to the parentheses containing something else, in which
+            // case we cope with that here.
+            else if (ParseString (")") == null) 
+                return null;
+                
 
             return new Subset (subsetList);
         }
