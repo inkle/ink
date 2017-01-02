@@ -428,15 +428,10 @@ namespace Ink
 
             Whitespace ();
 
-            if (subsetList != null && subsetList.Count > 0)
-                Expect (String (")"), "closing ')' for set");
-
-            // Rather than parsing nothing, the subset list may have *failed* to
-            // parse due to the parentheses containing something else, in which
-            // case we cope with that here.
-            else if (ParseString (")") == null) 
+            // May have failed to parse the inner list - the parentheses may
+            // be for a normal expression
+            if (ParseString (")") == null)
                 return null;
-                
 
             return new Subset (subsetList);
         }
@@ -483,6 +478,7 @@ namespace Ink
             // (apples, oranges) + cabbages has (oranges, cabbages) == true
             RegisterBinaryOperator ("?", precedence: 3);
             RegisterBinaryOperator ("has", precedence: 3, requireWhitespace:true);
+            RegisterBinaryOperator ("^", precedence: 3);
 
 			RegisterBinaryOperator ("+", precedence:4);
 			RegisterBinaryOperator ("-", precedence:5);

@@ -300,15 +300,16 @@ namespace Ink.Runtime
             }
         }
 
-        public SetDictionary UnionWith (SetDictionary otherDict)
+        public SetDictionary Union (SetDictionary otherDict)
         {
             var union = new SetDictionary (this);
-            foreach (var kv in otherDict)
-                union.Add(kv.Key, kv.Value);
+            foreach (var kv in otherDict) {
+                union [kv.Key] = kv.Value;
+            }
             return union;
         }
 
-        public SetDictionary IntersectWith (SetDictionary otherDict)
+        public SetDictionary Intersect (SetDictionary otherDict)
         {
             var intersection = new SetDictionary ();
             foreach (var kv in this) {

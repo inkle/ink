@@ -22,6 +22,7 @@ namespace Ink.Runtime
 
         public const string Has      = "?";
         public const string Invert   = "~";
+        public const string Intersect = "^";
 
         public const string And      = "&&";
         public const string Or       = "||";
@@ -317,10 +318,11 @@ namespace Ink.Runtime
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
 
                 // Set operations
-                AddSetBinaryOp (Add, (x, y) => x.UnionWith (y));
-                AddSetBinaryOp (And, (x, y) => x.UnionWith (y));
+                AddSetBinaryOp (Add, (x, y) => x.Union (y));
+                AddSetBinaryOp (And, (x, y) => x.Union (y));
                 AddSetBinaryOp (Subtract, (x, y) => x.Without(y));
                 AddSetBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
+                AddSetBinaryOp (Intersect, (x, y) => x.Intersect (y));
 
                 AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (Greater, (x, y) => x.Count > 0 && x.maxItem.Value > y.maxItem.Value ? (int)1 : (int)0);
