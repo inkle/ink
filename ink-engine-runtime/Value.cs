@@ -277,6 +277,10 @@ namespace Ink.Runtime
     internal class SetDictionary : Dictionary<string, int> {
         public SetDictionary () { }
         public SetDictionary (Dictionary<string, int> otherDict) : base (otherDict) { }
+        public SetDictionary (KeyValuePair<string, int> singleElement)
+        {
+            Add (singleElement.Key, singleElement.Value);
+        }
 
         public KeyValuePair<string, int> maxItem {
             get {
@@ -333,6 +337,39 @@ namespace Ink.Runtime
                 if (!this.ContainsKey (kv.Key)) return false;
             }
             return true;
+        }
+
+        public bool GreaterThan (SetDictionary otherSet)
+        {
+            if (Count == 0) return false;
+            if (otherSet.Count == 0) return true;
+
+            // All greater
+            return minItem.Value > otherSet.maxItem.Value;
+        }
+
+        public bool LessThan (SetDictionary otherSet)
+        {
+            if (otherSet.Count == 0) return false;
+            if (Count == 0) return true;
+
+            return maxItem.Value < otherSet.minItem.Value;
+        }
+
+        public SetDictionary MaxAsSet ()
+        {
+            if (Count > 0)
+                return new SetDictionary (maxItem);
+            else
+                return new SetDictionary ();
+        }
+
+        public SetDictionary MinAsSet ()
+        {
+            if (Count > 0)
+                return new SetDictionary (minItem);
+            else
+                return new SetDictionary ();
         }
 
         public override bool Equals (object other)

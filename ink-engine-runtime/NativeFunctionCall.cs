@@ -30,6 +30,9 @@ namespace Ink.Runtime
         public const string Min      = "MIN";
         public const string Max      = "MAX";
 
+        public const string SetMin = "SET_MIN";
+        public const string SetMax = "SET_MAX";
+
         public static NativeFunctionCall CallWithName(string functionName)
         {
             return new NativeFunctionCall (functionName);
@@ -325,8 +328,8 @@ namespace Ink.Runtime
                 AddSetBinaryOp (Intersect, (x, y) => x.Intersect (y));
 
                 AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (Greater, (x, y) => x.Count > 0 && x.maxItem.Value > y.maxItem.Value ? (int)1 : (int)0);
-                AddSetBinaryOp (Less, (x, y) => y.Count > 0 && x.maxItem.Value < y.maxItem.Value ? (int)1 : (int)0);
+                AddSetBinaryOp (Greater, (x, y) => x.GreaterThan(y) ? (int)1 : (int)0);
+                AddSetBinaryOp (Less, (x, y) => x.LessThan(y) ? (int)1 : (int)0);
                 AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x.Count > 0 && x.maxItem.Value >= y.maxItem.Value ? (int)1 : (int)0);
                 AddSetBinaryOp (LessThanOrEquals, (x, y) => y.Count > 0 && x.maxItem.Value <= y.maxItem.Value ? (int)1 : (int)0);
                 AddSetBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
@@ -337,8 +340,8 @@ namespace Ink.Runtime
                 // since this function is never actually run, and is special cased in Call
                 AddSetUnaryOp (Invert, x => x);
 
-                //AddSetBinaryOp (Max, (x, y) => Math.Max (x, y));
-                //AddSetBinaryOp (Min, (x, y) => Math.Min (x, y));
+                AddSetUnaryOp (SetMin, (x) => x.MinAsSet());
+                AddSetUnaryOp (SetMax, (x) => x.MaxAsSet());
 
                 // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {

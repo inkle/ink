@@ -12,6 +12,9 @@ namespace Ink.Parsed
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
         public bool isSetValue { get { return name == "SET_VALUE"; } }
+        public bool isSetMin { get { return name == "SET_MIN"; } }
+        public bool isSetMax { get { return name == "SET_MAX"; } }
+
         public bool shouldPopReturnedValue;
 
         public FunctionCall (string functionName, List<Expression> arguments)
@@ -25,17 +28,7 @@ namespace Ink.Parsed
         {
             var foundSet = story.ResolveSet (name);
 
-            if (foundSet != null) {
-                if (arguments.Count != 1)
-                    Error ("Can currently only construct a Set from one integer");
-                container.AddContent (new Runtime.StringValue (name));
-                arguments [0].GenerateIntoContainer (container);
-                container.AddContent (Runtime.ControlCommand.SetFromInt ());
-
-                // Don't attempt to resolve as a divert
-                content.Remove (_proxyDivert);
-
-            } else if (isChoiceCount) {
+            if (isChoiceCount) {
 
                 if (arguments.Count > 0)
                     Error ("The CHOICE_COUNT() function shouldn't take any arguments");
@@ -100,15 +93,40 @@ namespace Ink.Parsed
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
-            } 
-
-            else if (isSetValue) {
+            } else if (isSetValue) {
                 if (arguments.Count != 1)
                     Error ("SET_VALUE should take 1 parameter - a set");
 
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SetValue ());
+            } else if (Runtime.NativeFunctionCall.CallExistsWithName(name)) {
+
+                var nativeCall = Runtime.NativeFunctionCall.CallWithName (name);
+
+                if (nativeCall.numberOfParameters != arguments.Count) {
+                    var msg = name + " should take " + nativeCall.numberOfParameters + " parameter";
+                    if (nativeCall.numberOfParameters > 1)
+                        msg += "s";
+                    Error (msg);
+                }
+
+                for (int arg = 0; arg < arguments.Count; arg++)
+                    arguments [arg].GenerateIntoContainer (container);
+
+                container.AddContent (Runtime.NativeFunctionCall.CallWithName (name));
+
+            } 
+            else if (foundSet != null) {
+                if (arguments.Count != 1)
+                    Error ("Can currently only construct a Set from one integer");
+                container.AddContent (new Runtime.StringValue (name));
+                arguments [0].GenerateIntoContainer (container);
+                container.AddContent (Runtime.ControlCommand.SetFromInt ());
+
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
+
             }
 
               // Normal function call
@@ -157,6 +175,9 @@ namespace Ink.Parsed
 
         public static bool IsBuiltIn(string name) 
         {
+            if (Runtime.NativeFunctionCall.CallExistsWithName (name))
+                return true;
+            
             return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM" || name == "SET_VALUE";
         }
 
