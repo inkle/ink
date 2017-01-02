@@ -239,7 +239,7 @@ namespace Ink.Parsed
                     var itemInThisSet = setToSearch.ItemNamed (itemName);
                     if (itemInThisSet) {
                         if (foundItem != null) {
-                            Error ("Ambiguous item name '" + itemName + " found in multiple sets, including "+originalFoundSet.name+" and "+setToSearch.name, source, isWarning:false);
+                            Error ("Ambiguous item name '" + itemName + "' found in multiple sets, including "+originalFoundSet.name+" and "+setToSearch.name, source, isWarning:false);
                         } else {
                             foundItem = itemInThisSet;
                             originalFoundSet = setToSearch;
