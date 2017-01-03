@@ -2,6 +2,8 @@
 
 namespace Ink.Runtime
 {
+    // Confusingly from a C# point of view, a LIST in ink is actually
+    // modelled using a C# Dictionary!
     internal class RawList : Dictionary<string, int>
     {
         public RawList () { }
@@ -33,20 +35,20 @@ namespace Ink.Runtime
             }
         }
 
-        public RawList Union (RawList otherDict)
+        public RawList Union (RawList otherList)
         {
             var union = new RawList (this);
-            foreach (var kv in otherDict) {
+            foreach (var kv in otherList) {
                 union [kv.Key] = kv.Value;
             }
             return union;
         }
 
-        public RawList Intersect (RawList otherDict)
+        public RawList Intersect (RawList otherList)
         {
             var intersection = new RawList ();
             foreach (var kv in this) {
-                if (otherDict.ContainsKey (kv.Key))
+                if (otherList.ContainsKey (kv.Key))
                     intersection.Add (kv.Key, kv.Value);
             }
             return intersection;
