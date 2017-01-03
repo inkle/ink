@@ -13,7 +13,7 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            var runtimeSetDict = new Runtime.SetDictionary ();
+            var runtimeRawList = new Runtime.RawList ();
 
             if (itemNameList != null) {
                 foreach (var itemName in itemNameList) {
@@ -35,12 +35,12 @@ namespace Ink.Parsed
                         else
                             Error ("Could not find SET item " + itemName);
                     } else {
-                        runtimeSetDict.Add (setItem.fullName, setItem.seriesValue);
+                        runtimeRawList.Add (setItem.fullName, setItem.seriesValue);
                     }
                 }
             }
 
-            container.AddContent(new Runtime.SetValue (runtimeSetDict));
+            container.AddContent(new Runtime.ListValue (runtimeRawList));
         }
 
         //public override void ResolveReferences (Story context)

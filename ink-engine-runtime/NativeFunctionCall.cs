@@ -93,24 +93,24 @@ namespace Ink.Runtime
 
             // Special case:
             //  - Set-Int operation returns a Set (e.g. "alpha" + 1 = "beta")
-            if (parameters.Count == 2 && parameters [0] is SetValue && parameters [1] is IntValue)
+            if (parameters.Count == 2 && parameters [0] is ListValue && parameters [1] is IntValue)
                 return CallSetIntOperation (parameters);
             
             // Special cases, where the functions require knowledge of the origin
             // set, not just the raw set dictionary
-            if (parameters.Count == 1 && parameters [0] is SetValue) {
+            if (parameters.Count == 1 && parameters [0] is ListValue) {
 
                 if (name == Invert) {
-                    var setValue = (SetValue)parameters [0];
-                    var inv = setValue.inverse;
-                    if (inv == null) return new SetValue ("UNKNOWN", 0);
+                    var listValue = (ListValue)parameters [0];
+                    var inv = listValue.inverse;
+                    if (inv == null) return new ListValue ("UNKNOWN", 0);
                     return inv;
                 } 
 
                 else if (name == All) {
-                    var setValue = (SetValue)parameters [0];
-                    var all = setValue.all;
-                    if (all == null) return new SetValue ("UNKNOWN", 0);
+                    var listValue = (ListValue)parameters [0];
+                    var all = listValue.all;
+                    if (all == null) return new ListValue ("UNKNOWN", 0);
                     return all;
                 }
             }
@@ -127,7 +127,7 @@ namespace Ink.Runtime
             } else if (coercedType == ValueType.DivertTarget) {
                 return Call<Path> (coercedParams);
             } else if (coercedType == ValueType.Set) {
-                return Call<SetDictionary> (coercedParams);
+                return Call<RawList> (coercedParams);
             }
 
             return null;
@@ -181,30 +181,30 @@ namespace Ink.Runtime
 
         Value CallSetIntOperation (List<Runtime.Object> setIntParams)
         {
-            var setVal = (SetValue)setIntParams [0];
+            var listVal = (ListValue)setIntParams [0];
             var intVal = (IntValue)setIntParams [1];
 
             var coercedInts = new List<Value> {
-                    new IntValue(setVal.maxItem.Value),
+                    new IntValue(listVal.maxItem.Value),
                     intVal
                 };
             var intResult = (IntValue)Call<int> (coercedInts);
 
             string newItemName;
-            var originSet = setVal.singleOriginSet;
+            var originSet = listVal.singleOriginSet;
             if (originSet != null && originSet.TryGetItemWithValue (intResult.value, out newItemName))
                 newItemName = originSet.name + "." + newItemName;
             else
                 newItemName = "UNKNOWN";
             
-            return new SetValue (newItemName, intResult.value);
+            return new ListValue (newItemName, intResult.value);
         }
 
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
         {
             ValueType valType = ValueType.Int;
 
-            SetValue specialCaseSet = null;
+            ListValue specialCaseSet = null;
 
             // Find out what the output type is
             // "higher level" types infect both so that binary operations
@@ -217,7 +217,7 @@ namespace Ink.Runtime
                 }
 
                 if (val.valueType == ValueType.Set) {
-                    specialCaseSet = val as SetValue;
+                    specialCaseSet = val as ListValue;
                 }
             }
 
@@ -240,7 +240,7 @@ namespace Ink.Runtime
                         
                         string itemName;
                         if (set.TryGetItemWithValue (intVal, out itemName)) {
-                            var castedValue = new SetValue (set.name + "." + itemName, intVal);
+                            var castedValue = new ListValue (set.name + "." + itemName, intVal);
                             parametersOut.Add (castedValue);
                         } else
                             throw new StoryException ("Could not find Set item with the value " + intVal + " in " + set.name);
@@ -409,12 +409,12 @@ namespace Ink.Runtime
             AddOpToNativeFunc (name, 2, ValueType.String, op);
         }
 
-        static void AddSetBinaryOp (string name, BinaryOp<SetDictionary> op)
+        static void AddSetBinaryOp (string name, BinaryOp<RawList> op)
         {
             AddOpToNativeFunc (name, 2, ValueType.Set, op);
         }
 
-        static void AddSetUnaryOp (string name, UnaryOp<SetDictionary> op)
+        static void AddSetUnaryOp (string name, UnaryOp<RawList> op)
         {
             AddOpToNativeFunc (name, 1, ValueType.Set, op);
         }

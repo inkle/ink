@@ -164,7 +164,7 @@ namespace Ink.Runtime
             return varValue;
         }
 
-        SetValue GetSetItemValueWithName (string name)
+        ListValue GetSetItemValueWithName (string name)
         {
             var nameParts = name.Split ('.');
             if (nameParts.Length == 2) {
@@ -174,14 +174,14 @@ namespace Ink.Runtime
                 Set set;
                 if (_sets.TryGetValue (setName, out set)) {
                     int itemValue = set.ValueForItem (itemName);
-                    return new SetValue (name, itemValue);
+                    return new ListValue (name, itemValue);
                 }
             } else {
                 foreach (var namedSet in _sets) {
                     var set = namedSet.Value;
                     int itemValue;
                     if (set.TryGetValueForItem (name, out itemValue)) {
-                        return new SetValue (set.name + "." + name, itemValue);
+                        return new ListValue (set.name + "." + name, itemValue);
                     }
                 }
             }

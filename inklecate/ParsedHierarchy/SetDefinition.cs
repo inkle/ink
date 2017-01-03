@@ -69,7 +69,7 @@ namespace Ink.Parsed
                     initialValues [this.name + "." + e.name] = e.seriesValue;
             }
 
-            return new Runtime.SetValue (initialValues);
+            return new Runtime.ListValue (initialValues);
         }
 
         Dictionary<string, SetElementDefinition> _elementsByName;

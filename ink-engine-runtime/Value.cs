@@ -57,7 +57,7 @@ namespace Ink.Runtime
             } else if (val is Path) {
                 return new DivertTargetValue ((Path)val);
             } else if (val is Dictionary<string, int>) {
-                return new SetValue ((Dictionary < string, int > )val);
+                return new ListValue ((Dictionary < string, int > )val);
             }
 
             return null;
@@ -274,7 +274,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal class SetValue : Value<SetDictionary>
+    internal class ListValue : Value<RawList>
     {
         public override ValueType valueType {
             get {
@@ -310,26 +310,26 @@ namespace Ink.Runtime
             }
         }
 
-        public SetValue inverse {
+        public ListValue inverse {
             get {
                 if (singleOriginSet == null) return null;
-                var setDict = new SetDictionary ();
+                var rawList = new RawList ();
                 foreach (var nameValue in singleOriginSet.items) {
                     string fullName = singleOriginSet.name + "." + nameValue.Key;
                     if (!value.ContainsKey (fullName))
-                        setDict.Add (fullName, nameValue.Value);
+                        rawList.Add (fullName, nameValue.Value);
                 }
-                return new SetValue (setDict);
+                return new ListValue (rawList);
             }
         }
 
-        public SetValue all {
+        public ListValue all {
             get {
                 if (singleOriginSet == null) return null;
-                var dict = new SetDictionary ();
+                var dict = new RawList ();
                 foreach (var kv in singleOriginSet.items)
                     dict.Add (singleOriginSet.name + "." + kv.Key, kv.Value);
-                return new SetValue (dict);
+                return new ListValue (dict);
             }
         }
 
@@ -386,25 +386,25 @@ namespace Ink.Runtime
             throw new System.Exception ("Unexpected type cast of Value to new ValueType");
         }
 
-        public SetValue () : base(null) {
-            value = new SetDictionary ();
+        public ListValue () : base(null) {
+            value = new RawList ();
         }
 
-        public SetValue (SetDictionary dict) : base (null)
+        public ListValue (RawList dict) : base (null)
         {
-            value = new SetDictionary (dict);
+            value = new RawList (dict);
             TEMP_DebugAssertNames ();
         }
 
-        public SetValue (Dictionary<string, int> dict) : base (null)
+        public ListValue (Dictionary<string, int> dict) : base (null)
         {
-            value = new SetDictionary (dict);
+            value = new RawList (dict);
             TEMP_DebugAssertNames ();
         }
 
-        public SetValue (string singleItemName, int singleValue) : base (null)
+        public ListValue (string singleItemName, int singleValue) : base (null)
         {
-            value = new SetDictionary {
+            value = new RawList {
                 {singleItemName, singleValue}
             };
             TEMP_DebugAssertNames ();

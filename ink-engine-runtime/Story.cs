@@ -946,29 +946,29 @@ namespace Ink.Runtime
                     var intVal = state.PopEvaluationStack () as IntValue;
                     var setNameVal = state.PopEvaluationStack () as StringValue;
 
-                    SetValue generatedSetValue = null;
+                    ListValue generatedListValue = null;
 
                     Set foundSet;
                     if (sets.TryGetValue (setNameVal.value, out foundSet)) {
                         string foundItemName;
                         if (foundSet.TryGetItemWithValue (intVal.value, out foundItemName)) {
-                            generatedSetValue = new SetValue (setNameVal.value + "." + foundItemName, intVal.value);
+                            generatedListValue = new ListValue (setNameVal.value + "." + foundItemName, intVal.value);
                         }
                     } else {
                         throw new StoryException ("Failed to find Set called " + setNameVal.value);
                     }
 
-                    if (generatedSetValue == null)
-                        generatedSetValue = new SetValue ("UNKNOWN", 0);
+                    if (generatedListValue == null)
+                        generatedListValue = new ListValue ("UNKNOWN", 0);
 
-                    state.PushEvaluationStack (generatedSetValue);
+                    state.PushEvaluationStack (generatedListValue);
                     break;
 
                 case ControlCommand.CommandType.SetRange: {
                         var max = state.PopEvaluationStack ();
                         var min = state.PopEvaluationStack ();
 
-                        var targetSet = state.PopEvaluationStack () as SetValue;
+                        var targetSet = state.PopEvaluationStack () as ListValue;
 
                         if (targetSet == null || min == null || max == null)
                             throw new StoryException ("Expected Set, minimum and maximum for SET_RANGE");
@@ -976,9 +976,9 @@ namespace Ink.Runtime
                         // Allow either int or a particular set item to be passed for the bounds,
                         // so wrap up a function to handle this casting for us.
                         Func<Runtime.Object, int> IntBound = (obj) => {
-                            var setValue = obj as SetValue;
-                            if (setValue) {
-                                return (int)setValue.maxItem.Value;
+                            var listValue = obj as ListValue;
+                            if (listValue) {
+                                return (int)listValue.maxItem.Value;
                             }
 
                             var intValue = obj as IntValue;
@@ -998,10 +998,10 @@ namespace Ink.Runtime
                             throw new StoryException ("Invalid max range bound passed to SET_VALUE(): " + max);
 
                         // Extract the range of items from the origin set
-                        SetValue result = null;
+                        ListValue result = null;
                         var originSet = targetSet.singleOriginSet;
                         if (originSet == null) {
-                            result = new SetValue ();
+                            result = new ListValue ();
                         } else {
                             result = originSet.SetRange (minVal, maxVal);
                         }

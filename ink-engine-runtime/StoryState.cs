@@ -718,13 +718,13 @@ namespace Ink.Runtime
             // they're used, so that lower level functions can make use
             // of the origin set to get related items, or make comparisons
             // with the integer values etc.
-            var setValue = obj as SetValue;
-            if (setValue) {
-                var singleOriginName = setValue.singleOriginSetName;
+            var listValue = obj as ListValue;
+            if (listValue) {
+                var singleOriginName = listValue.singleOriginSetName;
                 if (singleOriginName != null)
-                    setValue.singleOriginSet = story.sets [singleOriginName];
+                    listValue.singleOriginSet = story.sets [singleOriginName];
                 else
-                    setValue.singleOriginSet = null;
+                    listValue.singleOriginSet = null;
             }
 
             evaluationStack.Add(obj);

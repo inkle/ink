@@ -2,11 +2,11 @@
 
 namespace Ink.Runtime
 {
-    internal class SetDictionary : Dictionary<string, int>
+    internal class RawList : Dictionary<string, int>
     {
-        public SetDictionary () { }
-        public SetDictionary (Dictionary<string, int> otherDict) : base (otherDict) { }
-        public SetDictionary (KeyValuePair<string, int> singleElement)
+        public RawList () { }
+        public RawList (Dictionary<string, int> otherDict) : base (otherDict) { }
+        public RawList (KeyValuePair<string, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
         }
@@ -33,18 +33,18 @@ namespace Ink.Runtime
             }
         }
 
-        public SetDictionary Union (SetDictionary otherDict)
+        public RawList Union (RawList otherDict)
         {
-            var union = new SetDictionary (this);
+            var union = new RawList (this);
             foreach (var kv in otherDict) {
                 union [kv.Key] = kv.Value;
             }
             return union;
         }
 
-        public SetDictionary Intersect (SetDictionary otherDict)
+        public RawList Intersect (RawList otherDict)
         {
-            var intersection = new SetDictionary ();
+            var intersection = new RawList ();
             foreach (var kv in this) {
                 if (otherDict.ContainsKey (kv.Key))
                     intersection.Add (kv.Key, kv.Value);
@@ -52,15 +52,15 @@ namespace Ink.Runtime
             return intersection;
         }
 
-        public SetDictionary Without (SetDictionary setToRemove)
+        public RawList Without (RawList setToRemove)
         {
-            var result = new SetDictionary (this);
+            var result = new RawList (this);
             foreach (var kv in setToRemove)
                 result.Remove (kv.Key);
             return result;
         }
 
-        public bool Contains (SetDictionary otherSet)
+        public bool Contains (RawList otherSet)
         {
             foreach (var kv in otherSet) {
                 if (!this.ContainsKey (kv.Key)) return false;
@@ -68,7 +68,7 @@ namespace Ink.Runtime
             return true;
         }
 
-        public bool GreaterThan (SetDictionary otherSet)
+        public bool GreaterThan (RawList otherSet)
         {
             if (Count == 0) return false;
             if (otherSet.Count == 0) return true;
@@ -77,7 +77,7 @@ namespace Ink.Runtime
             return minItem.Value > otherSet.maxItem.Value;
         }
 
-        public bool GreaterThanOrEquals (SetDictionary otherSet)
+        public bool GreaterThanOrEquals (RawList otherSet)
         {
             if (Count == 0) return false;
             if (otherSet.Count == 0) return true;
@@ -86,7 +86,7 @@ namespace Ink.Runtime
                 && maxItem.Value >= otherSet.maxItem.Value;
         }
 
-        public bool LessThan (SetDictionary otherSet)
+        public bool LessThan (RawList otherSet)
         {
             if (otherSet.Count == 0) return false;
             if (Count == 0) return true;
@@ -94,7 +94,7 @@ namespace Ink.Runtime
             return maxItem.Value < otherSet.minItem.Value;
         }
 
-        public bool LessThanOrEquals (SetDictionary otherSet)
+        public bool LessThanOrEquals (RawList otherSet)
         {
             if (otherSet.Count == 0) return false;
             if (Count == 0) return true;
@@ -103,30 +103,30 @@ namespace Ink.Runtime
                 && minItem.Value <= otherSet.minItem.Value;
         }
 
-        public SetDictionary MaxAsSet ()
+        public RawList MaxAsSet ()
         {
             if (Count > 0)
-                return new SetDictionary (maxItem);
+                return new RawList (maxItem);
             else
-                return new SetDictionary ();
+                return new RawList ();
         }
 
-        public SetDictionary MinAsSet ()
+        public RawList MinAsSet ()
         {
             if (Count > 0)
-                return new SetDictionary (minItem);
+                return new RawList (minItem);
             else
-                return new SetDictionary ();
+                return new RawList ();
         }
 
         public override bool Equals (object other)
         {
-            var otherSetValue = other as SetDictionary;
-            if (otherSetValue == null) return false;
-            if (otherSetValue.Count != Count) return false;
+            var otherRawList = other as RawList;
+            if (otherRawList == null) return false;
+            if (otherRawList.Count != Count) return false;
 
             foreach (var kv in this) {
-                if (!otherSetValue.ContainsKey (kv.Key))
+                if (!otherRawList.ContainsKey (kv.Key))
                     return false;
             }
 
