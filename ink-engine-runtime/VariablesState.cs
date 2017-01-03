@@ -88,7 +88,7 @@ namespace Ink.Runtime
 			return _globalVariables.Keys.GetEnumerator();
 		}
 
-        internal VariablesState (CallStack callStack, Dictionary<string, Set> sets)
+        internal VariablesState (CallStack callStack, Dictionary<string, ListDefinition> sets)
         {
             _globalVariables = new Dictionary<string, Object> ();
             _callStack = callStack;
@@ -171,7 +171,7 @@ namespace Ink.Runtime
                 var setName = nameParts [0];
                 var itemName = nameParts [1];
 
-                Set set;
+                ListDefinition set;
                 if (_sets.TryGetValue (setName, out set)) {
                     int itemValue = set.ValueForItem (itemName);
                     return new ListValue (name, itemValue);
@@ -301,7 +301,7 @@ namespace Ink.Runtime
         // Used for accessing temporary variables
         CallStack _callStack;
         HashSet<string> _changedVariables;
-        Dictionary<string, Set> _sets;
+        Dictionary<string, ListDefinition> _sets;
     }
 }
 

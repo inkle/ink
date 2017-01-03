@@ -11,7 +11,7 @@ namespace Ink.Parsed
         public bool isTurnsSince { get { return name == "TURNS_SINCE"; } }
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
-        public bool isSetRange { get { return name == "SET_RANGE"; } }
+        public bool isListRange { get { return name == "LIST_RANGE"; } }
 
         public bool shouldPopReturnedValue;
 
@@ -24,7 +24,7 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            var foundSet = story.ResolveSet (name);
+            var foundList = story.ResolveList (name);
 
             if (isChoiceCount) {
 
@@ -91,14 +91,14 @@ namespace Ink.Parsed
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
-            } else if (isSetRange) {
+            } else if (isListRange) {
                 if (arguments.Count != 3)
-                    Error ("SET_VALUE should take 3 parameters - a set, a min and a max");
+                    Error ("LIST_VALUE should take 3 parameters - a list, a min and a max");
 
                 for (int arg = 0; arg < arguments.Count; arg++)
                     arguments [arg].GenerateIntoContainer (container);
 
-                container.AddContent (Runtime.ControlCommand.SetRange ());
+                container.AddContent (Runtime.ControlCommand.ListRange ());
 
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
@@ -122,12 +122,12 @@ namespace Ink.Parsed
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
             } 
-            else if (foundSet != null) {
+            else if (foundList != null) {
                 if (arguments.Count != 1)
-                    Error ("Can currently only construct a Set from one integer");
+                    Error ("Can currently only construct a list from one integer");
                 container.AddContent (new Runtime.StringValue (name));
                 arguments [0].GenerateIntoContainer (container);
-                container.AddContent (Runtime.ControlCommand.SetFromInt ());
+                container.AddContent (Runtime.ControlCommand.ListFromInt ());
 
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
@@ -182,7 +182,7 @@ namespace Ink.Parsed
             if (Runtime.NativeFunctionCall.CallExistsWithName (name))
                 return true;
             
-            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM" || name == "SET_VALUE";
+            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM" || name == "LIST_VALUE";
         }
 
         public override string ToString ()

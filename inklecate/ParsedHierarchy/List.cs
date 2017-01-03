@@ -2,11 +2,13 @@
 
 namespace Ink.Parsed
 {
-    internal class Subset : Parsed.Expression
-    {
-        public List<string> itemNameList;
+    using StrList = System.Collections.Generic.List<string>;
 
-        public Subset (List<string> itemNameList)
+    internal class List : Parsed.Expression
+    {
+        public StrList itemNameList;
+
+        public List (StrList itemNameList)
         {
             this.itemNameList = itemNameList;
         }
@@ -28,7 +30,7 @@ namespace Ink.Parsed
                         setItemName = nameParts [0];
                     }
 
-                    var setItem = story.ResolveSetItem (setName, setItemName, this);
+                    var setItem = story.ResolveListItem (setName, setItemName, this);
                     if (setItem == null) {
                         if (setName == null)
                             Error ("Could not find SET definition that contains item '" + itemName + "'");
@@ -42,12 +44,5 @@ namespace Ink.Parsed
 
             container.AddContent(new Runtime.ListValue (runtimeRawList));
         }
-
-        //public override void ResolveReferences (Story context)
-        //{
-        //    base.ResolveReferences (context);
-
-        //    throw new System.NotImplementedException ();
-        //}
     }
 }

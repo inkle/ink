@@ -54,58 +54,58 @@ namespace Ink.Runtime
             return intersection;
         }
 
-        public RawList Without (RawList setToRemove)
+        public RawList Without (RawList listToRemove)
         {
             var result = new RawList (this);
-            foreach (var kv in setToRemove)
+            foreach (var kv in listToRemove)
                 result.Remove (kv.Key);
             return result;
         }
 
-        public bool Contains (RawList otherSet)
+        public bool Contains (RawList otherList)
         {
-            foreach (var kv in otherSet) {
+            foreach (var kv in otherList) {
                 if (!this.ContainsKey (kv.Key)) return false;
             }
             return true;
         }
 
-        public bool GreaterThan (RawList otherSet)
+        public bool GreaterThan (RawList otherList)
         {
             if (Count == 0) return false;
-            if (otherSet.Count == 0) return true;
+            if (otherList.Count == 0) return true;
 
             // All greater
-            return minItem.Value > otherSet.maxItem.Value;
+            return minItem.Value > otherList.maxItem.Value;
         }
 
-        public bool GreaterThanOrEquals (RawList otherSet)
+        public bool GreaterThanOrEquals (RawList otherList)
         {
             if (Count == 0) return false;
-            if (otherSet.Count == 0) return true;
+            if (otherList.Count == 0) return true;
 
-            return minItem.Value >= otherSet.minItem.Value
-                && maxItem.Value >= otherSet.maxItem.Value;
+            return minItem.Value >= otherList.minItem.Value
+                && maxItem.Value >= otherList.maxItem.Value;
         }
 
-        public bool LessThan (RawList otherSet)
+        public bool LessThan (RawList otherList)
         {
-            if (otherSet.Count == 0) return false;
+            if (otherList.Count == 0) return false;
             if (Count == 0) return true;
 
-            return maxItem.Value < otherSet.minItem.Value;
+            return maxItem.Value < otherList.minItem.Value;
         }
 
-        public bool LessThanOrEquals (RawList otherSet)
+        public bool LessThanOrEquals (RawList otherList)
         {
-            if (otherSet.Count == 0) return false;
+            if (otherList.Count == 0) return false;
             if (Count == 0) return true;
 
-            return maxItem.Value <= otherSet.maxItem.Value
-                && minItem.Value <= otherSet.minItem.Value;
+            return maxItem.Value <= otherList.maxItem.Value
+                && minItem.Value <= otherList.minItem.Value;
         }
 
-        public RawList MaxAsSet ()
+        public RawList MaxAsList ()
         {
             if (Count > 0)
                 return new RawList (maxItem);
@@ -113,7 +113,7 @@ namespace Ink.Runtime
                 return new RawList ();
         }
 
-        public RawList MinAsSet ()
+        public RawList MinAsList ()
         {
             if (Count > 0)
                 return new RawList (minItem);

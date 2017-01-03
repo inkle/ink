@@ -26,8 +26,8 @@ namespace Ink.Runtime
             StartThread,
             Done,
             End,
-            SetFromInt,
-            SetRange,
+            ListFromInt,
+            ListRange,
             //----
             TOTAL_VALUES
         }
@@ -134,13 +134,13 @@ namespace Ink.Runtime
             return new ControlCommand (CommandType.End);
         }
 
-        public static ControlCommand SetFromInt () {
-            return new ControlCommand (CommandType.SetFromInt);
+        public static ControlCommand ListFromInt () {
+            return new ControlCommand (CommandType.ListFromInt);
         }
 
-        public static ControlCommand SetRange ()
+        public static ControlCommand ListRange ()
         {
-            return new ControlCommand (CommandType.SetRange);
+            return new ControlCommand (CommandType.ListRange);
         }
 
         public override string ToString ()

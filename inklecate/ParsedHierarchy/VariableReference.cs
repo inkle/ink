@@ -55,7 +55,7 @@ namespace Ink.Parsed
                     setItemName = path [1];
                 }
 
-                var setItem = story.ResolveSetItem (setName, setItemName, this);
+                var setItem = story.ResolveListItem (setName, setItemName, this);
                 if (setItem) {
                     isSetItemReference = true;
                 }

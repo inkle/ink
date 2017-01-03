@@ -85,9 +85,9 @@ namespace Ink.Runtime
         /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
 
-        internal Dictionary<string, Set> sets {
+        internal Dictionary<string, ListDefinition> lists {
             get {
-                return _sets;
+                return _lists;
             }
         }
 
@@ -106,14 +106,14 @@ namespace Ink.Runtime
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
         // For normal use, use the constructor that takes a json string.
-        internal Story (Container contentContainer, List<Runtime.Set> sets = null)
+        internal Story (Container contentContainer, List<Runtime.ListDefinition> lists = null)
 		{
 			_mainContentContainer = contentContainer;
 
-            if (sets != null) {
-                _sets = new Dictionary<string, Set> ();
-                foreach (var set in sets) {
-                    _sets [set.name] = set;
+            if (lists != null) {
+                _lists = new Dictionary<string, ListDefinition> ();
+                foreach (var list in lists) {
+                    _lists [list.name] = list;
                 }
             }
 
@@ -942,20 +942,20 @@ namespace Ink.Runtime
                     state.ForceEnd ();
                     break;
 
-                case ControlCommand.CommandType.SetFromInt:
+                case ControlCommand.CommandType.ListFromInt:
                     var intVal = state.PopEvaluationStack () as IntValue;
-                    var setNameVal = state.PopEvaluationStack () as StringValue;
+                    var listNameVal = state.PopEvaluationStack () as StringValue;
 
                     ListValue generatedListValue = null;
 
-                    Set foundSet;
-                    if (sets.TryGetValue (setNameVal.value, out foundSet)) {
+                    ListDefinition foundList;
+                    if (lists.TryGetValue (listNameVal.value, out foundList)) {
                         string foundItemName;
-                        if (foundSet.TryGetItemWithValue (intVal.value, out foundItemName)) {
-                            generatedListValue = new ListValue (setNameVal.value + "." + foundItemName, intVal.value);
+                        if (foundList.TryGetItemWithValue (intVal.value, out foundItemName)) {
+                            generatedListValue = new ListValue (listNameVal.value + "." + foundItemName, intVal.value);
                         }
                     } else {
-                        throw new StoryException ("Failed to find Set called " + setNameVal.value);
+                        throw new StoryException ("Failed to find LIST called " + listNameVal.value);
                     }
 
                     if (generatedListValue == null)
@@ -964,16 +964,16 @@ namespace Ink.Runtime
                     state.PushEvaluationStack (generatedListValue);
                     break;
 
-                case ControlCommand.CommandType.SetRange: {
+                case ControlCommand.CommandType.ListRange: {
                         var max = state.PopEvaluationStack ();
                         var min = state.PopEvaluationStack ();
 
-                        var targetSet = state.PopEvaluationStack () as ListValue;
+                        var targetList = state.PopEvaluationStack () as ListValue;
 
-                        if (targetSet == null || min == null || max == null)
-                            throw new StoryException ("Expected Set, minimum and maximum for SET_RANGE");
+                        if (targetList == null || min == null || max == null)
+                            throw new StoryException ("Expected list, minimum and maximum for SET_RANGE");
 
-                        // Allow either int or a particular set item to be passed for the bounds,
+                        // Allow either int or a particular list item to be passed for the bounds,
                         // so wrap up a function to handle this casting for us.
                         Func<Runtime.Object, int> IntBound = (obj) => {
                             var listValue = obj as ListValue;
@@ -992,18 +992,18 @@ namespace Ink.Runtime
                         int minVal = IntBound (min);
                         int maxVal = IntBound (max);
                         if (minVal == -1)
-                            throw new StoryException ("Invalid min range bound passed to SET_VALUE(): " + min);
+                            throw new StoryException ("Invalid min range bound passed to LIST_VALUE(): " + min);
 
                         if (maxVal == -1)
-                            throw new StoryException ("Invalid max range bound passed to SET_VALUE(): " + max);
+                            throw new StoryException ("Invalid max range bound passed to LIST_VALUE(): " + max);
 
-                        // Extract the range of items from the origin set
+                        // Extract the range of items from the origin list
                         ListValue result = null;
-                        var originSet = targetSet.singleOriginSet;
-                        if (originSet == null) {
+                        var originList = targetList.singleOriginList;
+                        if (originList == null) {
                             result = new ListValue ();
                         } else {
-                            result = originSet.SetRange (minVal, maxVal);
+                            result = originList.ListRange (minVal, maxVal);
                         }
                             
                         state.PushEvaluationStack (result);
@@ -2010,7 +2010,7 @@ namespace Ink.Runtime
         }
 
         Container _mainContentContainer;
-        Dictionary<string, Runtime.Set> _sets;
+        Dictionary<string, Runtime.ListDefinition> _lists;
 
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;

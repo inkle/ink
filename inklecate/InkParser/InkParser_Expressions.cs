@@ -409,7 +409,7 @@ namespace Ink
             return null;
 		}
 
-        protected Parsed.Subset ExpressionSubset ()
+        protected Parsed.List ExpressionSubset ()
         {
             Whitespace ();
 
@@ -433,7 +433,7 @@ namespace Ink
             if (ParseString (")") == null)
                 return null;
 
-            return new Subset (subsetList);
+            return new List (subsetList);
         }
 
         protected string SubsetMember ()

@@ -89,7 +89,7 @@ namespace Ink
             var expr = definition as Parsed.Expression;
 
             if (expr) {
-                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is Subset)) {
+                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is List)) {
                     Error ("initial value for a variable must be a number, constant, subset or divert target");
                 }
 
@@ -129,7 +129,7 @@ namespace Ink
 
             Whitespace ();
 
-            var definition = Expect (SetDefinition, "set items names") as SetDefinition;
+            var definition = Expect (SetDefinition, "set items names") as ListDefinition;
 
             if (definition) {
 
@@ -142,7 +142,7 @@ namespace Ink
             return null;
         }
 
-        protected Parsed.SetDefinition SetDefinition ()
+        protected Parsed.ListDefinition SetDefinition ()
         {
             AnyWhitespace ();
 
@@ -153,7 +153,7 @@ namespace Ink
             if (allElements.Count == 1)
                 Error ("Expected more than one element in the set");
 
-            return new SetDefinition (allElements);
+            return new ListDefinition (allElements);
         }
 
         protected string SetElementDefinitionSeparator ()
@@ -167,7 +167,7 @@ namespace Ink
             return ",";
         }
 
-        protected Parsed.SetElementDefinition SetElementDefinition ()
+        protected Parsed.ListElementDefinition SetElementDefinition ()
         {
             var inInitialSet = ParseString ("(") != null;
             var needsToCloseParen = inInitialSet;
@@ -208,7 +208,7 @@ namespace Ink
             if (needsToCloseParen)
                 Error("Expected closing ')'");
 
-            return new SetElementDefinition (name, inInitialSet, elementValue);
+            return new ListElementDefinition (name, inInitialSet, elementValue);
         }
 
         protected Parsed.Object ConstDeclaration()

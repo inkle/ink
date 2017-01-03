@@ -13,7 +13,7 @@ namespace Ink.Runtime
         // Used in coersion
         Int,
         Float,
-        Set,
+        List,
         String,
 
         // Not used for coersion described above
@@ -278,29 +278,29 @@ namespace Ink.Runtime
     {
         public override ValueType valueType {
             get {
-                return ValueType.Set;
+                return ValueType.List;
             }
         }
 
         // Story has to set this so that the value knows its origin,
         // necessary for certain operations (e.g. interacting with ints)
-        public Set singleOriginSet;
+        public ListDefinition singleOriginList;
 
-        // Runtime sets may reference items from different origin sets
-        public string singleOriginSetName {
+        // Runtime lists may reference items from different origin list definitions
+        public string singleOriginListName {
             get {
                 string name = null;
 
                 foreach (var fullNamedItem in value) {
-                    var setName = fullNamedItem.Key.Split ('.') [0];
+                    var listName = fullNamedItem.Key.Split ('.') [0];
 
                     // First name - take it as the assumed single origin name
                     if (name == null)
-                        name = setName;
+                        name = listName;
 
                     // A different one than one we've already had? No longer
                     // single origin.
-                    else if (name != setName)
+                    else if (name != listName)
                         return null;
                 }
 
@@ -312,10 +312,10 @@ namespace Ink.Runtime
 
         public ListValue inverse {
             get {
-                if (singleOriginSet == null) return null;
+                if (singleOriginList == null) return null;
                 var rawList = new RawList ();
-                foreach (var nameValue in singleOriginSet.items) {
-                    string fullName = singleOriginSet.name + "." + nameValue.Key;
+                foreach (var nameValue in singleOriginList.items) {
+                    string fullName = singleOriginList.name + "." + nameValue.Key;
                     if (!value.ContainsKey (fullName))
                         rawList.Add (fullName, nameValue.Value);
                 }
@@ -325,10 +325,10 @@ namespace Ink.Runtime
 
         public ListValue all {
             get {
-                if (singleOriginSet == null) return null;
+                if (singleOriginList == null) return null;
                 var dict = new RawList ();
-                foreach (var kv in singleOriginSet.items)
-                    dict.Add (singleOriginSet.name + "." + kv.Key, kv.Value);
+                foreach (var kv in singleOriginList.items)
+                    dict.Add (singleOriginList.name + "." + kv.Key, kv.Value);
                 return new ListValue (dict);
             }
         }
@@ -337,8 +337,8 @@ namespace Ink.Runtime
         public override bool isTruthy {
             get {
                 foreach (var kv in value) {
-                    int setItemIntValue = kv.Value;
-                    if (setItemIntValue != 0)
+                    int listItemIntValue = kv.Value;
+                    if (listItemIntValue != 0)
                         return true;
                 }
                 return false;

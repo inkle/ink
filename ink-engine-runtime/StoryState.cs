@@ -208,7 +208,7 @@ namespace Ink.Runtime
             evaluationStack = new List<Runtime.Object> ();
 
             callStack = new CallStack (story.rootContentContainer);
-            variablesState = new VariablesState (callStack, story.sets);
+            variablesState = new VariablesState (callStack, story.lists);
 
             visitCounts = new Dictionary<string, int> ();
             turnIndices = new Dictionary<string, int> ();
@@ -251,7 +251,7 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack, story.sets);
+            copy.variablesState = new VariablesState (copy.callStack, story.lists);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
@@ -714,17 +714,17 @@ namespace Ink.Runtime
 
         internal void PushEvaluationStack(Runtime.Object obj)
         {
-            // Include metadata about the origin Set for set values when
+            // Include metadata about the origin List for list values when
             // they're used, so that lower level functions can make use
-            // of the origin set to get related items, or make comparisons
+            // of the origin list to get related items, or make comparisons
             // with the integer values etc.
             var listValue = obj as ListValue;
             if (listValue) {
-                var singleOriginName = listValue.singleOriginSetName;
+                var singleOriginName = listValue.singleOriginListName;
                 if (singleOriginName != null)
-                    listValue.singleOriginSet = story.sets [singleOriginName];
+                    listValue.singleOriginList = story.lists [singleOriginName];
                 else
-                    listValue.singleOriginSet = null;
+                    listValue.singleOriginList = null;
             }
 
             evaluationStack.Add(obj);

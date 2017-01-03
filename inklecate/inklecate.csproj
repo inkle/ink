@@ -102,8 +102,8 @@
     <Compile Include="InkParser\InkParser_Include.cs" />
     <Compile Include="CommandLinePlayer.cs" />
     <Compile Include="InkParser\InkParser_Tags.cs" />
-    <Compile Include="ParsedHierarchy\SetDefinition.cs" />
-    <Compile Include="ParsedHierarchy\Subset.cs" />
+    <Compile Include="ParsedHierarchy\ListDefinition.cs" />
+    <Compile Include="ParsedHierarchy\List.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

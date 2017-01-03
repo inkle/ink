@@ -4,37 +4,37 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-    internal class SetDefinition : Parsed.Object
+    internal class ListDefinition : Parsed.Object
     {
         public string name;
-        public List<SetElementDefinition> elements;
+        public List<ListElementDefinition> elements;
 
-        public Runtime.Set runtimeSetDefinition {
+        public Runtime.ListDefinition runtimeListDefinition {
             get {
                 var allItems = new Dictionary<string, int> ();
                 foreach (var e in elements)
                     allItems.Add (e.name, e.seriesValue);
-                return new Runtime.Set (name, allItems);
+                return new Runtime.ListDefinition (name, allItems);
             }
         }
 
-        public SetElementDefinition ItemNamed (string itemName)
+        public ListElementDefinition ItemNamed (string itemName)
         {
             if (_elementsByName == null) {
-                _elementsByName = new Dictionary<string, SetElementDefinition> ();
+                _elementsByName = new Dictionary<string, ListElementDefinition> ();
                 foreach (var el in elements) {
                     _elementsByName [el.name] = el;
                 }
             }
 
-            SetElementDefinition foundElement;
+            ListElementDefinition foundElement;
             if (_elementsByName.TryGetValue (itemName, out foundElement))
                 return foundElement;
 
             return null;
         }
 
-        public SetDefinition (List<SetElementDefinition> elements)
+        public ListDefinition (List<ListElementDefinition> elements)
         {
             this.elements = elements;
 
@@ -47,16 +47,16 @@ namespace Ink.Parsed
 
                 e.seriesValue = currentValue;
 
-                if (e.inInitialSet)
+                if (e.inInitialList)
                     hasDefinedInitialValue = true;
 
                 currentValue++;
             }
 
-            // If no particular element is assigned to the initial set,
+            // If no particular element is assigned to the initial list,
             // make it the first one.
             if (!hasDefinedInitialValue)
-                elements [0].inInitialSet = true;
+                elements [0].inInitialList = true;
 
             AddContent (elements);
         }
@@ -65,37 +65,37 @@ namespace Ink.Parsed
         {
             var initialValues = new Dictionary<string, int> ();
             foreach (var e in elements) {
-                if (e.inInitialSet)
+                if (e.inInitialList)
                     initialValues [this.name + "." + e.name] = e.seriesValue;
             }
 
             return new Runtime.ListValue (initialValues);
         }
 
-        Dictionary<string, SetElementDefinition> _elementsByName;
+        Dictionary<string, ListElementDefinition> _elementsByName;
     }
 
-    internal class SetElementDefinition : Parsed.Object
+    internal class ListElementDefinition : Parsed.Object
     {
         public string name;
         public int? explicitValue;
         public int seriesValue;
-        public bool inInitialSet;
+        public bool inInitialList;
 
         public string fullName {
             get {
-                var parentSet = parent as SetDefinition;
-                if (parentSet == null)
-                    throw new System.Exception ("Can't get full name without a parent set");
+                var parentList = parent as ListDefinition;
+                if (parentList == null)
+                    throw new System.Exception ("Can't get full name without a parent list");
 
-                return parentSet.name + "." + name;
+                return parentList.name + "." + name;
             }
         }
 
-        public SetElementDefinition (string name, bool inInitialSet, int? explicitValue = null)
+        public ListElementDefinition (string name, bool inInitialList, int? explicitValue = null)
         {
             this.name = name;
-            this.inInitialSet = inInitialSet;
+            this.inInitialList = inInitialList;
             this.explicitValue = explicitValue;
         }
 

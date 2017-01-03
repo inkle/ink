@@ -32,11 +32,11 @@ namespace Ink.Runtime
         public const string Invert   = "~";
         public const string Intersect = "^";
 
-        public const string SetMin   = "SET_MIN";
-        public const string SetMax   = "SET_MAX";
-        public const string All      = "SET_ALL";
-        public const string Count    = "SET_COUNT";
-        public const string ValueOfSet = "SET_VALUE";
+        public const string ListMin   = "LIST_MIN";
+        public const string ListMax   = "LIST_MAX";
+        public const string All      = "LIST_ALL";
+        public const string Count    = "LIST_COUNT";
+        public const string ValueOfList = "LIST_VALUE";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
@@ -92,12 +92,12 @@ namespace Ink.Runtime
             }
 
             // Special case:
-            //  - Set-Int operation returns a Set (e.g. "alpha" + 1 = "beta")
+            //  - List-Int operation returns a List (e.g. "alpha" + 1 = "beta")
             if (parameters.Count == 2 && parameters [0] is ListValue && parameters [1] is IntValue)
-                return CallSetIntOperation (parameters);
+                return CallListIntOperation (parameters);
             
             // Special cases, where the functions require knowledge of the origin
-            // set, not just the raw set dictionary
+            // list definition, not just the raw list
             if (parameters.Count == 1 && parameters [0] is ListValue) {
 
                 if (name == Invert) {
@@ -126,7 +126,7 @@ namespace Ink.Runtime
                 return Call<string> (coercedParams);
             } else if (coercedType == ValueType.DivertTarget) {
                 return Call<Path> (coercedParams);
-            } else if (coercedType == ValueType.Set) {
+            } else if (coercedType == ValueType.List) {
                 return Call<RawList> (coercedParams);
             }
 
@@ -179,10 +179,10 @@ namespace Ink.Runtime
             }
         }
 
-        Value CallSetIntOperation (List<Runtime.Object> setIntParams)
+        Value CallListIntOperation (List<Runtime.Object> listIntParams)
         {
-            var listVal = (ListValue)setIntParams [0];
-            var intVal = (IntValue)setIntParams [1];
+            var listVal = (ListValue)listIntParams [0];
+            var intVal = (IntValue)listIntParams [1];
 
             var coercedInts = new List<Value> {
                     new IntValue(listVal.maxItem.Value),
@@ -191,9 +191,9 @@ namespace Ink.Runtime
             var intResult = (IntValue)Call<int> (coercedInts);
 
             string newItemName;
-            var originSet = listVal.singleOriginSet;
-            if (originSet != null && originSet.TryGetItemWithValue (intResult.value, out newItemName))
-                newItemName = originSet.name + "." + newItemName;
+            var originList = listVal.singleOriginList;
+            if (originList != null && originList.TryGetItemWithValue (intResult.value, out newItemName))
+                newItemName = originList.name + "." + newItemName;
             else
                 newItemName = "UNKNOWN";
             
@@ -204,7 +204,7 @@ namespace Ink.Runtime
         {
             ValueType valType = ValueType.Int;
 
-            ListValue specialCaseSet = null;
+            ListValue specialCaseList = null;
 
             // Find out what the output type is
             // "higher level" types infect both so that binary operations
@@ -216,36 +216,36 @@ namespace Ink.Runtime
                     valType = val.valueType;
                 }
 
-                if (val.valueType == ValueType.Set) {
-                    specialCaseSet = val as ListValue;
+                if (val.valueType == ValueType.List) {
+                    specialCaseList = val as ListValue;
                 }
             }
 
             // Coerce to this chosen type
             var parametersOut = new List<Value> ();
 
-            // Special case: Coercing to Ints to Sets
+            // Special case: Coercing to Ints to Lists
             // We have to do it early when we have both parameters
-            // to hand - so that we can make use of the Set's origin
-            if (valType == ValueType.Set) {
+            // to hand - so that we can make use of the List's origin
+            if (valType == ValueType.List) {
                 
                 foreach (Value val in parametersIn) {
-                    if (val.valueType == ValueType.Set) {
+                    if (val.valueType == ValueType.List) {
                         parametersOut.Add (val);
                     } else if (val.valueType == ValueType.Int) {
                         int intVal = (int)val.valueObject;
-                        var set = specialCaseSet.singleOriginSet;
-                        if (set == null)
-                            throw new StoryException ("Cannot mix Set and Int values here because the existing Set appears to contain items from a mixture of different Set definitions. How do we know which Set is the Int referring to?");
+                        var list = specialCaseList.singleOriginList;
+                        if (list == null)
+                            throw new StoryException ("Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
                         
                         string itemName;
-                        if (set.TryGetItemWithValue (intVal, out itemName)) {
-                            var castedValue = new ListValue (set.name + "." + itemName, intVal);
+                        if (list.TryGetItemWithValue (intVal, out itemName)) {
+                            var castedValue = new ListValue (list.name + "." + itemName, intVal);
                             parametersOut.Add (castedValue);
                         } else
-                            throw new StoryException ("Could not find Set item with the value " + intVal + " in " + set.name);
+                            throw new StoryException ("Could not find List item with the value " + intVal + " in " + list.name);
                     } else
-                        throw new StoryException ("Cannot mix Sets and " + val.valueType + " values in this operation");
+                        throw new StoryException ("Cannot mix Lists and " + val.valueType + " values in this operation");
                 }
                 
             } 
@@ -334,31 +334,31 @@ namespace Ink.Runtime
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
 
-                // Set operations
-                AddSetBinaryOp (Add, (x, y) => x.Union (y));
-                AddSetBinaryOp (And, (x, y) => x.Union (y));
-                AddSetBinaryOp (Subtract, (x, y) => x.Without(y));
-                AddSetBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
-                AddSetBinaryOp (Intersect, (x, y) => x.Intersect (y));
+                // List operations
+                AddListBinaryOp (Add, (x, y) => x.Union (y));
+                AddListBinaryOp (And, (x, y) => x.Union (y));
+                AddListBinaryOp (Subtract, (x, y) => x.Without(y));
+                AddListBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
+                AddListBinaryOp (Intersect, (x, y) => x.Intersect (y));
 
-                AddSetBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (Greater, (x, y) => x.GreaterThan(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (Less, (x, y) => x.LessThan(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y) ? (int)1 : (int)0);
-                AddSetBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (Greater, (x, y) => x.GreaterThan(y) ? (int)1 : (int)0);
+                AddListBinaryOp (Less, (x, y) => x.LessThan(y) ? (int)1 : (int)0);
+                AddListBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
 
-                AddSetUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
+                AddListUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
 
                 // Placeholders to ensure that these special case functions can exist,
                 // since these function is never actually run, and is special cased in Call
-                AddSetUnaryOp (Invert, null);
-                AddSetUnaryOp (All, null);
+                AddListUnaryOp (Invert, null);
+                AddListUnaryOp (All, null);
 
-                AddSetUnaryOp (SetMin, (x) => x.MinAsSet());
-                AddSetUnaryOp (SetMax, (x) => x.MaxAsSet());
-                AddSetUnaryOp (Count,  (x) => x.Count);
-                AddSetUnaryOp (ValueOfSet,  (x) => x.maxItem.Value);
+                AddListUnaryOp (ListMin, (x) => x.MinAsList());
+                AddListUnaryOp (ListMax, (x) => x.MaxAsList());
+                AddListUnaryOp (Count,  (x) => x.Count);
+                AddListUnaryOp (ValueOfList,  (x) => x.maxItem.Value);
 
                 // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
@@ -409,14 +409,14 @@ namespace Ink.Runtime
             AddOpToNativeFunc (name, 2, ValueType.String, op);
         }
 
-        static void AddSetBinaryOp (string name, BinaryOp<RawList> op)
+        static void AddListBinaryOp (string name, BinaryOp<RawList> op)
         {
-            AddOpToNativeFunc (name, 2, ValueType.Set, op);
+            AddOpToNativeFunc (name, 2, ValueType.List, op);
         }
 
-        static void AddSetUnaryOp (string name, UnaryOp<RawList> op)
+        static void AddListUnaryOp (string name, UnaryOp<RawList> op)
         {
-            AddOpToNativeFunc (name, 1, ValueType.Set, op);
+            AddOpToNativeFunc (name, 1, ValueType.List, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<float> op)

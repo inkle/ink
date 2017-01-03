@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    internal class Set
+    internal class ListDefinition
     {
         public string name { get { return _name; } }
 
@@ -40,7 +40,7 @@ namespace Ink.Runtime
             return false;
         }
 
-        public ListValue SetRange (int min, int max)
+        public ListValue ListRange (int min, int max)
         {
             var rawList = new RawList ();
             foreach (var namedItem in _items) {
@@ -51,7 +51,7 @@ namespace Ink.Runtime
             return new ListValue(rawList);
         }
 
-        public Set (string name, Dictionary<string, int> items)
+        public ListDefinition (string name, Dictionary<string, int> items)
         {
             _name = name;
             _items = items;

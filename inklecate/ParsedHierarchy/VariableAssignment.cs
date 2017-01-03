@@ -6,7 +6,7 @@ namespace Ink.Parsed
     {
         public string variableName { get; protected set; }
         public Expression expression { get; protected set; }
-        public SetDefinition setDefinition { get; protected set; }
+        public ListDefinition listDefinition { get; protected set; }
 
         public bool isGlobalDeclaration { get; set; }
         public bool isNewTemporaryDeclaration { get; set; }
@@ -26,12 +26,12 @@ namespace Ink.Parsed
                 this.expression = AddContent(assignedExpression);
         }
 
-        public VariableAssignment (string variableName, SetDefinition setDefinition)
+        public VariableAssignment (string variableName, ListDefinition setDefinition)
         {
             this.variableName = variableName;
 
             if( setDefinition )
-                this.setDefinition = AddContent(setDefinition);
+                this.listDefinition = AddContent(setDefinition);
 
             // Set definitions are always global
             isGlobalDeclaration = true;
@@ -60,8 +60,8 @@ namespace Ink.Parsed
             // The expression's runtimeObject is actually another nested container
             if( expression != null )
                 container.AddContent (expression.runtimeObject);
-            else if( setDefinition != null )
-                container.AddContent (setDefinition.runtimeObject);
+            else if( listDefinition != null )
+                container.AddContent (listDefinition.runtimeObject);
 
             container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
 
