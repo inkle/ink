@@ -88,11 +88,11 @@ namespace Ink.Runtime
 			return _globalVariables.Keys.GetEnumerator();
 		}
 
-        internal VariablesState (CallStack callStack, Dictionary<string, ListDefinition> sets)
+        internal VariablesState (CallStack callStack, Dictionary<string, ListDefinition> lists)
         {
             _globalVariables = new Dictionary<string, Object> ();
             _callStack = callStack;
-            _sets = sets;
+            _lists = lists;
         }
 
         internal void CopyFrom (VariablesState toCopy)
@@ -150,9 +150,9 @@ namespace Ink.Runtime
                 if ( _globalVariables.TryGetValue (name, out varValue) )
                     return varValue;
 
-                var setItemValue = GetSetItemValueWithName (name);
-                if (setItemValue)
-                    return setItemValue;
+                var listItemValue = GetListItemValueWithName (name);
+                if (listItemValue)
+                    return listItemValue;
             } 
 
             // Temporary
@@ -164,24 +164,24 @@ namespace Ink.Runtime
             return varValue;
         }
 
-        ListValue GetSetItemValueWithName (string name)
+        ListValue GetListItemValueWithName (string name)
         {
             var nameParts = name.Split ('.');
             if (nameParts.Length == 2) {
-                var setName = nameParts [0];
+                var listName = nameParts [0];
                 var itemName = nameParts [1];
 
-                ListDefinition set;
-                if (_sets.TryGetValue (setName, out set)) {
-                    int itemValue = set.ValueForItem (itemName);
+                ListDefinition list;
+                if (_lists.TryGetValue (listName, out list)) {
+                    int itemValue = list.ValueForItem (itemName);
                     return new ListValue (name, itemValue);
                 }
             } else {
-                foreach (var namedSet in _sets) {
-                    var set = namedSet.Value;
+                foreach (var namedList in _lists) {
+                    var list = namedList.Value;
                     int itemValue;
-                    if (set.TryGetValueForItem (name, out itemValue)) {
-                        return new ListValue (set.name + "." + name, itemValue);
+                    if (list.TryGetValueForItem (name, out itemValue)) {
+                        return new ListValue (list.name + "." + name, itemValue);
                     }
                 }
             }
@@ -301,7 +301,7 @@ namespace Ink.Runtime
         // Used for accessing temporary variables
         CallStack _callStack;
         HashSet<string> _changedVariables;
-        Dictionary<string, ListDefinition> _sets;
+        Dictionary<string, ListDefinition> _lists;
     }
 }
 

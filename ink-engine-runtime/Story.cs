@@ -971,7 +971,7 @@ namespace Ink.Runtime
                         var targetList = state.PopEvaluationStack () as ListValue;
 
                         if (targetList == null || min == null || max == null)
-                            throw new StoryException ("Expected list, minimum and maximum for SET_RANGE");
+                            throw new StoryException ("Expected list, minimum and maximum for LIST_RANGE");
 
                         // Allow either int or a particular list item to be passed for the bounds,
                         // so wrap up a function to handle this casting for us.

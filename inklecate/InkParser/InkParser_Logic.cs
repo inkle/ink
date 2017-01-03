@@ -90,11 +90,11 @@ namespace Ink
 
             if (expr) {
                 if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is List)) {
-                    Error ("initial value for a variable must be a number, constant, subset or divert target");
+                    Error ("initial value for a variable must be a number, constant, list or divert target");
                 }
 
-                if (Parse (SetElementDefinitionSeparator) != null)
-                    Error ("Unexpected ','. If you're trying to declare a new set, use the SET keyword, not VAR");
+                if (Parse (ListElementDefinitionSeparator) != null)
+                    Error ("Unexpected ','. If you're trying to declare a new list, use the LIST keyword, not VAR");
 
                 // Ensure string expressions are simple
                 else if (expr is StringExpression) {
@@ -111,25 +111,25 @@ namespace Ink
             return null;
         }
 
-        protected Parsed.VariableAssignment SetVariableDeclaration ()
+        protected Parsed.VariableAssignment ListDeclaration ()
         {
             Whitespace ();
 
             var id = Parse (Identifier);
-            if (id != "SET")
+            if (id != "LIST")
                 return null;
 
             Whitespace ();
 
-            var varName = Expect (Identifier, "set name") as string;
+            var varName = Expect (Identifier, "list name") as string;
 
             Whitespace ();
 
-            Expect (String ("="), "the '=' for an assignment of the set definition");
+            Expect (String ("="), "the '=' for an assignment of the list definition");
 
             Whitespace ();
 
-            var definition = Expect (SetDefinition, "set items names") as ListDefinition;
+            var definition = Expect (ListDefinition, "list item names") as ListDefinition;
 
             if (definition) {
 
@@ -142,21 +142,21 @@ namespace Ink
             return null;
         }
 
-        protected Parsed.ListDefinition SetDefinition ()
+        protected Parsed.ListDefinition ListDefinition ()
         {
             AnyWhitespace ();
 
-            var allElements = SeparatedList (SetElementDefinition, SetElementDefinitionSeparator);
+            var allElements = SeparatedList (ListElementDefinition, ListElementDefinitionSeparator);
             if (allElements == null)
                 return null;
 
             if (allElements.Count == 1)
-                Error ("Expected more than one element in the set");
+                Error ("Expected more than one element in the list");
 
             return new ListDefinition (allElements);
         }
 
-        protected string SetElementDefinitionSeparator ()
+        protected string ListElementDefinitionSeparator ()
         {
             AnyWhitespace ();
 
@@ -167,10 +167,10 @@ namespace Ink
             return ",";
         }
 
-        protected Parsed.ListElementDefinition SetElementDefinition ()
+        protected Parsed.ListElementDefinition ListElementDefinition ()
         {
-            var inInitialSet = ParseString ("(") != null;
-            var needsToCloseParen = inInitialSet;
+            var inInitialList = ParseString ("(") != null;
+            var needsToCloseParen = inInitialList;
 
             Whitespace ();
 
@@ -180,7 +180,7 @@ namespace Ink
 
             Whitespace ();
 
-            if (inInitialSet) {
+            if (inInitialList) {
                 if (ParseString (")") != null) {
                     needsToCloseParen = false;
                     Whitespace ();
@@ -192,7 +192,7 @@ namespace Ink
 
                 Whitespace ();
 
-                var elementValueNum = Expect (ExpressionInt, "value to be assigned to Set item") as Number;
+                var elementValueNum = Expect (ExpressionInt, "value to be assigned to list item") as Number;
                 if (elementValueNum != null) {
                     elementValue = (int) elementValueNum.value;
                 }
@@ -208,7 +208,7 @@ namespace Ink
             if (needsToCloseParen)
                 Error("Expected closing ')'");
 
-            return new ListElementDefinition (name, inInitialSet, elementValue);
+            return new ListElementDefinition (name, inInitialList, elementValue);
         }
 
         protected Parsed.Object ConstDeclaration()

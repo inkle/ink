@@ -26,14 +26,14 @@ namespace Ink.Parsed
                 this.expression = AddContent(assignedExpression);
         }
 
-        public VariableAssignment (string variableName, ListDefinition setDefinition)
+        public VariableAssignment (string variableName, ListDefinition listDef)
         {
             this.variableName = variableName;
 
-            if( setDefinition )
-                this.listDefinition = AddContent(setDefinition);
+            if( listDef )
+                this.listDefinition = AddContent(listDef);
 
-            // Set definitions are always global
+            // List definitions are always global
             isGlobalDeclaration = true;
         }
 
@@ -82,8 +82,8 @@ namespace Ink.Parsed
 
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
-                if (variableReference && !variableReference.isConstantReference && !variableReference.isSetItemReference) {
-                    Error ("global variable assignments cannot refer to other variables, only literal values, constants and set items");
+                if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
+                    Error ("global variable assignments cannot refer to other variables, only literal values, constants and list items");
                 }       
             }
 

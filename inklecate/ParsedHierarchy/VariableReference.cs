@@ -7,7 +7,7 @@ namespace Ink.Parsed
         // - Normal variables have a single item in their "path"
         // - Knot/stitch names for read counts are actual dot-separated paths
         //   (though this isn't actually used at time of writing)
-        // - Set names are dot separated: setName.itemName (or just itemName)
+        // - List names are dot separated: listName.itemName (or just itemName)
         public string name { 
             get {
                 return string.Join (".", path);
@@ -18,7 +18,7 @@ namespace Ink.Parsed
 
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
-        public bool isSetItemReference;
+        public bool isListItemReference;
 
         public Runtime.VariableReference runtimeVarRef { get { return _runtimeVarRef; } }
 
@@ -43,21 +43,21 @@ namespace Ink.Parsed
 
             _runtimeVarRef = new Runtime.VariableReference (name);
 
-            // Set item reference?
-            // Path might be to a set (setName.setItemName or just setItemName)
+            // List item reference?
+            // Path might be to a list (listName.listItemName or just listItemName)
             if (path.Count == 1 || path.Count == 2) {
-                string setItemName = null;
-                string setName = null;
+                string listItemName = null;
+                string listName = null;
 
-                if (path.Count == 1) setItemName = path [0];
+                if (path.Count == 1) listItemName = path [0];
                 else {
-                    setName = path [0];
-                    setItemName = path [1];
+                    listName = path [0];
+                    listItemName = path [1];
                 }
 
-                var setItem = story.ResolveListItem (setName, setItemName, this);
-                if (setItem) {
-                    isSetItemReference = true;
+                var listItem = story.ResolveListItem (listName, listItemName, this);
+                if (listItem) {
+                    isListItemReference = true;
                 }
             }
 
@@ -68,8 +68,8 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            // Work is already done if it's a constant or set item reference
-            if (isConstantReference || isSetItemReference) {
+            // Work is already done if it's a constant or list item reference
+            if (isConstantReference || isListItemReference) {
                 return;
             }
                 
@@ -99,11 +99,11 @@ namespace Ink.Parsed
             }
 
             // Couldn't find this multi-part path at all, whether as a divert
-            // target or as a set item reference.
+            // target or as a list item reference.
             if (path.Count > 1) {
                 var errorMsg = "Could not find target for read count: " + parsedPath;
                 if (path.Count <= 2)
-                    errorMsg += ", or couldn't find set item with the name " + string.Join (",", path);
+                    errorMsg += ", or couldn't find list item with the name " + string.Join (",", path);
                 Error (errorMsg);
                 return;
             }

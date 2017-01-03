@@ -21,23 +21,23 @@ namespace Ink.Parsed
                 foreach (var itemName in itemNameList) {
                     var nameParts = itemName.Split ('.');
 
-                    string setName = null;
-                    string setItemName = null;
+                    string listName = null;
+                    string listItemName = null;
                     if (nameParts.Length > 1) {
-                        setName = nameParts [0];
-                        setItemName = nameParts [1];
+                        listName = nameParts [0];
+                        listItemName = nameParts [1];
                     } else {
-                        setItemName = nameParts [0];
+                        listItemName = nameParts [0];
                     }
 
-                    var setItem = story.ResolveListItem (setName, setItemName, this);
-                    if (setItem == null) {
-                        if (setName == null)
-                            Error ("Could not find SET definition that contains item '" + itemName + "'");
+                    var listItem = story.ResolveListItem (listName, listItemName, this);
+                    if (listItem == null) {
+                        if (listName == null)
+                            Error ("Could not find list definition that contains item '" + itemName + "'");
                         else
-                            Error ("Could not find SET item " + itemName);
+                            Error ("Could not find list item " + itemName);
                     } else {
-                        runtimeRawList.Add (setItem.fullName, setItem.seriesValue);
+                        runtimeRawList.Add (listItem.fullName, listItem.seriesValue);
                     }
                 }
             }
