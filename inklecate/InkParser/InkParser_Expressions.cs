@@ -478,6 +478,8 @@ namespace Ink
             // (apples, oranges) + cabbages has (oranges, cabbages) == true
             RegisterBinaryOperator ("?", precedence: 3);
             RegisterBinaryOperator ("has", precedence: 3, requireWhitespace:true);
+            RegisterBinaryOperator ("!?", precedence: 3);
+            RegisterBinaryOperator ("hasnt", precedence: 3, requireWhitespace: true);
             RegisterBinaryOperator ("^", precedence: 3);
 
 			RegisterBinaryOperator ("+", precedence:4);

@@ -87,6 +87,9 @@ namespace Ink.Parsed
 
             if (opName == "has")
                 return "?";
+
+            if (opName == "hasnt")
+                return "!?";
             
             return opName;
         }

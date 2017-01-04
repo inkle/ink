@@ -29,6 +29,7 @@ namespace Ink.Runtime
         public const string Max      = "MAX";
 
         public const string Has      = "?";
+        public const string Hasnt    = "!?";
         public const string Invert   = "~";
         public const string Intersect = "^";
 
@@ -339,6 +340,7 @@ namespace Ink.Runtime
                 AddListBinaryOp (And, (x, y) => x.Union (y));
                 AddListBinaryOp (Subtract, (x, y) => x.Without(y));
                 AddListBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
+                AddListBinaryOp (Hasnt, (x, y) => x.Contains (y) ? (int)0 : (int)1);
                 AddListBinaryOp (Intersect, (x, y) => x.Intersect (y));
 
                 AddListBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
