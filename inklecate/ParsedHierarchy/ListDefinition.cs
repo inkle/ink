@@ -39,24 +39,14 @@ namespace Ink.Parsed
             this.elements = elements;
 
             int currentValue = 1;
-            bool hasDefinedInitialValue = false;
             foreach (var e in this.elements) {
-                if (e.explicitValue != null) {
+                if (e.explicitValue != null)
                     currentValue = e.explicitValue.Value;
-                }
 
                 e.seriesValue = currentValue;
 
-                if (e.inInitialList)
-                    hasDefinedInitialValue = true;
-
                 currentValue++;
             }
-
-            // If no particular element is assigned to the initial list,
-            // make it the first one.
-            if (!hasDefinedInitialValue)
-                elements [0].inInitialList = true;
 
             AddContent (elements);
         }
