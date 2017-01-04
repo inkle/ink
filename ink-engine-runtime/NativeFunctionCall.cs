@@ -173,11 +173,17 @@ namespace Ink.Runtime
             var intResult = (IntValue)Call<int> (coercedInts);
 
             RawListItem newItem;
-            var originList = listVal.value.originList;
-            if (originList != null && originList.TryGetItemWithValue (intResult.value, out newItem))
-                return new ListValue (newItem, intResult.value);
-            else
-                return new ListValue ();
+
+            // Since a list can have multiple origins, what we really want
+            // is the origin of the last item in the list, which will be
+            // the last origin in the set of origins.
+            var origin = listVal.value.originOfMaxItem;
+            if (origin != null) {
+                if (origin.TryGetItemWithValue (intResult.value, out newItem))
+                    return new ListValue (newItem, intResult.value);
+            } 
+                
+            return new ListValue ();
         }
 
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
@@ -214,10 +220,8 @@ namespace Ink.Runtime
                         parametersOut.Add (val);
                     } else if (val.valueType == ValueType.Int) {
                         int intVal = (int)val.valueObject;
-                        var list = specialCaseList.value.originList;
-                        if (list == null)
-                            throw new StoryException ("Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
-                        
+                        var list = specialCaseList.value.originOfMaxItem;
+
                         RawListItem item;
                         if (list.TryGetItemWithValue (intVal, out item)) {
                             var castedValue = new ListValue (item, intVal);

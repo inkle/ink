@@ -62,7 +62,7 @@ namespace Ink.Parsed
             }
 
             // Set origin name, so 
-            initialValues.originListName = name;
+            initialValues.SetInitialOriginName (name);
 
             return new Runtime.ListValue (initialValues);
         }

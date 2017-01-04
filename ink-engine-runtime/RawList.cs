@@ -58,7 +58,7 @@ namespace Ink.Runtime
     internal class RawList : Dictionary<RawListItem, int>
     {
         public RawList () { }
-        public RawList (RawList otherList) : base (otherList) { this.originListName = otherList.originListName; }
+        public RawList (RawList otherList) : base (otherList) { _originNames = otherList.originNames; }
         public RawList (KeyValuePair<RawListItem, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
@@ -68,43 +68,44 @@ namespace Ink.Runtime
         // necessary for certain operations (e.g. interacting with ints).
         // Only the story has access to the full set of lists, so that
         // the origin can be resolved from the originListName.
-        public ListDefinition originList;
+        public List<ListDefinition> origins;
+        public ListDefinition originOfMaxItem {
+            get {
+                if (origins == null) return null;
+
+                var maxOriginName = maxItem.Key.originName;
+                foreach (var origin in origins) {
+                    if (origin.name == maxOriginName)
+                        return origin;
+                }
+
+                return null;
+            }
+        }
 
         // Origin name needs to be serialised when content is empty,
         // assuming a name is availble, for list definitions with variable
         // that is currently empty.
-        public string originListName;
+        public List<string> originNames {
+            get {
+                if (this.Count > 0) {
+                    if (_originNames == null && this.Count > 0)
+                        _originNames = new List<string> ();
+                    else
+                        _originNames.Clear ();
 
-        // Runtime lists may reference items from different origin list definitions,
-        // so we only get a valid result here if items all come from the same source.
-        public bool CheckOriginNeedsUpdate() {
-
-            // Check whether we have a new origin name
-            string foundName = null;
-
-            foreach (var itemAndValue in this) {
-                var itemOriginName = itemAndValue.Key.originName;
-
-                // First name - take it as the assumed single origin name
-                if (foundName == null)
-                    foundName = itemOriginName;
-
-                // A different one than one we've already had? No longer
-                // single origin.
-                else if (foundName != itemOriginName) {
-                    foundName = null;
-                    break;
+                    foreach (var itemAndValue in this)
+                        _originNames.Add (itemAndValue.Key.originName);
                 }
+
+                return _originNames;
             }
+        }
+        List<string> _originNames;
 
-            if (foundName != null)
-                originListName = foundName;
-
-            // Do we have a name to update, or need to update for the first time?
-            if (originListName != null)
-                return originList == null || originListName != originList.name;
-
-            return false;
+        public void SetInitialOriginName (string initialOriginName)
+        {
+            _originNames = new List<string> { initialOriginName };
         }
 
         public KeyValuePair<RawListItem, int> maxItem {
@@ -132,11 +133,14 @@ namespace Ink.Runtime
         public RawList inverse {
             get {
                 var list = new RawList ();
-                if (originList != null) {
-                    foreach (var itemAndValue in originList.items) {
-                        if (!ContainsKey (itemAndValue.Key))
-                            list.Add (itemAndValue.Key, itemAndValue.Value);
+                if (origins != null) {
+                    foreach (var origin in origins) {
+                        foreach (var itemAndValue in origin.items) {
+                            if (!ContainsKey (itemAndValue.Key))
+                                list.Add (itemAndValue.Key, itemAndValue.Value);
+                        }
                     }
+
                 }
                 return list;
             }
@@ -145,9 +149,11 @@ namespace Ink.Runtime
         public RawList all {
             get {
                 var list = new RawList ();
-                if (originList != null) {
-                    foreach (var itemAndValue in originList.items)
-                        list.Add (itemAndValue.Key, itemAndValue.Value);
+                if (origins != null) {
+                    foreach (var origin in origins) {
+                        foreach (var itemAndValue in origin.items)
+                            list.Add (itemAndValue.Key, itemAndValue.Value);
+                    }
                 }
                 return list;
             }

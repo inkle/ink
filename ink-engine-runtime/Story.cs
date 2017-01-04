@@ -998,12 +998,16 @@ namespace Ink.Runtime
                             throw new StoryException ("Invalid max range bound passed to LIST_VALUE(): " + max);
 
                         // Extract the range of items from the origin list
-                        ListValue result = null;
-                        var originList = targetList.value.originList;
-                        if (originList == null) {
-                            result = new ListValue ();
-                        } else {
-                            result = originList.ListRange (minVal, maxVal);
+                        ListValue result = new ListValue ();
+                        var origins = targetList.value.origins;
+
+                        if (origins != null) {
+                            foreach(var origin in origins) {
+                                var rangeFromOrigin = origin.ListRange (minVal, maxVal);
+                                foreach (var kv in rangeFromOrigin.value) {
+                                    result.value [kv.Key] = kv.Value;
+                                }
+                            }
                         }
                             
                         state.PushEvaluationStack (result);
