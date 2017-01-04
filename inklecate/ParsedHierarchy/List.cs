@@ -37,7 +37,10 @@ namespace Ink.Parsed
                         else
                             Error ("Could not find list item " + itemName);
                     } else {
-                        runtimeRawList.Add (listItem.fullName, listItem.seriesValue);
+                        if (listName == null)
+                            listName = ((ListDefinition)listItem.parent).name;
+                        var item = new Runtime.RawListItem (listName, listItem.name);
+                        runtimeRawList.Add (item, listItem.seriesValue);
                     }
                 }
             }

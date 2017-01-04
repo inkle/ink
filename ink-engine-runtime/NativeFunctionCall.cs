@@ -172,14 +172,12 @@ namespace Ink.Runtime
                 };
             var intResult = (IntValue)Call<int> (coercedInts);
 
-            string newItemName;
+            RawListItem newItem;
             var originList = listVal.value.singleOriginList;
-            if (originList != null && originList.TryGetItemWithValue (intResult.value, out newItemName))
-                newItemName = originList.name + "." + newItemName;
+            if (originList != null && originList.TryGetItemWithValue (intResult.value, out newItem))
+                return new ListValue (newItem, intResult.value);
             else
-                newItemName = "UNKNOWN";
-            
-            return new ListValue (newItemName, intResult.value);
+                return new ListValue ();
         }
 
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
@@ -220,9 +218,9 @@ namespace Ink.Runtime
                         if (list == null)
                             throw new StoryException ("Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
                         
-                        string itemName;
-                        if (list.TryGetItemWithValue (intVal, out itemName)) {
-                            var castedValue = new ListValue (list.name + "." + itemName, intVal);
+                        RawListItem item;
+                        if (list.TryGetItemWithValue (intVal, out item)) {
+                            var castedValue = new ListValue (item, intVal);
                             parametersOut.Add (castedValue);
                         } else
                             throw new StoryException ("Could not find List item with the value " + intVal + " in " + list.name);

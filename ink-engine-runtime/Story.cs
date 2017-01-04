@@ -950,16 +950,16 @@ namespace Ink.Runtime
 
                     ListDefinition foundList;
                     if (lists.TryGetValue (listNameVal.value, out foundList)) {
-                        string foundItemName;
-                        if (foundList.TryGetItemWithValue (intVal.value, out foundItemName)) {
-                            generatedListValue = new ListValue (listNameVal.value + "." + foundItemName, intVal.value);
+                        RawListItem foundItem;
+                        if (foundList.TryGetItemWithValue (intVal.value, out foundItem)) {
+                            generatedListValue = new ListValue (foundItem, intVal.value);
                         }
                     } else {
                         throw new StoryException ("Failed to find LIST called " + listNameVal.value);
                     }
 
                     if (generatedListValue == null)
-                        generatedListValue = new ListValue ("UNKNOWN", 0);
+                        generatedListValue = new ListValue ();
 
                     state.PushEvaluationStack (generatedListValue);
                     break;

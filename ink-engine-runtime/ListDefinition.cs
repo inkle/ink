@@ -6,46 +6,56 @@ namespace Ink.Runtime
     {
         public string name { get { return _name; } }
 
-        public Dictionary<string, int> items {
+        public Dictionary<RawListItem, int> items {
             get {
+                if (_items == null) {
+                    _items = new Dictionary<RawListItem, int> ();
+                    foreach (var itemNameAndValue in _itemNameToValues) {
+                        var item = new RawListItem (name, itemNameAndValue.Key);
+                        _items [item] = itemNameAndValue.Value;
+                    }
+                }
                 return _items;
             }
         }
+        Dictionary<RawListItem, int> _items;
 
-        public int ValueForItem (string itemName)
+        public int ValueForItem (RawListItem item)
         {
             int intVal;
-            if (_items.TryGetValue (itemName, out intVal))
+            if (_itemNameToValues.TryGetValue (item.itemName, out intVal))
                 return intVal;
             else
                 return 0;
         }
 
-        public bool TryGetValueForItem (string itemName, out int val)
+        public bool ContainsItem (RawListItem item)
         {
-            return _items.TryGetValue (itemName, out val);
+            if (item.originName != name) return false;
+
+            return _itemNameToValues.ContainsKey (item.itemName);
         }
 
-        public bool TryGetItemWithValue (int val, out string itemName)
+        public bool TryGetItemWithValue (int val, out RawListItem item)
         {
-            itemName = null;
-
-            foreach (var namedItem in _items) {
+            foreach (var namedItem in _itemNameToValues) {
                 if (namedItem.Value == val) {
-                    itemName = namedItem.Key;
+                    item = new RawListItem (name, namedItem.Key);
                     return true;
                 }
             }
 
+            item = RawListItem.Null;
             return false;
         }
 
         public ListValue ListRange (int min, int max)
         {
             var rawList = new RawList ();
-            foreach (var namedItem in _items) {
-                if (namedItem.Value >= min && namedItem.Value <= max) {
-                    rawList [name + "." + namedItem.Key] = namedItem.Value;
+            foreach (var nameAndValue in _itemNameToValues) {
+                if (nameAndValue.Value >= min && nameAndValue.Value <= max) {
+                    var item = new RawListItem (name, nameAndValue.Key);
+                    rawList [item] = nameAndValue.Value;
                 }
             }
             return new ListValue(rawList);
@@ -54,10 +64,14 @@ namespace Ink.Runtime
         public ListDefinition (string name, Dictionary<string, int> items)
         {
             _name = name;
-            _items = items;
+            _itemNameToValues = items;
         }
 
         string _name;
-        Dictionary<string, int> _items;
+
+        // The main representation should be simple item names rather than a RawListItem,
+        // since we mainly want to access items based on their simple name, since that's
+        // how they'll be most commonly requested from ink.
+        Dictionary<string, int> _itemNameToValues;
     }
 }

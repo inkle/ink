@@ -56,8 +56,8 @@ namespace Ink.Runtime
                 return new StringValue ((string)val);
             } else if (val is Path) {
                 return new DivertTargetValue ((Path)val);
-            } else if (val is Dictionary<string, int>) {
-                return new ListValue ((Dictionary < string, int > )val);
+            } else if (val is RawList) {
+                return new ListValue ((RawList)val);
             }
 
             return null;
@@ -298,7 +298,7 @@ namespace Ink.Runtime
         {
             if (newType == ValueType.Int) {
                 var max = value.maxItem;
-                if( max.Key == null )
+                if( max.Key.isNull )
                     return new IntValue (0);
                 else
                     return new IntValue (max.Value);
@@ -306,7 +306,7 @@ namespace Ink.Runtime
 
             else if (newType == ValueType.Float) {
                 var max = value.maxItem;
-                if (max.Key == null)
+                if (max.Key.isNull)
                     return new FloatValue (0.0f);
                 else
                     return new FloatValue ((float)max.Value);
@@ -314,12 +314,10 @@ namespace Ink.Runtime
 
             else if (newType == ValueType.String) {
                 var max = value.maxItem;
-                if (max.Key == null)
+                if (max.Key.isNull)
                     return new StringValue ("");
                 else {
-                    var nameParts = max.Key.Split ('.');
-                    var name = nameParts [nameParts.Length - 1];
-                    return new StringValue (name);
+                    return new StringValue (max.Key.ToString());
                 }
             }
 
@@ -338,15 +336,10 @@ namespace Ink.Runtime
             value = new RawList (list);
         }
 
-        public ListValue (Dictionary<string, int> dict) : base (null)
-        {
-            value = new RawList (dict);
-        }
-
-        public ListValue (string singleItemName, int singleValue) : base (null)
+        public ListValue (RawListItem singleItem, int singleValue) : base (null)
         {
             value = new RawList {
-                {singleItemName, singleValue}
+                {singleItem, singleValue}
             };
         }
     }

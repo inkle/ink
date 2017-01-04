@@ -3,24 +3,65 @@ using System.Text;
 
 namespace Ink.Runtime
 {
-    // Confusingly from a C# point of view, a LIST in ink is actually
-    // modelled using a C# Dictionary!
-    internal class RawList : Dictionary<string, int>
+    internal struct RawListItem
     {
-        public RawList () { TEMP_DebugAssertNames (); }
-        public RawList (Dictionary<string, int> otherDict) : base (otherDict) { TEMP_DebugAssertNames (); }
-        public RawList (KeyValuePair<string, int> singleElement)
+        public readonly string originName;
+        public readonly string itemName;
+
+        public RawListItem (string originName, string itemName)
         {
-            Add (singleElement.Key, singleElement.Value);
-            TEMP_DebugAssertNames ();
+            this.originName = originName;
+            this.itemName = itemName;
         }
 
-        void TEMP_DebugAssertNames ()
-        {
-            foreach (var kv in this) {
-                if (!kv.Key.Contains (".") && kv.Key != "UNKNOWN")
-                    throw new System.Exception ("Not a full item name");
+        public static RawListItem Null {
+            get {
+                return new RawListItem (null, null);
             }
+        }
+
+        public bool isNull {
+            get {
+                return originName == null && itemName == null;
+            }
+        }
+
+        public override string ToString ()
+        {
+            return (originName ?? "?") + "." + itemName;
+        }
+
+        public override bool Equals (object obj)
+        {
+            if (obj is RawListItem) {
+                var otherItem = (RawListItem)obj;
+                return otherItem.itemName   == itemName 
+                    && otherItem.originName == originName;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode ()
+        {
+            int originCode = 0;
+            int itemCode = itemName.GetHashCode ();
+            if (originName != null)
+                originCode = originName.GetHashCode ();
+            
+            return originCode + itemCode;
+        }
+    }
+
+    // Confusingly from a C# point of view, a LIST in ink is actually
+    // modelled using a C# Dictionary!
+    internal class RawList : Dictionary<RawListItem, int>
+    {
+        public RawList () { }
+        public RawList (Dictionary<RawListItem, int> otherDict) : base (otherDict) { }
+        public RawList (KeyValuePair<RawListItem, int> singleElement)
+        {
+            Add (singleElement.Key, singleElement.Value);
         }
 
         // Story has to set this so that the value knows its origin,
@@ -32,41 +73,39 @@ namespace Ink.Runtime
             get {
                 string name = null;
 
-                foreach (var fullNamedItem in this) {
-                    var listName = fullNamedItem.Key.Split ('.') [0];
+                foreach (var itemAndValue in this) {
+                    var originName = itemAndValue.Key.originName;
 
                     // First name - take it as the assumed single origin name
                     if (name == null)
-                        name = listName;
+                        name = originName;
 
                     // A different one than one we've already had? No longer
                     // single origin.
-                    else if (name != listName)
+                    else if (name != originName)
                         return null;
                 }
-
-                if (name == "UNKNOWN") return null;
 
                 return name;
             }
         }
 
-        public KeyValuePair<string, int> maxItem {
+        public KeyValuePair<RawListItem, int> maxItem {
             get {
-                var max = new KeyValuePair<string, int> (null, 0);
+                KeyValuePair<RawListItem, int> max = new KeyValuePair<RawListItem, int>();
                 foreach (var kv in this) {
-                    if (max.Key == null || kv.Value > max.Value)
+                    if (max.Key.isNull || kv.Value > max.Value)
                         max = kv;
                 }
                 return max;
             }
         }
 
-        public KeyValuePair<string, int> minItem {
+        public KeyValuePair<RawListItem, int> minItem {
             get {
-                var min = new KeyValuePair<string, int> (null, 0);
+                var min = new KeyValuePair<RawListItem, int> ();
                 foreach (var kv in this) {
-                    if (min.Key == null || kv.Value < min.Value)
+                    if (min.Key.isNull || kv.Value < min.Value)
                         min = kv;
                 }
                 return min;
@@ -75,15 +114,14 @@ namespace Ink.Runtime
 
         public RawList inverse {
             get {
-                var rawList = new RawList ();
+                var list = new RawList ();
                 if (singleOriginList != null) {
-                    foreach (var nameValue in singleOriginList.items) {
-                        string fullName = singleOriginList.name + "." + nameValue.Key;
-                        if (!ContainsKey (fullName))
-                            rawList.Add (fullName, nameValue.Value);
+                    foreach (var itemAndValue in singleOriginList.items) {
+                        if (!ContainsKey (itemAndValue.Key))
+                            list.Add (itemAndValue.Key, itemAndValue.Value);
                     }
                 }
-                return rawList;
+                return list;
             }
         }
 
@@ -91,8 +129,8 @@ namespace Ink.Runtime
             get {
                 var list = new RawList ();
                 if (singleOriginList != null) {
-                    foreach (var kv in singleOriginList.items)
-                        list.Add (singleOriginList.name + "." + kv.Key, kv.Value);
+                    foreach (var itemAndValue in singleOriginList.items)
+                        list.Add (itemAndValue.Key, itemAndValue.Value);
                 }
                 return list;
             }
@@ -208,7 +246,7 @@ namespace Ink.Runtime
 
         public override string ToString ()
         {
-            var ordered = new List<KeyValuePair<string, int>> ();
+            var ordered = new List<KeyValuePair<RawListItem, int>> ();
             ordered.AddRange (this);
             ordered.Sort ((x, y) => x.Value.CompareTo (y.Value));
 
@@ -217,10 +255,8 @@ namespace Ink.Runtime
                 if (i > 0)
                     sb.Append (", ");
 
-                var fullItemPath = ordered [i].Key;
-                var nameParts = fullItemPath.Split ('.');
-                var itemName = nameParts [nameParts.Length - 1];
-                sb.Append (itemName);
+                var item = ordered [i].Key;
+                sb.Append (item.itemName);
             }
 
             return sb.ToString ();
