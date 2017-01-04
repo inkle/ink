@@ -58,36 +58,53 @@ namespace Ink.Runtime
     internal class RawList : Dictionary<RawListItem, int>
     {
         public RawList () { }
-        public RawList (Dictionary<RawListItem, int> otherDict) : base (otherDict) { }
+        public RawList (RawList otherList) : base (otherList) { this.originListName = otherList.originListName; }
         public RawList (KeyValuePair<RawListItem, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
         }
 
         // Story has to set this so that the value knows its origin,
-        // necessary for certain operations (e.g. interacting with ints)
-        public ListDefinition singleOriginList;
+        // necessary for certain operations (e.g. interacting with ints).
+        // Only the story has access to the full set of lists, so that
+        // the origin can be resolved from the originListName.
+        public ListDefinition originList;
 
-        // Runtime lists may reference items from different origin list definitions
-        public string singleOriginListName {
-            get {
-                string name = null;
+        // Origin name needs to be serialised when content is empty,
+        // assuming a name is availble, for list definitions with variable
+        // that is currently empty.
+        public string originListName;
 
-                foreach (var itemAndValue in this) {
-                    var originName = itemAndValue.Key.originName;
+        // Runtime lists may reference items from different origin list definitions,
+        // so we only get a valid result here if items all come from the same source.
+        public bool CheckOriginNeedsUpdate() {
 
-                    // First name - take it as the assumed single origin name
-                    if (name == null)
-                        name = originName;
+            // Check whether we have a new origin name
+            string foundName = null;
 
-                    // A different one than one we've already had? No longer
-                    // single origin.
-                    else if (name != originName)
-                        return null;
+            foreach (var itemAndValue in this) {
+                var itemOriginName = itemAndValue.Key.originName;
+
+                // First name - take it as the assumed single origin name
+                if (foundName == null)
+                    foundName = itemOriginName;
+
+                // A different one than one we've already had? No longer
+                // single origin.
+                else if (foundName != itemOriginName) {
+                    foundName = null;
+                    break;
                 }
-
-                return name;
             }
+
+            if (foundName != null)
+                originListName = foundName;
+
+            // Do we have a name to update, or need to update for the first time?
+            if (originListName != null)
+                return originList == null || originListName != originList.name;
+
+            return false;
         }
 
         public KeyValuePair<RawListItem, int> maxItem {
@@ -115,8 +132,8 @@ namespace Ink.Runtime
         public RawList inverse {
             get {
                 var list = new RawList ();
-                if (singleOriginList != null) {
-                    foreach (var itemAndValue in singleOriginList.items) {
+                if (originList != null) {
+                    foreach (var itemAndValue in originList.items) {
                         if (!ContainsKey (itemAndValue.Key))
                             list.Add (itemAndValue.Key, itemAndValue.Value);
                     }
@@ -128,8 +145,8 @@ namespace Ink.Runtime
         public RawList all {
             get {
                 var list = new RawList ();
-                if (singleOriginList != null) {
-                    foreach (var itemAndValue in singleOriginList.items)
+                if (originList != null) {
+                    foreach (var itemAndValue in originList.items)
                         list.Add (itemAndValue.Key, itemAndValue.Value);
                 }
                 return list;

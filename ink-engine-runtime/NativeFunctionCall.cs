@@ -173,7 +173,7 @@ namespace Ink.Runtime
             var intResult = (IntValue)Call<int> (coercedInts);
 
             RawListItem newItem;
-            var originList = listVal.value.singleOriginList;
+            var originList = listVal.value.originList;
             if (originList != null && originList.TryGetItemWithValue (intResult.value, out newItem))
                 return new ListValue (newItem, intResult.value);
             else
@@ -214,7 +214,7 @@ namespace Ink.Runtime
                         parametersOut.Add (val);
                     } else if (val.valueType == ValueType.Int) {
                         int intVal = (int)val.valueObject;
-                        var list = specialCaseList.value.singleOriginList;
+                        var list = specialCaseList.value.originList;
                         if (list == null)
                             throw new StoryException ("Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
                         

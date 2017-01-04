@@ -999,7 +999,7 @@ namespace Ink.Runtime
 
                         // Extract the range of items from the origin list
                         ListValue result = null;
-                        var originList = targetList.value.singleOriginList;
+                        var originList = targetList.value.originList;
                         if (originList == null) {
                             result = new ListValue ();
                         } else {
