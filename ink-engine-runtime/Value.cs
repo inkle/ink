@@ -282,57 +282,6 @@ namespace Ink.Runtime
             }
         }
 
-        // Story has to set this so that the value knows its origin,
-        // necessary for certain operations (e.g. interacting with ints)
-        public ListDefinition singleOriginList;
-
-        // Runtime lists may reference items from different origin list definitions
-        public string singleOriginListName {
-            get {
-                string name = null;
-
-                foreach (var fullNamedItem in value) {
-                    var listName = fullNamedItem.Key.Split ('.') [0];
-
-                    // First name - take it as the assumed single origin name
-                    if (name == null)
-                        name = listName;
-
-                    // A different one than one we've already had? No longer
-                    // single origin.
-                    else if (name != listName)
-                        return null;
-                }
-
-                if (name == "UNKNOWN") return null;
-
-                return name;
-            }
-        }
-
-        public ListValue inverse {
-            get {
-                if (singleOriginList == null) return null;
-                var rawList = new RawList ();
-                foreach (var nameValue in singleOriginList.items) {
-                    string fullName = singleOriginList.name + "." + nameValue.Key;
-                    if (!value.ContainsKey (fullName))
-                        rawList.Add (fullName, nameValue.Value);
-                }
-                return new ListValue (rawList);
-            }
-        }
-
-        public ListValue all {
-            get {
-                if (singleOriginList == null) return null;
-                var dict = new RawList ();
-                foreach (var kv in singleOriginList.items)
-                    dict.Add (singleOriginList.name + "." + kv.Key, kv.Value);
-                return new ListValue (dict);
-            }
-        }
-
         // Truthy if it contains any non-zero items
         public override bool isTruthy {
             get {
@@ -344,17 +293,11 @@ namespace Ink.Runtime
                 return false;
             }
         }
-
-        public KeyValuePair<string, int> maxItem {
-            get {
-                return value.maxItem;
-            }
-        }
                 
         public override Value Cast (ValueType newType)
         {
             if (newType == ValueType.Int) {
-                var max = maxItem;
+                var max = value.maxItem;
                 if( max.Key == null )
                     return new IntValue (0);
                 else
@@ -362,7 +305,7 @@ namespace Ink.Runtime
             }
 
             else if (newType == ValueType.Float) {
-                var max = maxItem;
+                var max = value.maxItem;
                 if (max.Key == null)
                     return new FloatValue (0.0f);
                 else
@@ -370,7 +313,7 @@ namespace Ink.Runtime
             }
 
             else if (newType == ValueType.String) {
-                var max = maxItem;
+                var max = value.maxItem;
                 if (max.Key == null)
                     return new StringValue ("");
                 else {
@@ -390,16 +333,14 @@ namespace Ink.Runtime
             value = new RawList ();
         }
 
-        public ListValue (RawList dict) : base (null)
+        public ListValue (RawList list) : base (null)
         {
-            value = new RawList (dict);
-            TEMP_DebugAssertNames ();
+            value = new RawList (list);
         }
 
         public ListValue (Dictionary<string, int> dict) : base (null)
         {
             value = new RawList (dict);
-            TEMP_DebugAssertNames ();
         }
 
         public ListValue (string singleItemName, int singleValue) : base (null)
@@ -407,35 +348,6 @@ namespace Ink.Runtime
             value = new RawList {
                 {singleItemName, singleValue}
             };
-            TEMP_DebugAssertNames ();
-        }
-
-        void TEMP_DebugAssertNames ()
-        {
-            foreach (var kv in value) {
-                if (!kv.Key.Contains (".") && kv.Key != "UNKNOWN")
-                    throw new System.Exception ("Not a full item name");
-            }
-        }
-
-        public override string ToString ()
-        {
-            var ordered = new List<KeyValuePair<string, int>> ();
-            ordered.AddRange (value);
-            ordered.Sort ((x, y) => x.Value.CompareTo (y.Value));
-
-            var sb = new System.Text.StringBuilder ();
-            for (int i = 0; i < ordered.Count; i++) {
-                if (i > 0)
-                    sb.Append (", ");
-
-                var fullItemPath = ordered [i].Key;
-                var nameParts = fullItemPath.Split ('.');
-                var itemName = nameParts [nameParts.Length - 1];
-                sb.Append (itemName);
-            }
-
-            return sb.ToString ();
         }
     }
         

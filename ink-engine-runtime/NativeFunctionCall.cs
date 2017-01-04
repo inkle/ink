@@ -103,16 +103,16 @@ namespace Ink.Runtime
 
                 if (name == Invert) {
                     var listValue = (ListValue)parameters [0];
-                    var inv = listValue.inverse;
+                    var inv = listValue.value.inverse;
                     if (inv == null) return new ListValue ("UNKNOWN", 0);
-                    return inv;
+                    return new ListValue(inv);
                 } 
 
                 else if (name == All) {
                     var listValue = (ListValue)parameters [0];
-                    var all = listValue.all;
+                    var all = listValue.value.all;
                     if (all == null) return new ListValue ("UNKNOWN", 0);
-                    return all;
+                    return new ListValue(all);
                 }
             }
 
@@ -186,13 +186,13 @@ namespace Ink.Runtime
             var intVal = (IntValue)listIntParams [1];
 
             var coercedInts = new List<Value> {
-                    new IntValue(listVal.maxItem.Value),
+                    new IntValue(listVal.value.maxItem.Value),
                     intVal
                 };
             var intResult = (IntValue)Call<int> (coercedInts);
 
             string newItemName;
-            var originList = listVal.singleOriginList;
+            var originList = listVal.value.singleOriginList;
             if (originList != null && originList.TryGetItemWithValue (intResult.value, out newItemName))
                 newItemName = originList.name + "." + newItemName;
             else
@@ -235,7 +235,7 @@ namespace Ink.Runtime
                         parametersOut.Add (val);
                     } else if (val.valueType == ValueType.Int) {
                         int intVal = (int)val.valueObject;
-                        var list = specialCaseList.singleOriginList;
+                        var list = specialCaseList.value.singleOriginList;
                         if (list == null)
                             throw new StoryException ("Cannot mix List and Int values here because the existing List appears to contain items from a mixture of different List definitions. How do we know which List is the Int referring to?");
                         

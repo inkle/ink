@@ -978,7 +978,7 @@ namespace Ink.Runtime
                         Func<Runtime.Object, int> IntBound = (obj) => {
                             var listValue = obj as ListValue;
                             if (listValue) {
-                                return (int)listValue.maxItem.Value;
+                                return (int)listValue.value.maxItem.Value;
                             }
 
                             var intValue = obj as IntValue;
@@ -999,7 +999,7 @@ namespace Ink.Runtime
 
                         // Extract the range of items from the origin list
                         ListValue result = null;
-                        var originList = targetList.singleOriginList;
+                        var originList = targetList.value.singleOriginList;
                         if (originList == null) {
                             result = new ListValue ();
                         } else {

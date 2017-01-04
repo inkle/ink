@@ -720,11 +720,11 @@ namespace Ink.Runtime
             // with the integer values etc.
             var listValue = obj as ListValue;
             if (listValue) {
-                var singleOriginName = listValue.singleOriginListName;
+                var singleOriginName = listValue.value.singleOriginListName;
                 if (singleOriginName != null)
-                    listValue.singleOriginList = story.lists [singleOriginName];
+                    listValue.value.singleOriginList = story.lists [singleOriginName];
                 else
-                    listValue.singleOriginList = null;
+                    listValue.value.singleOriginList = null;
             }
 
             evaluationStack.Add(obj);

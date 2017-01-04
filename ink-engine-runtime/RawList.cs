@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Ink.Runtime
 {
@@ -6,11 +7,48 @@ namespace Ink.Runtime
     // modelled using a C# Dictionary!
     internal class RawList : Dictionary<string, int>
     {
-        public RawList () { }
-        public RawList (Dictionary<string, int> otherDict) : base (otherDict) { }
+        public RawList () { TEMP_DebugAssertNames (); }
+        public RawList (Dictionary<string, int> otherDict) : base (otherDict) { TEMP_DebugAssertNames (); }
         public RawList (KeyValuePair<string, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
+            TEMP_DebugAssertNames ();
+        }
+
+        void TEMP_DebugAssertNames ()
+        {
+            foreach (var kv in this) {
+                if (!kv.Key.Contains (".") && kv.Key != "UNKNOWN")
+                    throw new System.Exception ("Not a full item name");
+            }
+        }
+
+        // Story has to set this so that the value knows its origin,
+        // necessary for certain operations (e.g. interacting with ints)
+        public ListDefinition singleOriginList;
+
+        // Runtime lists may reference items from different origin list definitions
+        public string singleOriginListName {
+            get {
+                string name = null;
+
+                foreach (var fullNamedItem in this) {
+                    var listName = fullNamedItem.Key.Split ('.') [0];
+
+                    // First name - take it as the assumed single origin name
+                    if (name == null)
+                        name = listName;
+
+                    // A different one than one we've already had? No longer
+                    // single origin.
+                    else if (name != listName)
+                        return null;
+                }
+
+                if (name == "UNKNOWN") return null;
+
+                return name;
+            }
         }
 
         public KeyValuePair<string, int> maxItem {
@@ -32,6 +70,29 @@ namespace Ink.Runtime
                         min = kv;
                 }
                 return min;
+            }
+        }
+
+        public RawList inverse {
+            get {
+                if (singleOriginList == null) return null;
+                var rawList = new RawList ();
+                foreach (var nameValue in singleOriginList.items) {
+                    string fullName = singleOriginList.name + "." + nameValue.Key;
+                    if (!ContainsKey (fullName))
+                        rawList.Add (fullName, nameValue.Value);
+                }
+                return rawList;
+            }
+        }
+
+        public RawList all {
+            get {
+                if (singleOriginList == null) return null;
+                var dict = new RawList ();
+                foreach (var kv in singleOriginList.items)
+                    dict.Add (singleOriginList.name + "." + kv.Key, kv.Value);
+                return new RawList (dict);
             }
         }
 
@@ -141,6 +202,26 @@ namespace Ink.Runtime
             foreach (var kv in this)
                 ownHash += kv.Key.GetHashCode ();
             return ownHash;
+        }
+
+        public override string ToString ()
+        {
+            var ordered = new List<KeyValuePair<string, int>> ();
+            ordered.AddRange (this);
+            ordered.Sort ((x, y) => x.Value.CompareTo (y.Value));
+
+            var sb = new StringBuilder ();
+            for (int i = 0; i < ordered.Count; i++) {
+                if (i > 0)
+                    sb.Append (", ");
+
+                var fullItemPath = ordered [i].Key;
+                var nameParts = fullItemPath.Split ('.');
+                var itemName = nameParts [nameParts.Length - 1];
+                sb.Append (itemName);
+            }
+
+            return sb.ToString ();
         }
     }
 }
