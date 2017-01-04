@@ -96,25 +96,6 @@ namespace Ink.Runtime
             //  - List-Int operation returns a List (e.g. "alpha" + 1 = "beta")
             if (parameters.Count == 2 && parameters [0] is ListValue && parameters [1] is IntValue)
                 return CallListIntOperation (parameters);
-            
-            // Special cases, where the functions require knowledge of the origin
-            // list definition, not just the raw list
-            if (parameters.Count == 1 && parameters [0] is ListValue) {
-
-                if (name == Invert) {
-                    var listValue = (ListValue)parameters [0];
-                    var inv = listValue.value.inverse;
-                    if (inv == null) return new ListValue ("UNKNOWN", 0);
-                    return new ListValue(inv);
-                } 
-
-                else if (name == All) {
-                    var listValue = (ListValue)parameters [0];
-                    var all = listValue.value.all;
-                    if (all == null) return new ListValue ("UNKNOWN", 0);
-                    return new ListValue(all);
-                }
-            }
 
             var coercedParams = CoerceValuesToSingleType (parameters);
             ValueType coercedType = coercedParams[0].valueType;
@@ -354,9 +335,8 @@ namespace Ink.Runtime
 
                 // Placeholders to ensure that these special case functions can exist,
                 // since these function is never actually run, and is special cased in Call
-                AddListUnaryOp (Invert, null);
-                AddListUnaryOp (All, null);
-
+                AddListUnaryOp (Invert, x => x.inverse);
+                AddListUnaryOp (All, x => x.all);
                 AddListUnaryOp (ListMin, (x) => x.MinAsList());
                 AddListUnaryOp (ListMax, (x) => x.MaxAsList());
                 AddListUnaryOp (Count,  (x) => x.Count);

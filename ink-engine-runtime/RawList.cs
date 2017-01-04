@@ -75,12 +75,13 @@ namespace Ink.Runtime
 
         public RawList inverse {
             get {
-                if (singleOriginList == null) return null;
                 var rawList = new RawList ();
-                foreach (var nameValue in singleOriginList.items) {
-                    string fullName = singleOriginList.name + "." + nameValue.Key;
-                    if (!ContainsKey (fullName))
-                        rawList.Add (fullName, nameValue.Value);
+                if (singleOriginList != null) {
+                    foreach (var nameValue in singleOriginList.items) {
+                        string fullName = singleOriginList.name + "." + nameValue.Key;
+                        if (!ContainsKey (fullName))
+                            rawList.Add (fullName, nameValue.Value);
+                    }
                 }
                 return rawList;
             }
@@ -88,11 +89,12 @@ namespace Ink.Runtime
 
         public RawList all {
             get {
-                if (singleOriginList == null) return null;
-                var dict = new RawList ();
-                foreach (var kv in singleOriginList.items)
-                    dict.Add (singleOriginList.name + "." + kv.Key, kv.Value);
-                return new RawList (dict);
+                var list = new RawList ();
+                if (singleOriginList != null) {
+                    foreach (var kv in singleOriginList.items)
+                        list.Add (singleOriginList.name + "." + kv.Key, kv.Value);
+                }
+                return list;
             }
         }
 
