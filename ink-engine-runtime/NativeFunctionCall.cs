@@ -166,24 +166,39 @@ namespace Ink.Runtime
             var listVal = (ListValue)listIntParams [0];
             var intVal = (IntValue)listIntParams [1];
 
-            var coercedInts = new List<Value> {
-                    new IntValue(listVal.value.maxItem.Value),
-                    intVal
-                };
-            var intResult = (IntValue)Call<int> (coercedInts);
 
-            RawListItem newItem;
+            var resultRawList = new RawList ();
 
-            // Since a list can have multiple origins, what we really want
-            // is the origin of the last item in the list, which will be
-            // the last origin in the set of origins.
-            var origin = listVal.value.originOfMaxItem;
-            if (origin != null) {
-                if (origin.TryGetItemWithValue (intResult.value, out newItem))
-                    return new ListValue (newItem, intResult.value);
-            } 
-                
-            return new ListValue ();
+            foreach (var listItemWithValue in listVal.value) {
+                var listItem = listItemWithValue.Key;
+                var listItemValue = listItemWithValue.Value;
+
+                // Find the specific int operation to apply to all memebers
+                // of the list. Currently this makes most sense for + and -
+                // but in fact, other operations are possible.
+                // e.g. list items with the values (1,2) * 2 becomes (2, 4)
+                // i.e. (a, b) * 2 becomes (b, d). Madness!
+                var intOp = (BinaryOp<int>)_operationFuncs [ValueType.Int];
+
+                // Return value unknown until it's evaluated
+                int targetInt = (int) intOp (listItemValue, intVal.value);
+
+                // Find this item's origin (linear search should be ok, should be short haha)
+                ListDefinition itemOrigin = null;
+                foreach (var origin in listVal.value.origins) {
+                    if (origin.name == listItem.originName) {
+                        itemOrigin = origin;
+                        break;
+                    }
+                }
+                if (itemOrigin != null) {
+                    RawListItem incrementedItem;
+                    if (itemOrigin.TryGetItemWithValue (targetInt, out incrementedItem))
+                        resultRawList.Add (incrementedItem, targetInt);
+                }
+            }
+
+            return new ListValue (resultRawList);
         }
 
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
