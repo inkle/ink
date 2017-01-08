@@ -85,9 +85,9 @@ namespace Ink.Runtime
         /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
 
-        internal Dictionary<string, ListDefinition> lists {
+        internal ListDefinitionsOrigin listDefinitions {
             get {
-                return _lists;
+                return _listDefinitions;
             }
         }
 
@@ -110,12 +110,8 @@ namespace Ink.Runtime
 		{
 			_mainContentContainer = contentContainer;
 
-            if (lists != null) {
-                _lists = new Dictionary<string, ListDefinition> ();
-                foreach (var list in lists) {
-                    _lists [list.name] = list;
-                }
-            }
+            if (lists != null)
+                _listDefinitions = new ListDefinitionsOrigin (lists);
 
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
@@ -948,10 +944,10 @@ namespace Ink.Runtime
 
                     ListValue generatedListValue = null;
 
-                    ListDefinition foundList;
-                    if (lists.TryGetValue (listNameVal.value, out foundList)) {
+                    ListDefinition foundListDef;
+                    if (listDefinitions.TryGetDefinition (listNameVal.value, out foundListDef)) {
                         RawListItem foundItem;
-                        if (foundList.TryGetItemWithValue (intVal.value, out foundItem)) {
+                        if (foundListDef.TryGetItemWithValue (intVal.value, out foundItem)) {
                             generatedListValue = new ListValue (foundItem, intVal.value);
                         }
                     } else {
@@ -2014,7 +2010,7 @@ namespace Ink.Runtime
         }
 
         Container _mainContentContainer;
-        Dictionary<string, Runtime.ListDefinition> _lists;
+        ListDefinitionsOrigin _listDefinitions;
 
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;

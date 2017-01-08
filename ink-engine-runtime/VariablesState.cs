@@ -88,11 +88,11 @@ namespace Ink.Runtime
 			return _globalVariables.Keys.GetEnumerator();
 		}
 
-        internal VariablesState (CallStack callStack, Dictionary<string, ListDefinition> lists)
+        internal VariablesState (CallStack callStack, ListDefinitionsOrigin listDefsOrigin)
         {
             _globalVariables = new Dictionary<string, Object> ();
             _callStack = callStack;
-            _lists = lists;
+            _listDefsOrigin = listDefsOrigin;
         }
 
         internal void CopyFrom (VariablesState toCopy)
@@ -150,7 +150,7 @@ namespace Ink.Runtime
                 if ( _globalVariables.TryGetValue (name, out varValue) )
                     return varValue;
 
-                var listItemValue = GetListItemValueWithName (name);
+                var listItemValue = _listDefsOrigin.FindSingleItemListWithName (name);
                 if (listItemValue)
                     return listItemValue;
             } 
@@ -162,37 +162,6 @@ namespace Ink.Runtime
                 throw new System.Exception ("RUNTIME ERROR: Variable '"+name+"' could not be found in context '"+contextIndex+"'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
 
             return varValue;
-        }
-
-
-        ListValue GetListItemValueWithName (string name)
-        {
-            RawListItem item = RawListItem.Null;
-            ListDefinition list = null;
-
-            // Name could be in the form itemName or listName.itemName
-            var nameParts = name.Split ('.');
-            if (nameParts.Length == 2) {
-                item = new RawListItem (nameParts [0], nameParts [1]);
-                _lists.TryGetValue (item.originName, out list);
-            } else {
-                foreach (var namedList in _lists) {
-                    var listWithItem = namedList.Value;
-                    item = new RawListItem (namedList.Key, name);
-                    if (listWithItem.ContainsItem(item)) {
-                        list = listWithItem;
-                        break;
-                    }
-                }
-            }
-
-            // Manager to get the list that contains the given item?
-            if (list != null) {
-                int itemValue = list.ValueForItem (item);
-                return new ListValue (item, itemValue);
-            }
-
-            return null;
         }
 
         internal Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
@@ -307,7 +276,7 @@ namespace Ink.Runtime
         // Used for accessing temporary variables
         CallStack _callStack;
         HashSet<string> _changedVariables;
-        Dictionary<string, ListDefinition> _lists;
+        ListDefinitionsOrigin _listDefsOrigin;
     }
 }
 

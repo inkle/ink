@@ -208,7 +208,7 @@ namespace Ink.Runtime
             evaluationStack = new List<Runtime.Object> ();
 
             callStack = new CallStack (story.rootContentContainer);
-            variablesState = new VariablesState (callStack, story.lists);
+            variablesState = new VariablesState (callStack, story.listDefinitions);
 
             visitCounts = new Dictionary<string, int> ();
             turnIndices = new Dictionary<string, int> ();
@@ -251,7 +251,7 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack, story.lists);
+            copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
@@ -726,8 +726,12 @@ namespace Ink.Runtime
                 var names = rawList.originNames;
                 if (names != null) {
                     var origins = new List<ListDefinition> ();
-                    foreach (var n in names) 
-                        origins.Add (story.lists [n]);
+                    foreach (var n in names) {
+                        ListDefinition def = null;
+                        story.listDefinitions.TryGetDefinition (n, out def);
+                        origins.Add (def);
+                    }
+                        
                     rawList.origins = origins;
                 }
             }
