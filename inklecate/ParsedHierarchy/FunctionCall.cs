@@ -123,11 +123,22 @@ namespace Ink.Parsed
                 content.Remove (_proxyDivert);
             } 
             else if (foundList != null) {
-                if (arguments.Count != 1)
-                    Error ("Can currently only construct a list from one integer");
-                container.AddContent (new Runtime.StringValue (name));
-                arguments [0].GenerateIntoContainer (container);
-                container.AddContent (Runtime.ControlCommand.ListFromInt ());
+                if (arguments.Count > 1)
+                    Error ("Can currently only construct a list from one integer (or an empty list from a given list definition)");
+
+                // List item from given int
+                if (arguments.Count == 1) {
+                    container.AddContent (new Runtime.StringValue (name));
+                    arguments [0].GenerateIntoContainer (container);
+                    container.AddContent (Runtime.ControlCommand.ListFromInt ());
+                } 
+
+                // Empty list with given origin.
+                else {
+                    var list = new Runtime.RawList ();
+                    list.SetInitialOriginName (name);
+                    container.AddContent (new Runtime.ListValue (list));
+                }
 
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
