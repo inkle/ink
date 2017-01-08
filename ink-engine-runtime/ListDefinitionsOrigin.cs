@@ -4,6 +4,16 @@ namespace Ink.Runtime
 {
     internal class ListDefinitionsOrigin
     {
+        public List<Runtime.ListDefinition> lists {
+            get {
+                var listOfLists = new List<Runtime.ListDefinition> ();
+                foreach (var namedList in _lists) {
+                    listOfLists.Add (namedList.Value);
+                }
+                return listOfLists;
+            }
+        }
+
         public ListDefinitionsOrigin (List<Runtime.ListDefinition> lists)
         {
             _lists = new Dictionary<string, ListDefinition> ();

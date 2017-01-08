@@ -139,7 +139,11 @@ namespace Ink.Runtime
             var rootToken = rootObject ["root"];
             if (rootToken == null)
                 throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
-            
+
+            object listDefsObj;
+            if (rootObject.TryGetValue ("listDefs", out listDefsObj)) {
+                _listDefinitions = Json.JTokenToListDefinitions (listDefsObj);
+            }
 
             _mainContentContainer = Json.JTokenToRuntimeObject (rootToken) as Container;
 
@@ -156,6 +160,9 @@ namespace Ink.Runtime
             var rootObject = new Dictionary<string, object> ();
             rootObject ["inkVersion"] = inkVersionCurrent;
             rootObject ["root"] = rootContainerJsonList;
+
+            if (_listDefinitions != null)
+                rootObject ["listDefs"] = Json.ListDefinitionsToJToken (_listDefinitions);
 
             return SimpleJson.DictionaryToText (rootObject);
         }

@@ -14,6 +14,13 @@ namespace Ink.Runtime
             this.itemName = itemName;
         }
 
+        public RawListItem (string fullName)
+        {
+            var nameParts = fullName.Split ('.');
+            this.originName = nameParts [0];
+            this.itemName = nameParts [1];
+        }
+
         public static RawListItem Null {
             get {
                 return new RawListItem (null, null);
@@ -26,9 +33,15 @@ namespace Ink.Runtime
             }
         }
 
+        public string fullName {
+            get {
+                return (originName ?? "?") + "." + itemName;
+            }
+        }
+
         public override string ToString ()
         {
-            return (originName ?? "?") + "." + itemName;
+            return fullName;
         }
 
         public override bool Equals (object obj)
@@ -108,6 +121,11 @@ namespace Ink.Runtime
             _originNames = new List<string> { initialOriginName };
         }
 
+        public void SetInitialOriginNames (List<string> initialOriginNames)
+        {
+            _originNames = new List<string>(initialOriginNames);
+        }
+
         public KeyValuePair<RawListItem, int> maxItem {
             get {
                 KeyValuePair<RawListItem, int> max = new KeyValuePair<RawListItem, int>();
@@ -152,7 +170,7 @@ namespace Ink.Runtime
                 if (origins != null) {
                     foreach (var origin in origins) {
                         foreach (var itemAndValue in origin.items)
-                            list.Add (itemAndValue.Key, itemAndValue.Value);
+                            list[itemAndValue.Key] = itemAndValue.Value;
                     }
                 }
                 return list;
