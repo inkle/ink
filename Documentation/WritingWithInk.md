@@ -173,7 +173,11 @@ The start of a knot is a header; the content that follows will be inside that kn
 
 #### Advanced: a knottier "hello world"
 
-Note that the game will automatically run the first knot it finds in a story if there is no "non-knot" content, so the simplest script is now:
+When you start an ink file, content outside of knots will be run automatically. But knots won't. So if you start using knots to hold your content, you'll need to tell the game where to go. We do this with a divert arrow `->`, which is covered properly in the next section.
+ 
+The simplest knotty script is:
+
+	-> top_knot
 	
 	=== top_knot ===
 	Hello world!
