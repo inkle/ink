@@ -158,6 +158,9 @@ namespace Ink.Runtime
                 }
 
                 // Native functions
+                // "^" conflicts with the way to identify strings, so now
+                // we know it's not a string, we can convert back to the proper
+                // symbol for the operator.
                 if (str == "L^") str = "^";
                 if( NativeFunctionCall.CallExistsWithName(str) )
                     return NativeFunctionCall.CallWithName (str);
