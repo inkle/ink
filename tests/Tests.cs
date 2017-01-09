@@ -2281,7 +2281,7 @@ this is the end
 -> DONE
 
 === function f(ref x)
-~temp local
+~temp local = 0
 ~x=x
 {setTo3(local)}
 
