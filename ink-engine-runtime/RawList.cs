@@ -154,7 +154,7 @@ namespace Ink.Runtime
                 if (origins != null) {
                     foreach (var origin in origins) {
                         foreach (var itemAndValue in origin.items) {
-                            if (!ContainsKey (itemAndValue.Key))
+                            if (!this.ContainsKey (itemAndValue.Key))
                                 list.Add (itemAndValue.Key, itemAndValue.Value);
                         }
                     }

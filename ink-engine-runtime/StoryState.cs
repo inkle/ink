@@ -729,7 +729,8 @@ namespace Ink.Runtime
                     foreach (var n in names) {
                         ListDefinition def = null;
                         story.listDefinitions.TryGetDefinition (n, out def);
-                        origins.Add (def);
+                        if( !origins.Contains(def) )
+                            origins.Add (def);
                     }
                         
                     rawList.origins = origins;

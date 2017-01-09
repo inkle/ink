@@ -2515,6 +2515,7 @@ CONST z = -> elsewhere
             Assert.IsTrue (HadError ("'z' has been redefined"));
         }
 
+        [Test ()]
         public void TestTags ()
         {
             var storyStr =
@@ -2552,10 +2553,10 @@ Stitch content
             stitchTags.Add ("stitch tag");
 
             Assert.AreEqual (globalTags, story.globalTags);
-            Assert.AreEqual("This is the content\n", story.Continue ());
+            Assert.AreEqual ("This is the content\n", story.Continue ());
             Assert.AreEqual (globalTags, story.currentTags);
 
-            Assert.AreEqual (knotTags, story.TagsForContentAtPath("knot"));
+            Assert.AreEqual (knotTags, story.TagsForContentAtPath ("knot"));
             Assert.AreEqual (stitchTags, story.TagsForContentAtPath ("knot.stitch"));
 
             story.ChoosePathString ("knot");
@@ -2565,6 +2566,7 @@ Stitch content
             Assert.AreEqual (knotTagWhenContinuedTwice, story.currentTags);
         }
 
+        [Test ()]
         public void TestTunnelOnwardsDivertOverride ()
         {
             var storyStr =
@@ -2583,6 +2585,78 @@ Now in B.
             var story = CompileString (storyStr);
 
             Assert.AreEqual ("This is A\nNow in B.\n", story.ContinueMaximally());
+        }
+
+        [Test ()]
+        public void TestListBasicOperations ()
+        {
+            var storyStr =
+                @"
+LIST list = a, (b), c, (d), e
+{list}
+{(a, c) and (b, e)}
+{(a, b, c) ^ (c, b, e)}
+{list ? (b, d, e)}
+{list ? (d, b)}
+{list !? (c)}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestListMixedItems ()
+        {
+            var storyStr =
+                @"
+LIST list = (a), b, (c), d, e
+LIST list2 = x, (y), z
+{list && list2}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, y, c\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestMoreListOperations ()
+        {
+            var storyStr =
+                @"
+LIST list = l, m = 5, n
+{LIST_VALUE(l)}
+
+{list(1)}
+
+~ temp t = list()
+~ t += n
+{t}
+~ t = LIST_ALL(t)
+~ t -= n
+{t}
+~ t = ~t
+{t}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("1\nl\nn\nl, m\nn\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestEmptyListOrigin ()
+        {
+            var storyStr =
+                @"
+LIST list = a, b
+{LIST_ALL(list)}
+
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, b\n", story.ContinueMaximally ());
         }
 
         // Helper compile function
