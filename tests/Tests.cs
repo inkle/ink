@@ -2659,6 +2659,39 @@ LIST list = a, b
             Assert.AreEqual ("a, b\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestListSaveLoad ()
+        {
+            var storyStr =
+                @"
+LIST l1 = (a), b, (c)
+LIST l2 = (x), y, z
+
+VAR t = ()
+~ t = l1 and l2
+{t}
+
+== elsewhere ==
+~ t += z
+{t}
+-> END
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, x, c\n", story.ContinueMaximally ());
+
+            var savedState = story.state.ToJson ();
+
+            // Compile new version of the story
+            story = CompileString (storyStr);
+
+            // Load saved game
+            story.state.LoadJson (savedState);
+
+            story.ChoosePathString ("elsewhere");
+            Assert.AreEqual ("a, x, c, z\n", story.ContinueMaximally ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

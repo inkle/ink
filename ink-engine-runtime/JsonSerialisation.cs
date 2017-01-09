@@ -590,7 +590,7 @@ namespace Ink.Runtime
 
             dict ["list"] = content;
 
-            if (rawList.Count == 0 && rawList.originNames.Count > 0) {
+            if (rawList.Count == 0 && rawList.originNames != null && rawList.originNames.Count > 0) {
                 dict ["origins"] = rawList.originNames.Cast<object> ().ToList ();
             }
 
