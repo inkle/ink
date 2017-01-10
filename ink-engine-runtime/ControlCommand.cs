@@ -42,7 +42,7 @@ namespace Ink.Runtime
         // Require default constructor for serialisation
         public ControlCommand() : this(CommandType.NotSet) {}
 
-        public override Object Copy()
+        internal override Object Copy()
         {
             return new ControlCommand (commandType);
         }

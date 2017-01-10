@@ -763,7 +763,14 @@ namespace Ink.Runtime
             return popped;
         }
 
-
+        /// <summary>
+        /// Ends the current ink flow, unwrapping the callstack but without
+        /// affecting any variables. Useful if the ink is (say) in the middle
+        /// a nested tunnel, and you want it to reset so that you can divert
+        /// elsewhere using ChoosePathString(). Otherwise, after finishing
+        /// the content you diverted to, it would continue where it left off.
+        /// Calling this is equivalent to calling -> END in ink.
+        /// </summary>
         public void ForceEnd()
         {
             while (callStack.canPopThread)

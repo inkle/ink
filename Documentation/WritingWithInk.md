@@ -173,7 +173,11 @@ The start of a knot is a header; the content that follows will be inside that kn
 
 #### Advanced: a knottier "hello world"
 
-Note that the game will automatically run the first knot it finds in a story if there is no "non-knot" content, so the simplest script is now:
+When you start an ink file, content outside of knots will be run automatically. But knots won't. So if you start using knots to hold your content, you'll need to tell the game where to go. We do this with a divert arrow `->`, which is covered properly in the next section.
+	
+The simplest knotty script is:
+
+	-> top_knot
 	
 	=== top_knot ===
 	Hello world!
@@ -1543,9 +1547,7 @@ produces:
 
 #### Example: turning numbers into words
 
-The following example is long, but appears in pretty much every inkle game to date:
-
-TODO: Explain the hyphen? (And fix glue so this actually works...!)
+The following example is long, but appears in pretty much every inkle game to date. (Recall that a hyphenated line inside multiline curly braces indicates either "a condition to test" or, if the curly brace began with a variable, "a value to compare against".)
 
     === function print_num(x) ===
     { 
@@ -1799,8 +1801,6 @@ Tunnels are on a call-stack, so can safely recurse.
 
 ## 2) Threads
 
-TODO: Review this section to ensure examples are sensible!
-
 So far, everything in ink has been entirely linear, despite all the branching and diverting. But it's actually possible for a writer to 'fork' a story into different sub-sections, to cover more possible player actions. 
 
 We call this 'threading', though it's not really threading in the sense that computer scientists mean it: it's more like stitching in new content from various places.
@@ -1899,7 +1899,8 @@ But for games with lots of independent moving parts, threads quickly become esse
 	
 	
 Note in particular, that we need an explicit way to return the player who has gone down a side-thread to return to the main flow. In most cases, threads will either need a parameter telling them where to return to, or they'll need to end the current story section.
-	
+
+
 ### When does a side-thread end?
 
 Side-threads end when they run out of flow to process: and note, they collect up options to display later (unlike tunnels, which collect options, display them and follow them until they hit an explicit return, possibly several moves later).
@@ -1917,7 +1918,6 @@ Note that we don't need a `-> DONE` if the flow ends with options that fail thei
 **You do not need a `-> DONE` in a thread after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
 
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
-
 
 # Part 5: Advanced State Tracking
 
@@ -3002,8 +3002,76 @@ Example:
 		You plug the phone into charge.
 	*	{ PhoneState ? (on, charged) } [ Call my mother ]
 		
+	
+#### Example: adding the same choice to several places 
+
+Threads can be used to add the same choice into lots of different places. When using them this way, it's normal to pass a divert as a parameter, to tell the story where to go after the choice is done. 
+
+	=== outside_the_house
+	The front step. The house smells. Of murder. And lavender.
+	- (top)
+		<- review_case_notes(-> top) 
+		*	[Go through the front door] 
+			I stepped inside the house.
+			-> the_hallway
+		* 	[Sniff the air]
+			I hate lavender. It makes me think of soap, and soap makes me think about my marriage. 
+			-> top
+
+	=== the_hallway
+	The hallway. Front door open to the street. Little bureau.
+	- (top)
+		<- review_case_notes(-> top) 
+		*	[Go through the front door] 
+			I stepped out into the cool sunshine. 
+			-> outside_the_house
+		* 	[Open the bureau] 
+			Keys. More keys. Even more keys. How many locks do these people need?
+			-> top
+
+	=== review_case_notes(-> go_back_to) 
+	+	{not done || TURNS_SINCE(-> done) > 10} 
+		[Review my case notes] 
+		// the conditional ensures you don't get the option to check repeatedly
+	 	{I|Once again, I} flicked through the notes I'd made so far. Still not obvious suspects.
+	- 	(done) -> go_back_to
+
+Note this is different than a tunnel, which runs the same block of content but doesn't give a player a choice. So a layout like:
+
+	<- childhood_memories(-> next) 
+	*	[Look out of the window] 
+	 	I daydreamed as we rolled along... 
+	 - (next) Then the whistle blew...
+
+might do exactly the same thing as:
+	
+	*	[Remember my childhood] 
+		-> think_back -> 
+	*	[Look out of the window] 
+		I daydreamed as we rolled along...
+	- 	(next) Then the whistle blew... 	
+
+but as soon as the option being threaded in includes multiple choices, or conditional logic on choices (or any text content, of course!), the thread version becomes more practical. 
 
 
+#### Example: organisation of wide choice points 
+
+A game which uses ink as a script rather than a literal output might often generate very large numbers of parallel choices, intended to be filtered by the player via some other in-game interaction - such as walking around an environment. Threads can be useful in these cases simply to divide up choices.
+
+=== the_kitchen 
+- (top)
+	<- drawers(-> top)
+	<- cupboards(-> top) 
+	<- room_exits
+= drawers (-> goback)
+	// choices about the drawers...
+	...
+= cupboards(-> goback) 
+	// choices about cupboards
+	...
+= room_exits
+	// exits; doesn't need a "return point" as if you leave, you go elsewhere
+	...
 
 
 

@@ -4,7 +4,11 @@ using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
-    public static class SimpleJson
+    /// <summary>
+    /// Simple custom JSON serialisation implementation that takes JSON-able System.Collections that
+    /// are produced by the ink engine and converts to and from JSON text.
+    /// </summary>
+    internal static class SimpleJson
     {
         public static string DictionaryToText (Dictionary<string, object> rootObject)
         {
