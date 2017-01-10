@@ -87,15 +87,17 @@ namespace Ink.Runtime
                 throw new System.Exception ("Unexpected number of parameters");
             }
 
+            bool hasList = false;
             foreach (var p in parameters) {
                 if (p is Void)
                     throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
+                if (p is ListValue)
+                    hasList = true;
             }
 
-            // Special case:
-            //  - List-Int operation returns a List (e.g. "alpha" + 1 = "beta")
-            if (parameters.Count == 2 && parameters [0] is ListValue && parameters [1] is IntValue)
-                return CallListIntOperation (parameters);
+            // Binary operations on lists are treated outside of the standard coerscion rules
+            if( parameters.Count == 2 && hasList )
+                return CallBinaryListOperation (parameters);
 
             var coercedParams = CoerceValuesToSingleType (parameters);
             ValueType coercedType = coercedParams[0].valueType;
@@ -161,7 +163,30 @@ namespace Ink.Runtime
             }
         }
 
-        Value CallListIntOperation (List<Runtime.Object> listIntParams)
+        Value CallBinaryListOperation (List<Runtime.Object> parameters)
+        {
+            // List-Int addition/subtraction returns a List (e.g. "alpha" + 1 = "beta")
+            if ((name == "+" || name == "-") && parameters [0] is ListValue && parameters [1] is IntValue)
+                return CallListIncrementOperation (parameters);
+
+            var v1 = parameters [0] as Value;
+            var v2 = parameters [1] as Value;
+
+            // And/or with any other type requires coerscion to bool (int)
+            if ((name == "&&" || name == "||") && (v1.valueType != ValueType.List || v2.valueType != ValueType.List)) {
+                var op = _operationFuncs [ValueType.Int] as BinaryOp<int>;
+                var result = (int)op (v1.isTruthy ? 1 : 0, v2.isTruthy ? 1 : 0);
+                return new IntValue (result);
+            }
+
+            // Normal (list • list) operation
+            if (v1.valueType == ValueType.List && v2.valueType == ValueType.List)
+                return Call<RawList> (new List<Value> { v1, v2 });
+
+            throw new StoryException ("Can not call use '" + name + "' operation on " + v1.valueType + " and " + v2.valueType);
+        }
+
+        Value CallListIncrementOperation (List<Runtime.Object> listIntParams)
         {
             var listVal = (ListValue)listIntParams [0];
             var intVal = (IntValue)listIntParams [1];
@@ -173,11 +198,7 @@ namespace Ink.Runtime
                 var listItem = listItemWithValue.Key;
                 var listItemValue = listItemWithValue.Value;
 
-                // Find the specific int operation to apply to all memebers
-                // of the list. Currently this makes most sense for + and -
-                // but in fact, other operations are possible.
-                // e.g. list items with the values (1,2) * 2 becomes (2, 4)
-                // i.e. (a, b) * 2 becomes (b, d). Madness!
+                // Find + or - operation
                 var intOp = (BinaryOp<int>)_operationFuncs [ValueType.Int];
 
                 // Return value unknown until it's evaluated
