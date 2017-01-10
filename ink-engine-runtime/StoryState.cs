@@ -17,8 +17,8 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 5;
-        const int kMinCompatibleLoadVersion = 4;
+        public const int kInkSaveStateVersion = 6;
+        const int kMinCompatibleLoadVersion = 6;
 
         /// <summary>
         /// Exports the current state to json format, in order to save the game.
