@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Ink.Runtime
 {
@@ -157,6 +158,10 @@ namespace Ink.Runtime
                 }
 
                 // Native functions
+                // "^" conflicts with the way to identify strings, so now
+                // we know it's not a string, we can convert back to the proper
+                // symbol for the operator.
+                if (str == "L^") str = "^";
                 if( NativeFunctionCall.CallExistsWithName(str) )
                     return NativeFunctionCall.CallWithName (str);
 
@@ -278,6 +283,22 @@ namespace Ink.Runtime
                     return new Runtime.Tag ((string)propValue);
                 }
 
+                // List value
+                if (obj.TryGetValue ("list", out propValue)) {
+                    var listContent = (Dictionary<string, object>)propValue;
+                    var rawList = new RawList ();
+                    if (obj.TryGetValue ("origins", out propValue)) {
+                        var namesAsObjs = (List<object>)propValue;
+                        rawList.SetInitialOriginNames (namesAsObjs.Cast<string>().ToList());
+                    }
+                    foreach (var nameToVal in listContent) {
+                        var item = new RawListItem (nameToVal.Key);
+                        var val = (int)nameToVal.Value;
+                        rawList.Add (item, val);
+                    }
+                    return new ListValue (rawList);
+                }
+
                 // Used when serialising save state only
                 if (obj ["originalChoicePath"] != null)
                     return JObjectToChoice (obj);
@@ -358,6 +379,11 @@ namespace Ink.Runtime
                     return "^" + strVal.value;
             }
 
+            var listVal = obj as ListValue;
+            if (listVal) {
+                return InkListToJObject (listVal);
+            }
+
             var divTargetVal = obj as DivertTargetValue;
             if (divTargetVal) {
                 var divTargetJsonObj = new Dictionary<string, object> ();
@@ -389,8 +415,14 @@ namespace Ink.Runtime
             }
 
             var nativeFunc = obj as Runtime.NativeFunctionCall;
-            if (nativeFunc)
-                return nativeFunc.name;
+            if (nativeFunc) {
+                var name = nativeFunc.name;
+
+                // Avoid collision with ^ used to indicate a string
+                if (name == "^") name = "L^";
+                return name;
+            }
+
 
             // Variable reference
             var varRef = obj as VariableReference;
@@ -545,6 +577,66 @@ namespace Ink.Runtime
             return jObj;
         }
 
+        static Dictionary<string, object> InkListToJObject (ListValue listVal)
+        {
+            var rawList = listVal.value;
+
+            var dict = new Dictionary<string, object> ();
+
+            var content = new Dictionary<string, object> ();
+
+            foreach (var itemAndValue in rawList) {
+                var item = itemAndValue.Key;
+                int val = itemAndValue.Value;
+                content [item.ToString ()] = val;
+            }
+
+            dict ["list"] = content;
+
+            if (rawList.Count == 0 && rawList.originNames != null && rawList.originNames.Count > 0) {
+                dict ["origins"] = rawList.originNames.Cast<object> ().ToList ();
+            }
+
+            return dict;
+        }
+
+        public static Dictionary<string, object> ListDefinitionsToJToken (ListDefinitionsOrigin origin)
+        {
+            var result = new Dictionary<string, object> ();
+            foreach (ListDefinition def in origin.lists) {
+                var listDefJson = new Dictionary<string, object> ();
+                foreach (var itemToVal in def.items) {
+                    RawListItem item = itemToVal.Key;
+                    int val = itemToVal.Value;
+                    listDefJson [item.itemName] = (object)val;
+                }
+                result [def.name] = listDefJson;
+            }
+            return result;
+        }
+
+        public static ListDefinitionsOrigin JTokenToListDefinitions (object obj)
+        {
+            var defsObj = (Dictionary<string, object>)obj;
+
+            var allDefs = new List<ListDefinition> ();
+
+            foreach (var kv in defsObj) {
+                var name = (string) kv.Key;
+                var listDefJson = (Dictionary<string, object>)kv.Value;
+
+                // Cast (string, object) to (string, int) for items
+                var items = new Dictionary<string, int> ();
+                foreach (var nameValue in listDefJson)
+                    items.Add(nameValue.Key, (int)nameValue.Value);
+
+                var def = new ListDefinition (name, items);
+                allDefs.Add (def);
+            }
+
+            return new ListDefinitionsOrigin (allDefs);
+        }
+
         static Json() 
         {
             _controlCommandNames = new string[(int)ControlCommand.CommandType.TOTAL_VALUES];
@@ -568,6 +660,8 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.StartThread] = "thread";
             _controlCommandNames [(int)ControlCommand.CommandType.Done] = "done";
             _controlCommandNames [(int)ControlCommand.CommandType.End] = "end";
+            _controlCommandNames [(int)ControlCommand.CommandType.ListFromInt] = "listInt";
+            _controlCommandNames [(int)ControlCommand.CommandType.ListRange] = "range";
 
             for (int i = 0; i < (int)ControlCommand.CommandType.TOTAL_VALUES; ++i) {
                 if (_controlCommandNames [i] == null)

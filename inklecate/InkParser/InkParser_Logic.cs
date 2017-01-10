@@ -84,23 +84,132 @@ namespace Ink
 
             Whitespace ();
 
-            var expr = Expect (Expression, "initial value for ") as Parsed.Expression;
-            if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference)) {
-                Error ("initial value for a variable must be a number, constant, or divert target");
+            var definition = Expect (Expression, "initial value for ");
+
+            var expr = definition as Parsed.Expression;
+
+            if (expr) {
+                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is List)) {
+                    Error ("initial value for a variable must be a number, constant, list or divert target");
+                }
+
+                if (Parse (ListElementDefinitionSeparator) != null)
+                    Error ("Unexpected ','. If you're trying to declare a new list, use the LIST keyword, not VAR");
+
+                // Ensure string expressions are simple
+                else if (expr is StringExpression) {
+                    var strExpr = expr as StringExpression;
+                    if (!strExpr.isSingleString)
+                        Error ("Constant strings cannot contain any logic.");
+                }
+
+                var result = new VariableAssignment (varName, expr);
+                result.isGlobalDeclaration = true;
+                return result;
             }
 
-            // Ensure string expressions are simple
-            else if (expr is StringExpression) {
-                var strExpr = expr as StringExpression;
-                if (!strExpr.isSingleString)
-                    Error ("Constant strings cannot contain any logic.");
-            }
-
-            var result = new VariableAssignment (varName, expr);
-            result.isGlobalDeclaration = true;
-            return result;
+            return null;
         }
 
+        protected Parsed.VariableAssignment ListDeclaration ()
+        {
+            Whitespace ();
+
+            var id = Parse (Identifier);
+            if (id != "LIST")
+                return null;
+
+            Whitespace ();
+
+            var varName = Expect (Identifier, "list name") as string;
+
+            Whitespace ();
+
+            Expect (String ("="), "the '=' for an assignment of the list definition");
+
+            Whitespace ();
+
+            var definition = Expect (ListDefinition, "list item names") as ListDefinition;
+
+            if (definition) {
+
+                definition.name = varName;
+
+                var result = new VariableAssignment (varName, definition);
+                return result;
+            }
+
+            return null;
+        }
+
+        protected Parsed.ListDefinition ListDefinition ()
+        {
+            AnyWhitespace ();
+
+            var allElements = SeparatedList (ListElementDefinition, ListElementDefinitionSeparator);
+            if (allElements == null)
+                return null;
+
+            if (allElements.Count == 1)
+                Error ("Expected more than one element in the list");
+
+            return new ListDefinition (allElements);
+        }
+
+        protected string ListElementDefinitionSeparator ()
+        {
+            AnyWhitespace ();
+
+            if (ParseString (",") == null) return null;
+
+            AnyWhitespace ();
+
+            return ",";
+        }
+
+        protected Parsed.ListElementDefinition ListElementDefinition ()
+        {
+            var inInitialList = ParseString ("(") != null;
+            var needsToCloseParen = inInitialList;
+
+            Whitespace ();
+
+            var name = Parse (Identifier);
+            if (name == null)
+                return null;
+
+            Whitespace ();
+
+            if (inInitialList) {
+                if (ParseString (")") != null) {
+                    needsToCloseParen = false;
+                    Whitespace ();
+                }
+            }
+
+            int? elementValue = null;
+            if (ParseString ("=") != null) {
+
+                Whitespace ();
+
+                var elementValueNum = Expect (ExpressionInt, "value to be assigned to list item") as Number;
+                if (elementValueNum != null) {
+                    elementValue = (int) elementValueNum.value;
+                }
+
+                if (needsToCloseParen) {
+                    Whitespace ();
+
+                    if (ParseString (")") != null)
+                        needsToCloseParen = false;
+                }
+            }
+
+            if (needsToCloseParen)
+                Error("Expected closing ')'");
+
+            return new ListElementDefinition (name, inInitialList, elementValue);
+        }
 
         protected Parsed.Object ConstDeclaration()
         {

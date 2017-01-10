@@ -6,6 +6,7 @@ namespace Ink.Parsed
     {
         public string variableName { get; protected set; }
         public Expression expression { get; protected set; }
+        public ListDefinition listDefinition { get; protected set; }
 
         public bool isGlobalDeclaration { get; set; }
         public bool isNewTemporaryDeclaration { get; set; }
@@ -23,6 +24,17 @@ namespace Ink.Parsed
             // Defensive programming in case parsing of assignedExpression failed
             if( assignedExpression )
                 this.expression = AddContent(assignedExpression);
+        }
+
+        public VariableAssignment (string variableName, ListDefinition listDef)
+        {
+            this.variableName = variableName;
+
+            if( listDef )
+                this.listDefinition = AddContent(listDef);
+
+            // List definitions are always global
+            isGlobalDeclaration = true;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()
@@ -46,7 +58,10 @@ namespace Ink.Parsed
             var container = new Runtime.Container ();
 
             // The expression's runtimeObject is actually another nested container
-            container.AddContent (expression.runtimeObject);
+            if( expression != null )
+                container.AddContent (expression.runtimeObject);
+            else if( listDefinition != null )
+                container.AddContent (listDefinition.runtimeObject);
 
             container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
 
@@ -67,8 +82,8 @@ namespace Ink.Parsed
 
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
-                if (variableReference && !variableReference.isConstantReference) {
-                    Error ("global variable assignments cannot refer to other variables, only literal values and constants");
+                if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
+                    Error ("global variable assignments cannot refer to other variables, only literal values, constants and list items");
                 }       
             }
 

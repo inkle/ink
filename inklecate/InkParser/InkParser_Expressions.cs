@@ -45,26 +45,27 @@ namespace Ink
 
             Whitespace();
 
-            // Optional assignment
-            Expression assignedExpression = null;
-            if (ParseString ("=") != null) {
-                assignedExpression = (Expression)Expect (Expression, "value expression to be assigned to temporary variable");
-            }
+            // += -=
+            bool isIncrement = ParseString ("+") != null;
+            bool isDecrement = ParseString ("-") != null;
+            if (isIncrement && isDecrement) Error ("Unexpected sequence '+-'");
 
-            // If it's neither an assignment nor a new declaration,
-            // it's got nothing to do with this rule (e.g. it's actually just "~ myExpr" or even "~ myFunc()"
-            else if (!isNewDeclaration) {
+            if (ParseString ("=") == null) {
+                // Definitely in an assignment expression?
+                if (isNewDeclaration) Error ("Expected '='");
                 return null;
             }
 
-            // Default zero assignment
-            else {
-                assignedExpression = new Number (0);
-            }
+            Expression assignedExpression = (Expression)Expect (Expression, "value expression to be assigned");
 
-            var result = new VariableAssignment (varName, assignedExpression);
-            result.isNewTemporaryDeclaration = isNewDeclaration;
-            return result;
+            if (isIncrement || isDecrement) {
+                var result = new IncDecExpression (varName, assignedExpression, isIncrement);
+                return result;
+            } else {
+                var result = new VariableAssignment (varName, assignedExpression);
+                result.isNewTemporaryDeclaration = isNewDeclaration;
+                return result;
+            }
         }
 
 
@@ -182,7 +183,7 @@ namespace Ink
 
             // - Since we allow numbers at the start of variable names, variable names are checked before literals
             // - Function calls before variable names in case we see parentheses
-            var expr = OneOf (ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral) as Expression;
+            var expr = OneOf (ExpressionList, ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
             if (expr == null && prefixOp != null) {
@@ -408,6 +409,52 @@ namespace Ink
             return null;
 		}
 
+        protected Parsed.List ExpressionList ()
+        {
+            Whitespace ();
+
+            if (ParseString ("(") == null)
+                return null;
+
+            Whitespace ();
+
+            // When list has:
+            //  - 0 elements (null list) - this is okay, it's an empty list: "()"
+            //  - 1 element - it could be confused for a single non-list related
+            //    identifier expression in brackets, but this is a useless thing
+            //    to do, so we reserve that syntax for a list with one item.
+            //  - 2 or more elements - normal!
+            List<string> memberNames = SeparatedList (ListMember, Spaced (String (",")));
+
+            Whitespace ();
+
+            // May have failed to parse the inner list - the parentheses may
+            // be for a normal expression
+            if (ParseString (")") == null)
+                return null;
+
+            return new List (memberNames);
+        }
+
+        protected string ListMember ()
+        {
+            Whitespace ();
+
+            string name = Parse (Identifier);
+            if (name == null)
+                return null;
+
+            var dot = ParseString (".");
+            if (dot != null) {
+                string name2 = Expect (Identifier, "element name within the set " + name) as string;
+                name = name + "." + name2;
+            }
+
+            Whitespace ();
+
+            return name;
+        }
+
 		void RegisterExpressionOperators()
 		{
             _maxBinaryOpLength = 0;
@@ -428,13 +475,22 @@ namespace Ink
             RegisterBinaryOperator (">", precedence:2);
             RegisterBinaryOperator ("!=", precedence:2);
 
-			RegisterBinaryOperator ("+", precedence:3);
-			RegisterBinaryOperator ("-", precedence:4);
-			RegisterBinaryOperator ("*", precedence:5);
-			RegisterBinaryOperator ("/", precedence:6);
+            // (apples, oranges) + cabbages has (oranges, cabbages) == true
+            RegisterBinaryOperator ("?", precedence: 3);
+            RegisterBinaryOperator ("has", precedence: 3, requireWhitespace:true);
+            RegisterBinaryOperator ("!?", precedence: 3);
+            RegisterBinaryOperator ("hasnt", precedence: 3, requireWhitespace: true);
+            RegisterBinaryOperator ("^", precedence: 3);
 
-            RegisterBinaryOperator ("%", precedence:7);
-            RegisterBinaryOperator ("mod", precedence:7, requireWhitespace:true);
+			RegisterBinaryOperator ("+", precedence:4);
+			RegisterBinaryOperator ("-", precedence:5);
+			RegisterBinaryOperator ("*", precedence:6);
+			RegisterBinaryOperator ("/", precedence:7);
+
+            RegisterBinaryOperator ("%", precedence:8);
+            RegisterBinaryOperator ("mod", precedence:8, requireWhitespace:true);
+
+
 		}
 
         void RegisterBinaryOperator(string op, int precedence, bool requireWhitespace = false)

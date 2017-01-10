@@ -11,6 +11,8 @@ namespace Ink.Parsed
         public bool isTurnsSince { get { return name == "TURNS_SINCE"; } }
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
+        public bool isListRange { get { return name == "LIST_RANGE"; } }
+
         public bool shouldPopReturnedValue;
 
         public FunctionCall (string functionName, List<Expression> arguments)
@@ -22,6 +24,8 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
+            var foundList = story.ResolveList (name);
+
             if (isChoiceCount) {
 
                 if (arguments.Count > 0)
@@ -57,10 +61,8 @@ namespace Ink.Parsed
 
 
                 container.AddContent (Runtime.ControlCommand.TurnsSince ());
-            } 
-
-            else if (isRandom) {
-                if (arguments.Count != 2) 
+            } else if (isRandom) {
+                if (arguments.Count != 2)
                     Error ("RANDOM should take 2 parameters: a minimum and a maximum integer");
 
                 // We can type check single values, but not complex expressions
@@ -69,17 +71,15 @@ namespace Ink.Parsed
                         var num = arguments [arg] as Number;
                         if (!(num.value is int)) {
                             string paramName = arg == 0 ? "minimum" : "maximum";
-                            Error ("RANDOM's "+paramName+" parameter should be an integer");
+                            Error ("RANDOM's " + paramName + " parameter should be an integer");
                         }
                     }
 
-                    arguments[arg].GenerateIntoContainer (container);
+                    arguments [arg].GenerateIntoContainer (container);
                 }
 
                 container.AddContent (Runtime.ControlCommand.Random ());
-            } 
-
-            else if (isSeedRandom) {
+            } else if (isSeedRandom) {
                 if (arguments.Count != 1)
                     Error ("SEED_RANDOM should take 1 parameter - an integer seed");
 
@@ -91,6 +91,57 @@ namespace Ink.Parsed
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
+            } else if (isListRange) {
+                if (arguments.Count != 3)
+                    Error ("LIST_VALUE should take 3 parameters - a list, a min and a max");
+
+                for (int arg = 0; arg < arguments.Count; arg++)
+                    arguments [arg].GenerateIntoContainer (container);
+
+                container.AddContent (Runtime.ControlCommand.ListRange ());
+
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
+
+            } else if (Runtime.NativeFunctionCall.CallExistsWithName(name)) {
+
+                var nativeCall = Runtime.NativeFunctionCall.CallWithName (name);
+
+                if (nativeCall.numberOfParameters != arguments.Count) {
+                    var msg = name + " should take " + nativeCall.numberOfParameters + " parameter";
+                    if (nativeCall.numberOfParameters > 1)
+                        msg += "s";
+                    Error (msg);
+                }
+
+                for (int arg = 0; arg < arguments.Count; arg++)
+                    arguments [arg].GenerateIntoContainer (container);
+
+                container.AddContent (Runtime.NativeFunctionCall.CallWithName (name));
+
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
+            } 
+            else if (foundList != null) {
+                if (arguments.Count > 1)
+                    Error ("Can currently only construct a list from one integer (or an empty list from a given list definition)");
+
+                // List item from given int
+                if (arguments.Count == 1) {
+                    container.AddContent (new Runtime.StringValue (name));
+                    arguments [0].GenerateIntoContainer (container);
+                    container.AddContent (Runtime.ControlCommand.ListFromInt ());
+                } 
+
+                // Empty list with given origin.
+                else {
+                    var list = new Runtime.RawList ();
+                    list.SetInitialOriginName (name);
+                    container.AddContent (new Runtime.ListValue (list));
+                }
+
+                // Don't attempt to resolve as a divert
+                content.Remove (_proxyDivert);
             }
 
               // Normal function call
@@ -139,7 +190,10 @@ namespace Ink.Parsed
 
         public static bool IsBuiltIn(string name) 
         {
-            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM";
+            if (Runtime.NativeFunctionCall.CallExistsWithName (name))
+                return true;
+            
+            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM" || name == "LIST_VALUE";
         }
 
         public override string ToString ()

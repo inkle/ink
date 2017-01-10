@@ -15,7 +15,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 15;
+        public const int inkVersionCurrent = 16;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -32,7 +32,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The minimum legacy version of ink that can be loaded by the current version of the code.
         /// </summary>
-        const int inkVersionMinimumCompatible = 15;
+        const int inkVersionMinimumCompatible = 16;
 
         /// <summary>
         /// The list of Choice objects available at the current point in
@@ -85,6 +85,12 @@ namespace Ink.Runtime
         /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
 
+        internal ListDefinitionsOrigin listDefinitions {
+            get {
+                return _listDefinitions;
+            }
+        }
+
         /// <summary>
         /// The entire current state of the story including (but not limited to):
         /// 
@@ -100,9 +106,13 @@ namespace Ink.Runtime
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
         // For normal use, use the constructor that takes a json string.
-        internal Story (Container contentContainer)
+        internal Story (Container contentContainer, List<Runtime.ListDefinition> lists = null)
 		{
 			_mainContentContainer = contentContainer;
+
+            if (lists != null)
+                _listDefinitions = new ListDefinitionsOrigin (lists);
+
             _externals = new Dictionary<string, ExternalFunction> ();
 		}
 
@@ -129,7 +139,11 @@ namespace Ink.Runtime
             var rootToken = rootObject ["root"];
             if (rootToken == null)
                 throw new System.Exception ("Root node for ink not found. Are you sure it's a valid .ink.json file?");
-            
+
+            object listDefsObj;
+            if (rootObject.TryGetValue ("listDefs", out listDefsObj)) {
+                _listDefinitions = Json.JTokenToListDefinitions (listDefsObj);
+            }
 
             _mainContentContainer = Json.JTokenToRuntimeObject (rootToken) as Container;
 
@@ -146,6 +160,9 @@ namespace Ink.Runtime
             var rootObject = new Dictionary<string, object> ();
             rootObject ["inkVersion"] = inkVersionCurrent;
             rootObject ["root"] = rootContainerJsonList;
+
+            if (_listDefinitions != null)
+                rootObject ["listDefs"] = Json.ListDefinitionsToJToken (_listDefinitions);
 
             return SimpleJson.DictionaryToText (rootObject);
         }
@@ -928,6 +945,78 @@ namespace Ink.Runtime
                     state.ForceEnd ();
                     break;
 
+                case ControlCommand.CommandType.ListFromInt:
+                    var intVal = state.PopEvaluationStack () as IntValue;
+                    var listNameVal = state.PopEvaluationStack () as StringValue;
+
+                    ListValue generatedListValue = null;
+
+                    ListDefinition foundListDef;
+                    if (listDefinitions.TryGetDefinition (listNameVal.value, out foundListDef)) {
+                        RawListItem foundItem;
+                        if (foundListDef.TryGetItemWithValue (intVal.value, out foundItem)) {
+                            generatedListValue = new ListValue (foundItem, intVal.value);
+                        }
+                    } else {
+                        throw new StoryException ("Failed to find LIST called " + listNameVal.value);
+                    }
+
+                    if (generatedListValue == null)
+                        generatedListValue = new ListValue ();
+
+                    state.PushEvaluationStack (generatedListValue);
+                    break;
+
+                case ControlCommand.CommandType.ListRange: {
+                        var max = state.PopEvaluationStack ();
+                        var min = state.PopEvaluationStack ();
+
+                        var targetList = state.PopEvaluationStack () as ListValue;
+
+                        if (targetList == null || min == null || max == null)
+                            throw new StoryException ("Expected list, minimum and maximum for LIST_RANGE");
+
+                        // Allow either int or a particular list item to be passed for the bounds,
+                        // so wrap up a function to handle this casting for us.
+                        Func<Runtime.Object, int> IntBound = (obj) => {
+                            var listValue = obj as ListValue;
+                            if (listValue) {
+                                return (int)listValue.value.maxItem.Value;
+                            }
+
+                            var intValue = obj as IntValue;
+                            if (intValue) {
+                                return intValue.value;
+                            }
+
+                            return -1;
+                        };
+
+                        int minVal = IntBound (min);
+                        int maxVal = IntBound (max);
+                        if (minVal == -1)
+                            throw new StoryException ("Invalid min range bound passed to LIST_VALUE(): " + min);
+
+                        if (maxVal == -1)
+                            throw new StoryException ("Invalid max range bound passed to LIST_VALUE(): " + max);
+
+                        // Extract the range of items from the origin list
+                        ListValue result = new ListValue ();
+                        var origins = targetList.value.origins;
+
+                        if (origins != null) {
+                            foreach(var origin in origins) {
+                                var rangeFromOrigin = origin.ListRange (minVal, maxVal);
+                                foreach (var kv in rangeFromOrigin.value) {
+                                    result.value [kv.Key] = kv.Value;
+                                }
+                            }
+                        }
+                            
+                        state.PushEvaluationStack (result);
+                        break;
+                    }
+
                 default:
                     Error ("unhandled ControlCommand: " + evalCommand);
                     break;
@@ -975,19 +1064,19 @@ namespace Ink.Runtime
                     }
                 }
 
-                state.evaluationStack.Add( foundValue );
+                state.PushEvaluationStack (foundValue);
 
                 return true;
             }
 
             // Native function call
-            else if( contentObj is NativeFunctionCall ) {
-                var func = (NativeFunctionCall) contentObj;
-                var funcParams = state.PopEvaluationStack(func.numberOfParameters);
-                var result = func.Call(funcParams);
-                state.evaluationStack.Add(result);
+            else if (contentObj is NativeFunctionCall) {
+                var func = (NativeFunctionCall)contentObj;
+                var funcParams = state.PopEvaluationStack (func.numberOfParameters);
+                var result = func.Call (funcParams);
+                state.PushEvaluationStack (result);
                 return true;
-            }
+            } 
 
             // No control content, must be ordinary content
             return false;
@@ -1927,7 +2016,8 @@ namespace Ink.Runtime
             }
         }
 
-        private Container _mainContentContainer;
+        Container _mainContentContainer;
+        ListDefinitionsOrigin _listDefinitions;
 
         Dictionary<string, ExternalFunction> _externals;
         Dictionary<string, VariableObserver> _variableObservers;

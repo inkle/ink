@@ -17,8 +17,8 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 5;
-        const int kMinCompatibleLoadVersion = 4;
+        public const int kInkSaveStateVersion = 6;
+        const int kMinCompatibleLoadVersion = 6;
 
         /// <summary>
         /// Exports the current state to json format, in order to save the game.
@@ -208,7 +208,7 @@ namespace Ink.Runtime
             evaluationStack = new List<Runtime.Object> ();
 
             callStack = new CallStack (story.rootContentContainer);
-            variablesState = new VariablesState (callStack);
+            variablesState = new VariablesState (callStack, story.listDefinitions);
 
             visitCounts = new Dictionary<string, int> ();
             turnIndices = new Dictionary<string, int> ();
@@ -251,7 +251,7 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack);
+            copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
@@ -714,6 +714,29 @@ namespace Ink.Runtime
 
         internal void PushEvaluationStack(Runtime.Object obj)
         {
+            // Include metadata about the origin List for list values when
+            // they're used, so that lower level functions can make use
+            // of the origin list to get related items, or make comparisons
+            // with the integer values etc.
+            var listValue = obj as ListValue;
+            if (listValue) {
+                
+                // Update origin when list is has something to indicate the list origin
+                var rawList = listValue.value;
+                var names = rawList.originNames;
+                if (names != null) {
+                    var origins = new List<ListDefinition> ();
+                    foreach (var n in names) {
+                        ListDefinition def = null;
+                        story.listDefinitions.TryGetDefinition (n, out def);
+                        if( !origins.Contains(def) )
+                            origins.Add (def);
+                    }
+                        
+                    rawList.origins = origins;
+                }
+            }
+
             evaluationStack.Add(obj);
         }
 
@@ -799,7 +822,7 @@ namespace Ink.Runtime
                         throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
                     }
 
-                    evaluationStack.Add (Runtime.Value.Create (arguments [i]));
+                    PushEvaluationStack (Runtime.Value.Create (arguments [i]));
                 }
             }
         }

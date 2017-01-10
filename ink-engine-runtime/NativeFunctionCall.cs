@@ -10,7 +10,7 @@ namespace Ink.Runtime
         public const string Divide   = "/";
         public const string Multiply = "*";
         public const string Mod      = "%";
-        public const string Negate   = "~";
+        public const string Negate   = "_"; // distinguish from "-" for subtraction
 
         public const string Equal    = "==";
         public const string Greater  = ">";
@@ -20,11 +20,24 @@ namespace Ink.Runtime
         public const string NotEquals   = "!=";
         public const string Not      = "!";
 
+
+
         public const string And      = "&&";
         public const string Or       = "||";
 
         public const string Min      = "MIN";
         public const string Max      = "MAX";
+
+        public const string Has      = "?";
+        public const string Hasnt    = "!?";
+        public const string Intersect = "^";
+
+        public const string ListMin   = "LIST_MIN";
+        public const string ListMax   = "LIST_MAX";
+        public const string All       = "LIST_ALL";
+        public const string Count     = "LIST_COUNT";
+        public const string ValueOfList = "LIST_VALUE";
+        public const string Invert    = "LIST_INVERT";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {
@@ -74,10 +87,17 @@ namespace Ink.Runtime
                 throw new System.Exception ("Unexpected number of parameters");
             }
 
+            bool hasList = false;
             foreach (var p in parameters) {
                 if (p is Void)
                     throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
+                if (p is ListValue)
+                    hasList = true;
             }
+
+            // Binary operations on lists are treated outside of the standard coerscion rules
+            if( parameters.Count == 2 && hasList )
+                return CallBinaryListOperation (parameters);
 
             var coercedParams = CoerceValuesToSingleType (parameters);
             ValueType coercedType = coercedParams[0].valueType;
@@ -90,6 +110,8 @@ namespace Ink.Runtime
                 return Call<string> (coercedParams);
             } else if (coercedType == ValueType.DivertTarget) {
                 return Call<Path> (coercedParams);
+            } else if (coercedType == ValueType.List) {
+                return Call<RawList> (coercedParams);
             }
 
             return null;
@@ -108,7 +130,7 @@ namespace Ink.Runtime
 
                 object opForTypeObj = null;
                 if (!_operationFuncs.TryGetValue (valType, out opForTypeObj)) {
-                    throw new StoryException ("Can not perform operation '"+this.name+"' on "+valType);
+                    throw new StoryException ("Cannot perform operation '"+this.name+"' on "+valType);
                 }
 
                 // Binary
@@ -141,9 +163,70 @@ namespace Ink.Runtime
             }
         }
 
+        Value CallBinaryListOperation (List<Runtime.Object> parameters)
+        {
+            // List-Int addition/subtraction returns a List (e.g. "alpha" + 1 = "beta")
+            if ((name == "+" || name == "-") && parameters [0] is ListValue && parameters [1] is IntValue)
+                return CallListIncrementOperation (parameters);
+
+            var v1 = parameters [0] as Value;
+            var v2 = parameters [1] as Value;
+
+            // And/or with any other type requires coerscion to bool (int)
+            if ((name == "&&" || name == "||") && (v1.valueType != ValueType.List || v2.valueType != ValueType.List)) {
+                var op = _operationFuncs [ValueType.Int] as BinaryOp<int>;
+                var result = (int)op (v1.isTruthy ? 1 : 0, v2.isTruthy ? 1 : 0);
+                return new IntValue (result);
+            }
+
+            // Normal (list • list) operation
+            if (v1.valueType == ValueType.List && v2.valueType == ValueType.List)
+                return Call<RawList> (new List<Value> { v1, v2 });
+
+            throw new StoryException ("Can not call use '" + name + "' operation on " + v1.valueType + " and " + v2.valueType);
+        }
+
+        Value CallListIncrementOperation (List<Runtime.Object> listIntParams)
+        {
+            var listVal = (ListValue)listIntParams [0];
+            var intVal = (IntValue)listIntParams [1];
+
+
+            var resultRawList = new RawList ();
+
+            foreach (var listItemWithValue in listVal.value) {
+                var listItem = listItemWithValue.Key;
+                var listItemValue = listItemWithValue.Value;
+
+                // Find + or - operation
+                var intOp = (BinaryOp<int>)_operationFuncs [ValueType.Int];
+
+                // Return value unknown until it's evaluated
+                int targetInt = (int) intOp (listItemValue, intVal.value);
+
+                // Find this item's origin (linear search should be ok, should be short haha)
+                ListDefinition itemOrigin = null;
+                foreach (var origin in listVal.value.origins) {
+                    if (origin.name == listItem.originName) {
+                        itemOrigin = origin;
+                        break;
+                    }
+                }
+                if (itemOrigin != null) {
+                    RawListItem incrementedItem;
+                    if (itemOrigin.TryGetItemWithValue (targetInt, out incrementedItem))
+                        resultRawList.Add (incrementedItem, targetInt);
+                }
+            }
+
+            return new ListValue (resultRawList);
+        }
+
         List<Value> CoerceValuesToSingleType(List<Runtime.Object> parametersIn)
         {
             ValueType valType = ValueType.Int;
+
+            ListValue specialCaseList = null;
 
             // Find out what the output type is
             // "higher level" types infect both so that binary operations
@@ -154,13 +237,45 @@ namespace Ink.Runtime
                 if (val.valueType > valType) {
                     valType = val.valueType;
                 }
+
+                if (val.valueType == ValueType.List) {
+                    specialCaseList = val as ListValue;
+                }
             }
 
             // Coerce to this chosen type
             var parametersOut = new List<Value> ();
-            foreach (Value val in parametersIn) {
-                var castedValue = val.Cast (valType);
-                parametersOut.Add (castedValue);
+
+            // Special case: Coercing to Ints to Lists
+            // We have to do it early when we have both parameters
+            // to hand - so that we can make use of the List's origin
+            if (valType == ValueType.List) {
+                
+                foreach (Value val in parametersIn) {
+                    if (val.valueType == ValueType.List) {
+                        parametersOut.Add (val);
+                    } else if (val.valueType == ValueType.Int) {
+                        int intVal = (int)val.valueObject;
+                        var list = specialCaseList.value.originOfMaxItem;
+
+                        RawListItem item;
+                        if (list.TryGetItemWithValue (intVal, out item)) {
+                            var castedValue = new ListValue (item, intVal);
+                            parametersOut.Add (castedValue);
+                        } else
+                            throw new StoryException ("Could not find List item with the value " + intVal + " in " + list.name);
+                    } else
+                        throw new StoryException ("Cannot mix Lists and " + val.valueType + " values in this operation");
+                }
+                
+            } 
+
+            // Normal Coercing (with standard casting)
+            else {
+                foreach (Value val in parametersIn) {
+                    var castedValue = val.Cast (valType);
+                    parametersOut.Add (castedValue);
+                }
             }
 
             return parametersOut;
@@ -239,11 +354,38 @@ namespace Ink.Runtime
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
 
+                // List operations
+                AddListBinaryOp (Add, (x, y) => x.Union (y));
+                AddListBinaryOp (And, (x, y) => x.Union (y));
+                AddListBinaryOp (Subtract, (x, y) => x.Without(y));
+                AddListBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
+                AddListBinaryOp (Hasnt, (x, y) => x.Contains (y) ? (int)0 : (int)1);
+                AddListBinaryOp (Intersect, (x, y) => x.Intersect (y));
+
+                AddListBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (Greater, (x, y) => x.GreaterThan(y) ? (int)1 : (int)0);
+                AddListBinaryOp (Less, (x, y) => x.LessThan(y) ? (int)1 : (int)0);
+                AddListBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
+
+                AddListUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
+
+                // Placeholders to ensure that these special case functions can exist,
+                // since these function is never actually run, and is special cased in Call
+                AddListUnaryOp (Invert, x => x.inverse);
+                AddListUnaryOp (All, x => x.all);
+                AddListUnaryOp (ListMin, (x) => x.MinAsList());
+                AddListUnaryOp (ListMax, (x) => x.MaxAsList());
+                AddListUnaryOp (Count,  (x) => x.Count);
+                AddListUnaryOp (ValueOfList,  (x) => x.maxItem.Value);
+
                 // Special case: The only operation you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
-                    return d1.Equals(d2) ? 1 : 0;
+                    return d1.Equals (d2) ? 1 : 0;
                 };
                 AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+
             }
         }
 
@@ -285,6 +427,16 @@ namespace Ink.Runtime
         static void AddStringBinaryOp(string name, BinaryOp<string> op)
         {
             AddOpToNativeFunc (name, 2, ValueType.String, op);
+        }
+
+        static void AddListBinaryOp (string name, BinaryOp<RawList> op)
+        {
+            AddOpToNativeFunc (name, 2, ValueType.List, op);
+        }
+
+        static void AddListUnaryOp (string name, UnaryOp<RawList> op)
+        {
+            AddOpToNativeFunc (name, 1, ValueType.List, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<float> op)

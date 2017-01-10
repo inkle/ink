@@ -80,6 +80,32 @@ namespace Ink
             };
         }
 
+        protected object AnyWhitespace ()
+        {
+            bool anyWhitespace = false;
+            while (OneOf (Whitespace, MultilineWhitespace) != null) {
+                anyWhitespace = true;
+            }
+            return anyWhitespace ? ParseSuccess : null;
+        }
+
+        protected ParseRule MultiSpaced (ParseRule rule)
+        {
+            return () => {
+
+                AnyWhitespace ();
+
+                var result = ParseObject (rule);
+                if (result == null) {
+                    return null;
+                }
+
+                AnyWhitespace ();
+
+                return result;
+            };
+        }
+
 		private CharacterSet _inlineWhitespaceChars = new CharacterSet(" \t");
 	}
 }
