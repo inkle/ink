@@ -2134,15 +2134,15 @@ A list variable is not a variable containing a number. Rather, a list is like th
 
 Maybe no one is in:
 
-	LIST doctorsInSurgery = Adams, Bernard, Cartwright, Denver, Eamonn 
+	LIST DoctorsInSurgery = Adams, Bernard, Cartwright, Denver, Eamonn 
 
 Maybe everyone is:
 
-	LIST doctorsInSurgery = (Adams), (Bernard), (Cartwright), (Denver), (Eamonn)
+	LIST DoctorsInSurgery = (Adams), (Bernard), (Cartwright), (Denver), (Eamonn)
 
 Or maybe some are and some aren't:
 	
-	LIST doctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn 
+	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn 
 	
 Names in brackets are included in the initial state of the list. 
 
@@ -2154,22 +2154,22 @@ Note that if you're defining your own values, you can place the brackets around 
 
 We can assign all the values of the list at once as follows:
 
-	~ doctorsInSurgery = (Adams, Bernard)
-	~ doctorsInSurgery = (Adams, Bernard, Eamonn)
+	~ DoctorsInSurgery = (Adams, Bernard)
+	~ DoctorsInSurgery = (Adams, Bernard, Eamonn)
 	
 We can assign the empty list to clear a list out:
 	
-	~ doctorsInSurgery = ()
+	~ DoctorsInSurgery = ()
 	
 
 #### Adding and removing entries 
 
 List entries can be added and removed, singly or collectively. 
 
-	~ doctorsInSurgery = doctorsSurgery + Adams 	~ doctorsInSurgery += Adams  // this is the same as the above
-	~ doctorsInSurgery -= Eamon 
-	~ doctorsInSurgery += (Eamon, Denver) 
-	~ doctorsInSurgery -= (Adams, Eamon, Denver)
+	~ DoctorsInSurgery = doctorsSurgery + Adams 	~ DoctorsInSurgery += Adams  // this is the same as the above
+	~ DoctorsInSurgery -= Eamon 
+	~ DoctorsInSurgery += (Eamon, Denver) 
+	~ DoctorsInSurgery -= (Adams, Eamon, Denver)
 
 Trying to add an entry that's already in the list does nothing. Trying to remove an entry that's not there also does nothing. Neither produces an error, and a list can never contain duplicate entries. 
 
@@ -2178,17 +2178,17 @@ Trying to add an entry that's already in the list does nothing. Trying to remove
 
 We have a few basic ways of getting information about what's in a list:
 
-	LIST doctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn 
+	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn 
 	
-	{LIST_COUNT(doctorsInSurgery)} 	//  "2"
-	{LIST_MIN(doctorsInSurgery)} 		//  "Adams"
-	{LIST_MAX(doctorsInSurgery)} 		//  "Cartwright"
+	{LIST_COUNT(DoctorsInSurgery)} 	//  "2"
+	{LIST_MIN(DoctorsInSurgery)} 		//  "Adams"
+	{LIST_MAX(DoctorsInSurgery)} 		//  "Cartwright"
 
 #### Testing for emptiness
 
 Like most values in ink, a list can be tested "as it is", and will return true, unless it's empty. 
 
-	{ doctorsInSurgery: The surgery is open today. | Everyone has gone home. }
+	{ DoctorsInSurgery: The surgery is open today. | Everyone has gone home. }
 	 
 #### Testing for exact equality
 
@@ -2196,15 +2196,15 @@ Testing multi-valued lists is slightly more complex than single-valued ones. Equ
 
 So one might say:
 
-	{ doctorsInSurgery == (Adams, Bernard):
+	{ DoctorsInSurgery == (Adams, Bernard):
 		Dr Adams and Dr Bernard are having a loud argument in one corner.
 	}
 	
-If Dr Eamon is in as well, the two won't argue, as the lists being compared won't be equal - doctorsInSurgery will have an Eamon that the list (Adams, Bernard) doesn't have.
+If Dr Eamon is in as well, the two won't argue, as the lists being compared won't be equal - DoctorsInSurgery will have an Eamon that the list (Adams, Bernard) doesn't have.
 
 Not equals works as expected:
 
-	{ doctorsInSurgery != (Adams, Bernard):
+	{ DoctorsInSurgery != (Adams, Bernard):
 		At least Adams and Bernard aren't arguing. 
 	}
 
@@ -2212,19 +2212,19 @@ Not equals works as expected:
 
 What if we just want to simply ask if Adams and Bernard are present? For that we use a new operator, `has`, otherwise known as `?`.
 
-	{ doctorsInSurgery ? (Adams, Bernard):
+	{ DoctorsInSurgery ? (Adams, Bernard):
 		Dr Adams and Dr Bernard are having a hushed argument in one corner.
 	}
 	
 And `?` can apply to single values too: 
 
-	{ doctorsInSurgery has Eamon:
+	{ DoctorsInSurgery has Eamon:
 		Dr Eamon is polishing his glasses.
 	}
 
 We can also negate it, with `hasnt` or `!?` (not `?`). Note this starts to get a little complicated as
 
-	doctorsInSurgery !? (Adams, Bernard)
+	DoctorsInSurgery !? (Adams, Bernard)
 
 does not mean neither Adams nor Bernard is present, only that they are not *both* present (and arguing).
 
@@ -2233,14 +2233,14 @@ does not mean neither Adams nor Bernard is present, only that they are not *both
 
 The simplest use of a multi-valued list is for tracking "game flags" tidily.
 
-	LIST facts = (Fogg_is_fairly_odd), 	first_name_phileas, (Fogg_is_English)
+	LIST Facts = (Fogg_is_fairly_odd), 	first_name_phileas, (Fogg_is_English)
 	
-	{facts ? Fogg_is_fairly_odd:I smiled politely.|I frowned. Was he a lunatic?} 
-	'{facts ? first_name_phileas:Phileas|Monsieur}, really!' I cried. 
+	{Facts ? Fogg_is_fairly_odd:I smiled politely.|I frowned. Was he a lunatic?} 
+	'{Facts ? first_name_phileas:Phileas|Monsieur}, really!' I cried. 
 
 In particular, it allows us to test for multiple game flags in a single line.	
 
-	{ facts ? (Fogg_is_English, Fogg_is_fairly_odd):  
+	{ Facts ? (Fogg_is_English, Fogg_is_fairly_odd):  
 		<> 'I know Englishmen are strange, but this is *incredible*!' 
 	}
 
@@ -2249,22 +2249,22 @@ In particular, it allows us to test for multiple game flags in a single line.
 
 We're overdue a fuller example, so here's one.
 
-	LIST doctorsInSurgery = (Adams), Bernard, Cartwright, (Denver), Eamonn 
+	LIST DoctorsInSurgery = (Adams), Bernard, Cartwright, (Denver), Eamonn 
 	
 	-> waiting_room
 	
 	=== function whos_in_today()
-		In the surgery today are {doctorsInSurgery}.
+		In the surgery today are {DoctorsInSurgery}.
 		
 	=== function doctorEnters(who) 
-		{ doctorsInSurgery !? who:
-			~ doctorsInSurgery += who
+		{ DoctorsInSurgery !? who:
+			~ DoctorsInSurgery += who
 			Dr {who} arrives in a fluster.
 		}
 	
 	=== function doctorLeaves(who) 
-		{ doctorsInSurgery ? who:
-			~ doctorsInSurgery -= who
+		{ DoctorsInSurgery ? who:
+			~ DoctorsInSurgery -= who
 			Dr {who} leaves for lunch.
 		}
 	
@@ -2330,8 +2330,8 @@ or
 
 	LIST_ALL(list containing elements of a list)
 	
-	{LIST_ALL(doctorsInSurgery)} // Adams, Bernard, Cartwright, Denver, Eamonn 
-	{LIST_COUNT(LIST_ALL(doctorsInSurgery))} // "5"
+	{LIST_ALL(DoctorsInSurgery)} // Adams, Bernard, Cartwright, Denver, Eamonn 
+	{LIST_COUNT(LIST_ALL(DoctorsInSurgery))} // "5"
 	{LIST_MIN(LIST_ALL(Eamonn))} 				// "Adams"
 
 Note that printing a list using `{...}` produces a bare-bones representation of the list; the values as words, delimited by commas.
@@ -2380,12 +2380,12 @@ You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` fu
 To demonstrate a few of these ideas, here's a functional Tower of Hanoi example, written so no one else has to write it.
 
 
-	LIST discs = one, two, three, four, five, six, seven
+	LIST Discs = one, two, three, four, five, six, seven
 	VAR post1 = ()
 	VAR post2 = ()
 	VAR post3 = ()
 	
-	~ post1 = LIST_ALL(discs)
+	~ post1 = LIST_ALL(Discs)
 	
 	-> gameloop
 	
@@ -2502,20 +2502,20 @@ A list can be "inverted", which is the equivalent of going through the accommoda
 
 The operator to invert is `~`. 
 
-	LIST guardsOnDuty = (Smith), (Jones), Carter, Braithwaite
+	LIST GuardsOnDuty = (Smith), (Jones), Carter, Braithwaite
 	
 	=== function changingOfTheGuard 
-		~ guardsOnDuty = ~ guardsOnDuty
+		~ GuardsOnDuty = ~ GuardsOnDuty
 		// yup, that's real active syntax. Read it and weep.
 
 	
 Note that `~` on an empty list will return a null value, because the compiler doesn't know what to invert. If you need to handle that case, you'll have to do it by hand:
 
 	=== function changingOfTheGuard 
-		{!guardsOnDuty: // "is guardsOnDuty empty right now?"
-			~ guardsOnDuty = LIST_ALL(Smith)
+		{!GuardsOnDuty: // "is GuardsOnDuty empty right now?"
+			~ GuardsOnDuty = LIST_ALL(Smith)
 		- else:
-			~ guardsOnDuty = ~ guardsOnDuty
+			~ GuardsOnDuty = ~ GuardsOnDuty
 		}
 
 ### Intersecting sets
@@ -2524,7 +2524,7 @@ The `has` or `?` operator is, somewhat more formally, the "are you a subset of m
 
 To test for "some overlap" between sets, we use the overlap operator, `^`, to get the intersection of two lists. 
 
-	LIST coreValues = strength, courage, compassion, greed, nepotism, self_belief, delusions_of_godhood
+	LIST CoreValues = strength, courage, compassion, greed, nepotism, self_belief, delusions_of_godhood
 	VAR desiredValues = (strength, courage, compassion, self_belief )
 	VAR actualValues =  ( greed, nepotism, self_belief, delusions_of_godhood )
 
@@ -2552,8 +2552,8 @@ This is our inception moment. The results are powerful, but also more like "real
 
 For instance, we might define:
 
-	LIST characters = Alfred, Batman, Robin 
-	LIST props = champagne_glass, newspaper 
+	LIST Characters = Alfred, Batman, Robin 
+	LIST Props = champagne_glass, newspaper 
 	
 	VAR BallroomContents = (Alfred, Batman, newspaper) 
 	VAR HallwayContents = (Robin, champagne_glass) 
@@ -2593,8 +2593,8 @@ And we could have options based on combinations of things:
 
 We can model devices with multiple states. Back to the kettle again...
 
-	LIST onOff = on, off 
-	LIST hotCold = cold, warm, hot 
+	LIST OnOff = on, off 
+	LIST HotCold = cold, warm, hot 
 	
 	VAR kettleState = off, cold 
 	
@@ -2631,8 +2631,8 @@ These mixed states can make changing state a bit trickier, as the off/on above d
 
 The queries given above mostly generalise nicely to multi-valued lists
 
-    LIST letters = a,b,c 
-    LIST numbers = one, two, three 
+    LIST Letters = a,b,c 
+    LIST Numbers = one, two, three 
     
     VAR mixedList = (a, three, c)
     
@@ -2661,34 +2661,34 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	//	Some are general, some specific to particular items
 	//
 	
-	LIST offOn = off, on
-	LIST seenUnseen = unseen, seen
+	LIST OffOn = off, on
+	LIST SeenUnseen = unseen, seen
 	
-	LIST glassState = (none), steamed, steam_gone 
-	LIST bedState = (made_up), covers_shifted, covers_off, stain_visible
+	LIST GlassState = (none), steamed, steam_gone 
+	LIST BedState = (made_up), covers_shifted, covers_off, stain_visible
 	
 	//
 	// System: inventory
 	//
 	
-	LIST inventory = (none), cane, knife
+	LIST Inventory = (none), cane, knife
 	
 	=== function get(x) 
 	    ~ move_to_supporter(x, held) 
-	    ~ inventory += x
+	    ~ Inventory += x
 
 	//
 	// System: positioning things 
 	// Items can be put in and on places
 	// 
 	
-	LIST supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
+	LIST Supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
 	
 	=== function move_to_supporter(ref item_state, new_supporter) === 
-	    { inventory ? item_state && new_supporter != held:
-	        ~ inventory -= item_state
+	    { Inventory ? item_state && new_supporter != held:
+	        ~ Inventory -= item_state
 	    }
-	    ~ item_state -= LIST_ALL(supporters)
+	    ~ item_state -= LIST_ALL(Supporters)
 	    ~ item_state += new_supporter
 	
 	//
@@ -2696,11 +2696,12 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	// Each list is a chains of facts. Each fact supercedes the fact before it. 
 	//
 	
-	VAR knowledgeState = ()
-	LIST bedKnowledge = (none), neatly_made, crumpled_duvet, hastily_remade, body_on_bed, murdered_in_bed, murdered_while_asleep
-	LIST knifeKnowledge = (none), prints_on_knife, joe_seen_prints_on_knife,joe_wants_better_prints, joe_got_better_prints
-	LIST windowKnowledge = (none), steam_on_glass, fingerprints_on_glass, fingerprints_on_glass_match_knife
 
+	LIST BedKnowledge = (none), neatly_made, crumpled_duvet, hastily_remade, body_on_bed, murdered_in_bed, murdered_while_asleep
+	LIST KnifeKnowledge = (none), prints_on_knife, joe_seen_prints_on_knife,joe_wants_better_prints, joe_got_better_prints
+	LIST WindowKnowledge = (none), steam_on_glass, fingerprints_on_glass, fingerprints_on_glass_match_knife
+
+	VAR knowledgeState = ()
 	
 	=== function learn(x) ===
 		// learn this fact
@@ -2749,21 +2750,21 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        * *     [Lift the bedcover]
 	                I lifted back the bedcover. The duvet underneath was crumpled. 
 	                ~ learn(crumpled_duvet)
-	                ~ bedState = covers_shifted
+	                ~ BedState = covers_shifted
 	        * *     (uncover) {learnt(crumpled_duvet)} 
 	                [Remove the cover] 
 	                Careful not to disturb anything beneath, I removed the cover entirely. The duvet below was rumpled. 
 	                Not the work of the maid, who was conscientious to a point. Clearly this had been thrown on in a hurry. 
 	                ~ learn(hastily_remade)
-	                ~ bedState = covers_off
-	        * *     (duvet) {bedState == covers_off} [ Pull back the duvet ] 
+	                ~ BedState = covers_off
+	        * *     (duvet) {BedState == covers_off} [ Pull back the duvet ] 
 	                I pulled back the duvet. Beneath it was a sheet, sticky with blood. 
-	                ~ bedState = stain_visible
+	                ~ BedState = stain_visible
 	                ~ learn(body_on_bed) 
 	                Either the body had been moved here before being dragged to the floor - or this is was where the murder had taken place. 
-	        * *     {!(bedState ? made_up)} [ Remake the bed ]
+	        * *     {!(BedState ? made_up)} [ Remake the bed ]
 	                Carefully, I pulled the bedsheets back into place, trying to make it seem undisturbed. 
-	                ~ bedState = made_up
+	                ~ BedState = made_up
 	        * *     [Test the bed] 
 	                I pushed the bed with spread fingers. It creaked a little, but not so much as to be obnoxious.
 	        * *     (darkunder) [Look under the bed] 
@@ -2781,14 +2782,14 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        * *     [ Reach for it ] 
 	                I fished with one arm under the bed, but whatever it was, it had been kicked far enough back that I couldn't get my fingers on it. 
 	                -> reaching
-	        * *     {inventory ? cane} [Knock it with the cane] 
+	        * *     {Inventory ? cane} [Knock it with the cane] 
 	                -> knock_with_cane
 	                
 	        * *     {reaching > 1 } [ Stand up ] 
 	                I stood up once more, and brushed my coat down. 
 	                -> top 
 	                
-	    *   (knock_with_cane) {reaching && TURNS_SINCE(-> reaching) >= 4 &&  inventory ? cane } [Use the cane to reach under the bed ]
+	    *   (knock_with_cane) {reaching && TURNS_SINCE(-> reaching) >= 4 &&  Inventory ? cane } [Use the cane to reach under the bed ]
 	        Positioning the cane above the carpet, I gave the glinting thing a sharp tap. It slid out from the under the foot of the bed. 
 	        ~ move_to_supporter( knifeState, on_floor ) 
 	        * *     (standup) [Stand up] 
@@ -2802,7 +2803,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        Careful not to touch the handle, I lifted the blade from the carpet. 
 	        ~ get(knife)
 	        
-	    *   {inventory ? knife} [Look at the knife]
+	    *   {Inventory ? knife} [Look at the knife]
 	        The blood was dry enough. Dry enough to show up partial prints on the hilt!
 	        ~ learn(prints_on_knife)
 	        
@@ -2811,11 +2812,11 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        Leaning against the desk was a wooden cane.
 	        ~ bedroomLightState += seen 
 	        - - (deskstate) 
-	        * *     (pickup_cane) {!(inventory ? cane)}    [Pick up the cane ]
+	        * *     (pickup_cane) {Inventory !? cane}    [Pick up the cane ]
 	                ~ get(cane) 
 	                I picked up the wooden cane. It was heavy, and unmarked. 
 	        
-	        * *    {!(bedroomLightState ? on)} [Turn on the lamp] 
+	        * *    { bedroomLightState !? on } [Turn on the lamp] 
 	                -> operate_lamp -> 
 	        * *     [Look at the in-tray ] 
 	                I regarded the in-tray, but there was nothing to be seen. Either the victim's papers were taken, or his line of work had seriously dried up. Or the in-tray was all for show. 
@@ -2827,7 +2828,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	                -> top 
 	        - -     -> deskstate
 	   
-	    *     {(inventory ? cane) && TURNS_SINCE(-> deskstate) <= 2} [Swoosh the cane]    
+	    *     {(Inventory ? cane) && TURNS_SINCE(-> deskstate) <= 2} [Swoosh the cane]    
 	        I was still holding the cane: I gave it an experimental swoosh. It was heavy indeed, though not heavy enough to be used as a bludgeon. 
 	        But it might have been useful in self-defence. Why hadn't the victim reached for it? Knocked it over?
 	       
@@ -2836,31 +2837,31 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        - - (window_opts)
 	        <- compare_prints(-> window_opts)
 	        * *     (downy) [Look down at the brook] 
-	                { glassState ? steamed:
+	                { GlassState ? steamed:
 	                    Through the steamed glass I couldn't see the brook. -> see_prints_on_glass -> window_opts 
 	                }
 	                I watched the little stream rush past for a while. The house probably had damp but otherwise, it told me nothing.
 	        * *     (greasy) [Look at the glass] 
-	                { glassState ? steamed: -> downy }
+	                { GlassState ? steamed: -> downy }
 	                The glass in the window was greasy. No one had cleaned it in a while, inside or out. 
-	        * *     { glassState ? steamed && not see_prints_on_glass && downy && greasy } 
+	        * *     { GlassState ? steamed && not see_prints_on_glass && downy && greasy } 
 	                [ Look at the steam ] 
 	                A cold day outside. Natural my breath should steam. -> see_prints_on_glass -> 
-	        + +     {glassState == steam_gone} [ Breathe on the glass ]
+	        + +     {GlassState ? steam_gone} [ Breathe on the glass ]
 	                I breathed gently on the glass once more. {learnt(fingerprints_on_glass): The fingerprints reappeared. }
-	                ~ glassState = steamed
+	                ~ GlassState = steamed
 	       
 	        + +     [Something else?] 
-	                { window_opts < 2 || learnt(fingerprints_on_glass) || glassState ? steamed:
+	                { window_opts < 2 || learnt(fingerprints_on_glass) || GlassState ? steamed:
 	                    I looked away from the dreary glass. 
-	                    {glassState ? steamed: 
-	                        ~ glassState = steam_gone
+	                    {GlassState ? steamed: 
+	                        ~ GlassState = steam_gone
 	                        <> The steam from my breath faded.
 	                    }
 	                    -> top 
 	                }
 	                I leant back from the glass. My breath had steamed up the pane a little. 
-	               ~ glassState = steamed
+	               ~ GlassState = steamed
 	        - -     -> window_opts
 	    
 	    
@@ -2873,7 +2874,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	= see_prints_on_glass
 	    ~ learn(fingerprints_on_glass)
 	    {But I could see a few fingerprints, as though someone had leant their palm against it.|The fingerprints were quite clear and well-formed.} They faded as I watched.   
-	    ~ glassState = steam_gone 
+	    ~ GlassState = steam_gone 
 	    ->-> 
 	    
 	= compare_prints (-> backto)
@@ -2900,7 +2901,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	    *   {!(bedroomLightState ? on)} [ Turn on lamp ]
 	        -> operate_lamp -> 
 	    
-	    *   { !(bedroomLightState ? on_bed)  && bedState ? stain_visible }
+	    *   { !(bedroomLightState ? on_bed)  && BedState ? stain_visible }
 	        [ Move the light to the bed ] 
 	        ~ move_to_supporter(bedroomLightState, on_bed)
 	        I moved the light over to the bloodstain and peered closely at it. It had soaked deeply into the fibres of the cotton sheet. 
@@ -2923,7 +2924,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	    *   {found == 1} 'Nothing.' 
 	        He shrugged. 'Shame.' 
 	        -> done
-	    *   {inventory ? knife } 'I found the murder weapon.' 
+	    *   { Inventory ? knife } 'I found the murder weapon.' 
 	        'Good going!' Joe replied with a grin. 'We thought the murderer had gotten rid of it. I'll bag that for you now.'
 	        ~ move_to_supporter(knifeState, with_joe)
 	    *   {learnt(prints_on_knife)} { knifeState ? with_joe }
