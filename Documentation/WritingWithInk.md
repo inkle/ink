@@ -1918,6 +1918,7 @@ Note that we don't need a `-> DONE` if the flow ends with options that fail thei
 
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
 
+
 # Part 5: Advanced State Tracking
 
 Games with lots of interaction can get very complex, very quickly and the writer's job is often as much about maintaining continuity as it is about content. 
@@ -1939,7 +1940,7 @@ For instance, we might have:
 
 	LIST kettleState = cold, boiling, recently_boiled
 
-This line defines two things: firstly three new values - cold, boiling and recently_boiled - and secondly, a variable, called "kettleState", to hold these states. 
+This line defines two things: firstly three new values - `cold`, `boiling` and `recently_boiled` - and secondly, a variable, called `kettleState`, to hold these states. 
 
 We can tell the list what value to take: 
 
@@ -1963,7 +1964,7 @@ We can query the value:
 For convenience, we can give a list a value when it's defined using a bracket: 
 
 	LIST kettleState = cold, (boiling), recently_boiled
-	// this kettle starts the game switched on. Edgy, huh?
+	// at the start of the game, this kettle is switched on. Edgy, huh?
 
 ...and if the notation for that looks a bit redundant, there's a reason for that coming up in a few subsections time. 
 
@@ -2293,13 +2294,15 @@ And to be pendantic:
 	
 ### Querying the full list
 	
-Note that LIST_COUNT, LIST_MIN and LIST_MAX are refering to who's in/out of the list, not the full set of *possible* doctors. We can access that using 
+Note that `LIST_COUNT`, `LIST_MIN` and `LIST_MAX` are refering to who's in/out of the list, not the full set of *possible* doctors. We can access that using 
 
 	LIST_ALL(element of list) 
+	
 or 
+
 	LIST_ALL(list containing elements of a list)
 	
-	{LIST_ALL(doctorsInSurgery)} = Adams, Bernard, Cartwright, Denver, Eamonn 
+	{LIST_ALL(doctorsInSurgery)} // Adams, Bernard, Cartwright, Denver, Eamonn 
 	{LIST_COUNT(LIST_ALL(doctorsInSurgery))} // "5"
 	{LIST_MIN(LIST_ALL(Eamonn))} 				// "Adams"
 
@@ -2407,15 +2410,15 @@ To demonstrate a few of these ideas, here's a functional Tower of Hanoi example,
 
 #### Comparing sets
 
-We can compare sets less exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are baed on comparing the numerical value of the elements in the lists being tested.
+We can compare sets less exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
 
 `LIST_A > LIST_B` means "the smallest value in A is bigger than the larger values in B": in other words, if put on a number line, the entirety of A is to the right of the entirety of B. `<` does the same in reverse. 
 
 `LIST_A >= LIST_B` means - take a deep breath now - "the smallest value in A is at least the smallest value in B, and the largest value in B is at least the largest value in A". That is, if drawn on a number line, the entirety of B is either above A or overlaps with it, but none of A extends above B.
 
-Note that LIST_A > LIST_B implies LIST_A != LIST_B, and LIST_A >= LIST_B allows LIST_A == LIST_B but precludes LIST_A < LIST_B, as you might hope. 
+Note that `LIST_A > LIST_B` implies `LIST_A != LIST_B`, and `LIST_A >= LIST_B` allows `LIST_A == LIST_B` but precludes `LIST_A < LIST_B`, as you might hope. 
 
-But! LIST_A >= LIST_B is *not* the same as "LIST_A > LIST_B or LIST_A == LIST_B".
+But! `LIST_A >= LIST_B` is *not* the same as `LIST_A > LIST_B or LIST_A == LIST_B`.
 
 The moral is, don't use these unless you have a clear picture in your mind!
 
