@@ -61,10 +61,9 @@ Text content from the game will appear 'as is' when the engine runs. However, it
 **ink** provides a simple system for tagging lines of content, with hashtags. 
 
 	=== content 
-		A line of normal game-text. #colour it blue
+		A line of normal game-text. # colour it blue
 
-These don't show up in the main text flow, but can be read off by the game and used as you see fit. See RunningYourInk for more information.
-
+These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [RunningYourInk](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
 
  
 ## 2) Choices 
