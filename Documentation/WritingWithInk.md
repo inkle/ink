@@ -2336,26 +2336,6 @@ or
 
 Note that printing a list using `{...}` produces a bare-bones representation of the list; the values as words, delimited by commas.
 
-#### The full list of an empty list
-
-In general, 
-
-	VAR list = ()
-	LIST_ALL(list)
-	
-is ambiguous, and will return the value UNKNOWN. There is one exception, which is when a list is freshly created:
-
-	LIST numbers = one, two, three 
-	
-Here, `numbers` will be empty, but 
-
-	LIST_ALL(numbers) 
-
-will give the full set one, two, three. This is mainly useful for initialising lists as full rather than empty. 
-
-	LIST numbers = one, two, three 
-	~ numbers = LIST_ALL(numbers) 
-	
 #### Advanced: "refreshing" a list's type
 	
 If you really need to, you can make an empty list that knows what type of list it is. 
