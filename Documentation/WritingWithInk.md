@@ -2500,23 +2500,28 @@ The moral is, don't use these unless you have a clear picture in your mind.
 
 A list can be "inverted", which is the equivalent of going through the accommodation in/out name-board and flipping every switch to the opposite of what it was before. 
 
-The operator to invert is `~`. 
-
 	LIST GuardsOnDuty = (Smith), (Jones), Carter, Braithwaite
 	
 	=== function changingOfTheGuard 
-		~ GuardsOnDuty = ~ GuardsOnDuty
-		// yup, that's real active syntax. Read it and weep.
+		~ GuardsOnDuty = LIST_INVERT(GuardsOnDuty)
 
 	
-Note that `~` on an empty list will return a null value, because the compiler doesn't know what to invert. If you need to handle that case, you'll have to do it by hand:
+Note that `LIST_INVERT` on an empty list will return a null value, if the game doesn't have enough context to know what invert. If you need to handle that case, it's safest to do it by hand:
 
 	=== function changingOfTheGuard 
 		{!GuardsOnDuty: // "is GuardsOnDuty empty right now?"
 			~ GuardsOnDuty = LIST_ALL(Smith)
 		- else:
-			~ GuardsOnDuty = ~ GuardsOnDuty
+			~ GuardsOnDuty = LIST_INVERT(GuardsOnDuty)
 		}
+
+#### Footnote
+
+The syntax for inversion was originally `~ list` but we changed it because otherwise the line 
+	
+	~ list = ~ list 
+
+was not only functional, but actually caused list to invert itself, which seemed excessively perverse. 
 
 ### Intersecting sets
 
@@ -2647,8 +2652,7 @@ The queries given above mostly generalise nicely to multi-valued lists
     { mixedList >= (one, a) }   // true 
     { mixedList < (three) }     // false 
     
-	~ temp invertedList = ~ mixedList 
-	{ invertedList }            // one, b, two	
+	{ LIST_INVERT(mixedList) }            // one, b, two	
 
 ## 6) Long example: crime scene
 
