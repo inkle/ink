@@ -342,6 +342,16 @@ namespace Ink.Runtime
                 {singleItem, singleValue}
             };
         }
+
+        public static void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
+        {
+            var oldList = oldValue as ListValue;
+            var newList = newValue as ListValue;
+
+            // When assigning the emtpy list, try to retain any initial origin names
+            if (oldList && newList && newList.value.Count == 0)
+                newList.value.SetInitialOriginNames (oldList.value.originNames);
+        }
     }
         
 }

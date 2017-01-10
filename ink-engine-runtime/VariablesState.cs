@@ -216,10 +216,20 @@ namespace Ink.Runtime
             }
         }
 
+        void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
+        {
+            var oldList = oldValue as ListValue;
+            var newList = newValue as ListValue;
+            if (oldList && newList && newList.value.Count == 0)
+                newList.value.SetInitialOriginNames (oldList.value.originNames);
+        }
+
         void SetGlobal(string variableName, Runtime.Object value)
         {
             Runtime.Object oldValue = null;
             _globalVariables.TryGetValue (variableName, out oldValue);
+
+            ListValue.RetainListOriginsForAssignment (oldValue, value);
 
             _globalVariables [variableName] = value;
 

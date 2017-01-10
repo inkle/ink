@@ -2660,6 +2660,20 @@ LIST list = a, b
         }
 
         [Test ()]
+        public void TestEmptyListOriginAfterAssignment ()
+        {
+            var storyStr =
+                @"
+LIST x = a, b, c
+~ x = ()
+{LIST_ALL(x)}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, b, c\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
         public void TestListSaveLoad ()
         {
             var storyStr =
