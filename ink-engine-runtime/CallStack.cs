@@ -312,6 +312,10 @@ namespace Ink.Runtime
                 throw new StoryException ("Could not find temporary variable to set: " + name);
             }
 
+            Runtime.Object oldValue;
+            if( contextElement.temporaryVariables.TryGetValue(name, out oldValue) )
+                ListValue.RetainListOriginsForAssignment (oldValue, value);
+
             contextElement.temporaryVariables [name] = value;
         }
 
