@@ -54,7 +54,18 @@ and there's the kind used for reminding the author what they need to do, that th
 	
 	TODO: Write this section properly!
 
-		
+### Tags 
+
+Text content from the game will appear 'as is' when the engine runs. However, it can sometimes we useful to mark up a line of content with extra information to tell the game what to do with that content. 
+
+**ink** provides a simple system for tagging lines of content, with hashtags. 
+
+	=== content 
+		A line of normal game-text. #colour it blue
+
+These don't show up in the main text flow, but can be read off by the game and used as you see fit. See RunningYourInk for more information.
+
+
  
 ## 2) Choices 
 
