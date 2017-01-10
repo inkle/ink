@@ -30,14 +30,14 @@ namespace Ink.Runtime
 
         public const string Has      = "?";
         public const string Hasnt    = "!?";
-        public const string Invert   = "~";
         public const string Intersect = "^";
 
         public const string ListMin   = "LIST_MIN";
         public const string ListMax   = "LIST_MAX";
-        public const string All      = "LIST_ALL";
-        public const string Count    = "LIST_COUNT";
+        public const string All       = "LIST_ALL";
+        public const string Count     = "LIST_COUNT";
         public const string ValueOfList = "LIST_VALUE";
+        public const string Invert    = "LIST_INVERT";
 
         public static NativeFunctionCall CallWithName(string functionName)
         {

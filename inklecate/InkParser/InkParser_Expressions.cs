@@ -169,7 +169,7 @@ namespace Ink
                 return divertTarget;
             }
 
-            var prefixOp = (string) OneOf (String ("-"), String("~"), String ("!"));
+            var prefixOp = (string) OneOf (String ("-"), String ("!"));
 
             // Don't parse like the string rules above, in case its actually 
             // a variable that simply starts with "not", e.g. "notable".
