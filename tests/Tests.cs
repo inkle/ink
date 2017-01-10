@@ -2637,7 +2637,7 @@ LIST list = l, m = 5, n
 ~ t = LIST_ALL(t)
 ~ t -= n
 {t}
-~ t = ~t
+~ t = LIST_INVERT(t)
 {t}
 ";
             var story = CompileString (storyStr);

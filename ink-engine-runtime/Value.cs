@@ -63,7 +63,7 @@ namespace Ink.Runtime
             return null;
         }
 
-        public override Object Copy()
+        internal override Object Copy()
         {
             return Create (valueObject);
         }
@@ -268,7 +268,7 @@ namespace Ink.Runtime
             return "VariablePointerValue(" + variableName + ")";
         }
 
-        public override Object Copy()
+        internal override Object Copy()
         {
             return new VariablePointerValue (variableName, contextIndex);
         }
