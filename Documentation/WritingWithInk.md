@@ -2100,9 +2100,29 @@ The values themselves can be printed using the usual `{...}` syntax, but this wi
 	
 	The lecturer's voice becomes {lecturersVolume}.
 
+### Converting values to numbers
+
 The numerical value, if needed, can be got explicitly using the LIST_VALUE function. Note the first value in a list has the value 1, and not the value 0. 
 
 	The lecturer has {LIST_VALUE(deafening) - LIST_VALUE(lecturersVolume)} notches still available to him.
+	
+### Converting numbers to values 
+
+You can go the other way by using the list's name as a function:
+
+	LIST Numbers = one, two, three 
+	VAR score = Numbers(2) // score will be "two"
+
+### Advanced: defining your own numerical values
+
+By default, the values in a list start at 1 and go up by one each time, but you can specify your own values if you need to. 
+
+	LIST primeNumbers = two = 2, three = 3, five = 5
+	
+If you specify a value, but not the next value, ink will assume an increment of 1. So the following is the same:
+
+	LIST primeNumbers = two = 2, three, five = 5
+	
 	
 ## 4) Multivalued Lists	
 
@@ -2124,7 +2144,11 @@ Or maybe some are and some aren't:
 	
 	LIST doctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn 
 	
-Names in brackets are included in the initial state of the list.
+Names in brackets are included in the initial state of the list. 
+
+Note that if you're defining your own values, you can place the brackets around the whole term or just the name:
+
+	LIST primeNumbers = (two = 2), (three) = 3, (five = 5)
 
 #### Assiging multiple values 
 
@@ -2291,8 +2315,12 @@ And to be pendantic:
 
 	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
+
+#### Lists don't need to have multiple entries 
+
+Lists don't *have* to contain multiple values. If you want to use a list as a state-machine, the examples above will all work - set values using `=`, `++` and `--`; test them using `==`, `<`, `<=`, `>` and `>=`. These will all work as expected. 
 	
-### Querying the full list
+### The "full" list
 	
 Note that `LIST_COUNT`, `LIST_MIN` and `LIST_MAX` are refering to who's in/out of the list, not the full set of *possible* doctors. We can access that using 
 
@@ -2308,12 +2336,46 @@ or
 
 Note that printing a list using `{...}` produces a bare-bones representation of the list; the values as words, delimited by commas.
 
+#### The full list of an empty list
 
-### Lists don't need to have multiple entries 
+In general, 
 
-Lists don't *have* to contain multiple values. If you want to use a list as a state-machine, the examples above will all work - set values using `=`, `++` and `--`; test them using `==`, `<`, `<=`, `>` and `>=`. These will all work as expected. 
+	VAR list = ()
+	LIST_ALL(list)
+	
+is ambiguous, and will return the value UNKNOWN. There is one exception, which is when a list is freshly created:
 
-#### Example: Tower of Hanoi 
+	LIST numbers = one, two, three 
+	
+Here, `numbers` will be empty, but 
+
+	LIST_ALL(numbers) 
+
+will give the full set one, two, three. This is mainly useful for initialising lists as full rather than empty. 
+
+	LIST numbers = one, two, three 
+	~ numbers = LIST_ALL(numbers) 
+	
+#### Advanced: "refreshing" a list's type
+	
+If you really need to, you can make an empty list that knows what type of list it is. 
+
+	LIST ValueList = first_value, second_value, third_value
+	VAR myList = ()
+	
+	~ myList = ValueList()
+	
+You'll then be able to do:
+
+	{ LIST_ALL(myList) }
+
+#### Advanced: a portion of the "full" list
+
+You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` function.
+
+	LIST_RANGE(list_name, min_value, max_value) 
+
+### Example: Tower of Hanoi 
 
 To demonstrate a few of these ideas, here's a functional Tower of Hanoi example, written so no one else has to write it.
 
@@ -2408,21 +2470,33 @@ To demonstrate a few of these ideas, here's a functional Tower of Hanoi example,
 	    
 
 
-#### Comparing sets
+## 5) Advanced List Operations
 
-We can compare sets less exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
+The above section covers basic comparisons. There are a few more powerful features as well, but - as anyone familiar with mathematical   sets will know - things begin to get a bit fiddly. So this section comes with an 'advanced' warning.
+
+A lot of the features in this section won't be necessary for most games.
+
+### Comparing lists 
+
+We can compare sets less than exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
+
+#### "Distinctly bigger than"
 
 `LIST_A > LIST_B` means "the smallest value in A is bigger than the larger values in B": in other words, if put on a number line, the entirety of A is to the right of the entirety of B. `<` does the same in reverse. 
+
+#### "Definitely never smaller than"
 
 `LIST_A >= LIST_B` means - take a deep breath now - "the smallest value in A is at least the smallest value in B, and the largest value in B is at least the largest value in A". That is, if drawn on a number line, the entirety of B is either above A or overlaps with it, but none of A extends above B.
 
 Note that `LIST_A > LIST_B` implies `LIST_A != LIST_B`, and `LIST_A >= LIST_B` allows `LIST_A == LIST_B` but precludes `LIST_A < LIST_B`, as you might hope. 
 
-But! `LIST_A >= LIST_B` is *not* the same as `LIST_A > LIST_B or LIST_A == LIST_B`.
+#### Health warning!
 
-The moral is, don't use these unless you have a clear picture in your mind!
+`LIST_A >= LIST_B` is *not* the same as `LIST_A > LIST_B or LIST_A == LIST_B`.
 
-#### Inverting lists 
+The moral is, don't use these unless you have a clear picture in your mind.
+
+### Inverting lists 
 
 A list can be "inverted", which is the equivalent of going through the accommodation in/out name-board and flipping every switch to the opposite of what it was before. 
 
@@ -2444,7 +2518,7 @@ Note that `~` on an empty list will return a null value, because the compiler do
 			~ guardsOnDuty = ~ guardsOnDuty
 		}
 
-#### Intersecting sets
+### Intersecting sets
 
 The `has` or `?` operator is, somewhat more formally, the "are you a subset of me" operator, ⊇, which includes the sets being equal, but which doesn't include if the larger set doesn't entirely contain the smaller set. 
 
@@ -2461,9 +2535,11 @@ The result is a new list, so you can test it:
 	{desiredValues ^ actualValues: The new president has at least one desirable quality.} 
 	
 	{LIST_COUNT(desiredValues ^ actualValues) == 1: Correction, the new president has only one desirable quality. {desiredValues ^ actualValues == self_belief: It's the scary one.}}
-	
 
-## 5) Multi-list Lists	
+
+
+
+## 6) Multi-list Lists	
 
 
 So far, all of our examples have included one large simplification, again - that the values in a list variable have to all be from the same list family. But they don't.
