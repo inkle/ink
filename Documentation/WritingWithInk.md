@@ -3072,6 +3072,7 @@ but as soon as the option being threaded in includes multiple choices, or condit
 
 A game which uses ink as a script rather than a literal output might often generate very large numbers of parallel choices, intended to be filtered by the player via some other in-game interaction - such as walking around an environment. Threads can be useful in these cases simply to divide up choices.
 
+```
 === the_kitchen 
 - (top)
 	<- drawers(-> top)
@@ -3086,6 +3087,6 @@ A game which uses ink as a script rather than a literal output might often gener
 = room_exits
 	// exits; doesn't need a "return point" as if you leave, you go elsewhere
 	...
-
+```
 
 
