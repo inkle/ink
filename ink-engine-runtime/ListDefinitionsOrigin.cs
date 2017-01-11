@@ -29,18 +29,18 @@ namespace Ink.Runtime
 
         public ListValue FindSingleItemListWithName (string name)
         {
-            RawListItem item = RawListItem.Null;
+            InkListItem item = InkListItem.Null;
             ListDefinition list = null;
 
             // Name could be in the form itemName or listName.itemName
             var nameParts = name.Split ('.');
             if (nameParts.Length == 2) {
-                item = new RawListItem (nameParts [0], nameParts [1]);
+                item = new InkListItem (nameParts [0], nameParts [1]);
                 TryGetDefinition (item.originName, out list);
             } else {
                 foreach (var namedList in _lists) {
                     var listWithItem = namedList.Value;
-                    item = new RawListItem (namedList.Key, name);
+                    item = new InkListItem (namedList.Key, name);
                     if (listWithItem.ContainsItem (item)) {
                         list = listWithItem;
                         break;

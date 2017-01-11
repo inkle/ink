@@ -286,13 +286,13 @@ namespace Ink.Runtime
                 // List value
                 if (obj.TryGetValue ("list", out propValue)) {
                     var listContent = (Dictionary<string, object>)propValue;
-                    var rawList = new RawList ();
+                    var rawList = new InkList ();
                     if (obj.TryGetValue ("origins", out propValue)) {
                         var namesAsObjs = (List<object>)propValue;
                         rawList.SetInitialOriginNames (namesAsObjs.Cast<string>().ToList());
                     }
                     foreach (var nameToVal in listContent) {
-                        var item = new RawListItem (nameToVal.Key);
+                        var item = new InkListItem (nameToVal.Key);
                         var val = (int)nameToVal.Value;
                         rawList.Add (item, val);
                     }
@@ -606,7 +606,7 @@ namespace Ink.Runtime
             foreach (ListDefinition def in origin.lists) {
                 var listDefJson = new Dictionary<string, object> ();
                 foreach (var itemToVal in def.items) {
-                    RawListItem item = itemToVal.Key;
+                    InkListItem item = itemToVal.Key;
                     int val = itemToVal.Value;
                     listDefJson [item.itemName] = (object)val;
                 }

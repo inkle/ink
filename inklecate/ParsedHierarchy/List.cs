@@ -15,7 +15,7 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            var runtimeRawList = new Runtime.RawList ();
+            var runtimeRawList = new Runtime.InkList ();
 
             if (itemNameList != null) {
                 foreach (var itemName in itemNameList) {
@@ -39,7 +39,7 @@ namespace Ink.Parsed
                     } else {
                         if (listName == null)
                             listName = ((ListDefinition)listItem.parent).name;
-                        var item = new Runtime.RawListItem (listName, listItem.name);
+                        var item = new Runtime.InkListItem (listName, listItem.name);
                         runtimeRawList.Add (item, listItem.seriesValue);
                     }
                 }

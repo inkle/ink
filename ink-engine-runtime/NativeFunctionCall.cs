@@ -111,7 +111,7 @@ namespace Ink.Runtime
             } else if (coercedType == ValueType.DivertTarget) {
                 return Call<Path> (coercedParams);
             } else if (coercedType == ValueType.List) {
-                return Call<RawList> (coercedParams);
+                return Call<InkList> (coercedParams);
             }
 
             return null;
@@ -181,7 +181,7 @@ namespace Ink.Runtime
 
             // Normal (list • list) operation
             if (v1.valueType == ValueType.List && v2.valueType == ValueType.List)
-                return Call<RawList> (new List<Value> { v1, v2 });
+                return Call<InkList> (new List<Value> { v1, v2 });
 
             throw new StoryException ("Can not call use '" + name + "' operation on " + v1.valueType + " and " + v2.valueType);
         }
@@ -192,7 +192,7 @@ namespace Ink.Runtime
             var intVal = (IntValue)listIntParams [1];
 
 
-            var resultRawList = new RawList ();
+            var resultRawList = new InkList ();
 
             foreach (var listItemWithValue in listVal.value) {
                 var listItem = listItemWithValue.Key;
@@ -213,7 +213,7 @@ namespace Ink.Runtime
                     }
                 }
                 if (itemOrigin != null) {
-                    RawListItem incrementedItem;
+                    InkListItem incrementedItem;
                     if (itemOrigin.TryGetItemWithValue (targetInt, out incrementedItem))
                         resultRawList.Add (incrementedItem, targetInt);
                 }
@@ -258,7 +258,7 @@ namespace Ink.Runtime
                         int intVal = (int)val.valueObject;
                         var list = specialCaseList.value.originOfMaxItem;
 
-                        RawListItem item;
+                        InkListItem item;
                         if (list.TryGetItemWithValue (intVal, out item)) {
                             var castedValue = new ListValue (item, intVal);
                             parametersOut.Add (castedValue);
@@ -429,12 +429,12 @@ namespace Ink.Runtime
             AddOpToNativeFunc (name, 2, ValueType.String, op);
         }
 
-        static void AddListBinaryOp (string name, BinaryOp<RawList> op)
+        static void AddListBinaryOp (string name, BinaryOp<InkList> op)
         {
             AddOpToNativeFunc (name, 2, ValueType.List, op);
         }
 
-        static void AddListUnaryOp (string name, UnaryOp<RawList> op)
+        static void AddListUnaryOp (string name, UnaryOp<InkList> op)
         {
             AddOpToNativeFunc (name, 1, ValueType.List, op);
         }

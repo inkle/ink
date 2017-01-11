@@ -56,8 +56,8 @@ namespace Ink.Runtime
                 return new StringValue ((string)val);
             } else if (val is Path) {
                 return new DivertTargetValue ((Path)val);
-            } else if (val is RawList) {
-                return new ListValue ((RawList)val);
+            } else if (val is InkList) {
+                return new ListValue ((InkList)val);
             }
 
             return null;
@@ -274,7 +274,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal class ListValue : Value<RawList>
+    internal class ListValue : Value<InkList>
     {
         public override ValueType valueType {
             get {
@@ -328,17 +328,17 @@ namespace Ink.Runtime
         }
 
         public ListValue () : base(null) {
-            value = new RawList ();
+            value = new InkList ();
         }
 
-        public ListValue (RawList list) : base (null)
+        public ListValue (InkList list) : base (null)
         {
-            value = new RawList (list);
+            value = new InkList (list);
         }
 
-        public ListValue (RawListItem singleItem, int singleValue) : base (null)
+        public ListValue (InkListItem singleItem, int singleValue) : base (null)
         {
-            value = new RawList {
+            value = new InkList {
                 {singleItem, singleValue}
             };
         }

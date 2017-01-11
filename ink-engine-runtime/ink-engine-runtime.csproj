@@ -69,7 +69,7 @@
     <Compile Include="Tag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ListDefinition.cs" />
-    <Compile Include="RawList.cs" />
+    <Compile Include="InkList.cs" />
     <Compile Include="ListDefinitionsOrigin.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

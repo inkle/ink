@@ -135,7 +135,7 @@ namespace Ink.Parsed
 
                 // Empty list with given origin.
                 else {
-                    var list = new Runtime.RawList ();
+                    var list = new Runtime.InkList ();
                     list.SetInitialOriginName (name);
                     container.AddContent (new Runtime.ListValue (list));
                 }

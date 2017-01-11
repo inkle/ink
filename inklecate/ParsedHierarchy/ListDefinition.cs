@@ -53,10 +53,10 @@ namespace Ink.Parsed
 
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            var initialValues = new Runtime.RawList ();
+            var initialValues = new Runtime.InkList ();
             foreach (var itemDef in itemDefinitions) {
                 if (itemDef.inInitialList) {
-                    var item = new Runtime.RawListItem (this.name, itemDef.name);
+                    var item = new Runtime.InkListItem (this.name, itemDef.name);
                     initialValues [item] = itemDef.seriesValue;
                 }
             }
