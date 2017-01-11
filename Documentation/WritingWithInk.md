@@ -1929,6 +1929,79 @@ Note that we don't need a `-> DONE` if the flow ends with options that fail thei
 
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
 
+
+#### Example: adding the same choice to several places 
+
+Threads can be used to add the same choice into lots of different places. When using them this way, it's normal to pass a divert as a parameter, to tell the story where to go after the choice is done. 
+
+	=== outside_the_house
+	The front step. The house smells. Of murder. And lavender.
+	- (top)
+		<- review_case_notes(-> top) 
+		*	[Go through the front door] 
+			I stepped inside the house.
+			-> the_hallway
+		* 	[Sniff the air]
+			I hate lavender. It makes me think of soap, and soap makes me think about my marriage. 
+			-> top
+
+	=== the_hallway
+	The hallway. Front door open to the street. Little bureau.
+	- (top)
+		<- review_case_notes(-> top) 
+		*	[Go through the front door] 
+			I stepped out into the cool sunshine. 
+			-> outside_the_house
+		* 	[Open the bureau] 
+			Keys. More keys. Even more keys. How many locks do these people need?
+			-> top
+
+	=== review_case_notes(-> go_back_to) 
+	+	{not done || TURNS_SINCE(-> done) > 10} 
+		[Review my case notes] 
+		// the conditional ensures you don't get the option to check repeatedly
+	 	{I|Once again, I} flicked through the notes I'd made so far. Still not obvious suspects.
+	- 	(done) -> go_back_to
+
+Note this is different than a tunnel, which runs the same block of content but doesn't give a player a choice. So a layout like:
+
+	<- childhood_memories(-> next) 
+	*	[Look out of the window] 
+	 	I daydreamed as we rolled along... 
+	 - (next) Then the whistle blew...
+
+might do exactly the same thing as:
+	
+	*	[Remember my childhood] 
+		-> think_back -> 
+	*	[Look out of the window] 
+		I daydreamed as we rolled along...
+	- 	(next) Then the whistle blew... 	
+
+but as soon as the option being threaded in includes multiple choices, or conditional logic on choices (or any text content, of course!), the thread version becomes more practical. 
+
+
+#### Example: organisation of wide choice points 
+
+A game which uses ink as a script rather than a literal output might often generate very large numbers of parallel choices, intended to be filtered by the player via some other in-game interaction - such as walking around an environment. Threads can be useful in these cases simply to divide up choices.
+
+```
+=== the_kitchen 
+- (top)
+	<- drawers(-> top)
+	<- cupboards(-> top) 
+	<- room_exits
+= drawers (-> goback)
+	// choices about the drawers...
+	...
+= cupboards(-> goback) 
+	// choices about cupboards
+	...
+= room_exits
+	// exits; doesn't need a "return point" as if you leave, you go elsewhere
+	...
+```
+
 # Part 5: Advanced State Tracking
 
 Games with lots of interaction can get very complex, very quickly and the writer's job is often as much about maintaining continuity as it is about content. 
@@ -3017,75 +3090,3 @@ Example:
 	*	{ PhoneState ? (on, charged) } [ Call my mother ]
 		
 	
-#### Example: adding the same choice to several places 
-
-Threads can be used to add the same choice into lots of different places. When using them this way, it's normal to pass a divert as a parameter, to tell the story where to go after the choice is done. 
-
-	=== outside_the_house
-	The front step. The house smells. Of murder. And lavender.
-	- (top)
-		<- review_case_notes(-> top) 
-		*	[Go through the front door] 
-			I stepped inside the house.
-			-> the_hallway
-		* 	[Sniff the air]
-			I hate lavender. It makes me think of soap, and soap makes me think about my marriage. 
-			-> top
-
-	=== the_hallway
-	The hallway. Front door open to the street. Little bureau.
-	- (top)
-		<- review_case_notes(-> top) 
-		*	[Go through the front door] 
-			I stepped out into the cool sunshine. 
-			-> outside_the_house
-		* 	[Open the bureau] 
-			Keys. More keys. Even more keys. How many locks do these people need?
-			-> top
-
-	=== review_case_notes(-> go_back_to) 
-	+	{not done || TURNS_SINCE(-> done) > 10} 
-		[Review my case notes] 
-		// the conditional ensures you don't get the option to check repeatedly
-	 	{I|Once again, I} flicked through the notes I'd made so far. Still not obvious suspects.
-	- 	(done) -> go_back_to
-
-Note this is different than a tunnel, which runs the same block of content but doesn't give a player a choice. So a layout like:
-
-	<- childhood_memories(-> next) 
-	*	[Look out of the window] 
-	 	I daydreamed as we rolled along... 
-	 - (next) Then the whistle blew...
-
-might do exactly the same thing as:
-	
-	*	[Remember my childhood] 
-		-> think_back -> 
-	*	[Look out of the window] 
-		I daydreamed as we rolled along...
-	- 	(next) Then the whistle blew... 	
-
-but as soon as the option being threaded in includes multiple choices, or conditional logic on choices (or any text content, of course!), the thread version becomes more practical. 
-
-
-#### Example: organisation of wide choice points 
-
-A game which uses ink as a script rather than a literal output might often generate very large numbers of parallel choices, intended to be filtered by the player via some other in-game interaction - such as walking around an environment. Threads can be useful in these cases simply to divide up choices.
-
-=== the_kitchen 
-- (top)
-	<- drawers(-> top)
-	<- cupboards(-> top) 
-	<- room_exits
-= drawers (-> goback)
-	// choices about the drawers...
-	...
-= cupboards(-> goback) 
-	// choices about cupboards
-	...
-= room_exits
-	// exits; doesn't need a "return point" as if you leave, you go elsewhere
-	...
-
-
-
