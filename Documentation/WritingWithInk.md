@@ -2113,7 +2113,7 @@ or even...
 	<- cook_with("microwave", microwaveState)
 	- (done) 
 			
-Note that the "heatedWaterStates" list is still available as well, and can have be tested, and take a value.
+Note that the "heatedWaterStates" list is still available as well, and can still be tested, and take a value.
 
 #### List values can share names
 
@@ -2128,7 +2128,7 @@ Reusing lists brings with it ambiguity. If we have:
 
 We resolve these using a `.` syntax similar to that used for knots and stitches. 
 
-	VAR moods = colours.blue 
+	VAR status = colours.blue 
 
 ...and the compiler will issue an error until you specify. 
 
@@ -2250,9 +2250,9 @@ We can assign the empty list to clear a list out:
 List entries can be added and removed, singly or collectively. 
 
 	~ DoctorsInSurgery = doctorsSurgery + Adams 	~ DoctorsInSurgery += Adams  // this is the same as the above
-	~ DoctorsInSurgery -= Eamon 
-	~ DoctorsInSurgery += (Eamon, Denver) 
-	~ DoctorsInSurgery -= (Adams, Eamon, Denver)
+	~ DoctorsInSurgery -= Eamonn 
+	~ DoctorsInSurgery += (Eamonn, Denver) 
+	~ DoctorsInSurgery -= (Adams, Eamonn, Denver)
 
 Trying to add an entry that's already in the list does nothing. Trying to remove an entry that's not there also does nothing. Neither produces an error, and a list can never contain duplicate entries. 
 
@@ -2283,7 +2283,7 @@ So one might say:
 		Dr Adams and Dr Bernard are having a loud argument in one corner.
 	}
 	
-If Dr Eamon is in as well, the two won't argue, as the lists being compared won't be equal - DoctorsInSurgery will have an Eamon that the list (Adams, Bernard) doesn't have.
+If Dr Eamonn is in as well, the two won't argue, as the lists being compared won't be equal - DoctorsInSurgery will have an Eamonn that the list (Adams, Bernard) doesn't have.
 
 Not equals works as expected:
 
@@ -2301,8 +2301,8 @@ What if we just want to simply ask if Adams and Bernard are present? For that we
 	
 And `?` can apply to single values too: 
 
-	{ DoctorsInSurgery has Eamon:
-		Dr Eamon is polishing his glasses.
+	{ DoctorsInSurgery has Eamonn:
+		Dr Eamonn is polishing his glasses.
 	}
 
 We can also negate it, with `hasnt` or `!?` (not `?`). Note this starts to get a little complicated as
@@ -2363,9 +2363,9 @@ This produces:
 	
 	> Time passes...
 	
-	Dr Adams leaves for lunch. Dr Cartwright arrives in a fluster. Dr Eamon arrives in a fluster.
+	Dr Adams leaves for lunch. Dr Cartwright arrives in a fluster. Dr Eamonn arrives in a fluster.
 	
-	In the surgery today are Cartwright, Denver, Eamon.
+	In the surgery today are Cartwright, Denver, Eamonn.
 	 
 #### Advanced: nicer list printing
 
@@ -2541,7 +2541,7 @@ A lot of the features in this section won't be necessary for most games.
 
 ### Comparing lists 
 
-We can compare sets less than exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
+We can compare lists less than exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
 
 #### "Distinctly bigger than"
 
@@ -2586,11 +2586,11 @@ The syntax for inversion was originally `~ list` but we changed it because other
 
 was not only functional, but actually caused list to invert itself, which seemed excessively perverse. 
 
-### Intersecting sets
+### Intersecting lists
 
 The `has` or `?` operator is, somewhat more formally, the "are you a subset of me" operator, ⊇, which includes the sets being equal, but which doesn't include if the larger set doesn't entirely contain the smaller set. 
 
-To test for "some overlap" between sets, we use the overlap operator, `^`, to get the intersection of two lists. 
+To test for "some overlap" between lists, we use the overlap operator, `^`, to get the *intersection*. 
 
 	LIST CoreValues = strength, courage, compassion, greed, nepotism, self_belief, delusions_of_godhood
 	VAR desiredValues = (strength, courage, compassion, self_belief )
