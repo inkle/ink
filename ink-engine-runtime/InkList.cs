@@ -123,6 +123,75 @@ namespace Ink.Runtime
             Add (singleElement.Key, singleElement.Value);
         }
 
+        /// <summary>
+        /// Adds the given item to the ink list. Note that the item must come from a list definition that
+        /// is already "known" to this list, so that the item's value can be looked up. By "known", we mean
+        /// that it already has items in it from that source, or it did at one point - it can't be a 
+        /// completely fresh empty list, or a list that only contains items from a different list definition.
+        /// </summary>
+        public void AddItem (InkListItem item)
+        {
+            if (item.originName == null) {
+                AddItem (item.itemName);
+                return;
+            }
+            
+            foreach (var origin in origins) {
+                if (origin.name == item.originName) {
+                    int intVal;
+                    if (origin.TryGetValueForItem (item, out intVal)) {
+                        this [item] = intVal;
+                        return;
+                    } else {
+                        throw new System.Exception ("Could not add the item " + item + " to this list because it doesn't exist in the original list definition in ink.");
+                    }
+                }
+            }
+
+            throw new System.Exception ("Failed to add item to list because the item was from a new list definition that wasn't previously known to this list. Only items from previously known lists can be used, so that the int value can be found.");
+        }
+
+        /// <summary>
+        /// Adds the given item to the ink list, attempting to find the origin list definition that it belongs to.
+        /// The item must therefore come from a list definition that is already "known" to this list, so that the
+        /// item's value can be looked up. By "known", we mean that it already has items in it from that source, or
+        /// it did at one point - it can't be a completely fresh empty list, or a list that only contains items from
+        /// a different list definition.
+        /// </summary>
+        public void AddItem (string itemName)
+        {
+            ListDefinition foundListDef = null;
+
+            foreach (var origin in origins) {
+                if (origin.ContainsItemWithName (itemName)) {
+                    if (foundListDef != null) {
+                        throw new System.Exception ("Could not add the item " + itemName + " to this list because it could come from either " + origin.name + " or " + foundListDef.name);
+                    } else {
+                        foundListDef = origin;
+                    }
+                }
+            }
+
+            if (foundListDef == null)
+                throw new System.Exception ("Could not add the item " + itemName + " to this list because it isn't known to any list definitions previously associated with this list.");
+
+            var item = new InkListItem (foundListDef.name, itemName);
+            var itemVal = foundListDef.ValueForItem(item);
+            this [item] = itemVal;
+        }
+
+        /// <summary>
+        /// Returns true if this ink list contains an item with the given short name
+        /// (ignoring the original list where it was defined).
+        /// </summary>
+        public bool ContainsItemNamed (string itemName)
+        {
+            foreach (var itemWithValue in this) {
+                if (itemWithValue.Key.itemName == itemName) return true;
+            }
+            return false;
+        }
+
         // Story has to set this so that the value knows its origin,
         // necessary for certain operations (e.g. interacting with ints).
         // Only the story has access to the full set of lists, so that

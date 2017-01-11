@@ -36,6 +36,11 @@ namespace Ink.Runtime
             return _itemNameToValues.ContainsKey (item.itemName);
         }
 
+        public bool ContainsItemWithName (string itemName)
+        {
+            return _itemNameToValues.ContainsKey (itemName);
+        }
+
         public bool TryGetItemWithValue (int val, out InkListItem item)
         {
             foreach (var namedItem in _itemNameToValues) {
@@ -47,6 +52,11 @@ namespace Ink.Runtime
 
             item = InkListItem.Null;
             return false;
+        }
+
+        public bool TryGetValueForItem (InkListItem item, out int intVal)
+        {
+            return _itemNameToValues.TryGetValue (item.itemName, out intVal);
         }
 
         public ListValue ListRange (int min, int max)
