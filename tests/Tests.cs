@@ -2753,6 +2753,20 @@ VAR t = ()
             Assert.IsTrue (HadError ("Expected target for new thread"));
         }
 
+        [Test ()]
+        public void TestAuthorWarningsInsideContentListBug ()
+        {
+            var storyStr =
+                @"
+{ once:
+- a
+TODO: b
+}
+";
+            CompileString (storyStr, testingErrors:true);
+            Assert.IsFalse (HadError ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

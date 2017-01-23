@@ -51,7 +51,11 @@ namespace Ink.Parsed
             var container = new Runtime.Container ();
             if (content != null) {
                 foreach (var obj in content) {
-                    container.AddContent (obj.runtimeObject);
+                    var contentObjRuntime = obj.runtimeObject;
+
+                    // Some objects (e.g. author warnings) don't generate runtime objects
+                    if( contentObjRuntime )
+                        container.AddContent (contentObjRuntime);
                 }
             }
 
