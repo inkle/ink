@@ -2412,6 +2412,46 @@ x = {x}, y = {y}
         }
 
         [Test ()]
+        public void TestEvaluatingFunctionVariableStateBug ()
+        {
+            var storyStr =
+                @"
+Start
+-> tunnel ->
+End
+-> END
+
+== tunnel ==
+In tunnel.
+->->
+
+=== function function_to_evaluate() ===
+    { zero_equals_(1):
+        ~ return ""WRONG""
+    - else:
+        ~ return ""RIGHT""
+    }
+
+=== function zero_equals_(k) ===
+    ~ do_nothing(0)
+    ~ return  (0 == k)
+
+=== function do_nothing(k)
+    ~ return 0
+";
+
+            Story story = CompileString (storyStr);
+
+            Assert.AreEqual ("Start\n", story.Continue ());
+            Assert.AreEqual ("In tunnel.\n", story.Continue ());
+
+            var funcResult = story.EvaluateFunction ("function_to_evaluate");
+            Assert.AreEqual ("RIGHT", funcResult);
+
+            Assert.AreEqual ("End\n", story.Continue ());
+        }
+
+        [Test ()]
         public void TestDoneStopsThread ()
         {
             var storyStr =

@@ -39,6 +39,17 @@ namespace Ink.Runtime
         }
         bool _batchObservingVariableChanges;
 
+        // Allow StoryState to change the current callstack, e.g. for
+        // temporary function evaluation.
+        internal CallStack callStack {
+            get {
+                return _callStack;
+            }
+            set {
+                _callStack = value;
+            }
+        }
+
         /// <summary>
         /// Get or set the value of a named global ink variable.
         /// The types available are the standard ink types. Certain

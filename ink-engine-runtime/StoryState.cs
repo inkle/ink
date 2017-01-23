@@ -810,6 +810,10 @@ namespace Ink.Runtime
             callStack = new CallStack (funcContainer);
             callStack.currentElement.type = PushPopType.Function;
 
+            // Change the callstack the variableState is looking at to be
+            // this temporary function evaluation one. We'll restore it afterwards
+            variablesState.callStack = callStack;
+
             // By setting ourselves in external function evaluation mode,
             // we're saying it's okay to end the flow without a Done or End,
             // but with a ~ return instead.
@@ -856,6 +860,9 @@ namespace Ink.Runtime
             callStack = _originalCallstack;
             _originalCallstack = null;
             _originalEvaluationStackHeight = 0;
+
+            // Restore the callstack that the variablesState uses
+            variablesState.callStack = callStack;
 
             // What did we get back?
             if (returnedObj) {
