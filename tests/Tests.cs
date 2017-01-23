@@ -2746,6 +2746,13 @@ VAR t = ()
             Assert.AreEqual ("a, x, c, z\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestEmptyThreadError ()
+        {
+            CompileStringWithoutRuntime ("<-", testingErrors:true);
+            Assert.IsTrue (HadError ("Expected target for new thread"));
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
