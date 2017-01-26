@@ -43,10 +43,13 @@ namespace Ink
             bool isFunc = identifier == "function";
             if (isFunc) {
                 Expect (Whitespace, "whitespace after the 'function' keyword");
-                knotName = Expect (Identifier, "the name of the function") as string;
+                knotName = Parse(Identifier);
             } else {
                 knotName = identifier;
             }
+
+            if (knotName == null)
+                Error ("Expected the name of the " + (isFunc ? "function" : "knot"));
 
             Whitespace ();
 
