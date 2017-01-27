@@ -2767,6 +2767,27 @@ TODO: b
             Assert.IsFalse (HadError ());
         }
 
+        [Test ()]
+        public void TestWeaveWithinSequence ()
+        {
+            var storyStr =
+                @"
+{ shuffle:
+-   * choice
+    nextline
+}
+";
+            var story = CompileString (storyStr);
+
+            story.Continue ();
+
+            Assert.IsTrue (story.currentChoices.Count == 1);
+
+            story.ChooseChoiceIndex (0);
+
+            Assert.AreEqual ("choice\nnextline\n", story.ContinueMaximally ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

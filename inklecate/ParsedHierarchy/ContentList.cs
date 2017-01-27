@@ -68,9 +68,9 @@ namespace Ink.Parsed
         public override string ToString ()
         {
             var sb = new StringBuilder ();
-            foreach (var c in content) {
-                sb.Append (c.ToString ());
-            }
+            sb.Append ("ContentList(");
+            sb.Append(string.Join (", ", content));
+            sb.Append (")");
             return sb.ToString ();
         }
     }
