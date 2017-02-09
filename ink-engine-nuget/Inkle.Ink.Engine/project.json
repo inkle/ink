@@ -2,6 +2,13 @@
   "version": "0.4",
   "title": "Ink Engine",
   "dependencies": {
+    "System.Collections": "4.3.0",
+    "System.Diagnostics.Debug": "4.3.0",
+    "System.Globalization": "4.3.0",
+    "System.IO": "4.3.0",
+    "System.Linq": "4.3.0",
+    "System.Runtime": "4.3.0",
+    "System.Runtime.Extensions": "4.3.0"
   },
   "buildOptions": {
     "compile": {
@@ -23,9 +30,7 @@
   },
   "description": "Runtime engine for the ink scripting language",
   "frameworks": {
-    "net35": {
+    "netstandard1.0": {
     },
-    "net451": {
-    }        
   }
 }
