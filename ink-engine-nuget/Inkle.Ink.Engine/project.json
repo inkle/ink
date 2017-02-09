@@ -1,5 +1,5 @@
 ﻿{
-  "version": "0.4",
+  "version": "0.7",
   "title": "Ink Engine",
   "dependencies": {
     "System.Collections": "4.3.0",
