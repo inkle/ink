@@ -1233,7 +1233,7 @@ assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
 
 ## 3) Conditional blocks (if/else)
 
-We've seen conditionals used to control options and story content; **ink** also provides an equivalent of the normal if/else if/else structure. 
+We've seen conditionals used to control options and story content; **ink** also provides an equivalent of the normal if/else-if/else structure. 
 
 ### A simple 'if'
 
