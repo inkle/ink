@@ -133,7 +133,7 @@ namespace Ink.Runtime
             } else if (formatFromFile < inkVersionMinimumCompatible) {
                 throw new System.Exception ("Version of ink used to build story is too old to be loaded by this verison of the engine");
             } else if (formatFromFile != inkVersionCurrent) {
-                Console.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
+                System.Diagnostics.Debug.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
             }
                 
             var rootToken = rootObject ["root"];

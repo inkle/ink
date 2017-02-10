@@ -276,7 +276,7 @@ namespace Ink.Runtime
         /// Object representation of full JSON state. Usually you should use
         /// LoadJson and ToJson since they serialise directly to string for you.
         /// But it may be useful to get the object representation so that you
-        //// can integrate it into your own serialisation system.
+        /// can integrate it into your own serialisation system.
         /// </summary>
         public Dictionary<string, object> jsonToken
         {
