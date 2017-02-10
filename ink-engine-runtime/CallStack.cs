@@ -236,8 +236,8 @@ namespace Ink.Runtime
         public void PushThread()
         {
             var newThread = currentThread.Copy ();
-            newThread.threadIndex = _threadCounter;
             _threadCounter++;
+            newThread.threadIndex = _threadCounter;
             _threads.Add (newThread);
         }
 
