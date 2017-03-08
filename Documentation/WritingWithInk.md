@@ -2545,11 +2545,11 @@ We can compare lists less than exactly using `>`, `<`, `>=` and `<=`. Be warned!
 
 #### "Distinctly bigger than"
 
-`LIST_A > LIST_B` means "the smallest value in A is bigger than the larger values in B": in other words, if put on a number line, the entirety of A is to the right of the entirety of B. `<` does the same in reverse. 
+`LIST_A > LIST_B` means "the smallest value in A is bigger than the largest values in B": in other words, if put on a number line, the entirety of A is to the right of the entirety of B. `<` does the same in reverse. 
 
 #### "Definitely never smaller than"
 
-`LIST_A >= LIST_B` means - take a deep breath now - "the smallest value in A is at least the smallest value in B, and the largest value in B is at least the largest value in A". That is, if drawn on a number line, the entirety of B is either above A or overlaps with it, but none of A extends above B.
+`LIST_A >= LIST_B` means - take a deep breath now - "the smallest value in A is at least the smallest value in B, and the largest value in A is at least the largest value in B". That is, if drawn on a number line, the entirety of A is either above B or overlaps with it, but B does not extend higher than A.
 
 Note that `LIST_A > LIST_B` implies `LIST_A != LIST_B`, and `LIST_A >= LIST_B` allows `LIST_A == LIST_B` but precludes `LIST_A < LIST_B`, as you might hope. 
 
