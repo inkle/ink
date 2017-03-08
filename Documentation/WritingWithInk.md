@@ -1233,7 +1233,7 @@ assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
 
 ## 3) Conditional blocks (if/else)
 
-We've seen conditionals used to control options and story content; **ink** also provides an equivalent of the normal if/else if/else structure. 
+We've seen conditionals used to control options and story content; **ink** also provides an equivalent of the normal if/else-if/else structure. 
 
 ### A simple 'if'
 
@@ -2194,7 +2194,8 @@ The numerical value, if needed, can be got explicitly using the LIST_VALUE funct
 You can go the other way by using the list's name as a function:
 
 	LIST Numbers = one, two, three 
-	VAR score = Numbers(2) // score will be "two"
+	VAR score = one
+	~ score = Numbers(2) // score will be "two"
 
 ### Advanced: defining your own numerical values
 

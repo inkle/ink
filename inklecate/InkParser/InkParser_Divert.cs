@@ -119,7 +119,7 @@ namespace Ink
 
             Whitespace ();
 
-            var divert = Expect(DivertIdentifierWithArguments, "Expected target for new thread") as Divert;
+            var divert = Expect(DivertIdentifierWithArguments, "target for new thread", () => new Divert(null)) as Divert;
             divert.isThread = true;
 
             return divert;
