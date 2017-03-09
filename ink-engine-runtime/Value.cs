@@ -349,7 +349,7 @@ namespace Ink.Runtime
             var newList = newValue as ListValue;
 
             // When assigning the emtpy list, try to retain any initial origin names
-            if (oldList && newList && newList.value.Count == 0)
+            if (oldList && newList && newList.value.Count == 0 && oldList.value.originNames != null)
                 newList.value.SetInitialOriginNames (oldList.value.originNames);
         }
     }
