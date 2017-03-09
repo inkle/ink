@@ -161,6 +161,15 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
+            // If we aren't using the proxy divert after all (e.g. if 
+            // it's a native function call), but we still have arguments,
+            // we need to make sure they get resolved since the proxy divert
+            // is no longer in the content array.
+            if (!content.Contains(_proxyDivert) && arguments != null) {
+                foreach (var arg in arguments)
+                    arg.ResolveReferences (context);
+            }
+
             if( _turnCountDivertTarget ) {
                 var divert = _turnCountDivertTarget.divert;
                 var attemptingTurnCountOfVariableTarget = divert.runtimeDivert.variableDivertName != null;
