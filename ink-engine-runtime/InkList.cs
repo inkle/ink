@@ -238,7 +238,10 @@ namespace Ink.Runtime
 
         internal void SetInitialOriginNames (List<string> initialOriginNames)
         {
-            _originNames = new List<string>(initialOriginNames);
+            if (initialOriginNames == null)
+                _originNames = null;
+            else
+                _originNames = new List<string>(initialOriginNames);
         }
 
         /// <summary>
