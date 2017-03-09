@@ -810,20 +810,22 @@ namespace Ink.Runtime
             callStack = new CallStack (funcContainer);
             callStack.currentElement.type = PushPopType.Function;
 
-            // Change the callstack the variableState is looking at to be
-            // this temporary function evaluation one. We'll restore it afterwards
-            variablesState.callStack = callStack;
-
             // By setting ourselves in external function evaluation mode,
             // we're saying it's okay to end the flow without a Done or End,
             // but with a ~ return instead.
             _isExternalFunctionEvaluation = true;
 
+            PassArgumentsToEvaluationStack (arguments);
+        }
+
+        internal void PassArgumentsToEvaluationStack (params object [] arguments)
+        {
+
             // Pass arguments onto the evaluation stack
             if (arguments != null) {
                 for (int i = 0; i < arguments.Length; i++) {
                     if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string)) {
-                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
+                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string");
                     }
 
                     PushEvaluationStack (Runtime.Value.Create (arguments [i]));

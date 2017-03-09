@@ -1099,14 +1099,17 @@ namespace Ink.Runtime
         /// 
         /// </summary>
         /// <param name="path">A dot-separted path string, as specified above.</param>
-        public void ChoosePathString(string path)
+        /// <param name="arguments">Optional set of arguments to pass, if path is to a knot that takes them.</param>
+        public void ChoosePathString (string path, params object [] arguments)
         {
-            ChoosePath (new Path(path));
+            state.PassArgumentsToEvaluationStack (arguments);
+            ChoosePath (new Path (path));
         }
+
             
-        internal void ChoosePath(Path path)
+        internal void ChoosePath(Path p)
         {
-            state.SetChosenPath (path);
+            state.SetChosenPath (p);
 
             // Take a note of newly visited containers for read counts etc
             VisitChangedContainersDueToDivert ();
