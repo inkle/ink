@@ -117,6 +117,20 @@ namespace Ink.Runtime
         /// </summary>
         public InkList (InkList otherList) : base (otherList) { _originNames = otherList.originNames; }
 
+        /// <summary>
+        /// Create a new empty ink list that's intended to hold items from a particular origin
+        /// list definition. The origin Story is needed in order to be able to look up that definition.
+        /// </summary>
+        public InkList (string singleOriginListName, Story originStory)
+        {
+            SetInitialOriginName (singleOriginListName);
+
+            ListDefinition def;
+            if (originStory.listDefinitions.TryGetDefinition (singleOriginListName, out def))
+                origins = new List<ListDefinition> { def };
+            else
+                throw new System.Exception ("InkList origin could not be found in story when constructing new list: " + singleOriginListName);
+        }
 
         internal InkList (KeyValuePair<InkListItem, int> singleElement)
         {
