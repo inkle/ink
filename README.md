@@ -55,7 +55,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 * Click it, and you should get an Editor window that lets you play (preview) your story.
 * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
-## Using inklecate on the command line
+## Using inklecate on the command line
 
  * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
@@ -99,7 +99,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
     ...
 
 
-## Building
+## Building
 
 ### Requirements
 
