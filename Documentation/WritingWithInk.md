@@ -1378,11 +1378,11 @@ Sometimes, a global variable is unwieldy. **ink** provides temporary variables f
 			That night I was colder than I have ever been.
 		}
 
-The value in a temporary variable is thrown away after the story leaves the knot in which it was defined. 
-
-Note that temporary variables MUST be defined within a knot and must be defined at the top of the knot or assigning to them will not behave correctly.
+The value in a temporary variable is thrown away after the story leaves the knot in which it was defined.
 
 TODO: check this is actually true
+
+Note that temporary variables MUST be defined within a knot and must be defined at the top of the knot or assigning to them will not behave correctly.
 
 ### Knots and stitches can take parameters
 
