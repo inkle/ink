@@ -2788,6 +2788,22 @@ TODO: b
             Assert.AreEqual ("choice\nnextline\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestWeavePointNamingCollision ()
+        {
+        	var storyStr =
+        		@"
+-(opts)
+opts1
+-(opts)
+opts1
+-> END
+";
+        	CompileString (storyStr, countAllVisits: false, testingErrors:true);
+
+            Assert.IsTrue(HadError ("with the same label"));
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
@@ -2800,10 +2816,11 @@ TODO: b
             parsedStory.countAllVisits = countAllVisits;
 
             Story story = parsedStory.ExportRuntime(TestErrorHandler);
-            Assert.AreNotEqual(null, story);
+            if( !testingErrors )
+                Assert.AreNotEqual(null, story);
 
             // Convert to json and back again
-            if (_mode == TestMode.JsonRoundTrip)
+            if (_mode == TestMode.JsonRoundTrip && story != null)
             {
                 var jsonStr = story.ToJsonString();
                 story = new Story(jsonStr);

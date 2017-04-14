@@ -148,6 +148,20 @@ namespace Ink.Parsed
 
             variableDeclarations [varDecl.variableName] = varDecl;
         }
+
+        public void ResolveWeavePointNaming ()
+        {
+            // Find all weave points and organise them by name ready for
+            // diverting. Also detect naming collisions.
+            if( _rootWeave )
+                _rootWeave.ResolveWeavePointNaming ();
+
+            if (_subFlowsByName != null) {
+                foreach (var namedSubFlow in _subFlowsByName) {
+                    namedSubFlow.Value.ResolveWeavePointNaming ();
+                }
+            }
+        }
             
         public override Runtime.Object GenerateRuntimeObject ()
         {

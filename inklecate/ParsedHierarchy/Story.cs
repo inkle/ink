@@ -138,6 +138,12 @@ namespace Ink.Parsed
 
             externals = new Dictionary<string, ExternalDeclaration> ();
 
+            // Resolution of weave point names has to come first, before any runtime code generation
+            // since names have to be ready before diverts start getting created.
+            // (It used to be done in the constructor for a weave, but didn't allow us to generate
+            // errors when name resolution failed.)
+            ResolveWeavePointNaming ();
+
 			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 
