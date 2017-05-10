@@ -291,14 +291,17 @@ namespace Ink.Runtime
                 contextIndex = currentElementIndex+1;
             
             Runtime.Object varValue = null;
+            while (contextIndex > 0)
+            {
+                var contextElement = callStack[contextIndex - 1];
 
-            var contextElement = callStack [contextIndex-1];
-
-            if (contextElement.temporaryVariables.TryGetValue (name, out varValue)) {
-                return varValue;
-            } else {
-                return null;
+                if (contextElement.temporaryVariables.TryGetValue(name, out varValue))
+                {
+                    return varValue;
+                }
+                contextIndex--;
             }
+            return null;
         }
             
         public void SetTemporaryVariable(string name, Runtime.Object value, bool declareNew, int contextIndex = -1)
