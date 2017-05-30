@@ -1,4 +1,4 @@
-﻿using Ink.Parsed;
+using Ink.Parsed;
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ namespace Ink
 {
     internal partial class InkParser
     {
-		internal const string EnableCharacterRangeStatement = "ENABLE CHRANGE";
+		internal const string EnableCharacterRangeStatement = "ALLOW IDENTIFIER";
 
 		internal static readonly CharacterRange LatinBasic = 
 			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'));
@@ -87,6 +87,7 @@ namespace Ink
 			{ "Hebrew", 				Hebrew },
 			// and so on
 		};
-    }
+		}
 }
+
 

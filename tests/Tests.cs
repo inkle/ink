@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿using System;
 using Ink;
 using Ink.Runtime;
@@ -2622,7 +2623,7 @@ Now in B.
 
 
 				var storyStr = string.Format(@"
-ENABLE CHRANGE {0}
+ALLOW IDENTIFIER {0}
 
 CONST {1} = 3.1415
 CONST {2} = ""World""
