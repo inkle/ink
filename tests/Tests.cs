@@ -2621,16 +2621,19 @@ Now in B.
 				var divertIdentifier = GenerateIdentifierFromCharacterRange (range, "divert");
 
 
-					var storyStr = string.Format(@"
+				var storyStr = string.Format(@"
 ENABLE CHRANGE {0}
 
 CONST {1} = 3.1415
 CONST {2} = ""World""
 CONST {3} = 3
-#CONST {4} = -> {5}
+CONST d = -> XX
+CONST {4} = -> {5}
 
-#== {5} ==
-#-> DONE
+== XX ==
+-> END
+== {5} ==
+-> END
 ", name, piIdentifier, xIdentifier, yIdentifier, zIdentifier, divertIdentifier);
 
 	            var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);

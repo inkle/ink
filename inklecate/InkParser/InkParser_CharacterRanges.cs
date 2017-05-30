@@ -45,8 +45,9 @@ namespace Ink
 				Warning ("Specified character range \"{0}\" does not exist. Some identifiers may not be parseable.", charRange);
 			}
 
-			// We do not care now if the range is added multiple times, hash set will take care for us of duplicates
-			// Thus may have to change later if we need to disable character ranges, but this currently does not make much sense.
+            // We do not care if the range is activated multiple times, the hash set will take care of duplicates for us.
+            // This may need to change later if we decide to disable already active character ranges, 
+            // but currently this does not make much sense.
 			_enabledCharacterRanges.Add (charRange);
             CharacterRange range;
             if (_characterRangesByName.TryGetValue (charRange, out range)) 
@@ -57,7 +58,7 @@ namespace Ink
 			return new CharacterRangeInlcude (charRange);
 		}
 
-		HashSet<string> _enabledCharacterRanges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        readonly HashSet<string> _enabledCharacterRanges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		readonly IDictionary<string, CharacterRange> _characterRangesByName = new Dictionary<string, CharacterRange>(StringComparer.OrdinalIgnoreCase)
 		{
