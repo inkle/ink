@@ -106,6 +106,8 @@
     <Compile Include="CharacterRange.cs" />
     <Compile Include="InkParser\InkParser_CharacterRanges.cs" />
     <Compile Include="ParsedHierarchy\CharacterRangeInlcude.cs" />
+    <Compile Include="ParsedHierarchy\ListDefinition.cs" />
+    <Compile Include="ParsedHierarchy\List.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -17,8 +17,8 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 5;
-        const int kMinCompatibleLoadVersion = 4;
+        public const int kInkSaveStateVersion = 6;
+        const int kMinCompatibleLoadVersion = 6;
 
         /// <summary>
         /// Exports the current state to json format, in order to save the game.
@@ -208,7 +208,7 @@ namespace Ink.Runtime
             evaluationStack = new List<Runtime.Object> ();
 
             callStack = new CallStack (story.rootContentContainer);
-            variablesState = new VariablesState (callStack);
+            variablesState = new VariablesState (callStack, story.listDefinitions);
 
             visitCounts = new Dictionary<string, int> ();
             turnIndices = new Dictionary<string, int> ();
@@ -251,7 +251,7 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack);
+            copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
@@ -276,7 +276,7 @@ namespace Ink.Runtime
         /// Object representation of full JSON state. Usually you should use
         /// LoadJson and ToJson since they serialise directly to string for you.
         /// But it may be useful to get the object representation so that you
-        //// can integrate it into your own serialisation system.
+        /// can integrate it into your own serialisation system.
         /// </summary>
         public Dictionary<string, object> jsonToken
         {
@@ -714,6 +714,29 @@ namespace Ink.Runtime
 
         internal void PushEvaluationStack(Runtime.Object obj)
         {
+            // Include metadata about the origin List for list values when
+            // they're used, so that lower level functions can make use
+            // of the origin list to get related items, or make comparisons
+            // with the integer values etc.
+            var listValue = obj as ListValue;
+            if (listValue) {
+                
+                // Update origin when list is has something to indicate the list origin
+                var rawList = listValue.value;
+                var names = rawList.originNames;
+                if (names != null) {
+                    var origins = new List<ListDefinition> ();
+                    foreach (var n in names) {
+                        ListDefinition def = null;
+                        story.listDefinitions.TryGetDefinition (n, out def);
+                        if( !origins.Contains(def) )
+                            origins.Add (def);
+                    }
+                        
+                    rawList.origins = origins;
+                }
+            }
+
             evaluationStack.Add(obj);
         }
 
@@ -740,7 +763,14 @@ namespace Ink.Runtime
             return popped;
         }
 
-
+        /// <summary>
+        /// Ends the current ink flow, unwrapping the callstack but without
+        /// affecting any variables. Useful if the ink is (say) in the middle
+        /// a nested tunnel, and you want it to reset so that you can divert
+        /// elsewhere using ChoosePathString(). Otherwise, after finishing
+        /// the content you diverted to, it would continue where it left off.
+        /// Calling this is equivalent to calling -> END in ink.
+        /// </summary>
         public void ForceEnd()
         {
             while (callStack.canPopThread)
@@ -780,19 +810,29 @@ namespace Ink.Runtime
             callStack = new CallStack (funcContainer);
             callStack.currentElement.type = PushPopType.Function;
 
+            // Change the callstack the variableState is looking at to be
+            // this temporary function evaluation one. We'll restore it afterwards
+            variablesState.callStack = callStack;
+
             // By setting ourselves in external function evaluation mode,
             // we're saying it's okay to end the flow without a Done or End,
             // but with a ~ return instead.
             _isExternalFunctionEvaluation = true;
 
+            PassArgumentsToEvaluationStack (arguments);
+        }
+
+        internal void PassArgumentsToEvaluationStack (params object [] arguments)
+        {
+
             // Pass arguments onto the evaluation stack
             if (arguments != null) {
                 for (int i = 0; i < arguments.Length; i++) {
                     if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string)) {
-                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction must be int, float or string");
+                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string");
                     }
 
-                    evaluationStack.Add (Runtime.Value.Create (arguments [i]));
+                    PushEvaluationStack (Runtime.Value.Create (arguments [i]));
                 }
             }
         }
@@ -826,6 +866,9 @@ namespace Ink.Runtime
             callStack = _originalCallstack;
             _originalCallstack = null;
             _originalEvaluationStackHeight = 0;
+
+            // Restore the callstack that the variablesState uses
+            variablesState.callStack = callStack;
 
             // What did we get back?
             if (returnedObj) {

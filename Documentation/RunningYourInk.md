@@ -105,7 +105,59 @@ This approach can be taken even further to text that flexibly indicates non-cont
     
 The above approach is used in our current game for the writer to declare the props that they expect to be in the scene. These might be picked up in the game editor in order to automatically fill a scene with placeholder objects, or just to validate that the level designer has populated the scene correctly.
 
-Of course, you can also use *External Functions* - see below, but the above approach is flexible and won't cause the game to crash if everything isn't set up perfectly yet.
+To mark up content more explicitly, you may want to use *tags* or *external functions* - see below. At inkle, we find that we use a mixture, but we actually find the above approach useful for a very large portion of our interaction with the game - it's very flexible.
+
+
+## Marking up your ink content with tags
+
+Tags can be used to add metadata to your game content that isn't intended to appear to the player. Within ink, add a `#` character followed by any string content you want to pass over to the game. There are three main places where you can add these hash tags:
+
+### Line by line tags
+
+One use case is for a graphic adventure that has different art for characters depending on their facial expression. So, you could do:
+
+    Passepartout: Really, Monsieur. # surly
+    
+On the game side, every time you get content with `_inkStory.Continue()`, you can get a list of tags with `_inkStory.currentTags`, which will return a `List<string>`, in the above case with just one element: `"surly"`.
+
+To add more than one tag, simply delimit them with more `#` characters:
+    
+    Passepartout: Really, Monsieur. # surly # really_monsieur.ogg
+    
+The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames. 
+
+Tags for a line can be written above it, or on the end of the line:
+
+    # the first tag
+    # the second tag
+    This is the line of content. # the third tag
+
+All of the above tags will be included in the `currentTags` list.
+
+### Knot tags
+
+Any tags that you include at the very top of a knot:
+
+    === Munich ==
+    # location: Germany
+    # overview: munich.ogg
+    # require: Train ticket
+    First line of content in the knot.
+    
+...are accessible by calling `_inkStory.TagsForContentAtPath("your_knot")`, which is useful for getting metadata from a knot before you actually want the game to go there.
+
+Note that these tags will also appear in the `currentTags` list for the first line of content in the knot.
+
+### Global tags
+
+Any tags provided at the very top of the main ink file are accessible via the `Story`'s `globalTags` property, which also returns a `List<string>`. Any top level story metadata can be included there.
+
+We suggest the following by convention, if you wish to share your ink stories publicly:
+
+    # author: Joseph Humfrey
+    # title: My Wonderful Ink Story
+    
+Note that [Inky](https://github.com/inkle/inky) will use the title tag in this format as the `<h1>` tag in a story exported for web.
 
 ## Jumping to a particular "scene"
 

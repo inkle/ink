@@ -84,17 +84,26 @@ namespace Ink.Parsed
             AddContent (cont);
 
             ConstructWeaveHierarchyFromIndentation ();
+        }
 
-            // Only base level weaves keep track of named weave points
-            if (indentIndex == 0) {
+        public void ResolveWeavePointNaming ()
+        {
+            var namedWeavePoints = FindAll<IWeavePoint> (w => !string.IsNullOrEmpty (w.name));
 
-                var namedWeavePoints = FindAll<IWeavePoint> (w => w.name != null && w.name.Length > 0);
+            _namedWeavePoints = new Dictionary<string, IWeavePoint> ();
 
-                _namedWeavePoints = new Dictionary<string, IWeavePoint> ();
+            foreach (var weavePoint in namedWeavePoints) {
 
-                foreach (var weavePoint in namedWeavePoints) {
-                    _namedWeavePoints [weavePoint.name] = weavePoint;
+                // Check for weave point naming collisions
+                IWeavePoint existingWeavePoint;
+                if (_namedWeavePoints.TryGetValue (weavePoint.name, out existingWeavePoint)) {
+                    var typeName = existingWeavePoint is Gather ? "gather" : "choice";
+                    var existingObj = (Parsed.Object)existingWeavePoint;
+
+                    Error ("A " + typeName + " with the same label name '" + weavePoint.name + "' already exists in this context on line " + existingObj.debugMetadata.startLineNumber, (Parsed.Object)weavePoint);
                 }
+
+                _namedWeavePoints [weavePoint.name] = weavePoint;
             }
         }
 

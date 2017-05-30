@@ -84,6 +84,12 @@ namespace Ink.Parsed
 
             if (opName == "mod")
                 return "%";
+
+            if (opName == "has")
+                return "?";
+
+            if (opName == "hasnt")
+                return "!?";
             
             return opName;
         }
@@ -151,9 +157,9 @@ namespace Ink.Parsed
         string nativeNameForOp
         {
             get {
-                // Replace "-" with "~" to make it unique
+                // Replace "-" with "_" to make it unique (compared to subtraction)
                 if (op == "-")
-                    return "~";
+                    return "_";
                 if (op == "not")
                     return "!";
                 return op;
@@ -165,6 +171,7 @@ namespace Ink.Parsed
     {
         public string varName;
         public bool isInc;
+        public Expression expression;
 
         public IncDecExpression(string varName, bool isInc)
         {
@@ -172,9 +179,15 @@ namespace Ink.Parsed
             this.isInc = isInc;
         }
 
+        public IncDecExpression (string varName, Expression expression, bool isInc) : this(varName, isInc)
+        {
+            this.expression = expression;
+            AddContent (expression);
+        }
+
         public override void GenerateIntoContainer(Runtime.Container container)
         {
-            // x = x + 1
+            // x = x + y
             // ^^^ ^ ^ ^
             //  4  1 3 2
             // Reverse polish notation: (x 1 +) (assign to x)
@@ -183,10 +196,15 @@ namespace Ink.Parsed
             container.AddContent (new Runtime.VariableReference (varName));
 
             // 2.
-            container.AddContent (new Runtime.IntValue (isInc ? 1 : -1));
+            // - Expression used in the form ~ x += y
+            // - Simple version: ~ x++
+            if (expression)
+                expression.GenerateIntoContainer (container);
+            else
+                container.AddContent (new Runtime.IntValue (1));
 
             // 3.
-            container.AddContent (Runtime.NativeFunctionCall.CallWithName ("+"));
+            container.AddContent (Runtime.NativeFunctionCall.CallWithName (isInc ? "+" : "-"));
 
             // 4.
             container.AddContent (new Runtime.VariableAssignment (varName, false));
@@ -197,6 +215,8 @@ namespace Ink.Parsed
 
         public override void ResolveReferences (Story context)
         {
+            base.ResolveReferences (context);
+
             if (!context.ResolveVariableWithName (varName, fromNode:this).found) {
                 Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
             }
@@ -213,7 +233,10 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            return varName + (isInc ? "++" : "--");
+            if (expression)
+                return varName + (isInc ? " += " : " -= ") + expression.ToString ();
+            else
+                return varName + (isInc ? "++" : "--");
         }
     }
 

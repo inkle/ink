@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-﻿using System;
+using System;
 using Ink;
 using Ink.Runtime;
 using NUnit.Framework;
@@ -2283,7 +2282,7 @@ this is the end
 -> DONE
 
 === function f(ref x)
-~temp local
+~temp local = 0
 ~x=x
 {setTo3(local)}
 
@@ -2414,6 +2413,46 @@ x = {x}, y = {y}
         }
 
         [Test ()]
+        public void TestEvaluatingFunctionVariableStateBug ()
+        {
+            var storyStr =
+                @"
+Start
+-> tunnel ->
+End
+-> END
+
+== tunnel ==
+In tunnel.
+->->
+
+=== function function_to_evaluate() ===
+    { zero_equals_(1):
+        ~ return ""WRONG""
+    - else:
+        ~ return ""RIGHT""
+    }
+
+=== function zero_equals_(k) ===
+    ~ do_nothing(0)
+    ~ return  (0 == k)
+
+=== function do_nothing(k)
+    ~ return 0
+";
+
+            Story story = CompileString (storyStr);
+
+            Assert.AreEqual ("Start\n", story.Continue ());
+            Assert.AreEqual ("In tunnel.\n", story.Continue ());
+
+            var funcResult = story.EvaluateFunction ("function_to_evaluate");
+            Assert.AreEqual ("RIGHT", funcResult);
+
+            Assert.AreEqual ("End\n", story.Continue ());
+        }
+
+        [Test ()]
         public void TestDoneStopsThread ()
         {
             var storyStr =
@@ -2517,6 +2556,7 @@ CONST z = -> elsewhere
             Assert.IsTrue (HadError ("'z' has been redefined"));
         }
 
+        [Test ()]
         public void TestTags ()
         {
             var storyStr =
@@ -2554,10 +2594,10 @@ Stitch content
             stitchTags.Add ("stitch tag");
 
             Assert.AreEqual (globalTags, story.globalTags);
-            Assert.AreEqual("This is the content\n", story.Continue ());
+            Assert.AreEqual ("This is the content\n", story.Continue ());
             Assert.AreEqual (globalTags, story.currentTags);
 
-            Assert.AreEqual (knotTags, story.TagsForContentAtPath("knot"));
+            Assert.AreEqual (knotTags, story.TagsForContentAtPath ("knot"));
             Assert.AreEqual (stitchTags, story.TagsForContentAtPath ("knot.stitch"));
 
             story.ChoosePathString ("knot");
@@ -2567,6 +2607,7 @@ Stitch content
             Assert.AreEqual (knotTagWhenContinuedTwice, story.currentTags);
         }
 
+        [Test ()]
         public void TestTunnelOnwardsDivertOverride ()
         {
             var storyStr =
@@ -2586,6 +2627,184 @@ Now in B.
 
             Assert.AreEqual ("This is A\nNow in B.\n", story.ContinueMaximally());
         }
+
+        [Test ()]
+        public void TestListBasicOperations ()
+        {
+            var storyStr =
+                @"
+LIST list = a, (b), c, (d), e
+{list}
+{(a, c) and (b, e)}
+{(a, b, c) ^ (c, b, e)}
+{list ? (b, d, e)}
+{list ? (d, b)}
+{list !? (c)}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestListMixedItems ()
+        {
+            var storyStr =
+                @"
+LIST list = (a), b, (c), d, e
+LIST list2 = x, (y), z
+{list && list2}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, y, c\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestMoreListOperations ()
+        {
+            var storyStr =
+                @"
+LIST list = l, m = 5, n
+{LIST_VALUE(l)}
+
+{list(1)}
+
+~ temp t = list()
+~ t += n
+{t}
+~ t = LIST_ALL(t)
+~ t -= n
+{t}
+~ t = LIST_INVERT(t)
+{t}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("1\nl\nn\nl, m\nn\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestEmptyListOrigin ()
+        {
+            var storyStr =
+                @"
+LIST list = a, b
+{LIST_ALL(list)}
+
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, b\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestEmptyListOriginAfterAssignment ()
+        {
+            var storyStr =
+                @"
+LIST x = a, b, c
+~ x = ()
+{LIST_ALL(x)}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, b, c\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestListSaveLoad ()
+        {
+            var storyStr =
+                @"
+LIST l1 = (a), b, (c)
+LIST l2 = (x), y, z
+
+VAR t = ()
+~ t = l1 and l2
+{t}
+
+== elsewhere ==
+~ t += z
+{t}
+-> END
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("a, x, c\n", story.ContinueMaximally ());
+
+            var savedState = story.state.ToJson ();
+
+            // Compile new version of the story
+            story = CompileString (storyStr);
+
+            // Load saved game
+            story.state.LoadJson (savedState);
+
+            story.ChoosePathString ("elsewhere");
+            Assert.AreEqual ("a, x, c, z\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestEmptyThreadError ()
+        {
+            CompileStringWithoutRuntime ("<-", testingErrors:true);
+            Assert.IsTrue (HadError ("Expected target for new thread"));
+        }
+
+        [Test ()]
+        public void TestAuthorWarningsInsideContentListBug ()
+        {
+            var storyStr =
+                @"
+{ once:
+- a
+TODO: b
+}
+";
+            CompileString (storyStr, testingErrors:true);
+            Assert.IsFalse (HadError ());
+        }
+
+        [Test ()]
+        public void TestWeaveWithinSequence ()
+        {
+            var storyStr =
+                @"
+{ shuffle:
+-   * choice
+    nextline
+}
+";
+            var story = CompileString (storyStr);
+
+            story.Continue ();
+
+            Assert.IsTrue (story.currentChoices.Count == 1);
+
+            story.ChooseChoiceIndex (0);
+
+            Assert.AreEqual ("choice\nnextline\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestWeavePointNamingCollision ()
+        {
+        	var storyStr =
+        		@"
+-(opts)
+opts1
+-(opts)
+opts1
+-> END
+";
+        	CompileString (storyStr, countAllVisits: false, testingErrors:true);
+
+            Assert.IsTrue(HadError ("with the same label"));
+        }
+
 
 		[Test ()]
 		public void TestCharacterRangeIdentifiers ()
@@ -2656,10 +2875,11 @@ CONST {4} = -> {5}
             parsedStory.countAllVisits = countAllVisits;
 
             Story story = parsedStory.ExportRuntime(TestErrorHandler);
-            Assert.AreNotEqual(null, story);
+            if( !testingErrors )
+                Assert.AreNotEqual(null, story);
 
             // Convert to json and back again
-            if (_mode == TestMode.JsonRoundTrip)
+            if (_mode == TestMode.JsonRoundTrip && story != null)
             {
                 var jsonStr = story.ToJsonString();
                 story = new Story(jsonStr);

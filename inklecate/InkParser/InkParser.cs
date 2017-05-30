@@ -47,6 +47,39 @@ namespace Ink
             return new Parsed.Story (topLevelContent);
         }
 
+        protected List<T> SeparatedList<T> (SpecificParseRule<T> mainRule, ParseRule separatorRule) where T : class
+        {
+            T firstElement = Parse (mainRule);
+            if (firstElement == null) return null;
+
+            var allElements = new List<T> ();
+            allElements.Add (firstElement);
+
+            do {
+
+                int nextElementRuleId = BeginRule ();
+
+                var sep = separatorRule ();
+                if (sep == null) {
+                    FailRule (nextElementRuleId);
+                    break;
+                }
+
+                var nextElement = Parse (mainRule);
+                if (nextElement == null) {
+                    FailRule (nextElementRuleId);
+                    break;
+                }
+
+                SucceedRule (nextElementRuleId);
+
+                allElements.Add (nextElement);
+
+            } while (true);
+
+            return allElements;
+        }
+
         protected override string PreProcessInputString(string str)
         {
             var inputWithCommentsRemoved = (new CommentEliminator (str)).Process();

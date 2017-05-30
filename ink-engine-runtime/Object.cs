@@ -200,7 +200,7 @@ namespace Ink.Runtime
 		{
 		}
 
-        public virtual Object Copy()
+        internal virtual Object Copy()
         {
             throw new System.NotImplementedException (GetType ().Name + " doesn't support copying");
         }

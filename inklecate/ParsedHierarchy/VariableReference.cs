@@ -4,12 +4,13 @@ namespace Ink.Parsed
 {
     internal class VariableReference : Expression
     {
+        // - Normal variables have a single item in their "path"
+        // - Knot/stitch names for read counts are actual dot-separated paths
+        //   (though this isn't actually used at time of writing)
+        // - List names are dot separated: listName.itemName (or just itemName)
         public string name { 
             get {
-                if (path != null && path.Count == 1)
-                    return path [0];
-                else
-                    return null;
+                return string.Join (".", path);
             } 
         }
         
@@ -17,6 +18,7 @@ namespace Ink.Parsed
 
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
+        public bool isListItemReference;
 
         public Runtime.VariableReference runtimeVarRef { get { return _runtimeVarRef; } }
 
@@ -29,25 +31,45 @@ namespace Ink.Parsed
         {
             Expression constantValue = null;
 
-            // Name can be null if it's actually a path to a knot/stitch etc for a read count
-            var varName = name;
-
             // If it's a constant reference, just generate the literal expression value
-            if ( varName != null && story.constants.TryGetValue (varName, out constantValue) ) {
+            // It's okay to access the constants at code generation time, since the
+            // first thing the ExportRuntime function does it search for all the constants
+            // in the story hierarchy, so they're all available.
+            if ( story.constants.TryGetValue (name, out constantValue) ) {
                 constantValue.GenerateConstantIntoContainer (container);
                 isConstantReference = true;
-            } else {
-                _runtimeVarRef = new Runtime.VariableReference (name);
-                container.AddContent(_runtimeVarRef);
+                return;
             }
+
+            _runtimeVarRef = new Runtime.VariableReference (name);
+
+            // List item reference?
+            // Path might be to a list (listName.listItemName or just listItemName)
+            if (path.Count == 1 || path.Count == 2) {
+                string listItemName = null;
+                string listName = null;
+
+                if (path.Count == 1) listItemName = path [0];
+                else {
+                    listName = path [0];
+                    listItemName = path [1];
+                }
+
+                var listItem = story.ResolveListItem (listName, listItemName, this);
+                if (listItem) {
+                    isListItemReference = true;
+                }
+            }
+
+            container.AddContent (_runtimeVarRef);
         }
 
         public override void ResolveReferences (Story context)
         {
             base.ResolveReferences (context);
 
-            // Work is already done if it's a constant reference
-            if (isConstantReference) {
+            // Work is already done if it's a constant or list item reference
+            if (isConstantReference || isListItemReference) {
                 return;
             }
                 
@@ -74,11 +96,15 @@ namespace Ink.Parsed
                 }
 
                 return;
-            } 
+            }
 
-            // Definitely a read count, but wasn't found?
-            else if (path.Count > 1) {
-                Error ("Could not find target for read count: " + parsedPath);
+            // Couldn't find this multi-part path at all, whether as a divert
+            // target or as a list item reference.
+            if (path.Count > 1) {
+                var errorMsg = "Could not find target for read count: " + parsedPath;
+                if (path.Count <= 2)
+                    errorMsg += ", or couldn't find list item with the name " + string.Join (",", path);
+                Error (errorMsg);
                 return;
             }
 

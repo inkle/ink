@@ -1,6 +1,6 @@
 # ink
 
-[![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/gkq2pSLqU)
+[![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/g5MJY0vLu)
 [![CI Status](http://img.shields.io/travis/inkle/ink.svg?style=flat)](https://travis-ci.org/inkle/ink)
 
 [Ink](http://www.inklestudios.com/ink) is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
@@ -55,7 +55,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 * Click it, and you should get an Editor window that lets you play (preview) your story.
 * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
-## Using inklecate on the command line
+## Using inklecate on the command line
 
  * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
@@ -99,7 +99,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
     ...
 
 
-## Building
+## Building
 
 ### Requirements
 
@@ -133,7 +133,7 @@ We're using GitHub issues both as a discussion forum and as a bug tracker, so [c
 
 We also have a public room in HipChat where you may find someone to help you:
 
-[![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/gkq2pSLqU)
+[![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/g5MJY0vLu)
 
 In terms of related projects outside of the scope of this repo, we'd love to see the following since we don't have time to do it ourselves right now, and we think it would substantially help the community:
 
@@ -156,7 +156,6 @@ Internally we've been thinking about the following. We can't guarantee we'll imp
  - A scheme to split up the monolithic JSON output into smaller files that can be loaded on the fly in the runtime. This was necessary on Sorcery! and 80 Days as the quantity of content increased substantially, and we were running our games on low-end iOS devices at the time.
      -  Our implementation for the previous version of ink was to have two files: one huge text file with lots of JSON snippets that never got loaded in one go, and an index file, which contained byte offsets and lengths for all the compiled knots in the game. This worked pretty well, although it meant that the compiled JSON was still in one huge file.
      -  A possible alternative we could consider for ink2 is to (optionally?) be able to have a one-to-one mapping between source `.ink` files and output `.json` files, so that the size and arrangement is predictable and controllable.
- - Some kind of enum / flag system. Design yet to be determined.
  - General refactoring and improvements to code structure and optimisation of the compiler.
  - Structured JSON-like data objects within ink format. Exact design still to be determined, but goals are for it to be a superset of JSON, so that it’s compatible, but can be simpler (a bit like YAML, though not YAML for various reasons). Would allow more complex hierarchical game state to be stored within the ink engine.
 
@@ -173,15 +172,6 @@ See the [architectural overview documentation](https://github.com/inkle/ink/blob
 
 # License
 
-**ink** is released under the MIT license. Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
+**ink** is released under the [MIT license](https://github.com/inkle/ink/blob/master/LICENSE.txt). Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
 
 [Newtonsoft's Json.NET](http://www.newtonsoft.com/json) is included, and also has the MIT License.
-
-### The MIT License (MIT)
-Copyright (c) 2016 inkle Ltd.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
