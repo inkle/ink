@@ -1,5 +1,27 @@
 # Running your ink
 
+<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Quick Start](#quick-start)
+- [Further information](#further-information)
+- [Getting started with the runtime API](#getting-started-with-the-runtime-api)
+	- [Saving and loading](#saving-and-loading)
+	- [Is that it?](#is-that-it)
+- [Engine usage and philosophy](#engine-usage-and-philosophy)
+- [Marking up your ink content with tags](#marking-up-your-ink-content-with-tags)
+	- [Line by line tags](#line-by-line-tags)
+	- [Knot tags](#knot-tags)
+	- [Global tags](#global-tags)
+- [Jumping to a particular "scene"](#jumping-to-a-particular-scene)
+- [Setting/getting ink variables](#settinggetting-ink-variables)
+- [Read/Visit counts](#readvisit-counts)
+- [Variable observers](#variable-observers)
+- [Exernal functions](#exernal-functions)
+	- [Fallbacks for external functions](#fallbacks-for-external-functions)
+- [Debugging ink engine issues](#debugging-ink-engine-issues)
+
+<!-- /TOC -->
+
 ## Quick Start
 
 *Note that although these instructions are written with Unity in mind, it's possible (and straightforward) to run your ink in a non-Unity C# environment.*
@@ -41,33 +63,33 @@ The API for loading and running your story is very straightforward. Construct a 
     {
         _inkStory = new Story(inkAsset.text);
     }
-    
+
 From there, you make calls to the story in a loop. There are two repeating stages:
 
  1. **Present content:** You repeatedly call `Continue()` on it, which returns individual lines of string content, until the `canContinue` property becomes false. For example:
-    
+
         while (_inkStory.canContinue) {
             Debug.Log (_inkStory.Continue ());
         }
-        
+
     A simpler way to achieve the above is through one call to `_inkStory.ContinueMaximally()`. However, in many stories it's useful to pause the story at each line, for example when stepping through dialogue. Also, in such games, there may be state changes that should be reflected in the UI, such as resource counters.
- 
+
  2. **Make choice:** When there isn't any more content, you should check to see whether there any choices to present to the player. To do so, use something like:
 
-        if( _inkStory.currentChoices.Count > 0 ) 
+        if( _inkStory.currentChoices.Count > 0 )
         {
             for (int i = 0; i < _inkStory.currentChoices.Count; ++i) {
                 Choice choice = _inkStory.currentChoices [i];
                 Debug.Log("Choice " + (i + 1) + ". " + choice.text);
             }
         }
-        
+
     ...and when the player provides input:
-    
+
         _inkStory.ChooseChoiceIndex (index);
-        
+
     And now you're ready to return to step 1, and present content again.
-    
+
 ### Saving and loading
 
 To save the state of your story within your game, call:
@@ -79,7 +101,7 @@ To save the state of your story within your game, call:
 `_inkStory.state.LoadJson(savedJson);`
 
 ### Is that it?
-    
+
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.
 
 For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
@@ -96,13 +118,13 @@ Additionally, since the **ink** engine outputs lines of plain text, it can be ef
         Joe:  I think he jumped over the garden fence.
         * *   Lisa: Let's take a look.
         * *   Lisa: So he's gone for good?
-    
+
 As far as the **ink** engine is concerned, the `:` characters are just text. But as the lines of text and choices are produced by the game, you can do some simple text parsing of your own to turn the string `Joe: What's up?` into a game-specific dialog object that references the speaker and the text (or even audio).
 
 This approach can be taken even further to text that flexibly indicates non-content directives. Again, these directives come out of the engine as text, but can parsed by your game for a specific purpose:
 
     PROPLIST table, chair, apple, orange
-    
+
 The above approach is used in our current game for the writer to declare the props that they expect to be in the scene. These might be picked up in the game editor in order to automatically fill a scene with placeholder objects, or just to validate that the level designer has populated the scene correctly.
 
 To mark up content more explicitly, you may want to use *tags* or *external functions* - see below. At inkle, we find that we use a mixture, but we actually find the above approach useful for a very large portion of our interaction with the game - it's very flexible.
@@ -117,14 +139,14 @@ Tags can be used to add metadata to your game content that isn't intended to app
 One use case is for a graphic adventure that has different art for characters depending on their facial expression. So, you could do:
 
     Passepartout: Really, Monsieur. # surly
-    
+
 On the game side, every time you get content with `_inkStory.Continue()`, you can get a list of tags with `_inkStory.currentTags`, which will return a `List<string>`, in the above case with just one element: `"surly"`.
 
 To add more than one tag, simply delimit them with more `#` characters:
-    
+
     Passepartout: Really, Monsieur. # surly # really_monsieur.ogg
-    
-The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames. 
+
+The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames.
 
 Tags for a line can be written above it, or on the end of the line:
 
@@ -143,7 +165,7 @@ Any tags that you include at the very top of a knot:
     # overview: munich.ogg
     # require: Train ticket
     First line of content in the knot.
-    
+
 ...are accessible by calling `_inkStory.TagsForContentAtPath("your_knot")`, which is useful for getting metadata from a knot before you actually want the game to go there.
 
 Note that these tags will also appear in the `currentTags` list for the first line of content in the knot.
@@ -156,7 +178,7 @@ We suggest the following by convention, if you wish to share your ink stories pu
 
     # author: Joseph Humfrey
     # title: My Wonderful Ink Story
-    
+
 Note that [Inky](https://github.com/inkle/inky) will use the title tag in this format as the `<h1>` tag in a story exported for web.
 
 ## Jumping to a particular "scene"
@@ -170,7 +192,7 @@ And then call `Continue()` as usual.
 To jump directly to a stitch within a knot, use a `.` as a separator:
 
     _inkStory.ChoosePathString("myKnotName.theStitchWithin");
-    
+
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
 
 ## Setting/getting ink variables
@@ -178,15 +200,15 @@ To jump directly to a stitch within a knot, use a `.` as a separator:
 The state of the variables in the **ink** engine is, appropriately enough, stored within the `variablesState` object within the `story`. You can both get and set variables directly on this object:
 
     _inkStory.variablesState["player_health"] = 100
-    
+
     int health = (int) _inkStory.variablesState["player_health"]
-    
+
 ## Read/Visit counts
 
 To find out the number of times that a knot or stitch has been visited by the ink engine, you can use this API:
 
     _inkStory.state.VisitCountAtPathString("...");
-    
+
 The path string is in the form `"yourKnot"` for knots, and `"yourKnot.yourStitch"` for stitches.
 
 ## Variable observers
@@ -230,7 +252,7 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 === function multiply(x,y) ===
 // Usually external functions can only return placeholder
 // results, otherwise they'd be defined in ink!
-~ return 1 
+~ return 1
 ```
 
 ## Debugging ink engine issues
@@ -240,7 +262,7 @@ The **ink** engine is still in a nascent stage (alpha!), and you may well encoun
 We recommend we debug the compiler so that you get a breakpoint in its code when compiling and/or playing your ink file. To do so, open **ink.sln** in Xamarin or Visual Studio, and run the compiler code in the Test configuration. You should supply command line parameters in the project settings. (In Xamarin, right-click on *inklecate*, click *Options*, and in *Run > General* and modify the parameters field.) You could use something like:
 
     -p path/to/yourMainFile.ink
-    
+
 The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
 
 When your story hits an assertion, you may be able to glean a little more information from the state of the ink engine. See the [Architecture and Development](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) document for help understanding and debugging the engine code.

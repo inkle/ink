@@ -1,5 +1,22 @@
 # ink's JSON runtime format
 
+<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Top level](#top-level)
+- [Containers](#containers)
+- [Values](#values)
+- [Void](#void)
+- [Control commands](#control-commands)
+- [Native functions](#native-functions)
+- [Divert](#divert)
+- [Variable assignment](#variable-assignment)
+- [Variable reference](#variable-reference)
+- [Read count](#read-count)
+- [ChoicePoint](#choicepoint)
+- [Paths](#paths)
+
+<!-- /TOC -->
+
 When ink is compiled to JSON, it is converted to a low level format for use by the runtime, and is made up of smaller, simpler building blocks. For an overview of the full pipeline, including a description of the runtime itself see the [Architecture and Development documentation](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md).
 
 ## Top level
@@ -10,7 +27,7 @@ At the top level of the JSON file are two properties. `inkVersion` is an integer
         "inkVersion": 10,
         "root": <root container>
     }
-    
+
 Broadly speaking, the entire format is composed of Containers, and individual sub-elements of the Story, within those Containers.
 
 ## Containers
@@ -52,15 +69,15 @@ Supported types:
 * **divert target**: represents a variable divert target, for example as used in the following ink:
 
         VAR x = -> somewhere
-        
+
     Represented in runtime JSON as an object of the form: `{"^->": "path.to.target"}`
 
 * **variable pointer**: used for references to variables, for example when declaring a function with the following ink:
 
         == function myFunction(ref x) ==
-        
+
     Represented in runtime JSON as an object of the form: `{"^var": "varname", "ci": 0}`. Where `ci` is "context index", with the following possible values:
-    
+
     * **-1** - default value, context yet to be determined.
     * **0**  - Variable is a global
     * **1 or more** - variable is a local/temporary in the callstack element with the given index.
@@ -95,7 +112,7 @@ Control commands are special instructions to the text engine to perform various 
 These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. The following operators are supported:
 
 `"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"~"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
-        
+
 Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
 
 ## Divert
@@ -158,10 +175,10 @@ The `flg` field is a bitfield of flags:
  * **0x10 - Once only?** - Defaults to true. This is the difference between the `*` and `+` choice bullets in ink. If once only (`*`), the choice is only displayed if its target container's read count is zero.
 
 Example of the full JSON output, including the ChoicePoint object, when generating an actual ink choice from `* Hello[.], world.`. Most of the complexity is derived from the fact that content can be dynamic, and the square bracket notation that requires repetition.
-    
+
     // Outer container
     [
-    
+
       // Evaluate choice text.
       // Starts by calling a "function" labelled
       // 's', which is the start content for the choice.
@@ -173,15 +190,15 @@ Example of the full JSON output, including the ChoicePoint object, when generati
         "f()": ".^.s"
       },
       "/str",
-      
+
       // Evaluate content inside square brackets (simply '.')
       "str",
       "^.",
       "/str",
-      
+
       // Evaluation of choice text complete
       "/ev",
-      
+
       // ChoicePoint object itself:
       //  - linked to own container named 'c'
       //  - Flags 22 are:
@@ -192,7 +209,7 @@ Example of the full JSON output, including the ChoicePoint object, when generati
         "*": ".^.c",
         "flg": 22
       },
-      
+
       // Named content from outer container - 's' and 'c'
       {
         // Inner container for start content is labelled 's'
@@ -200,7 +217,7 @@ Example of the full JSON output, including the ChoicePoint object, when generati
           "^Hello",
           null
         ],
-        
+
         // Inner container for content when choice is chosen
         // First repeats the start content ('s'),
         // before continuing.
@@ -211,7 +228,7 @@ Example of the full JSON output, including the ChoicePoint object, when generati
           "^, world.",
           "\n",
           "\n",
-          
+
           // Container has all three counting flags:
           //  - Visits are counted
           //  - Turns-since is counted
@@ -231,7 +248,7 @@ Paths won't ever appear on their own in a Container, but are used by various obj
 Paths are a dot-separated syntax:
 
     path.to.target
-    
+
 Where each element of the path references a sub-object, drilling down into the hierarchy.
 
 However, paths can have several element types between the dots:
@@ -246,4 +263,3 @@ Examples:
 
 * `building.entrance.3.0` - the first element of a Container at the fourth element of a Container named `entrance` within a Container named `building` of the root Container.
 * `.^.1` - the second element of the parent Container.
-

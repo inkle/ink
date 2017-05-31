@@ -1,5 +1,21 @@
 # Architecture and Development
 
+<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Overview](#overview)
+- [Ink parser](#ink-parser)
+- [StringParser structuring](#stringparser-structuring)
+- [Runtime code generation](#runtime-code-generation)
+- [Runtime ink engine](#runtime-ink-engine)
+	- [Containers](#containers)
+	- [Content](#content)
+	- [Control commands](#control-commands)
+	- [Story](#story)
+	- [Callstack and threads](#callstack-and-threads)
+- [Compiler development and debugging tips](#compiler-development-and-debugging-tips)
+
+<!-- /TOC -->
+
 ## Overview
 
 The ink pipeline broadly consists of 3 stages:
@@ -28,11 +44,11 @@ Crucially however, parse rules are wrapped in either `ParseObject(rule)` or `Par
         var decl = Parse(StitchDeclaration);
         if (decl == null)
             return null;
-            
+
         ... (continue parsing the StitchDefinition)
-        
+
 If a rule isn't wrapped in a `Parse` method, then it's an indication that rewinding definitely isn't strictly necessary within the scope, for example if a sub-rule is both optional and atomic. Or, when success and failure of the rule is handled manually.
-        
+
 ## StringParser structuring
 
 The base class `StringParser` contains a number of helper methods to help with parsing.
@@ -42,18 +58,18 @@ Methods like `ParseString`, `ParseSingleCharacter`, `ParseInt`, etc can be used 
 Higher level structuring methods can be used to compose rules together. For example:
 
 	public List<object> OneOrMore(ParseRule rule)
-	
+
 ...acts a bit like the `+` operator in regular expressions. So for example, in multiline conditionals, we have:
 
 	List<object> multipleConditions = OneOrMore (SingleMultilineCondition)
-	
+
 Similarly, but even more powerfully, the `Interleave` method patterns of the form ABABA etc. Frequently, this is used to interleave some core content with whitespace. Here's an example that parses the arguments to a flow (e.g. knot, stitch or function), that is a series of identifiers separated by commas:
 
     var flowArguments = Interleave<FlowBase.Argument>(
-        Spaced(FlowDeclArgument), 
-        Exclude (String(",")) 
+        Spaced(FlowDeclArgument),
+        Exclude (String(","))
     );
-    
+
 The above example also demonstrates another concept: rule transformers and builders. In the above example, `Spaced` takes a rule, and produces a new rule that also allows for optional whitespace on either side of the content that is parsed.
 
 The `Exclude` transformer takes a rule, and if it succeeds, prevents its result from being included in the `Interleave`'s returned list (to remove the commas from the parsed results).
@@ -78,7 +94,7 @@ Instead, the hard work of converting the parsed hierarchy into runtime code is s
 In most cases, a single `Parsed.Object` is converted to one or more `Runtime.Object`, through the following method:
 
     public override Runtime.Object GenerateRuntimeObject () {...}
-    
+
 At the top level, this code generation process is kicked off by the `Parsed.Story` in:
 
     public Runtime.Story ExportRuntime()
@@ -88,7 +104,7 @@ Once the full runtime hierarchy has been constructed, references are resolved. T
 Each `Parsed.Object` can implement:
 
     public override void ResolveReferences(Story context)
-    
+
 ...in order to participate in this process. For example in `Divert.cs`, the method contains this (as well as other things):
 
     if (targetContent) {
@@ -130,7 +146,7 @@ Some important and useful features of the main runtime engine in `Story.cs`:
  * `Continue()` is the top level point where iteration of the content happens:
 
         while( Step () || TryFollowDefaultInvisibleChoice() ) {}
-        
+
  * `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
  * `PerformLogicAndFlowControl(contentObject, out endFlow)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
 
@@ -175,7 +191,7 @@ While testing modifications to the compiler, it's useful to put a test program i
         ],
         End
     ]
-    
+
 The `<---` is the pointer to the current object being evaluated.
 
 In this representation, containers are represented as:
