@@ -1716,6 +1716,15 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
+        string BuildStringOfContainer (Container container)
+        {
+        	var sb = new StringBuilder ();
+
+        	container.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+
+        	return sb.ToString();
+        }
+
 		private void NextContent()
 		{
             // Setting previousContentObject is critical for VisitChangedContainersDueToDivert
