@@ -2804,6 +2804,24 @@ opts1
             Assert.IsTrue(HadError ("with the same label"));
         }
 
+        [Test ()]
+        public void TestVariableNamingCollision ()
+        {
+        	var storyStr =
+        		@"
+LIST someList = A, B
+
+~temp heldItems = (A) 
+{LIST_COUNT (heldItems)}
+
+=== function heldItems ()
+~ return (A)
+        ";
+        	CompileString (storyStr, countAllVisits: false, testingErrors: true);
+
+        	Assert.IsTrue (HadError ("has naming collision"));
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

@@ -87,6 +87,23 @@ namespace Ink.Parsed
                 }       
             }
 
+            // Naming collision between variables and flows / weave points
+            var path = new Path (variableName);
+            var targetContent = path.ResolveFromContext (this);
+            if (targetContent) {
+                string varType = isNewTemporaryDeclaration ? "temp" : "global";
+                FlowBase targetFlow = targetContent as FlowBase;
+                IWeavePoint targetWeave = targetContent as IWeavePoint;
+                string targetTypeName = null;
+                if (targetFlow) {
+                    targetTypeName = targetFlow.isFunction ? "function" : "knot";
+                } else {
+                    targetTypeName = targetWeave is Gather ? "gather" : "choice";
+                }
+                Error (varType + " '"+variableName+"' has naming collision with " + targetTypeName + " on " + targetContent.debugMetadata);
+                return;
+            }
+
             if (IsReservedKeyword (variableName)) {
                 Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
                 return;
