@@ -502,13 +502,15 @@ namespace Ink.Parsed
             }
         }
 
+        public string flowTypeName {
+            get {
+                if (isFunction) return "Function";
+                else return flowLevel.ToString ();
+            }
+        }
 
         public override string ToString ()
         {
-            string flowTypeName = GetType ().Name;
-            if (isFunction)
-                flowTypeName = "Function";
-            
             return flowTypeName+" '" + name + "'";
         }
 

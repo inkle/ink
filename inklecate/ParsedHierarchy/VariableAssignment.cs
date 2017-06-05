@@ -80,6 +80,18 @@ namespace Ink.Parsed
                 }
             }
 
+            if (this.isNewTemporaryDeclaration) {
+                var flow = ClosestFlowBase ();
+                if (flow && flow.hasParameters) {
+                    foreach (var arg in flow.arguments) {
+                        if (arg.name == variableName) {
+                            Error ("temp '" + variableName + "': Name has already been used for an argument to the current " + flow.flowTypeName.ToLower());
+                            return;
+                        }
+                    }
+                }
+            }
+
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
                 if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
@@ -96,7 +108,7 @@ namespace Ink.Parsed
                 IWeavePoint targetWeave = targetContent as IWeavePoint;
                 string targetTypeName = null;
                 if (targetFlow) {
-                    targetTypeName = targetFlow.isFunction ? "function" : "knot";
+                    targetTypeName = targetFlow.flowTypeName;
                 } else {
                     targetTypeName = targetWeave is Gather ? "gather" : "choice";
                 }

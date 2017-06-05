@@ -2805,7 +2805,7 @@ opts1
         }
 
         [Test ()]
-        public void TestVariableNamingCollision ()
+        public void TestVariableNamingCollisionWithFlow ()
         {
         	var storyStr =
         		@"
@@ -2820,6 +2820,18 @@ LIST someList = A, B
         	CompileString (storyStr, countAllVisits: false, testingErrors: true);
 
         	Assert.IsTrue (HadError ("has naming collision"));
+        }
+
+        [Test ()]
+        public void TestVariableNamingCollisionWithArg ()
+        {
+        	var storyStr =
+        		@"=== function knot (a)
+        			~temp a = 1";
+            
+        	CompileString (storyStr, countAllVisits: false, testingErrors: true);
+
+        	Assert.IsTrue (HadError ("has already been used"));
         }
 
         // Helper compile function
