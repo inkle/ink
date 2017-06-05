@@ -58,6 +58,12 @@ namespace Ink.Runtime
             return 0;
         }
 
+		internal int callstackDepth {
+			get {
+				return callStack.depth;
+			}
+		}
+
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method, and serialisation.
         // REMEMBER! REMEMBER! REMEMBER!
