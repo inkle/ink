@@ -17,11 +17,6 @@ namespace Ink.Parsed
             _runtimeDivert = (Runtime.Divert) divert.runtimeDivert;
             _runtimeDivertTargetValue = new Runtime.DivertTargetValue ();
 
-            if (divert.arguments != null && divert.arguments.Count > 0) {
-                Error ("Can't use a divert target as a variable if it has parameters");
-                return;
-            }
-
             container.AddContent (_runtimeDivertTargetValue);
         }
 

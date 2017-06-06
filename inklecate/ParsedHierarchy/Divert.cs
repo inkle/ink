@@ -292,12 +292,13 @@ namespace Ink.Parsed
                 return;
             }
 
-            var paramCount = targetFlow.arguments.Count;
-            if (paramCount > 0 && this.parent is DivertTarget) {
-                Error ("Can't store a link to a knot that takes parameters in a variable");
+            if( this.parent is DivertTarget ) {
+                if (numArgs > 0)
+                    Error ("can't store arguments in a divert target variable");
                 return;
             }
 
+            var paramCount = targetFlow.arguments.Count;
             if (paramCount != numArgs) {
 
                 string butClause;
