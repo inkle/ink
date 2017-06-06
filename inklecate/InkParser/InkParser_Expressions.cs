@@ -68,6 +68,11 @@ namespace Ink
             }
         }
 
+        protected void DisallowIncrement (Parsed.Object expr)
+        {
+        	if (expr is Parsed.IncDecExpression)
+        		Error ("Can't use increment/decrement here. It can only be used on a ~ line");
+        }
 
         protected bool ParseTempKeyword()
         {

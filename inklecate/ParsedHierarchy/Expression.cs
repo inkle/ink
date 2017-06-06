@@ -208,9 +208,6 @@ namespace Ink.Parsed
 
             // 4.
             container.AddContent (new Runtime.VariableAssignment (varName, false));
-
-            // Finally, leave the variable on the stack so it can be used as a sub-expression
-            container.AddContent (new Runtime.VariableReference (varName));
         }
 
         public override void ResolveReferences (Story context)
@@ -219,6 +216,10 @@ namespace Ink.Parsed
 
             if (!context.ResolveVariableWithName (varName, fromNode:this).found) {
                 Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
+            }
+
+            if (parent is Expression) {
+                Error ("Can't use " + incrementDecrementWord + " as sub-expression");
             }
         }
 

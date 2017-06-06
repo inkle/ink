@@ -275,6 +275,8 @@ namespace Ink
             if (logic == null)
                 return null;
 
+            DisallowIncrement (logic);
+
             ContentList contentList = logic as ContentList;
             if (!contentList) {
                 contentList = new ContentList (logic);

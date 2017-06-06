@@ -148,6 +148,7 @@ namespace Ink
                 return null;
 
             var condExpr = Expect(Expression, "choice condition inside { }") as Expression;
+            DisallowIncrement (condExpr);
 
             Expect (String ("}"), "closing '}' for choice condition");
 
