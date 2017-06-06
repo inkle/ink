@@ -2834,6 +2834,26 @@ LIST someList = A, B
         	Assert.IsTrue (HadError ("has already been used"));
         }
 
+        [Test ()]
+        public void TestTunnelOnwardsDivertAfterWithArg ()
+        {
+        	var storyStr =
+@"
+-> a ->  
+
+=== a === 
+->-> b (5 + 3)
+
+=== b (x) ===
+{x} 
+-> END
+";
+
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("8\n", story.ContinueMaximally ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
