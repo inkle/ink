@@ -30,8 +30,10 @@ namespace Ink.Parsed
         {
             this.variableName = variableName;
 
-            if( listDef )
-                this.listDefinition = AddContent(listDef);
+            if (listDef) {
+                this.listDefinition = AddContent (listDef);
+                this.listDefinition.variableAssignment = this;
+            }
 
             // List definitions are always global
             isGlobalDeclaration = true;
@@ -72,25 +74,9 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            VariableAssignment varDecl = null;
-            if (this.isNewTemporaryDeclaration && story.variableDeclarations.TryGetValue(variableName, out varDecl) ) {
-                if (varDecl.isGlobalDeclaration) {
-                    Error ("global variable '" + variableName + "' already exists with the same name (declared on " + varDecl.debugMetadata + ")");
-                    return;
-                }
-            }
-
-            if (this.isNewTemporaryDeclaration) {
-                var flow = ClosestFlowBase ();
-                if (flow && flow.hasParameters) {
-                    foreach (var arg in flow.arguments) {
-                        if (arg.name == variableName) {
-                            Error ("temp '" + variableName + "': Name has already been used for an argument to the current " + flow.flowTypeName.ToLower());
-                            return;
-                        }
-                    }
-                }
-            }
+            // List definitions are checked for conflicts separately
+            if( this.isDeclaration && listDefinition == null )
+                context.CheckForNamingCollisions (this, variableName, this.isGlobalDeclaration ? Story.SymbolType.Var : Story.SymbolType.Temp);
 
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
@@ -99,27 +85,10 @@ namespace Ink.Parsed
                 }       
             }
 
-            // Naming collision between variables and flows / weave points
-            var path = new Path (variableName);
-            var targetContent = path.ResolveFromContext (this);
-            if (targetContent) {
-                string varType = isNewTemporaryDeclaration ? "temp" : "global";
-                FlowBase targetFlow = targetContent as FlowBase;
-                IWeavePoint targetWeave = targetContent as IWeavePoint;
-                string targetTypeName = null;
-                if (targetFlow) {
-                    targetTypeName = targetFlow.flowTypeName;
-                } else {
-                    targetTypeName = targetWeave is Gather ? "gather" : "choice";
-                }
-                Error (varType + " '"+variableName+"' has naming collision with " + targetTypeName + " on " + targetContent.debugMetadata);
-                return;
-            }
-
-            if (IsReservedKeyword (variableName)) {
-                Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
-                return;
-            }
+            //if (IsReservedKeyword (variableName)) {
+            //    Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
+            //    return;
+            //}
 
             if (!this.isNewTemporaryDeclaration) {
                 if (!context.ResolveVariableWithName (this.variableName, fromNode:this).found) {
@@ -128,23 +97,21 @@ namespace Ink.Parsed
                     } else {
                         Error ("Variable could not be found to assign to: '" + this.variableName + "'", this);
                     }
-
                 }
             }
         }
 
-        // TODO: Move this somewhere more general?
-        public static bool IsReservedKeyword(string name)
-        {
-            return _reservedKeywords.Contains (name);
+
+
+        public override string typeName {
+            get {
+                if (isNewTemporaryDeclaration) return "temp";
+                else if (isGlobalDeclaration) return "VAR";
+                else return "variable assignment";
+            }
         }
 
-        static HashSet<string> _reservedKeywords = new HashSet<string>(new string[] { 
-            "true", "false",
-            "not",
-            "return",
-            "else"
-        });
+
     }
 }
 

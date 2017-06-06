@@ -135,8 +135,7 @@ namespace Ink
 
                 definition.name = varName;
 
-                var result = new VariableAssignment (varName, definition);
-                return result;
+                return new VariableAssignment (varName, definition);
             }
 
             return null;

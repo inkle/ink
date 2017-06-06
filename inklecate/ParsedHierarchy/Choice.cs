@@ -276,6 +276,9 @@ namespace Ink.Parsed
                 _divertToStartContentInner.targetPath = _startContentRuntimeContainer.path;
 
             base.ResolveReferences (context);
+
+            if( name != null && name.Length > 0 )
+                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
 		}
 
         public override string ToString ()

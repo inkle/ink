@@ -28,6 +28,11 @@ namespace Ink.Parsed
             }
         }
 
+        public virtual string typeName {
+            get {
+                return GetType().Name;
+            }
+        }
 
 		public Parsed.Object parent { get; set; }
         public List<Parsed.Object> content { get; protected set; }

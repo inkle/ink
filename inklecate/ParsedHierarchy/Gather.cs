@@ -34,9 +34,15 @@ namespace Ink.Parsed
             }
 
             return container;
-
         }
 
+        public override void ResolveReferences (Story context)
+        {
+            base.ResolveReferences (context);
+
+            if( name != null && name.Length > 0 )
+                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
+        }
     }
 }
 

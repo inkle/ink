@@ -28,9 +28,12 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            if (VariableAssignment.IsReservedKeyword (constantName)) {
-                Error ("cannot use '" + constantName + "' as a constant since it's a reserved ink keyword");
-                return;
+            context.CheckForNamingCollisions (this, constantName, Story.SymbolType.Var);
+        }
+
+        public override string typeName {
+            get {
+                return "Constant";
             }
         }
             

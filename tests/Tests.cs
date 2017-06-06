@@ -60,8 +60,8 @@ VAR global_var = 5
 ", testingErrors: true);
 
             Assert.AreEqual(2, _errorMessages.Count);
-            Assert.IsTrue(HadError("conflicts with a Knot"));
-            Assert.IsTrue(HadError("conflicts with existing variable"));
+            Assert.IsTrue(HadError("name has already been used for a function"));
+            Assert.IsTrue(HadError("name has already been used for a var"));
         }
 
         [Test()]
@@ -2819,7 +2819,7 @@ LIST someList = A, B
         ";
         	CompileString (storyStr, countAllVisits: false, testingErrors: true);
 
-        	Assert.IsTrue (HadError ("has naming collision"));
+        	Assert.IsTrue (HadError ("name has already been used for a function"));
         }
 
         [Test ()]
