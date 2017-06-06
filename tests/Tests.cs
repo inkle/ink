@@ -2634,7 +2634,7 @@ Now in B.
                 @"
 LIST list = a, (b), c, (d), e
 {list}
-{(a, c) and (b, e)}
+{(a, c) + (b, e)}
 {(a, b, c) ^ (c, b, e)}
 {list ? (b, d, e)}
 {list ? (d, b)}
@@ -2653,7 +2653,7 @@ LIST list = a, (b), c, (d), e
                 @"
 LIST list = (a), b, (c), d, e
 LIST list2 = x, (y), z
-{list && list2}
+{list + list2}
 ";
             var story = CompileString (storyStr);
 
@@ -2722,7 +2722,7 @@ LIST l1 = (a), b, (c)
 LIST l2 = (x), y, z
 
 VAR t = ()
-~ t = l1 and l2
+~ t = l1 + l2
 {t}
 
 == elsewhere ==
