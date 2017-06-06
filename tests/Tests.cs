@@ -2850,6 +2850,64 @@ LIST someList = A, B
             Assert.AreEqual ("8\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestVariousDefaultChoices ()
+        {
+            var storyStr =
+@"
+* -> hello
+Unreachable
+- (hello) 1
+* ->
+   - - 2
+- 3
+* [] ->
+- 4
+-> END
+";
+
+            var story = CompileString (storyStr);
+            Assert.AreEqual ("1\n2\n3\n4\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestTunnelOnwardsWithParamDefaultChoice ()
+        {
+        	var storyStr =
+@"
+-> tunnel ->
+
+== tunnel ==
+* ->-> elsewhere (8)
+
+== elsewhere (x) ==
+{x}
+-> END
+";
+
+        	var story = CompileString (storyStr);
+        	Assert.AreEqual ("8\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestDivertTargetsWithParameters ()
+        {
+        	var storyStr =
+@"
+VAR x = ->place
+
+->x (5)
+
+== place (a) ==
+{a}
+-> DONE
+";
+
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("5\n", story.ContinueMaximally ());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
