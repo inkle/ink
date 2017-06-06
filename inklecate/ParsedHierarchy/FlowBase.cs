@@ -242,16 +242,21 @@ namespace Ink.Parsed
             if (_rootWeave && _rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
 
                 foreach (var looseEnd in _rootWeave.looseEnds) {
-                    if (looseEnd is Divert) {
-                        
-                        if (_finalLooseEnds == null) {
-                            _finalLooseEnds = new List<Ink.Runtime.Divert> ();
-                            _finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
-                            container.AddContent (_finalLooseEndTarget);
-                        }
 
-                        _finalLooseEnds.Add ((Runtime.Divert)looseEnd.runtimeObject);
-                    }
+                    Divert looseEndDivert = looseEnd as Divert;
+                    Choice looseEndChoice = looseEnd as Choice;
+
+                    if (looseEndChoice) looseEndDivert = looseEndChoice.terminatingDivert;
+
+                    if (looseEndDivert == null) continue;
+
+					if (_finalLooseEnds == null) {
+						_finalLooseEnds = new List<Ink.Runtime.Divert> ();
+						_finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
+						container.AddContent (_finalLooseEndTarget);
+					}
+					
+					_finalLooseEnds.Add ((Runtime.Divert)looseEndDivert.runtimeObject);
                 }
             }
                 
