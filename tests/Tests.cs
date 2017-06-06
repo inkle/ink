@@ -202,12 +202,15 @@ Hello
         public void TestChoiceCount()
         {
             Story story = CompileString(@"
-* one -> end
-* two -> end
+<- choices
 { CHOICE_COUNT() }
 
 = end
 -> END
+
+= choices
+* one -> end
+* two -> end
 ");
 
             Assert.AreEqual("2\n", story.Continue());
@@ -879,18 +882,11 @@ Hello world
         }
 
         [Test()]
-        public void TestGatherAtFlowEnd()
+        public void TestDisallowEmptyDiverts()
         {
-            // The final "->" doesn't have anywhere to go, so it should
-            // happily just go to the end of the flow.
-            var storyStr = "- nothing ->";
+            CompileStringWithoutRuntime ("->", testingErrors: true);
 
-            Story story = CompileString(storyStr);
-
-            // Hrm: terminating space is a little bit silly
-            // (it's because the divert arrow forces a little bit of
-            // whitespace in case you're diverting straight into another line)
-            Assert.AreEqual("nothing ", story.ContinueMaximally());
+            Assert.IsTrue (HadError ("Empty diverts (->) are only valid on choices"));
         }
 
         [Test()]

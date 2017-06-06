@@ -61,8 +61,6 @@ namespace Ink
                     innerContent = new ContentList (innerTextAndLogic);
             }
 
-            _parsingChoice = false;
-             
             // Trim
             if( innerContent )
                 TrimChoiceContent (ref innerContent);
@@ -71,41 +69,57 @@ namespace Ink
             else 
                 TrimChoiceContent (ref startContent);
 
-            if (innerContent != null) {
-                innerContent.AddContent (new Text ("\n"));
-            }
-
-            bool isDefaultChoice = startContent == null && optionOnlyContent == null;
-                
 			Whitespace ();
 
-            var divert =  Parse(SingleDivert);
+            // Finally, now we know we're at the end of the main choice body, parse
+            // any diverts separately.
+            var diverts =  Parse(MultiDivert);
+
+            _parsingChoice = false;
 
             Whitespace ();
 
-            // Completely empty choice?
-            if (!startContent && !optionOnlyContent && !innerContent && !divert) {
+            // Completely empty choice without even an empty divert?
+            bool emptyContent = !startContent && !innerContent && !optionOnlyContent;
+            if (emptyContent && diverts == null)
                 Warning ("Choice is completely empty. Interpretting as a default fallback choice. Add a divert arrow to remove this warning: * ->");
+
+            if (!innerContent) innerContent = new ContentList ();
+            innerContent.AddContent (new Text ("\n"));
+
+            // Normal diverts on the end of a choice - simply add to the normal content
+            if (diverts != null) {
+                foreach (var divObj in diverts) {
+                    // may be TunnelOnwards
+                    var div = divObj as Divert; 
+
+                    // Empty divert serves no purpose other than to say
+                    // "this choice is intentionally left blank"
+                    // (as an invisible default choice)
+                    if (div && div.isEmpty) continue;
+
+                    innerContent.AddContent (divObj);
+                }
             }
 
             var tags = Parse (Tags);
             if (tags != null) {
                 if (hasWeaveStyleInlineBrackets) {
-                    if (!innerContent)
-                        innerContent = new ContentList();
+                    //if (!innerContent)
+                    //    innerContent = new ContentList();
                     innerContent.AddContent(tags);
                 } else {
                     startContent.AddContent (tags);
                 }
             }
 
-            var choice = new Choice (startContent, optionOnlyContent, innerContent, divert);
+            var choice = new Choice (startContent, optionOnlyContent, innerContent);
             choice.name = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
             choice.condition = conditionExpr;
             choice.onceOnly = onceOnlyChoice;
-            choice.isInvisibleDefault = isDefaultChoice;
+            choice.isInvisibleDefault = emptyContent;
 
             return choice;
 

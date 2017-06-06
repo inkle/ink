@@ -244,9 +244,6 @@ namespace Ink.Parsed
                 foreach (var looseEnd in _rootWeave.looseEnds) {
 
                     Divert looseEndDivert = looseEnd as Divert;
-                    Choice looseEndChoice = looseEnd as Choice;
-
-                    if (looseEndChoice) looseEndDivert = looseEndChoice.terminatingDivert;
 
                     if (looseEndDivert == null) continue;
 

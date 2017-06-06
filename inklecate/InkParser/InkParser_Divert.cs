@@ -85,11 +85,14 @@ namespace Ink
                 }
             }
 
-            // Single ->
+            // Single -> (used for default choices)
             if (diverts.Count == 0 && arrowsAndDiverts.Count == 1) {
                 var gatherDivert = new Divert ((Parsed.Object)null);
-                gatherDivert.isToGather = true;
+                gatherDivert.isEmpty = true;
                 diverts.Add (gatherDivert);
+
+                if (!_parsingChoice)
+                    Error ("Empty diverts (->) are only valid on choices");
             }
 
             return diverts;
