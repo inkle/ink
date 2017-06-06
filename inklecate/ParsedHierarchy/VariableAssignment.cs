@@ -85,11 +85,6 @@ namespace Ink.Parsed
                 }       
             }
 
-            //if (IsReservedKeyword (variableName)) {
-            //    Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
-            //    return;
-            //}
-
             if (!this.isNewTemporaryDeclaration) {
                 if (!context.ResolveVariableWithName (this.variableName, fromNode:this).found) {
                     if (story.constants.ContainsKey (variableName)) {
@@ -100,7 +95,6 @@ namespace Ink.Parsed
                 }
             }
         }
-
 
 
         public override string typeName {
