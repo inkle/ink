@@ -12,6 +12,7 @@ namespace Ink.Parsed
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
         public bool isListRange { get { return name == "LIST_RANGE"; } }
+        public bool isReadCount { get { return name == "READ_COUNT"; } }
 
         public bool shouldPopReturnedValue;
 
@@ -33,34 +34,37 @@ namespace Ink.Parsed
 
                 container.AddContent (Runtime.ControlCommand.ChoiceCount ());
 
-            } else if (isTurnsSince) {
+            } else if (isTurnsSince || isReadCount) {
 
                 var divertTarget = arguments [0] as DivertTarget;
                 var variableDivertTarget = arguments [0] as VariableReference;
 
                 if (arguments.Count != 1 || (divertTarget == null && variableDivertTarget == null)) {
-                    Error ("The TURNS_SINCE() function should take one argument: a divert target to the target knot, stitch, gather or choice you want to check. e.g. TURNS_SINCE(-> myKnot)");
+                    Error ("The "+name+"() function should take one argument: a divert target to the target knot, stitch, gather or choice you want to check. e.g. TURNS_SINCE(-> myKnot)");
                     return;
                 }
 
                 if (divertTarget) {
-                    _turnCountDivertTarget = divertTarget;
-                    AddContent (_turnCountDivertTarget);
+                    _divertTargetToCount = divertTarget;
+                    AddContent (_divertTargetToCount);
 
-                    _turnCountDivertTarget.GenerateIntoContainer (container);
+                    _divertTargetToCount.GenerateIntoContainer (container);
                 } else {
-                    _turnCountVariableReference = variableDivertTarget;
-                    AddContent (_turnCountVariableReference);
+                    _variableReferenceToCount = variableDivertTarget;
+                    AddContent (_variableReferenceToCount);
 
-                    _turnCountVariableReference.GenerateIntoContainer (container);
+                    _variableReferenceToCount.GenerateIntoContainer (container);
 
                     if (!story.countAllVisits) {
                         Error ("Attempting to get TURNS_SINCE for a variable target without -c compiler option. You need the compiler switch turned on so that it can track turn counts for everything, not just those you directly reference.");
                     }
                 }
 
-
-                container.AddContent (Runtime.ControlCommand.TurnsSince ());
+                if (isTurnsSince)
+                    container.AddContent (Runtime.ControlCommand.TurnsSince ());
+                else
+                    container.AddContent (Runtime.ControlCommand.ReadCount ());
+                
             } else if (isRandom) {
                 if (arguments.Count != 2)
                     Error ("RANDOM should take 2 parameters: a minimum and a maximum integer");
@@ -103,7 +107,7 @@ namespace Ink.Parsed
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
 
-            } else if (Runtime.NativeFunctionCall.CallExistsWithName(name)) {
+            } else if (Runtime.NativeFunctionCall.CallExistsWithName (name)) {
 
                 var nativeCall = Runtime.NativeFunctionCall.CallWithName (name);
 
@@ -121,8 +125,7 @@ namespace Ink.Parsed
 
                 // Don't attempt to resolve as a divert
                 content.Remove (_proxyDivert);
-            } 
-            else if (foundList != null) {
+            } else if (foundList != null) {
                 if (arguments.Count > 1)
                     Error ("Can currently only construct a list from one integer (or an empty list from a given list definition)");
 
@@ -131,7 +134,7 @@ namespace Ink.Parsed
                     container.AddContent (new Runtime.StringValue (name));
                     arguments [0].GenerateIntoContainer (container);
                     container.AddContent (Runtime.ControlCommand.ListFromInt ());
-                } 
+                }
 
                 // Empty list with given origin.
                 else {
@@ -144,8 +147,8 @@ namespace Ink.Parsed
                 content.Remove (_proxyDivert);
             }
 
-              // Normal function call
-              else {
+                // Normal function call
+                else {
                 container.AddContent (_proxyDivert.runtimeObject);
             }
 
@@ -170,8 +173,8 @@ namespace Ink.Parsed
                     arg.ResolveReferences (context);
             }
 
-            if( _turnCountDivertTarget ) {
-                var divert = _turnCountDivertTarget.divert;
+            if( _divertTargetToCount ) {
+                var divert = _divertTargetToCount.divert;
                 var attemptingTurnCountOfVariableTarget = divert.runtimeDivert.variableDivertName != null;
 
                 if( attemptingTurnCountOfVariableTarget ) {
@@ -189,10 +192,10 @@ namespace Ink.Parsed
                 }
             }
 
-            else if( _turnCountVariableReference ) {
-                var runtimeVarRef = _turnCountVariableReference.runtimeVarRef;
+            else if( _variableReferenceToCount ) {
+                var runtimeVarRef = _variableReferenceToCount.runtimeVarRef;
                 if( runtimeVarRef.pathForCount != null ) {
-                    Error("Should be TURNS_SINCE(-> "+_turnCountVariableReference.name+"). Without the '->' it expects a variable target");
+                    Error("Should be "+name+"(-> "+_variableReferenceToCount.name+"). Usage without the '->' only makes sense for variable targets.");
                 }
             }
         }
@@ -202,7 +205,12 @@ namespace Ink.Parsed
             if (Runtime.NativeFunctionCall.CallExistsWithName (name))
                 return true;
             
-            return name == "CHOICE_COUNT" || name == "TURNS_SINCE" || name == "RANDOM" || name == "SEED_RANDOM" || name == "LIST_VALUE";
+            return name == "CHOICE_COUNT" 
+                || name == "TURNS_SINCE" 
+                || name == "RANDOM" 
+                || name == "SEED_RANDOM" 
+                || name == "LIST_VALUE"
+                || name == "READ_COUNT";
         }
 
         public override string ToString ()
@@ -212,8 +220,8 @@ namespace Ink.Parsed
         }
             
         Parsed.Divert _proxyDivert;
-        Parsed.DivertTarget _turnCountDivertTarget;
-        Parsed.VariableReference _turnCountVariableReference;
+        Parsed.DivertTarget _divertTargetToCount;
+        Parsed.VariableReference _variableReferenceToCount;
     }
 }
 

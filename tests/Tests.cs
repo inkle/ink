@@ -2889,6 +2889,34 @@ Unreachable
         	Assert.AreEqual ("8\n", story.ContinueMaximally ());
         }
 
+
+        [Test ()]
+        public void TestReadCountVariableTarget ()
+        {
+        	var storyStr =
+@"
+VAR x = ->knot
+
+Count start: {READ_COUNT (x)} {READ_COUNT (-> knot)} {knot}
+
+-> x (1) ->
+-> x (2) ->
+-> x (3) ->
+
+Count end: {READ_COUNT (x)} {READ_COUNT (-> knot)} {knot}
+-> END
+
+
+== knot (a) ==
+{a}
+->->
+";
+
+        	var story = CompileString (storyStr, countAllVisits:true);
+        	Assert.AreEqual ("Count start: 0 0 0\n1\n2\n3\nCount end: 3 3 3\n", story.ContinueMaximally ());
+        }
+
+
         [Test ()]
         public void TestDivertTargetsWithParameters ()
         {

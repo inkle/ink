@@ -50,7 +50,7 @@ namespace Ink.Parsed
                 } 
                 else if( usageParent is FunctionCall ) {
                     var funcCall = usageParent as FunctionCall;
-                    if( !funcCall.isTurnsSince ) {
+                    if( !funcCall.isTurnsSince && !funcCall.isReadCount ) {
                         badUsage = true;
                     }
                     foundUsage = true;
