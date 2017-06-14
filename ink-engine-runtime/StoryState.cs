@@ -262,6 +262,7 @@ namespace Ink.Runtime
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
+            copy._originalEvaluationStackHeight = _originalEvaluationStackHeight;
 
             if (divertedTargetObject != null)
                 copy.divertedTargetObject = divertedTargetObject;
