@@ -85,6 +85,12 @@ namespace Ink
                 Warning ("Choice is completely empty. Interpretting as a default fallback choice. Add a divert arrow to remove this warning: * ->");
 
             if (!innerContent) innerContent = new ContentList ();
+
+            var tags = Parse (Tags);
+            if (tags != null) {
+                innerContent.AddContent(tags);
+            }
+
             innerContent.AddContent (new Text ("\n"));
 
             // Normal diverts on the end of a choice - simply add to the normal content
@@ -102,16 +108,7 @@ namespace Ink
                 }
             }
 
-            var tags = Parse (Tags);
-            if (tags != null) {
-                if (hasWeaveStyleInlineBrackets) {
-                    //if (!innerContent)
-                    //    innerContent = new ContentList();
-                    innerContent.AddContent(tags);
-                } else {
-                    startContent.AddContent (tags);
-                }
-            }
+
 
             var choice = new Choice (startContent, optionOnlyContent, innerContent);
             choice.name = optionalName;

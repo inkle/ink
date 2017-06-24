@@ -2936,6 +2936,28 @@ VAR x = ->place
         	Assert.AreEqual ("5\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestTagOnChoice ()
+        {
+        	var storyStr =
+@"
+* [Hi] Hello -> END #hey
+";
+
+        	var story = CompileString (storyStr);
+
+            story.Continue ();
+
+            story.ChooseChoiceIndex (0);
+
+            var txt = story.Continue ();
+            var tags = story.currentTags;
+
+            Assert.AreEqual (" Hello\n", txt); // argh need to fix space?
+            Assert.AreEqual (1, tags.Count);
+            Assert.AreEqual ("hey", tags[0]);
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
