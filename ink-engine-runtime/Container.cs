@@ -25,22 +25,22 @@ namespace Ink.Runtime
 
         public Dictionary<string, Runtime.Object> namedOnlyContent { 
             get {
-                var namedOnlyContent = new Dictionary<string, Runtime.Object>();
+                var namedOnlyContentDict = new Dictionary<string, Runtime.Object>();
                 foreach (var kvPair in namedContent) {
-                    namedOnlyContent [kvPair.Key] = (Runtime.Object)kvPair.Value;
+                    namedOnlyContentDict [kvPair.Key] = (Runtime.Object)kvPair.Value;
                 }
 
                 foreach (var c in content) {
                     var named = c as INamedContent;
                     if (named != null && named.hasValidName) {
-                        namedOnlyContent.Remove (named.name);
+                        namedOnlyContentDict.Remove (named.name);
                     }
                 }
 
-                if (namedOnlyContent.Count == 0)
-                    namedOnlyContent = null;
+                if (namedOnlyContentDict.Count == 0)
+                    namedOnlyContentDict = null;
 
-                return namedOnlyContent;
+                return namedOnlyContentDict;
             } 
             set {
                 var existingNamedOnly = namedOnlyContent;
