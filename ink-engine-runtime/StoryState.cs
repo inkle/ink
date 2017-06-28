@@ -256,7 +256,8 @@ namespace Ink.Runtime
             }
 
             copy.callStack = new CallStack (callStack);
-            copy._originalCallstack = new CallStack(_originalCallstack);
+            if( _originalCallstack != null )
+                copy._originalCallstack = new CallStack(_originalCallstack);
 
             copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
