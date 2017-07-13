@@ -135,8 +135,7 @@ namespace Ink
 
                 definition.name = varName;
 
-                var result = new VariableAssignment (varName, definition);
-                return result;
+                return new VariableAssignment (varName, definition);
             }
 
             return null;
@@ -275,6 +274,8 @@ namespace Ink
             var logic = (Parsed.Object) Expect(InnerLogic, "some kind of logic, conditional or sequence within braces: { ... }");
             if (logic == null)
                 return null;
+
+            DisallowIncrement (logic);
 
             ContentList contentList = logic as ContentList;
             if (!contentList) {

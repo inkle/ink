@@ -24,17 +24,6 @@ namespace Ink.Parsed
         public bool onceOnly { get; set; }
         public bool isInvisibleDefault { get; set; }
 
-        public Divert terminatingDivert { get; private set; }
-        public bool   hasExplicitGather {
-            get {
-                return terminatingDivert && terminatingDivert.isToGather;
-            }
-        }
-        public bool hasTerminatingDivert {
-            get {
-                return terminatingDivert != null;
-            }
-        }
         public int    indentationDepth { get; set; }// = 1;
         public bool   hasWeaveStyleInlineBrackets { get; set; }
 
@@ -60,7 +49,7 @@ namespace Ink.Parsed
             }
         }
 
-        public Choice (ContentList startContent, ContentList choiceOnlyContent, ContentList innerContent, Divert divert)
+        public Choice (ContentList startContent, ContentList choiceOnlyContent, ContentList innerContent)
 		{
             this.startContent = startContent;
             this.choiceOnlyContent = choiceOnlyContent;
@@ -77,11 +66,6 @@ namespace Ink.Parsed
                 AddContent (this.innerContent);
 
             this.onceOnly = true; // default
-
-            if (divert) {
-                terminatingDivert = divert;
-                AddContent (terminatingDivert);
-            }
 		}
 
 
@@ -245,11 +229,6 @@ namespace Ink.Parsed
 
             _innerContentContainer.countingAtStartOnly = true;
 
-            // Does this choice end in an explicit divert?
-            if (terminatingDivert) {
-                _innerContentContainer.AddContent (terminatingDivert.runtimeObject);
-            }
-
             return _outerContainer;
 		}
 
@@ -276,6 +255,9 @@ namespace Ink.Parsed
                 _divertToStartContentInner.targetPath = _startContentRuntimeContainer.path;
 
             base.ResolveReferences (context);
+
+            if( name != null && name.Length > 0 )
+                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
 		}
 
         public override string ToString ()

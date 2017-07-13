@@ -653,6 +653,7 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.NoOp] = "nop";
             _controlCommandNames [(int)ControlCommand.CommandType.ChoiceCount] = "choiceCnt";
             _controlCommandNames [(int)ControlCommand.CommandType.TurnsSince] = "turns";
+            _controlCommandNames [(int)ControlCommand.CommandType.ReadCount] = "readc";
             _controlCommandNames [(int)ControlCommand.CommandType.Random] = "rnd";
             _controlCommandNames [(int)ControlCommand.CommandType.SeedRandom] = "srnd";
             _controlCommandNames [(int)ControlCommand.CommandType.VisitIndex] = "visit";

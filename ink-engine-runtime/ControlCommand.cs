@@ -19,6 +19,7 @@ namespace Ink.Runtime
             NoOp,
             ChoiceCount,
             TurnsSince,
+            ReadCount,
             Random,
             SeedRandom,
             VisitIndex,
@@ -102,6 +103,11 @@ namespace Ink.Runtime
 
         public static ControlCommand TurnsSince() {
             return new ControlCommand(CommandType.TurnsSince);
+        }
+
+        public static ControlCommand ReadCount ()
+        {
+            return new ControlCommand (CommandType.ReadCount);
         }
 
         public static ControlCommand Random ()

@@ -366,7 +366,119 @@ namespace Ink.Parsed
         {
             _dontFlattenContainers.Add (container);
         }
-            
+
+
+
+        void NameConflictError (Parsed.Object obj, string name, Parsed.Object existingObj, string typeNameToPrint)
+        {
+            obj.Error (typeNameToPrint+" '" + name + "': name has already been used for a " + existingObj.typeName.ToLower() + " on " +existingObj.debugMetadata);
+        }
+
+        public static bool IsReservedKeyword (string name)
+        {
+            switch (name) {
+            case "true":
+            case "false":
+            case "not":
+            case "return":
+            case "else":
+            case "VAR":
+            case "CONST":
+            case "temp":
+            case "LIST":
+            case "function":
+                return true;
+            }
+
+            return false;
+        }
+
+        public enum SymbolType : uint
+        {
+        	Knot,
+        	List,
+        	ListItem,
+        	Var,
+        	SubFlowAndWeave,
+        	Arg,  
+            Temp
+        }
+
+        public void CheckForNamingCollisions (Parsed.Object obj, string name, SymbolType symbolType, string typeNameOverride = null)
+        {
+            string typeNameToPrint = typeNameOverride ?? obj.typeName;
+            if (IsReservedKeyword (name)) {
+                obj.Error ("'"+name + "' cannot be used for the name of a " + typeNameToPrint + " because it's a reserved keyword");
+                return;
+            }
+
+            // Top level knots
+            FlowBase knotOrFunction = ContentWithNameAtLevel (name, FlowLevel.Knot) as FlowBase;
+            if (knotOrFunction && (knotOrFunction != obj || symbolType == SymbolType.Arg)) {
+                NameConflictError (obj, name, knotOrFunction, typeNameToPrint);
+                return;
+            }
+
+            if (symbolType < SymbolType.List) return;
+
+            // Lists
+            foreach (var namedListDef in _listDefs) {
+                var listDefName = namedListDef.Key;
+                var listDef = namedListDef.Value;
+                if (name == listDefName && obj != listDef && listDef.variableAssignment != obj) {
+                    NameConflictError (obj, name, listDef, typeNameToPrint);
+                }
+
+                // We don't check for conflicts between individual elements in 
+                // different lists because they are namespaced.
+                if (!(obj is ListElementDefinition)) {
+                    foreach (var item in listDef.itemDefinitions) {
+                        if (name == item.name) {
+                            NameConflictError (obj, name, item, typeNameToPrint);
+                        }
+                    }
+                }
+            }
+
+            // Don't check for VAR->VAR conflicts because that's handled separately
+            // (necessary since checking looks up in a dictionary)
+            if (symbolType <= SymbolType.Var) return;
+
+            // Global variable collision
+            VariableAssignment varDecl = null;
+            if (variableDeclarations.TryGetValue(name, out varDecl) ) {
+                if (varDecl != obj && varDecl.isGlobalDeclaration && varDecl.listDefinition == null) {
+                    NameConflictError (obj, name, varDecl, typeNameToPrint);
+                }
+            }
+
+            if (symbolType < SymbolType.SubFlowAndWeave) return;
+
+            // Stitches, Choices and Gathers
+            var path = new Path (name);
+            var targetContent = path.ResolveFromContext (obj);
+            if (targetContent && targetContent != obj) {
+                NameConflictError (obj, name, targetContent, typeNameToPrint);
+                return;
+            }
+
+            if (symbolType < SymbolType.Arg) return;
+
+            // Arguments to the current flow
+            if (symbolType != SymbolType.Arg) {
+				FlowBase flow = obj as FlowBase;
+				if( flow == null ) flow = obj.ClosestFlowBase ();
+				if (flow && flow.hasParameters) {
+					foreach (var arg in flow.arguments) {
+						if (arg.name == name) {
+							obj.Error (typeNameToPrint+" '" + name + "': Name has already been used for a argument to "+flow.name+" on " +flow.debugMetadata);
+							return;
+						}
+					}
+				}
+            }
+        }
+
         ErrorHandler _errorHandler;
         bool _hadError;
         bool _hadWarning;

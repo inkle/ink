@@ -15,7 +15,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 16;
+        public const int inkVersionCurrent = 17;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -853,6 +853,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.TurnsSince:
+                case ControlCommand.CommandType.ReadCount:
                     var target = state.PopEvaluationStack();
                     if( !(target is DivertTargetValue) ) {
                         string extraNote = "";
@@ -864,8 +865,14 @@ namespace Ink.Runtime
                         
                     var divertTarget = target as DivertTargetValue;
                     var container = ContentAtPath (divertTarget.targetPath) as Container;
-                    int turnCount = TurnsSinceForContainer (container);
-                    state.PushEvaluationStack (new IntValue (turnCount));
+
+                    int eitherCount;
+                    if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                        eitherCount = TurnsSinceForContainer (container);
+                    else
+                        eitherCount = VisitCountForContainer (container);
+                    
+                    state.PushEvaluationStack (new IntValue (eitherCount));
                     break;
 
                 case ControlCommand.CommandType.Random:
@@ -1714,6 +1721,15 @@ namespace Ink.Runtime
             mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
 
             return sb.ToString ();
+        }
+
+        string BuildStringOfContainer (Container container)
+        {
+        	var sb = new StringBuilder ();
+
+        	container.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+
+        	return sb.ToString();
         }
 
 		private void NextContent()

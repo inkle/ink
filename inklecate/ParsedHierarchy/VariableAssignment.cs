@@ -30,8 +30,10 @@ namespace Ink.Parsed
         {
             this.variableName = variableName;
 
-            if( listDef )
-                this.listDefinition = AddContent(listDef);
+            if (listDef) {
+                this.listDefinition = AddContent (listDef);
+                this.listDefinition.variableAssignment = this;
+            }
 
             // List definitions are always global
             isGlobalDeclaration = true;
@@ -72,24 +74,15 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            VariableAssignment varDecl = null;
-            if (this.isNewTemporaryDeclaration && story.variableDeclarations.TryGetValue(variableName, out varDecl) ) {
-                if (varDecl.isGlobalDeclaration) {
-                    Error ("global variable '" + variableName + "' already exists with the same name (declared on " + varDecl.debugMetadata + ")");
-                    return;
-                }
-            }
+            // List definitions are checked for conflicts separately
+            if( this.isDeclaration && listDefinition == null )
+                context.CheckForNamingCollisions (this, variableName, this.isGlobalDeclaration ? Story.SymbolType.Var : Story.SymbolType.Temp);
 
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
                 if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
                     Error ("global variable assignments cannot refer to other variables, only literal values, constants and list items");
                 }       
-            }
-
-            if (IsReservedKeyword (variableName)) {
-                Error ("cannot use '" + variableName + "' as a variable since it's a reserved ink keyword");
-                return;
             }
 
             if (!this.isNewTemporaryDeclaration) {
@@ -99,23 +92,20 @@ namespace Ink.Parsed
                     } else {
                         Error ("Variable could not be found to assign to: '" + this.variableName + "'", this);
                     }
-
                 }
             }
         }
 
-        // TODO: Move this somewhere more general?
-        public static bool IsReservedKeyword(string name)
-        {
-            return _reservedKeywords.Contains (name);
+
+        public override string typeName {
+            get {
+                if (isNewTemporaryDeclaration) return "temp";
+                else if (isGlobalDeclaration) return "VAR";
+                else return "variable assignment";
+            }
         }
 
-        static HashSet<string> _reservedKeywords = new HashSet<string>(new string[] { 
-            "true", "false",
-            "not",
-            "return",
-            "else"
-        });
+
     }
 }
 

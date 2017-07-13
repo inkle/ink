@@ -9,6 +9,8 @@ namespace Ink.Parsed
         public string name;
         public List<ListElementDefinition> itemDefinitions;
 
+        public VariableAssignment variableAssignment;
+
         public Runtime.ListDefinition runtimeListDefinition {
             get {
                 var allItems = new Dictionary<string, int> ();
@@ -67,6 +69,19 @@ namespace Ink.Parsed
             return new Runtime.ListValue (initialValues);
         }
 
+        public override void ResolveReferences (Story context)
+        {
+            base.ResolveReferences (context);
+
+            context.CheckForNamingCollisions (this, name, Story.SymbolType.List);
+        }
+
+        public override string typeName {
+            get {
+                return "List definition";
+            }
+        }
+
         Dictionary<string, ListElementDefinition> _elementsByName;
     }
 
@@ -97,6 +112,19 @@ namespace Ink.Parsed
         public override Runtime.Object GenerateRuntimeObject ()
         {
             throw new System.NotImplementedException ();
+        }
+
+        public override void ResolveReferences (Story context)
+        {
+            base.ResolveReferences (context);
+
+            context.CheckForNamingCollisions (this, name, Story.SymbolType.ListItem);
+        }
+
+        public override string typeName {
+        	get {
+                return "List element";
+            }
         }
     }
 }

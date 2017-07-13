@@ -357,7 +357,6 @@ namespace Ink.Runtime
 
                 // List operations
                 AddListBinaryOp (Add, (x, y) => x.Union (y));
-                AddListBinaryOp (And, (x, y) => x.Union (y));
                 AddListBinaryOp (Subtract, (x, y) => x.Without(y));
                 AddListBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
                 AddListBinaryOp (Hasnt, (x, y) => x.Contains (y) ? (int)0 : (int)1);
@@ -369,6 +368,9 @@ namespace Ink.Runtime
                 AddListBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y) ? (int)1 : (int)0);
                 AddListBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y) ? (int)1 : (int)0);
                 AddListBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
+
+                AddListBinaryOp (And, (x, y) => x.Count > 0 && y.Count > 0 ? (int)1 : (int)0);
+                AddListBinaryOp (Or,  (x, y) => x.Count > 0 || y.Count > 0 ? (int)1 : (int)0);
 
                 AddListUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
 

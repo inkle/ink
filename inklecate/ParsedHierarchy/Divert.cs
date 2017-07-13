@@ -10,7 +10,7 @@ namespace Ink.Parsed
         public List<Expression> arguments { get; protected set; }
 		public Runtime.Divert runtimeDivert { get; protected set; }
         public bool isFunctionCall { get; set; }
-        public bool isToGather { get; set; }
+        public bool isEmpty { get; set; }
         public bool isTunnel { get; set; }
         public bool isThread { get; set; }
         public bool isEnd { 
@@ -158,7 +158,7 @@ namespace Ink.Parsed
 
         void ResolveTargetContent()
         {
-            if (isToGather || isEnd) {
+            if (isEmpty || isEnd) {
                 return;
             }
 
@@ -194,7 +194,7 @@ namespace Ink.Parsed
 
         public override void ResolveReferences(Story context)
 		{
-            if (isToGather || isEnd || isDone) {
+            if (isEmpty || isEnd || isDone) {
                 return;
             }
 
@@ -257,7 +257,7 @@ namespace Ink.Parsed
         // Returns false if there's an error
         void CheckArgumentValidity()
         {
-            if (isToGather) 
+            if (isEmpty) 
                 return;
 
             // Argument passing: Check for errors in number of arguments
@@ -292,12 +292,13 @@ namespace Ink.Parsed
                 return;
             }
 
-            var paramCount = targetFlow.arguments.Count;
-            if (paramCount > 0 && this.parent is DivertTarget) {
-                Error ("Can't store a link to a knot that takes parameters in a variable");
+            if( this.parent is DivertTarget ) {
+                if (numArgs > 0)
+                    Error ("can't store arguments in a divert target variable");
                 return;
             }
 
+            var paramCount = targetFlow.arguments.Count;
             if (paramCount != numArgs) {
 
                 string butClause;

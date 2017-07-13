@@ -242,16 +242,18 @@ namespace Ink.Parsed
             if (_rootWeave && _rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
 
                 foreach (var looseEnd in _rootWeave.looseEnds) {
-                    if (looseEnd is Divert) {
-                        
-                        if (_finalLooseEnds == null) {
-                            _finalLooseEnds = new List<Ink.Runtime.Divert> ();
-                            _finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
-                            container.AddContent (_finalLooseEndTarget);
-                        }
 
-                        _finalLooseEnds.Add ((Runtime.Divert)looseEnd.runtimeObject);
-                    }
+                    Divert looseEndDivert = looseEnd as Divert;
+
+                    if (looseEndDivert == null) continue;
+
+					if (_finalLooseEnds == null) {
+						_finalLooseEnds = new List<Ink.Runtime.Divert> ();
+						_finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
+						container.AddContent (_finalLooseEndTarget);
+					}
+					
+					_finalLooseEnds.Add ((Runtime.Divert)looseEndDivert.runtimeObject);
                 }
             }
                 
@@ -348,26 +350,17 @@ namespace Ink.Parsed
 
             // Check validity of parameter names
             if (arguments != null) {
-                foreach (var arg in arguments) {
+                
+                foreach (var arg in arguments)
+                    context.CheckForNamingCollisions (this, arg.name, Story.SymbolType.Arg, "argument");
 
-                    // Don't allow reserved words for argument names
-                    if (VariableAssignment.IsReservedKeyword (arg.name)) {
-                        Error ("Argument '" + arg.name + "' is a reserved word, please choose another name");
-                        continue;
-                    }
-
-                    // Does argument conflict with a knot/stitch/label?
-                    var pathOfTheoreticalTarget = new Path (arg.name);
-                    Parsed.Object target = pathOfTheoreticalTarget.ResolveFromContext (this);
-                    if (target) {
-                        Error ("Argument '" + arg.name + "' conflicts with a " + target.GetType().Name + " on " + target.debugMetadata + ", ");
-                        continue;
-                    }
-
-                    // Does argument conflict with another variable name?
-                    if (context.ResolveVariableWithName (arg.name, fromNode: this.parent).found) {
-                        Error("Argument '"+ arg.name + "' conflicts with existing variable definition at higher scope.");
-                        continue;
+                // Separately, check for duplicate arugment names, since they aren't Parsed.Objects,
+                // so have to be checked independently.
+                for (int i = 0; i < arguments.Count; i++) {
+                    for (int j = i + 1; j < arguments.Count; j++) {
+                        if (arguments [i].name == arguments [j].name) {
+                            Error ("Multiple arguments with the same name: '" + arguments [i].name + "'");
+                        }
                     }
                 }
             }
@@ -502,14 +495,16 @@ namespace Ink.Parsed
             }
         }
 
+        public override string typeName {
+            get {
+                if (isFunction) return "Function";
+                else return flowLevel.ToString ();
+            }
+        }
 
         public override string ToString ()
         {
-            string flowTypeName = GetType ().Name;
-            if (isFunction)
-                flowTypeName = "Function";
-            
-            return flowTypeName+" '" + name + "'";
+            return typeName+" '" + name + "'";
         }
 
         Weave _rootWeave;

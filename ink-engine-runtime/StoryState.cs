@@ -17,7 +17,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 6;
+        public const int kInkSaveStateVersion = 7;
         const int kMinCompatibleLoadVersion = 6;
 
         /// <summary>
@@ -57,6 +57,12 @@ namespace Ink.Runtime
 
             return 0;
         }
+
+		internal int callstackDepth {
+			get {
+				return callStack.depth;
+			}
+		}
 
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method, and serialisation.
@@ -250,11 +256,14 @@ namespace Ink.Runtime
             }
 
             copy.callStack = new CallStack (callStack);
+            if( _originalCallstack != null )
+                copy._originalCallstack = new CallStack(_originalCallstack);
 
             copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
+            copy._originalEvaluationStackHeight = _originalEvaluationStackHeight;
 
             if (divertedTargetObject != null)
                 copy.divertedTargetObject = divertedTargetObject;

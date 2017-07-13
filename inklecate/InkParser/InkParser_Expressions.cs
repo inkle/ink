@@ -68,6 +68,11 @@ namespace Ink
             }
         }
 
+        protected void DisallowIncrement (Parsed.Object expr)
+        {
+        	if (expr is Parsed.IncDecExpression)
+        		Error ("Can't use increment/decrement here. It can only be used on a ~ line");
+        }
 
         protected bool ParseTempKeyword()
         {
@@ -346,7 +351,7 @@ namespace Ink
         {
             List<string> path = Interleave<string> (Identifier, Exclude (Spaced (String ("."))));
             
-            if (path == null || VariableAssignment.IsReservedKeyword (path[0]) )
+            if (path == null || Story.IsReservedKeyword (path[0]) )
                 return null;
             
             return new VariableReference (path);

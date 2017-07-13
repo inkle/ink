@@ -39,10 +39,8 @@ namespace Ink
             //  -> div ->->          -- tunnel then tunnel continue
             //  -> div -> div        -- tunnel then divert
             //  -> div -> div ->     -- tunnel then tunnel
-            //  -> div -> div ->->   (etc)
-
-            bool hasInitialTunnelOnwards = false;
-            bool hasFinalTunnelOnwards = false;
+            //  -> div -> div ->->   
+            //  -> div -> div ->-> div    (etc)
 
             // Look at the arrows and diverts
             for (int i = 0; i < arrowsAndDiverts.Count; ++i) {
@@ -50,15 +48,26 @@ namespace Ink
 
                 // Arrow string
                 if (isArrow) {
-                    string arrow = arrowsAndDiverts [i] as string;
-                    if (arrow == "->->") {
-                        if (i == 0) {
-                            hasInitialTunnelOnwards = true;
-                        } else if (i == arrowsAndDiverts.Count - 1) {
-                            hasFinalTunnelOnwards = true;
-                        } else {
+                    
+                    // Tunnel onwards
+                    if ((string)arrowsAndDiverts [i] == "->->") {
+
+                        bool tunnelOnwardsPlacementValid = (i == 0 || i == arrowsAndDiverts.Count - 1 || i == arrowsAndDiverts.Count - 2);
+                        if (!tunnelOnwardsPlacementValid)
                             Error ("Tunnel onwards '->->' must only come at the begining or the start of a divert");
+
+                        var tunnelOnwards = new TunnelOnwards ();
+                        if (i < arrowsAndDiverts.Count - 1) {
+                            var tunnelOnwardDivert = arrowsAndDiverts [i+1] as Parsed.Divert;
+                            tunnelOnwards.divertAfter = tunnelOnwardDivert;
                         }
+
+                        diverts.Add (tunnelOnwards);
+
+                        // Not allowed to do anything after a tunnel onwards.
+                        // If we had anything left it would be caused in the above Error for
+                        // the positioning of a ->->
+                        break;
                     }
                 }
 
@@ -76,35 +85,14 @@ namespace Ink
                 }
             }
 
-            // ->-> (with optional override divert)
-            if (hasInitialTunnelOnwards) {
-                if (arrowsAndDiverts.Count > 2) {
-                    Error ("Tunnel onwards '->->' must either be on its own or followed by a single target");
-                }
-
-                var tunnelOnwards = new TunnelOnwards ();
-
-                // Optional override target to divert to after tunnel onwards?
-                // Replace divert with the tunnel onwards to that target.
-                if (arrowsAndDiverts.Count > 1) {
-                    var overrideDivert = diverts [0] as Parsed.Divert;
-                    tunnelOnwards.overrideReturnPath = overrideDivert.target;
-                    diverts.RemoveAt (0);
-                }
-
-                diverts.Add (tunnelOnwards);
-            }
-
-            // Single ->
-            else if (diverts.Count == 0 && arrowsAndDiverts.Count == 1) {
+            // Single -> (used for default choices)
+            if (diverts.Count == 0 && arrowsAndDiverts.Count == 1) {
                 var gatherDivert = new Divert ((Parsed.Object)null);
-                gatherDivert.isToGather = true;
+                gatherDivert.isEmpty = true;
                 diverts.Add (gatherDivert);
-            }
 
-            // Divert that terminates in ->->
-            else if (hasFinalTunnelOnwards) {
-                diverts.Add (new TunnelOnwards ());
+                if (!_parsingChoice)
+                    Error ("Empty diverts (->) are only valid on choices");
             }
 
             return diverts;

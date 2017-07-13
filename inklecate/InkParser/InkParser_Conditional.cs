@@ -244,6 +244,8 @@ namespace Ink
             if (expr == null)
                 return null;
 
+            DisallowIncrement (expr);
+
             Whitespace ();
 
             if (ParseString (":") == null)

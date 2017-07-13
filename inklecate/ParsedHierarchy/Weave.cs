@@ -203,16 +203,6 @@ namespace Ink.Parsed
                     // Other object
                     // May be complex object that contains statements - e.g. a multi-line conditional
                     else {
-
-                        // Find any nested explicit gather points within this object
-                        // (including the object itself)
-                        // i.e. instances of "->" without a target that's meant to go 
-                        // to the next gather point.
-                        var innerExplicitGathers = obj.FindAll<Divert> (d => d.isToGather);
-                        if (innerExplicitGathers.Count > 0)
-                            looseEnds.AddRange (innerExplicitGathers.ToArray());
-
-                        // Add content
                         AddGeneralRuntimeContent (obj.runtimeObject);
                     }
 
@@ -282,15 +272,9 @@ namespace Ink.Parsed
                 if (looseEnd is Parsed.Divert) {
                     divert = (Runtime.Divert) looseEnd.runtimeObject;
                 } else {
+                    divert = new Runtime.Divert ();
                     var looseWeavePoint = looseEnd as IWeavePoint;
-
-                    var looseChoice = looseWeavePoint as Parsed.Choice;
-                    if (looseChoice && looseChoice.hasTerminatingDivert) {
-                        divert = looseChoice.terminatingDivert.runtimeObject as Runtime.Divert;
-                    } else {
-                        divert = new Runtime.Divert ();
-                        looseWeavePoint.runtimeContainer.AddContent (divert);
-                    }
+                    looseWeavePoint.runtimeContainer.AddContent (divert);
                 }
                    
                 // Pass back knowledge of this loose end being diverted
@@ -329,9 +313,9 @@ namespace Ink.Parsed
             if (WeavePointHasLooseEnd (weavePoint)) {
                 looseEnds.Add ((Parsed.Object)weavePoint);
 
-                // If choice has an explicit gather divert ("->") then it doesn't need content added to it
+
                 var looseChoice = weavePoint as Choice;
-                if (looseChoice && !looseChoice.hasExplicitGather) {
+                if (looseChoice) {
                     addContentToPreviousWeavePoint = true;
                 }
             }
@@ -421,41 +405,23 @@ namespace Ink.Parsed
             
         bool WeavePointHasLooseEnd(IWeavePoint weavePoint)
         {
-            // Simple choice with explicit divert 
-            // definitely doesn't have a loose end
-            if (weavePoint is Choice) {
-                var choice = (Choice)weavePoint;
+            // No content, must be a loose end.
+            if (weavePoint.content == null) return true;
 
-                // However, explicit gather point is definitely a loose end
-                if (choice.hasExplicitGather) {
-                    return true;
-                }
-
-                if (choice.hasTerminatingDivert) {
-                    return false;
-                }
-            }
-
-            // No content, and no simple divert above, must be a loose end.
-            // (content list on Choices gets created on demand, hence how
-            // it could be null)
-            if (weavePoint.content == null) {
-                return true;
-            }
-
+            // If a weave point is diverted from, it doesn't have a loose end.
             // Detect a divert object within a weavePoint's main content
             // Work backwards since we're really interested in the end,
             // although it doesn't actually make a difference!
-            else {
-                for (int i = weavePoint.content.Count - 1; i >= 0; --i) {
-                    var innerDivert = weavePoint.content [i] as Divert;
-                    if (innerDivert && !innerDivert.isToGather) {
-                        return false;
-                    }
+            // (content after a divert will simply be inaccessible)
+            for (int i = weavePoint.content.Count - 1; i >= 0; --i) {
+                var innerDivert = weavePoint.content [i] as Divert;
+                if (innerDivert) {
+                    bool willReturn = innerDivert.isThread || innerDivert.isTunnel || innerDivert.isFunctionCall;
+                    if (!willReturn) return false;
                 }
-
-                return true;
             }
+
+            return true;
         }
 
         // Enforce rule that weave points must not have the same

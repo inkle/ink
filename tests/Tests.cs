@@ -61,8 +61,8 @@ VAR global_var = 5
 ", testingErrors: true);
 
             Assert.AreEqual(2, _errorMessages.Count);
-            Assert.IsTrue(HadError("conflicts with a Knot"));
-            Assert.IsTrue(HadError("conflicts with existing variable"));
+            Assert.IsTrue(HadError("name has already been used for a function"));
+            Assert.IsTrue(HadError("name has already been used for a var"));
         }
 
         [Test()]
@@ -203,12 +203,15 @@ Hello
         public void TestChoiceCount()
         {
             Story story = CompileString(@"
-* one -> end
-* two -> end
+<- choices
 { CHOICE_COUNT() }
 
 = end
 -> END
+
+= choices
+* one -> end
+* two -> end
 ");
 
             Assert.AreEqual("2\n", story.Continue());
@@ -880,18 +883,11 @@ Hello world
         }
 
         [Test()]
-        public void TestGatherAtFlowEnd()
+        public void TestDisallowEmptyDiverts()
         {
-            // The final "->" doesn't have anywhere to go, so it should
-            // happily just go to the end of the flow.
-            var storyStr = "- nothing ->";
+            CompileStringWithoutRuntime ("->", testingErrors: true);
 
-            Story story = CompileString(storyStr);
-
-            // Hrm: terminating space is a little bit silly
-            // (it's because the divert arrow forces a little bit of
-            // whitespace in case you're diverting straight into another line)
-            Assert.AreEqual("nothing ", story.ContinueMaximally());
+            Assert.IsTrue (HadError ("Empty diverts (->) are only valid on choices"));
         }
 
         [Test()]
@@ -2635,7 +2631,7 @@ Now in B.
                 @"
 LIST list = a, (b), c, (d), e
 {list}
-{(a, c) and (b, e)}
+{(a, c) + (b, e)}
 {(a, b, c) ^ (c, b, e)}
 {list ? (b, d, e)}
 {list ? (d, b)}
@@ -2654,7 +2650,7 @@ LIST list = a, (b), c, (d), e
                 @"
 LIST list = (a), b, (c), d, e
 LIST list2 = x, (y), z
-{list && list2}
+{list + list2}
 ";
             var story = CompileString (storyStr);
 
@@ -2723,7 +2719,7 @@ LIST l1 = (a), b, (c)
 LIST l2 = (x), y, z
 
 VAR t = ()
-~ t = l1 and l2
+~ t = l1 + l2
 {t}
 
 == elsewhere ==
@@ -2805,62 +2801,162 @@ opts1
             Assert.IsTrue(HadError ("with the same label"));
         }
 
+        [Test ()]
+        public void TestVariableNamingCollisionWithFlow ()
+        {
+        	var storyStr =
+        		@"
+LIST someList = A, B
 
-		[Test ()]
-		public void TestCharacterRangeIdentifiers ()
-		{
-			var ranges = new[] {
-				InkParser.LatinBasic, 
-				InkParser.LatinExtendedA, 
-				InkParser.LatinExtendedB, 
-				InkParser.Cyrillic, 
-				InkParser.Greek, 
-				InkParser.Arabic, 
-				InkParser.Armenian, 
-				InkParser.Hebrew
-			};
-			var rangeNames = new[] {
-				"latin-basic", 
-				"latin-ext-a", 
-				"latin-ext-b", 
-				"cyrillic",
-				"greek",
-				"arabic",
-				"armenian",
-				"hebrew",
-			};
-			for (int i = 0; i < ranges.Length; i++) {
+~temp heldItems = (A) 
+{LIST_COUNT (heldItems)}
 
-				var range = ranges[i];
-				var name = rangeNames[i];
+=== function heldItems ()
+~ return (A)
+        ";
+        	CompileString (storyStr, countAllVisits: false, testingErrors: true);
 
-				var piIdentifier = GenerateIdentifierFromCharacterRange (range, "pi");
-				var xIdentifier = GenerateIdentifierFromCharacterRange (range, "x");
-				var yIdentifier = GenerateIdentifierFromCharacterRange (range, "y");
-				var zIdentifier = GenerateIdentifierFromCharacterRange (range, "z");
-				var divertIdentifier = GenerateIdentifierFromCharacterRange (range, "divert");
+        	Assert.IsTrue (HadError ("name has already been used for a function"));
+        }
 
+        [Test ()]
+        public void TestVariableNamingCollisionWithArg ()
+        {
+        	var storyStr =
+        		@"=== function knot (a)
+        			~temp a = 1";
+            
+        	CompileString (storyStr, countAllVisits: false, testingErrors: true);
 
-				var storyStr = string.Format(@"
-ALLOW IDENTIFIER {0}
+        	Assert.IsTrue (HadError ("has already been used"));
+        }
 
-CONST {1} = 3.1415
-CONST {2} = ""World""
-CONST {3} = 3
-CONST d = -> XX
-CONST {4} = -> {5}
+        [Test ()]
+        public void TestTunnelOnwardsDivertAfterWithArg ()
+        {
+        	var storyStr =
+@"
+-> a ->  
 
-== XX ==
+=== a === 
+->-> b (5 + 3)
+
+=== b (x) ===
+{x} 
 -> END
-== {5} ==
+";
+
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("8\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestVariousDefaultChoices ()
+        {
+            var storyStr =
+@"
+* -> hello
+Unreachable
+- (hello) 1
+* ->
+   - - 2
+- 3
+* [] ->
+- 4
 -> END
-", name, piIdentifier, xIdentifier, yIdentifier, zIdentifier, divertIdentifier);
+";
 
-	            var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);
+            var story = CompileString (storyStr);
+            Assert.AreEqual ("1\n2\n3\n4\n", story.ContinueMaximally ());
+        }
 
-				Assert.IsNotNull (compiledStory);
-                Assert.IsFalse (compiledStory.hadError);
-			}
+        [Test ()]
+        public void TestTunnelOnwardsWithParamDefaultChoice ()
+        {
+        	var storyStr =
+@"
+-> tunnel ->
+
+== tunnel ==
+* ->-> elsewhere (8)
+
+== elsewhere (x) ==
+{x}
+-> END
+";
+
+        	var story = CompileString (storyStr);
+        	Assert.AreEqual ("8\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestReadCountVariableTarget ()
+        {
+        	var storyStr =
+@"
+VAR x = ->knot
+
+Count start: {READ_COUNT (x)} {READ_COUNT (-> knot)} {knot}
+
+-> x (1) ->
+-> x (2) ->
+-> x (3) ->
+
+Count end: {READ_COUNT (x)} {READ_COUNT (-> knot)} {knot}
+-> END
+
+
+== knot (a) ==
+{a}
+->->
+";
+
+        	var story = CompileString (storyStr, countAllVisits:true);
+        	Assert.AreEqual ("Count start: 0 0 0\n1\n2\n3\nCount end: 3 3 3\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestDivertTargetsWithParameters ()
+        {
+        	var storyStr =
+@"
+VAR x = ->place
+
+->x (5)
+
+== place (a) ==
+{a}
+-> DONE
+";
+
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("5\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestTagOnChoice ()
+        {
+        	var storyStr =
+@"
+* [Hi] Hello -> END #hey
+";
+
+        	var story = CompileString (storyStr);
+
+            story.Continue ();
+
+            story.ChooseChoiceIndex (0);
+
+            var txt = story.Continue ();
+            var tags = story.currentTags;
+
+            Assert.AreEqual (" Hello\n", txt); // argh need to fix space?
+            Assert.AreEqual (1, tags.Count);
+            Assert.AreEqual ("hey", tags[0]);
         }
 
         // Helper compile function
@@ -2956,6 +3052,151 @@ CONST {4} = -> {5}
 
 			return sb.ToString();
 		}
+
+
+        [Test()]
+        public void TestCharacterRangeIdentifiersForConstNames()
+        {
+            var ranges = new[] {
+                InkParser.LatinBasic,
+                InkParser.LatinExtendedA,
+                InkParser.LatinExtendedB,
+                InkParser.Cyrillic,
+                InkParser.Greek,
+                InkParser.Arabic,
+                InkParser.Armenian,
+                InkParser.Hebrew
+            };
+            var rangeNames = new[] {
+                "latin-basic",
+                "latin-ext-a",
+                "latin-ext-b",
+                "cyrillic",
+                "greek",
+                "arabic",
+                "armenian",
+                "hebrew",
+            };
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+                var name = rangeNames[i];
+
+                var piIdentifier = GenerateIdentifierFromCharacterRange(range, "pi");
+                var aIdentifier = GenerateIdentifierFromCharacterRange(range, "a");
+                var bIdentifier = GenerateIdentifierFromCharacterRange(range, "b");
+
+                var storyStr = string.Format(@"
+ALLOW IDENTIFIER {0}
+
+CONST {1} = 3.1415
+CONST {2} = ""World""
+CONST {3} = 3
+", name, piIdentifier, aIdentifier, bIdentifier);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
+        }
+
+        [Test()]
+        public void TestCharacterRangeIdentifiersForSimpleVariableNames()
+        {
+            var ranges = new[] {
+                InkParser.LatinBasic,
+                InkParser.LatinExtendedA,
+                InkParser.LatinExtendedB,
+                InkParser.Cyrillic,
+                InkParser.Greek,
+                InkParser.Arabic,
+                InkParser.Armenian,
+                InkParser.Hebrew
+            };
+            var rangeNames = new[] {
+                "latin-basic",
+                "latin-ext-a",
+                "latin-ext-b",
+                "cyrillic",
+                "greek",
+                "arabic",
+                "armenian",
+                "hebrew",
+            };
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+                var name = rangeNames[i];
+
+                var piIdentifier = GenerateIdentifierFromCharacterRange(range, "pi");
+                var aIdentifier = GenerateIdentifierFromCharacterRange(range, "a");
+                var bIdentifier = GenerateIdentifierFromCharacterRange(range, "b");
+
+                var storyStr = string.Format(@"
+ALLOW IDENTIFIER {0}
+
+VAR {1} = 3.1415
+VAR {2} = ""World""
+VAR {3} = 3
+", name, piIdentifier, aIdentifier, bIdentifier);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
+        }
+
+
+		[Test ()]
+		public void TestCharacterRangeIdentifiersForDivertNames()
+		{
+			var ranges = new[] {
+				InkParser.LatinBasic, 
+				InkParser.LatinExtendedA, 
+				InkParser.LatinExtendedB, 
+				InkParser.Cyrillic, 
+				InkParser.Greek, 
+				InkParser.Arabic, 
+				InkParser.Armenian, 
+				InkParser.Hebrew
+			};
+			var rangeNames = new[] {
+				"latin-basic", 
+				"latin-ext-a", 
+				"latin-ext-b", 
+				"cyrillic",
+				"greek",
+				"arabic",
+				"armenian",
+				"hebrew",
+			};
+			for (int i = 0; i < ranges.Length; i++) {
+
+				var range = ranges[i];
+				var name = rangeNames[i];
+                var divertVarIdentifier = GenerateIdentifierFromCharacterRange(range, "z");
+				var divertIdentifier = GenerateIdentifierFromCharacterRange(range, "divert");
+
+
+				var storyStr = string.Format(@"
+ALLOW IDENTIFIER {0}
+
+VAR {1} = -> {2}
+
+== {2} ==
+-> END
+", name, divertVarIdentifier, divertIdentifier);
+                
+	            var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);
+
+				Assert.IsNotNull (compiledStory);
+                Assert.IsFalse (compiledStory.hadError);
+			}
+        }
 
         private class TestWarningException : System.Exception
         { }
