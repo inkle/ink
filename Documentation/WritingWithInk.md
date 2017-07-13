@@ -3189,3 +3189,5 @@ Below is a listing of the currently supported identifier ranges and some example
 
 	     ALLOW IDENTIFIER latin-ext-b
 	     ALLOW IDENTIFIER Latin Extended B
+
+**NOTE!** When using any of the above extended identifier character ranges, always make sure your stories are being saved with a text encoding that supports these identifiers. 
