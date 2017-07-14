@@ -8,8 +8,6 @@ namespace Ink
 {
     internal partial class InkParser
     {
-		internal const string EnableCharacterRangeStatement = "ALLOW IDENTIFIER";
-
 		internal static readonly CharacterRange LatinBasic = 
 			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'));
 		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
@@ -25,69 +23,36 @@ namespace Ink
 		internal static readonly CharacterRange Arabic = 
 			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
 
-		protected CharacterRangeInlcude EnableCharacterRange()
-		{
-			Whitespace ();
+        private void ExtendIdentifierCharacterRanges(CharacterSet identifierCharSet)
+        {
+            var characterRanges = ListAllCharacterRanges();
 
-			if (ParseString (EnableCharacterRangeStatement) == null)
-				return null;
-
-			Whitespace ();
-
-			var charRange = (string) Expect(() => ParseUntilCharactersFromString ("\n\r"), "name for character range to enable.");
-			charRange = charRange.TrimEnd (' ', '\t');
-
-			if (!_characterRangesByName.ContainsKey (charRange)) 
-			{
-				// If the char range is not defined we should print a warning. In case there are invalid identifiers, 
-				// we will allow the default ink parsing to fail when detected, so that the corresponding line nuber 
-				// is presented in the error the user receives.
-				Warning ("Specified character range \"{0}\" does not exist. Some identifiers may not be parseable.", charRange);
-			}
-
-            // We do not care if the range is activated multiple times, the hash set will take care of duplicates for us.
-            // This may need to change later if we decide to disable already active character ranges, 
-            // but currently this does not make much sense.
-			_enabledCharacterRanges.Add (charRange);
-            CharacterRange range;
-            if (_characterRangesByName.TryGetValue (charRange, out range)) 
+            foreach (var charRange in characterRanges)
             {
-                _identifierCharSet.AddCharacters (range.ToCharacterSet ());
+                identifierCharSet.AddCharacters(charRange.ToCharacterSet());
             }
+        }
 
-			return new CharacterRangeInlcude (charRange);
-		}
-
-        readonly HashSet<string> _enabledCharacterRanges = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-		readonly IDictionary<string, CharacterRange> _characterRangesByName = new Dictionary<string, CharacterRange>(StringComparer.OrdinalIgnoreCase)
-		{
-			// Basic Latin and aliases
-			{ "Basic Latin", 			LatinBasic },
-			{ "Latin", 					LatinBasic },
-			{ "Latin Basic",			LatinBasic },
-			{ "latin-basic", 			LatinBasic },
-			//
-			{ "Latin Extended A", 		LatinExtendedA },
-			{ "Latin Extended-A", 		LatinExtendedA },
-			{ "latin-ext-a", 			LatinExtendedA },
-			//
-			{ "Latin Extended B", 		LatinExtendedB },
-			{ "Latin Extended-B", 		LatinExtendedB },
-			{ "latin-ext-b", 			LatinExtendedB },
-			//
-			{ "Arabic", 				Arabic },
-			//
-			{ "Armenian", 				Armenian },
-			//
-			{ "Cyrillic", 				Cyrillic },
-			//
-			{ "Greek", 					Greek },
-			//
-			{ "Hebrew", 				Hebrew },
-			// and so on
-		};
-		}
+        /// <summary>
+        /// Gets an array of <see cref="CharacterRange" /> representing all of the currently supported
+        /// non-ASCII character ranges that can be used in identifier names.
+        /// </summary>
+        /// <returns>
+        /// An array of <see cref="CharacterRange" /> representing all of the currently supported
+        /// non-ASCII character ranges that can be used in identifier names.
+        /// </returns>
+        internal static CharacterRange[] ListAllCharacterRanges() {
+            return new CharacterRange[] {
+                LatinBasic,
+                LatinExtendedA,
+                LatinExtendedB,
+                Arabic,
+                Armenian,
+                Cyrillic,
+                Greek,
+                Hebrew,
+            };
+        }
+	}
 }
-
 

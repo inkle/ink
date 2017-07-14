@@ -382,6 +382,8 @@ namespace Ink
                 	.AddRange ('a', 'z')
                 	.AddRange ('0', '9')
                 	.Add ('_');
+                // Enable non-ASCII characters for story identifiers.
+                ExtendIdentifierCharacterRanges(_identifierCharSet);
             }
 
             // Parse remaining characters (if any)

@@ -103,9 +103,6 @@ namespace Ink
                 // Global include can go anywhere
                 rulesAtLevel.Add(Line(IncludeStatement));
 
-				// Global enablement of character ranges can go anywhere
-				rulesAtLevel.Add(Line(EnableCharacterRange));
-
                 // Normal logic / text can go anywhere
                 rulesAtLevel.Add(LogicLine);
                 rulesAtLevel.Add(LineOfMixedTextAndLogic);
