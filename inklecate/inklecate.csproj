@@ -105,7 +105,6 @@
     <Compile Include="InkParser\InkParser_Tags.cs" />
     <Compile Include="CharacterRange.cs" />
     <Compile Include="InkParser\InkParser_CharacterRanges.cs" />
-    <Compile Include="ParsedHierarchy\CharacterRangeInlcude.cs" />
     <Compile Include="ParsedHierarchy\ListDefinition.cs" />
     <Compile Include="ParsedHierarchy\List.cs" />
   </ItemGroup>
