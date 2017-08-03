@@ -1,6 +1,5 @@
 # ink
 
-[![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/g5MJY0vLu)
 [![CI Status](http://img.shields.io/travis/inkle/ink.svg?style=flat)](https://travis-ci.org/inkle/ink)
 
 [Ink](http://www.inklestudios.com/ink) is [inkle](http://www.inklestudios.com/)'s scripting language for writing interactive narrative, both for text-centric games as well as more graphical games that contain highly branching stories. It's designed to be easy to learn, but with powerful enough features to allow an advanced level of structuring.
@@ -131,9 +130,7 @@ We’d of course appreciate any bug fixes you might find! Also see the roadmap b
 
 We're using GitHub issues both as a discussion forum and as a bug tracker, so [create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature, and please label appropriately. Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
 
-We also have a public room in HipChat where you may find someone to help you:
-
-[![HipChat](http://www.inklestudios.com/img/ink-github-HipChat-widget.svg)](https://www.hipchat.com/g5MJY0vLu)
+We also have a [Discord server](https://discord.gg/MUXj7Md), where you may find other people using ink to chat with (as well as inklers!)
 
 In terms of related projects outside of the scope of this repo, we'd love to see the following since we don't have time to do it ourselves right now, and we think it would substantially help the community:
 
