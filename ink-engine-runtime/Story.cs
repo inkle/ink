@@ -956,6 +956,10 @@ namespace Ink.Runtime
                     var intVal = state.PopEvaluationStack () as IntValue;
                     var listNameVal = state.PopEvaluationStack () as StringValue;
 
+					if (intVal == null) { 
+						throw new StoryException ("Passed non-integer when creating a list element from a numerical value."); 
+					}
+
                     ListValue generatedListValue = null;
 
                     ListDefinition foundListDef;
