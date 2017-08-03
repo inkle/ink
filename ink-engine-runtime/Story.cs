@@ -1956,8 +1956,9 @@ namespace Ink.Runtime
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
                 message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
-            }
-            else {
+            } else if( state.currentPath != null  ) {
+				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPath, message);
+			} else {
                 message = "RUNTIME ERROR: " + message;
             }
 
