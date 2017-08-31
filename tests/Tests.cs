@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using Ink;
 using Ink.Runtime;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using Path = Ink.Runtime.Path;
 
 namespace Tests
@@ -2186,7 +2187,7 @@ VAR val = 5
         {
             var storyStr =
                 @"
-					-> test
+                    -> test
                     === test
                         * Hello[.], world.
                         -> END
@@ -2787,15 +2788,15 @@ TODO: b
         [Test ()]
         public void TestWeavePointNamingCollision ()
         {
-        	var storyStr =
-        		@"
+            var storyStr =
+                @"
 -(opts)
 opts1
 -(opts)
 opts1
 -> END
 ";
-        	CompileString (storyStr, countAllVisits: false, testingErrors:true);
+            CompileString (storyStr, countAllVisits: false, testingErrors:true);
 
             Assert.IsTrue(HadError ("with the same label"));
         }
@@ -2803,8 +2804,8 @@ opts1
         [Test ()]
         public void TestVariableNamingCollisionWithFlow ()
         {
-        	var storyStr =
-        		@"
+            var storyStr =
+                @"
 LIST someList = A, B
 
 ~temp heldItems = (A) 
@@ -2813,27 +2814,27 @@ LIST someList = A, B
 === function heldItems ()
 ~ return (A)
         ";
-        	CompileString (storyStr, countAllVisits: false, testingErrors: true);
+            CompileString (storyStr, countAllVisits: false, testingErrors: true);
 
-        	Assert.IsTrue (HadError ("name has already been used for a function"));
+            Assert.IsTrue (HadError ("name has already been used for a function"));
         }
 
         [Test ()]
         public void TestVariableNamingCollisionWithArg ()
         {
-        	var storyStr =
-        		@"=== function knot (a)
-        			~temp a = 1";
+            var storyStr =
+                @"=== function knot (a)
+                    ~temp a = 1";
             
-        	CompileString (storyStr, countAllVisits: false, testingErrors: true);
+            CompileString (storyStr, countAllVisits: false, testingErrors: true);
 
-        	Assert.IsTrue (HadError ("has already been used"));
+            Assert.IsTrue (HadError ("has already been used"));
         }
 
         [Test ()]
         public void TestTunnelOnwardsDivertAfterWithArg ()
         {
-        	var storyStr =
+            var storyStr =
 @"
 -> a ->  
 
@@ -2873,7 +2874,7 @@ Unreachable
         [Test ()]
         public void TestTunnelOnwardsWithParamDefaultChoice ()
         {
-        	var storyStr =
+            var storyStr =
 @"
 -> tunnel ->
 
@@ -2885,15 +2886,15 @@ Unreachable
 -> END
 ";
 
-        	var story = CompileString (storyStr);
-        	Assert.AreEqual ("8\n", story.ContinueMaximally ());
+            var story = CompileString (storyStr);
+            Assert.AreEqual ("8\n", story.ContinueMaximally ());
         }
 
 
         [Test ()]
         public void TestReadCountVariableTarget ()
         {
-        	var storyStr =
+            var storyStr =
 @"
 VAR x = ->knot
 
@@ -2912,15 +2913,15 @@ Count end: {READ_COUNT (x)} {READ_COUNT (-> knot)} {knot}
 ->->
 ";
 
-        	var story = CompileString (storyStr, countAllVisits:true);
-        	Assert.AreEqual ("Count start: 0 0 0\n1\n2\n3\nCount end: 3 3 3\n", story.ContinueMaximally ());
+            var story = CompileString (storyStr, countAllVisits:true);
+            Assert.AreEqual ("Count start: 0 0 0\n1\n2\n3\nCount end: 3 3 3\n", story.ContinueMaximally ());
         }
 
 
         [Test ()]
         public void TestDivertTargetsWithParameters ()
         {
-        	var storyStr =
+            var storyStr =
 @"
 VAR x = ->place
 
@@ -2931,20 +2932,20 @@ VAR x = ->place
 -> DONE
 ";
 
-        	var story = CompileString (storyStr);
+            var story = CompileString (storyStr);
 
-        	Assert.AreEqual ("5\n", story.ContinueMaximally ());
+            Assert.AreEqual ("5\n", story.ContinueMaximally ());
         }
 
         [Test ()]
         public void TestTagOnChoice ()
         {
-        	var storyStr =
+            var storyStr =
 @"
 * [Hi] Hello -> END #hey
 ";
 
-        	var story = CompileString (storyStr);
+            var story = CompileString (storyStr);
 
             story.Continue ();
 
@@ -3038,6 +3039,171 @@ VAR x = ->place
             }
             else
                 Assert.Fail(message);
+        }
+
+        private string GenerateIdentifierFromCharacterRange(CharacterRange range, string varNameUniquePart)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(varNameUniquePart)) {
+                sb.Append(varNameUniquePart);
+            }
+
+            CharacterSet charset = range.ToCharacterSet();
+
+            foreach (var c in charset) {
+                sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
+        private string GenerateIdentifierFromCharacterRange(CharacterRange range)
+        {
+            return GenerateIdentifierFromCharacterRange(range, null);
+        }
+
+
+        [Test()]
+        public void TestCharacterRangeIdentifiersForConstNamesWithAsciiPrefix()
+        {
+            var ranges = InkParser.ListAllCharacterRanges();
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+
+                var identifier = GenerateIdentifierFromCharacterRange(range);
+
+                var storyStr = string.Format(@"
+CONST pi{0} = 3.1415
+CONST a{0} = ""World""
+CONST b{0} = 3
+", identifier);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
+        }
+        [Test()]
+        public void TestCharacterRangeIdentifiersForConstNamesWithAsciiSuffix()
+        {
+            var ranges = InkParser.ListAllCharacterRanges();
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+
+                var identifier = GenerateIdentifierFromCharacterRange(range);
+
+                var storyStr = string.Format(@"
+CONST {0}pi = 3.1415
+CONST {0}a = ""World""
+CONST {0}b = 3
+", identifier);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
+        }
+
+        [Test()]
+        public void TestCharacterRangeIdentifiersForSimpleVariableNamesWithAsciiPrefix()
+        {
+            var ranges = InkParser.ListAllCharacterRanges();
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+
+                var identifier = GenerateIdentifierFromCharacterRange(range);
+
+                var storyStr = string.Format(@"
+VAR pi{0} = 3.1415
+VAR a{0} = ""World""
+VAR b{0} = 3
+", identifier);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
+        }
+
+        [Test()]
+        public void TestCharacterRangeIdentifiersForSimpleVariableNamesWithAsciiSuffix()
+        {
+            var ranges = InkParser.ListAllCharacterRanges();
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+
+                var identifier = GenerateIdentifierFromCharacterRange(range);
+
+                var storyStr = string.Format(@"
+VAR {0}pi = 3.1415
+VAR {0}a = ""World""
+VAR {0}b = 3
+", identifier);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
+        }
+
+
+        [Test ()]
+        public void TestCharacterRangeIdentifiersForDivertNamesWithAsciiPrefix()
+        {
+            var ranges = InkParser.ListAllCharacterRanges();
+            for (int i = 0; i < ranges.Length; i++) {
+
+                var range = ranges[i];
+                var rangeString = GenerateIdentifierFromCharacterRange(range);
+
+
+                var storyStr = string.Format(@"
+VAR z{0} = -> divert{0}
+
+== divert{0} ==
+-> END
+", rangeString);
+                
+                var compiledStory = CompileStringWithoutRuntime (storyStr, testingErrors:false);
+
+                Assert.IsNotNull (compiledStory);
+                Assert.IsFalse (compiledStory.hadError);
+            }
+        }
+        [Test()]
+        public void TestCharacterRangeIdentifiersForDivertNamesWithAsciiSuffix()
+        {
+            var ranges = InkParser.ListAllCharacterRanges();
+            for (int i = 0; i < ranges.Length; i++)
+            {
+
+                var range = ranges[i];
+                var rangeString = GenerateIdentifierFromCharacterRange(range);
+
+
+                var storyStr = string.Format(@"
+VAR {0}z = -> {0}divert
+
+== {0}divert ==
+-> END
+", rangeString);
+
+                var compiledStory = CompileStringWithoutRuntime(storyStr, testingErrors: false);
+
+                Assert.IsNotNull(compiledStory);
+                Assert.IsFalse(compiledStory.hadError);
+            }
         }
 
         private class TestWarningException : System.Exception

@@ -17,7 +17,6 @@
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
     <PlatformTarget>anycpu</PlatformTarget>
     <ExternalConsole>true</ExternalConsole>
   </PropertyGroup>
@@ -102,6 +101,8 @@
     <Compile Include="InkParser\InkParser_Include.cs" />
     <Compile Include="CommandLinePlayer.cs" />
     <Compile Include="InkParser\InkParser_Tags.cs" />
+    <Compile Include="CharacterRange.cs" />
+    <Compile Include="InkParser\InkParser_CharacterRanges.cs" />
     <Compile Include="ParsedHierarchy\ListDefinition.cs" />
     <Compile Include="ParsedHierarchy\List.cs" />
   </ItemGroup>

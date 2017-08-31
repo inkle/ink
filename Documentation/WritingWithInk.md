@@ -418,7 +418,7 @@ Include statements should always go at the top of a file, and not inside knots.
 There are no rules about what file a knot must be in to be diverted to. (In other words, separating files has no effect on the game's namespacing).
 
 
-## 8) Varying Choices 
+## 5) Varying Choices 
 
 ### Choices can only be used once
 
@@ -551,7 +551,7 @@ If it's non-zero, it'll return true in a test like the one above, but you can al
 **ink** supports a lot more logic and conditionality than covered here - see the section on 'variables and logic'.
 
 
-## 9) Variable Text
+## 6) Variable Text
 
 ### Text can vary
 
@@ -710,7 +710,7 @@ or:
 
 	"I missed him. Was he particularly evil?"
 
-## 10) Game Queries
+## 7) Game Queries
 
 **ink** provides a few useful 'game level' queries about game state, for use in conditional logic. They're not quite parts of the language, but they're always available, and they can't be edited by the author. In a sense, they're the "standard library functions" of the language.
 
@@ -2691,9 +2691,7 @@ These mixed states can make changing state a bit trickier, as the off/on above d
  which enables code like:
  
  	~ changeState(kettleState, on)
- 	~ changeState(kettleState, warm) 
- 
-			
+ 	~ changeState(kettleState, warm)
 	
 
 #### How does this affect queries?
@@ -2718,7 +2716,8 @@ The queries given above mostly generalise nicely to multi-valued lists
     
 	{ LIST_INVERT(mixedList) }            // one, b, two	
 
-## 6) Long example: crime scene
+
+## 7) Long example: crime scene
 
 Finally, here's a long example, demonstrating a lot of ideas from this section in action. You might want to try playing it before reading through to better understand the various moving parts. 
 	
@@ -3044,7 +3043,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	    }
 	    -> END
 	    
-## 7) Summary 
+## 8) Summary 
 
 To summarise a difficult section, **ink**'s list construction provides:
 
@@ -3091,3 +3090,56 @@ Example:
 	*	{ PhoneState ? (on, charged) } [ Call my mother ]
 		
 	
+ 
+ 
+# Part 6: International character support in identifiers
+
+By default, ink has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exsits
+on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements (a.k.a. *identifiers*).
+
+Sometimes it is inconvenient for a writer using a non-ASCII language to write a story because they have to constantly switch to naming identifiers in ASCII and then switching back to whatever language they are using for the story. In addition, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
+
+In an effort to assist in the above scenario, ink *automatically* supports a list of pre-defined non-ASCII character ranges that can be used as identifiers. In general, those ranges have been selected to include the alpha-numeric subset of the official unicode character range, which would suffice for naming identifiers. The below section gives more detailed information on the non-ASCII characters that ink automatically supports.
+
+## 1) Supported Identifier Characters
+
+The support for the additional character ranges in ink is currently limited to a predefined set of character ranges. In future version of the software, this list could grow in size. 
+
+Below is a listing of the currently supported identifier ranges.
+
+ - **Arabic**
+   
+   Enables characters for languages of the Arabic family and is a subset of the official *Arabic* unicode range `\u0600`-`\u06FF`.
+
+
+ - **Armenian**
+   
+   Enables characters for the Armenian language and is a subset of the official *Armenian* unicode range `\u0530`-`\u058F`.
+
+
+ - **Cyrillic**
+   
+   Enables characters for languages using the Cyrillic alphabet and is a subset of the official *Cyrillic* unicode range `\u0400`-`\u04FF`.
+
+
+ - **Greek**  
+ 
+   Enables characters for languages using the Greek alphabet and is a subset of the official *Greek and Coptic* unicode range `\u0370`-`\u03FF`.
+
+
+ - **Hebrew**  
+ 
+   Enables characters in Hebrew using the Hebrew alphabet and is a subset of the official *Hebrew* unicode range `\u0590`-`\u05FF`.
+
+
+ - **Latin Extended A**  
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-A* unicode range `\u0100`-`\u017F`.
+
+
+ - **Latin Extended B**
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.  
+
+
+**NOTE!** When using any of the above extended identifier character ranges, always make sure your stories are being saved with a text encoding that supports these identifiers. 
