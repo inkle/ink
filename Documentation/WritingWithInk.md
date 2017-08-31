@@ -2250,7 +2250,7 @@ We can assign the empty list to clear a list out:
 
 List entries can be added and removed, singly or collectively. 
 
-	~ DoctorsInSurgery = doctorsSurgery + Adams 	~ DoctorsInSurgery += Adams  // this is the same as the above
+	~ DoctorsInSurgery = DoctorsInSurgery + Adams 	~ DoctorsInSurgery += Adams  // this is the same as the above
 	~ DoctorsInSurgery -= Eamonn 
 	~ DoctorsInSurgery += (Eamonn, Denver) 
 	~ DoctorsInSurgery -= (Adams, Eamonn, Denver)
