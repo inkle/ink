@@ -13,18 +13,6 @@ namespace Ink
             return new CharacterRange (start, end, excludes);
         }
 
-        private readonly char start;
-        private readonly char end;
-        private readonly ICollection<char> excludes;
-        private readonly CharacterSet correspondingCharSet = new CharacterSet();
-
-        private CharacterRange (char start, char end, IEnumerable<char> excludes)
-        {
-            this.start = start;
-            this.end = end;
-            this.excludes = new HashSet<char>(excludes == null ? (IEnumerable<char>) string.Empty : excludes);
-        }
-
         /// <summary>
         /// Returns a <see cref="CharacterSet">character set</see> instance corresponding to the character range
         /// represented by the current instance.
@@ -35,20 +23,32 @@ namespace Ink
         /// <returns>The char set.</returns>
         public CharacterSet ToCharacterSet ()
         {
-            if (correspondingCharSet.Count == 0) 
+            if (_correspondingCharSet.Count == 0) 
             {
-                for (char c = start; c <= end; c++)
+                for (char c = _start; c <= _end; c++)
                 {
-                    if (!excludes.Contains (c)) 
+                    if (!_excludes.Contains (c)) 
                     {
-                        correspondingCharSet.Add (c);
+                        _correspondingCharSet.Add (c);
                     }
                 }
             }
-            return correspondingCharSet;
+            return _correspondingCharSet;
         }
 
-        public char Start { get { return start; } }
-        public char End { get { return end; } }
+        public char start { get { return _start; } }
+        public char end { get { return _end; } }
+
+        CharacterRange (char start, char end, IEnumerable<char> excludes)
+        {
+        	_start = start;
+        	_end = end;
+        	_excludes = new HashSet<char> (excludes == null ? (IEnumerable<char>)string.Empty : excludes);
+        }
+
+        char _start;
+        char _end;
+        ICollection<char> _excludes;
+        CharacterSet _correspondingCharSet = new CharacterSet();
     }    
 }

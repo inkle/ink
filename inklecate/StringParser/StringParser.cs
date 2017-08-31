@@ -134,10 +134,6 @@ namespace Ink
 		{
             ErrorOnLine (message, lineIndex + 1, isWarning);
 		}
-		protected void Error(string format, params object[] args)
-		{
-			ErrorOnLine (string.Format (format, args), lineIndex + 1, false);
-		}
 
         protected void ErrorWithParsedObject(string message, Parsed.Object result, bool isWarning = false)
         {
@@ -167,11 +163,7 @@ namespace Ink
         {
             Error(message, isWarning:true);
         }
-		protected void Warning(string format, params object[] args)
-		{
-			Error(string.Format(format, args), isWarning:true);
-		}
-            
+
 		public bool endOfInput
 		{
 			get { return index >= _chars.Length; }

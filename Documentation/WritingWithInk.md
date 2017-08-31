@@ -3101,9 +3101,9 @@ Sometimes it is inconvenient for a writer using a non-ASCII language to write a 
 
 In an effort to assist in the above scenario, ink *automatically* supports a list of pre-defined non-ASCII character ranges that can be used as identifiers. In general, those ranges have been selected to include the alpha-numeric subset of the official unicode character range, which would suffice for naming identifiers. The below section gives more detailed information on the non-ASCII characters that ink automatically supports.
 
-## 1) Supported Identifier Characters
+### Supported Identifier Characters
 
-The support for the additional character ranges in ink is currently limited to a predefined set of character ranges. In future version of the software, this list could grow in size. 
+The support for the additional character ranges in ink is currently limited to a predefined set of character ranges.
 
 Below is a listing of the currently supported identifier ranges.
 
@@ -3142,4 +3142,6 @@ Below is a listing of the currently supported identifier ranges.
    Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.  
 
 
-**NOTE!** When using any of the above extended identifier character ranges, always make sure your stories are being saved with a text encoding that supports these identifiers. 
+**NOTE!** ink files should be saved in UTF-8 format, which ensures that the above character ranges are supported.
+
+If a particular character range that you would like to use within identifiers isn't supported, feel free to open an [issue](https://github.com/inkle/ink/issues/new) or [pull request](https://github.com/inkle/ink/pulls) on the main ink repo.
