@@ -463,9 +463,10 @@ A fallback choice is simply a "choice without choice text":
 
 	*	-> out_of_options
 
-We can use the square-bracket notation here as well:
+And, in a slight abuse of syntax, we can make a default choice with content in it, using an "choice then arrow":
 
-	* [] Mulder never could explain how he got out of that burning box car. -> season_2
+	* 	-> 
+		Mulder never could explain how he got out of that burning box car. -> season_2
 
 #### Example of a fallback choice
 
@@ -476,7 +477,8 @@ Adding this into the previous example gives us:
 		You search desperately for a friendly face in the crowd. 
 		*	The woman in the hat[?] pushes you roughly aside. -> find_help
 		*	The man with the briefcase[?] looks disgusted as you stumble past him. -> find_help 
-		*	[] But it is too late: you collapse onto the station platform. This is the end.
+		*	->
+			But it is too late: you collapse onto the station platform. This is the end.
 			-> END
 	
 and produces:
@@ -508,6 +510,13 @@ The 'once-only' behaviour is not always what we want, of course, so we have a se
 		*	[Get off the couch] 
 			You struggle up off the couch to go and compose epic poetry.
 			-> END
+	
+Default choices can be sticky too.
+
+	=== conversation_loop 
+		*	[Talk about the weather] -> chat_weather 
+		*	[Talk about the children] -> chat_children 
+		+	-> sit_in_silence_again
 
 ### Conditional Choices
 
@@ -530,7 +539,7 @@ You can use several logical tests on an option; if you do, *all* the tests must 
 
 	*	{ not visit_paris } 	[Go to Paris] -> visit_paris
 	+ 	{ visit_paris } { not bored_of_paris } 
-								[Return to Paris] -> visit_paris 
+		[Return to Paris] -> visit_paris 
 
 
 
