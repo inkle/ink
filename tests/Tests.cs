@@ -2959,6 +2959,24 @@ VAR x = ->place
             Assert.AreEqual ("hey", tags[0]);
         }
 
+        [Test ()]
+        public void TestStringContains ()
+        {
+        	var storyStr =
+@"
+{""hello world"" ? ""o wo""}
+{""hello world"" ? ""something else""}
+{""hello"" ? """"}
+{"""" ? """"}
+";
+
+        	var story = CompileString (storyStr);
+
+        	var result = story.ContinueMaximally ();
+
+        	Assert.AreEqual ("1\n0\n1\n1\n", result);
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
