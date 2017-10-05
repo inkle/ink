@@ -69,7 +69,20 @@ repository:
       '2': { name: comment.todo.TODO }
     end: $\n?
     name: comment.todo
-
+  include:
+    begin: ^\s*((INCLUDE)\s*(\S*))\s*
+    beginCaptures:
+      '1': {name: meta.include}
+      '2': {name: keyword.control.include}
+      '3': {name: string.other }
+    end: $\n?
+  external:
+    begin: ^\s*((EXTERNAL)\s*([\w_0-9]*\(\)))\s*
+    beginCaptures:
+      '1': {name: meta.external}
+      '2': {name: keyword.control.external}
+      '3': {name: support.function }
+    end: $\n?
   globalVAR:
     begin: ^\s*((VAR|CONST)\s*(\w+))\s*
     beginCaptures:
@@ -209,6 +222,8 @@ repository:
 
   statements:
     patterns:
+      - {include: '#include'}
+      - {include: '#external'}
       - {include: '#comments'}
       - {include: '#TODO'}
       - {include: '#globalVAR'}
