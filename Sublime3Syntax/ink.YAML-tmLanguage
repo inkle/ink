@@ -37,7 +37,14 @@ patterns:
 - {include: '#statements'}
 
 repository:
-
+  tag:
+    begin: (#)\s*
+    end: \s*$\n*
+    captures:
+      '1': {name: keyword.operator.hashtag}
+    contentName: entity.name.tag
+    patterns:
+    - include: '#comments'
   comments:
     patterns:
     - begin: /\*\*
@@ -211,5 +218,6 @@ repository:
       - {include: '#endOfSection'}
       - {include: '#logicLine'}
       - {include: '#mixedContent'}
+      - {include: '#tag'}
     
 ...
