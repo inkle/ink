@@ -98,6 +98,21 @@
 	</array>
 	<key>repository</key>
 	<dict>
+		<key>tag</key>
+		<dict>
+			<key>match</key>
+			<string>(#).+$</string>
+			<key>name</key>
+			<string>entity.name.tag</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.operator.hashTag</string>
+				</dict>
+			</dict>
+		</dict>
 		<key>TODO</key>
 		<dict>
 			<key>captures</key>
@@ -547,6 +562,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#tag</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#comments</string>
