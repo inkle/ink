@@ -23,10 +23,8 @@ patterns:
 - match: ^\s*(=)\s*(\w+)\s*(\([^)\n]*\))?\s*$
   captures:
     '1': {name: markup.punctuation}
-    '2': {name: keyword.function}
-    '3': {name: entity.name.knot}
-    '4': {name: variable.parameter}
-    '5': {name: markup.punctuation}
+    '2': {name: entity.name.knot}
+    '3': {name: variable.parameter}
   name: meta.stitch.declaration
 
 

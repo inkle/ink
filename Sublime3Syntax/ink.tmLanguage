@@ -66,22 +66,12 @@
           <key>2</key>
           <dict>
             <key>name</key>
-            <string>keyword.function</string>
+            <string>entity.name.knot</string>
           </dict>
           <key>3</key>
           <dict>
             <key>name</key>
-            <string>entity.name.knot</string>
-          </dict>
-          <key>4</key>
-          <dict>
-            <key>name</key>
             <string>variable.parameter</string>
-          </dict>
-          <key>5</key>
-          <dict>
-            <key>name</key>
-            <string>markup.punctuation</string>
           </dict>
         </dict>
         <key>name</key>
