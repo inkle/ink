@@ -66,22 +66,12 @@
           <key>2</key>
           <dict>
             <key>name</key>
-            <string>keyword.function</string>
+            <string>entity.name.stitch</string>
           </dict>
           <key>3</key>
           <dict>
             <key>name</key>
-            <string>entity.name.knot</string>
-          </dict>
-          <key>4</key>
-          <dict>
-            <key>name</key>
             <string>variable.parameter</string>
-          </dict>
-          <key>5</key>
-          <dict>
-            <key>name</key>
-            <string>markup.punctuation</string>
           </dict>
         </dict>
         <key>name</key>
@@ -199,6 +189,56 @@
         <string>$\n?</string>
         <key>name</key>
         <string>comment.todo</string>
+      </dict>
+      <key>include</key>
+      <dict>
+        <key>begin</key>
+        <string>^\s*((INCLUDE)\s*(\S*))\s*</string>
+        <key>beginCaptures</key>
+        <dict>
+          <key>1</key>
+          <dict>
+            <key>name</key>
+            <string>meta.include</string>
+          </dict>
+          <key>2</key>
+          <dict>
+            <key>name</key>
+            <string>keyword.control.include</string>
+          </dict>
+          <key>3</key>
+          <dict>
+            <key>name</key>
+            <string>string.other</string>
+          </dict>
+        </dict>
+        <key>end</key>
+        <string>$\n?</string>
+      </dict>
+      <key>external</key>
+      <dict>
+        <key>begin</key>
+        <string>^\s*((EXTERNAL)\s*([\w_0-9]*\(\)))\s*</string>
+        <key>beginCaptures</key>
+        <dict>
+          <key>1</key>
+          <dict>
+            <key>name</key>
+            <string>meta.external</string>
+          </dict>
+          <key>2</key>
+          <dict>
+            <key>name</key>
+            <string>keyword.control.external</string>
+          </dict>
+          <key>3</key>
+          <dict>
+            <key>name</key>
+            <string>support.function</string>
+          </dict>
+        </dict>
+        <key>end</key>
+        <string>$\n?</string>
       </dict>
       <key>globalVAR</key>
       <dict>
@@ -575,6 +615,14 @@
       <dict>
         <key>patterns</key>
         <array>
+          <dict>
+            <key>include</key>
+            <string>#include</string>
+          </dict>
+          <dict>
+            <key>include</key>
+            <string>#external</string>
+          </dict>
           <dict>
             <key>include</key>
             <string>#comments</string>
