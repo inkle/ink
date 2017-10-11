@@ -44,21 +44,14 @@ namespace Ink
             if (includedString != null ) {
                 InkParser parser = new InkParser(includedString, filename, _externalErrorHandler, _rootParser);
                 includedStory = parser.Parse();
-
-                if( includedStory == null ) {
-                    // This error should never happen: if the includedStory isn't
-                    // returned, then it should've been due to some error that
-                    // has already been reported, so this is a last resort.
-                    if( !parser.hadError ) {
-                        Error ("Failed to parse included file '" + filename);
-                    }
-                }
             }
 
             RemoveOpenFilename (fullFilename);
 
-            // Return valid IncludedFile object even when story failed to parse and we have a null story:
-            // we don't want to attempt to re-parse the include line as something else
+            // Return valid IncludedFile object even if there were errors when parsing.
+            // We don't want to attempt to re-parse the include line as something else,
+            // and we want to include the bits that *are* valid, so we don't generate
+            // more errors than necessary.
             return new IncludedFile (includedStory);
         }
 

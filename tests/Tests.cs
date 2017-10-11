@@ -3016,7 +3016,7 @@ VAR x = ->place
                 Assert.IsFalse (parsedStory.hadError);
             }
 
-            if (parsedStory) {
+            if (parsedStory && !parsedStory.hadError && _errorMessages.Count == 0) {
                 parsedStory.ExportRuntime (TestErrorHandler);
             }
 

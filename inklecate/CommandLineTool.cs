@@ -128,7 +128,7 @@ namespace Ink
                     pluginManager.PostParse(parsedStory);
                 });
 
-                if (parsedStory != null) {
+                if (parsedStory != null && errors.Count == 0) {
 
                     if (opts.countAllVisits) {
                         parsedStory.countAllVisits = true;
