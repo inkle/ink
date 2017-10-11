@@ -111,7 +111,7 @@ For example, a `Parsed.Choice` compiles down to a `Runtime.Container` that conta
 
 ### Content
 
-As with ink itself, the runtime engine's fundamental unit is content, rather than code. As such, a simple "Hello world" ink file would be compiled down to a single `Runtime.Container` with a single `Runtime.Text` in it (as well as a terminator).
+As with ink itself, the runtime engine's fundamental unit is content, rather than code. As such, a simple "Hello world" ink file would be compiled down to a single `Runtime.Container` with a single `Runtime.StringValue` in it (as well as a terminator).
 
 Each piece of content that is encountered is appended to the `outputStream` within the `Runtime.Story`.
 
