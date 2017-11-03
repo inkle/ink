@@ -237,7 +237,11 @@ Some examples of when external functions **shouldn't** be used:
 
 ... since these may often end up being called twice. Also, it's not great practice to be doing this kind of thing while the ink is in the middle of being evaluated anyway - if you run some code that would end up calling back into the ink engine, you'll get some very nasty bugs!
 
-So, what's the workaround? In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
+So, what's the workaround? There are 3 possible approaches, depending on what you're trying to achieve:
+
+* You can set up a variable observer if you just want the game to know when some state has changed. This is perfect for say, changing the score in the UI.
+* You can use [tags](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
+* In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
 
     >>> SHOT: view_over_bridge
 
