@@ -243,7 +243,7 @@ So, what's the workaround? There are 3 possible approaches, depending on what yo
 * You can use [tags](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
 * In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
 
-    >>> SHOT: view_over_bridge
+    `>>> SHOT: view_over_bridge`
 
 We understand though that this isn't ideal for everyone's use case, so we plan to find a good solution to the problem in future!
 
