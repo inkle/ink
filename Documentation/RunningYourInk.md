@@ -224,18 +224,18 @@ The types you can use as parameters and return values are int, float, bool (auto
 
 ### Important notes on the usage of external functions
 
-EXTERNAL functions should generally be *pure* or almost pure - that's computer science lingo to mean - they shouldn't be used to cause side effects (e.g. print a message) in the game. The reason is that [due to way the ink engine works](https://github.com/inkle/ink/issues/253#issuecomment-272395950), they can end up being called multiple times when you expect them to be called just once. So, some examples of when external functions work well:
+EXTERNAL functions should generally be *pure* or almost pure - that's computer science lingo to mean - they shouldn't be used to cause side effects (e.g. print a message) in the game. The reason is that [due to way the ink engine works](https://github.com/inkle/ink/issues/253#issuecomment-272395950), they can end up being called multiple times when you expect them to be called just once. They can also end up being called ahead of time, before the game should've reached a particular line. So, some examples of when external functions work well:
 
 * Relatively complex calculations that would be slow in an ink function (ink will always be slower than a native C# function)
-* Getting values from your game state
-* Setting values in your game state, so long as it's fine for them to be set multiple times
+* **Getting** values from your game state
 
 Some examples of when external functions **shouldn't** be used:
 
+* **Setting** values in your game state
 * To show a dialog box or create a piece of UI
 * To print a message for the player
 
-... since these may often end up being called twice. Also, it's not great practice to be doing this kind of thing while the ink is in the middle of being evaluated anyway - if you run some code that would end up calling back into the ink engine, you'll get some very nasty bugs!
+... since these may often end up being called twice, or called when you don't expect. Also, it's not great practice to be doing UI stuff or complex code while the ink is in the middle of being evaluated anyway - if you run some code that would end up calling back into the ink engine, you'll get some very nasty bugs!
 
 So, what's the workaround? There are 3 possible approaches, depending on what you're trying to achieve:
 
