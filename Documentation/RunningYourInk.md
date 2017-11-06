@@ -222,6 +222,31 @@ You can define game-side functions in C# that can be called directly from **ink*
 
 The types you can use as parameters and return values are int, float, bool (automatically converted from **ink**’s internal ints) and string.
 
+### Important notes on the usage of external functions
+
+EXTERNAL functions should generally be *pure* or almost pure - that's computer science lingo to mean - they shouldn't be used to cause side effects (e.g. print a message) in the game. The reason is that [due to way the ink engine works](https://github.com/inkle/ink/issues/253#issuecomment-272395950), they can end up being called multiple times when you expect them to be called just once. They can also end up being called ahead of time, before the game should've reached a particular line. So, some examples of when external functions work well:
+
+* Relatively complex calculations that would be slow in an ink function (ink will always be slower than a native C# function)
+* **Getting** values from your game state
+
+Some examples of when external functions **shouldn't** be used:
+
+* **Setting** values in your game state
+* To show a dialog box or create a piece of UI
+* To print a message for the player
+
+... since these may often end up being called twice, or called when you don't expect. Also, it's not great practice to be doing UI stuff or complex code while the ink is in the middle of being evaluated anyway - if you run some code that would end up calling back into the ink engine, you'll get some very nasty bugs!
+
+So, what's the workaround? There are 3 possible approaches, depending on what you're trying to achieve:
+
+* You can set up a variable observer if you just want the game to know when some state has changed. This is perfect for say, changing the score in the UI.
+* You can use [tags](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
+* In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
+
+    `>>> SHOT: view_over_bridge`
+
+We understand though that this isn't ideal for everyone's use case, so we plan to find a good solution to the problem in future!
+
 ### Fallbacks for external functions
 
 When testing your story, either in [Inky](https://github.com/inkle/inky) or in the [ink-unity integration](https://github.com/inkle/ink-unity-integration/) player window, you don't get an opportunity to bind a game function before running the story. To get around this, you can define a *fallback function* within ink, which is run if the `EXTERNAL` function can't be found. To do so, simply create an ink function with the same name and parameters. For example, for the above `multiply` example, create the ink function:
