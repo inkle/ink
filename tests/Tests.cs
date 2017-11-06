@@ -2977,6 +2977,31 @@ VAR x = ->place
         	Assert.AreEqual ("1\n0\n1\n1\n", result);
         }
 
+        [Test ()]
+        public void TestEvaluationStackLeaks ()
+        {
+        	var storyStr =
+@"
+{false:
+    
+- else: 
+    else
+}
+
+{6:
+- 5: five
+- else: else
+} 
+";
+
+        	var story = CompileString (storyStr);
+
+        	var result = story.ContinueMaximally ();
+
+        	Assert.AreEqual ("else\nelse\n", result);
+            Assert.IsTrue (story.state.evaluationStack.Count == 0);
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

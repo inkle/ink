@@ -37,7 +37,7 @@ namespace Ink.Parsed
         //    3 > 2:  This will happen
         //    2 > 3:  This won't happen
         // }
-        public bool shouldMatchEquality { get; set; }
+        public bool matchingEquality { get; set; }
 
         public bool isElse { get; set; }
 
@@ -78,7 +78,7 @@ namespace Ink.Parsed
             // branch? If so, the first thing we need to do is replicate the value that's
             // on the evaluation stack so that we don't fully consume it, in case other
             // branches need to use it.
-            bool duplicatesStackValue = shouldMatchEquality && !isElse;
+            bool duplicatesStackValue = matchingEquality && !isElse;
             if ( duplicatesStackValue )
                 container.AddContent (Runtime.ControlCommand.Duplicate ());
 
@@ -98,7 +98,7 @@ namespace Ink.Parsed
                     ownExpression.GenerateIntoContainer (container);
 
                 // Uses existing duplicated value
-                if (shouldMatchEquality)
+                if (matchingEquality)
                     container.AddContent (Runtime.NativeFunctionCall.CallWithName ("=="));
 
                 if( needsEval ) 
@@ -111,7 +111,7 @@ namespace Ink.Parsed
             _contentContainer = GenerateRuntimeForContent ();
             _contentContainer.name = "b";
 
-            if( duplicatesStackValue )
+            if( duplicatesStackValue || (isElse && matchingEquality) )
                 _contentContainer.InsertContent (Runtime.ControlCommand.PopEvaluatedValue (), 0);
 
             container.AddToNamedContentOnly (_contentContainer);

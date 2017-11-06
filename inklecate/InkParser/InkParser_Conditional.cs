@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Ink.Parsed;
 
@@ -49,7 +49,7 @@ namespace Ink
                             alternatives.Add (soleBranch);
 
                             // Also allow a final "- else:" clause
-                            var elseBranch = Parse(SingleMultilineCondition);
+                            var elseBranch = Parse (SingleMultilineCondition);
                             if (elseBranch) {
                                 if (!elseBranch.isElse) {
                                     ErrorWithParsedObject ("Expected an '- else:' clause here rather than an extra condition", elseBranch);
@@ -64,6 +64,14 @@ namespace Ink
                     if (alternatives == null) {
                         return null;
                     }
+                } 
+
+                // Empty true branch - didn't get parsed, but should insert one for semantic correctness,
+                // and to make sure that any evaluation stack values get tidied up correctly.
+                else if (alternatives.Count == 1 && alternatives [0].isElse && initialQueryExpression) {
+                    var emptyTrueBranch = new ConditionalSingleBranch (null);
+                    emptyTrueBranch.isTrueBranch = true;
+                    alternatives.Insert (0, emptyTrueBranch);
                 }
 
                 // Like a switch statement
@@ -77,14 +85,19 @@ namespace Ink
                         var branch = alternatives [i];
                         bool isLast = (i == alternatives.Count - 1);
 
+                        // Matching equality with initial query expression
+                        // We set this flag even for the "else" clause so that
+                        // it knows to tidy up the evaluation stack at the end
+
                         // Match query
                         if (branch.ownExpression) {
-                            branch.shouldMatchEquality = true;
+                            branch.matchingEquality = true;
                             earlierBranchesHaveOwnExpression = true;
                         }
 
                         // Else (final branch)
                         else if (earlierBranchesHaveOwnExpression && isLast) {
+                            branch.matchingEquality = true;
                             branch.isElse = true;
                         } 
 
