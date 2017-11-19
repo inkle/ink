@@ -40,10 +40,12 @@ namespace Ink
         public Parsed.Story Parse()
         {
             List<Parsed.Object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
-            if (hadError) {
-                return null;
-            }
 
+            // Note we used to return null if there were any errors, but this would mean
+            // that include files would return completely empty rather than attempting to
+            // continue with errors. Returning an empty include files meant that anything
+            // that *did* compile successfully would otherwise be ignored, generating way
+            // more errors than necessary.
             return new Parsed.Story (topLevelContent);
         }
 

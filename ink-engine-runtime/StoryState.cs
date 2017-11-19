@@ -239,7 +239,7 @@ namespace Ink.Runtime
         // Warning: Any Runtime.Object content referenced within the StoryState will
         // be re-referenced rather than cloned. This is generally okay though since
         // Runtime.Objects are treated as immutable after they've been set up.
-        // (e.g. we don't edit a Runtime.Text after it's been created an added.)
+        // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
         internal StoryState Copy()
         {

@@ -115,6 +115,10 @@ namespace Ink.Runtime
                 }
 
                 sb.Append ("Divert");
+
+                if (isConditional)
+                    sb.Append ("?");
+
                 if (pushesToStack) {
                     if (stackPushType == PushPopType.Function) {
                         sb.Append (" function");
@@ -122,6 +126,9 @@ namespace Ink.Runtime
                         sb.Append (" tunnel");
                     }
                 }
+
+                sb.Append (" -> ");
+                sb.Append (targetPathString);
 
                 sb.Append (" (");
                 sb.Append (targetStr);
