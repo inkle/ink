@@ -100,7 +100,7 @@ repository:
     name: choice
     patterns:
       - {include: '#comments'}
-      - match: (\[)([^\]]*)(\])
+      - match: (\[)((?:[^\]]|\\\[|\])*)(\])
         captures:
           '1': {name: keyword.operator.weaveBracket}
           '2': {name: string.content}
