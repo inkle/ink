@@ -1597,6 +1597,9 @@ namespace Ink.Runtime
             if (_variableObservers == null)
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
+			if( !state.variablesState.GlobalVariableExistsWithName(variableName) ) 
+				throw new StoryException("Cannot observe variable '"+variableName+"' because it wasn't declared in the ink story.");
+
             if (_variableObservers.ContainsKey (variableName)) {
                 _variableObservers[variableName] += observer;
             } else {
