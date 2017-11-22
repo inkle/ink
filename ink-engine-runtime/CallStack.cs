@@ -355,6 +355,44 @@ namespace Ink.Runtime
             }
         }
 
+		internal string callStackTrace {
+			get {
+				var sb = new System.Text.StringBuilder();
+
+				for(int t=0; t<_threads.Count; t++) {
+
+					var thread = _threads[t];
+					var isCurrent = (t == _threads.Count-1);
+					sb.AppendFormat("=== THREAD {0}/{1} {2}===\n", (t+1), _threads.Count, (isCurrent ? "(current) ":""));
+
+					for(int i=0; i<thread.callstack.Count; i++) {
+
+						if( thread.callstack[i].type == PushPopType.Function )
+							sb.Append("  [FUNCTION] ");
+						else
+							sb.Append("  [TUNNEL] ");
+
+						var obj = thread.callstack[i].currentObject;
+						if( obj == null ) {
+							if( thread.callstack[i].currentContainer != null ) {
+								sb.Append("<SOMEWHERE IN ");
+								sb.Append(thread.callstack[i].currentContainer.path.ToString());
+								sb.AppendLine(">");
+							} else {
+								sb.AppendLine("<UNKNOWN STACK ELEMENT>");
+							}
+						} else {
+							var elementStr = obj.path.ToString();
+							sb.AppendLine(elementStr);
+						}
+					}
+				}
+
+
+				return sb.ToString();
+			}
+		}
+
         List<Thread> _threads;
         int _threadCounter;
     }
