@@ -102,6 +102,15 @@ namespace Ink.Runtime
         /// 
         /// </summary>
         public StoryState state { get { return _state; } }
+
+		public Profiler StartProfiling() {
+			_profiler = new Profiler();
+			return _profiler;
+		}
+
+		public void EndProfiling() {
+			_profiler = null;
+		}
             
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
@@ -236,9 +245,13 @@ namespace Ink.Runtime
 
         string ContinueInternal()
 		{
-            if (!canContinue) {
+			bool canContinue_cached = canContinue;
+			if (!canContinue_cached) {
                 throw new StoryException ("Can't continue - should check canContinue before calling Continue");
             }
+
+			if( _profiler != null )
+				_profiler.PreContinue();
 
             _state.ResetOutput ();
 
@@ -267,13 +280,24 @@ namespace Ink.Runtime
 
                 do {
 
+					if( _profiler != null )
+						_profiler.PreStep();
+
                     // Run main step function (walks through content)
                     Step();
 
+					if( _profiler != null )
+						_profiler.PostStep();
+
                     // Run out of content and we have a default invisible choice that we can follow?
-                    if( !canContinue ) {
+					canContinue_cached = canContinue;
+					if( !canContinue_cached ) {
                         TryFollowDefaultInvisibleChoice();
+						canContinue_cached = canContinue;
                     }
+
+					if( _profiler != null )
+						_profiler.PreSnapshot();
 
                     // Don't save/rewind during string evaluation, which is e.g. used for choices
                     if( !state.inStringEvaluation ) {
@@ -318,7 +342,7 @@ namespace Ink.Runtime
                             // Create a snapshot in case we need to rewind.
                             // We're going to continue stepping in case we see glue or some
                             // non-text content such as choices.
-                            if( canContinue ) {
+							if( canContinue_cached ) {
 
 								// Don't bother to record the state beyond the current newline.
 								// e.g.:
@@ -338,11 +362,22 @@ namespace Ink.Runtime
 
                     }
 
-                } while(canContinue);
+					if( _profiler != null )
+						_profiler.PostSnapshot();
+
+				} while(canContinue_cached);
+
 
                 // Need to rewind, due to evaluating further than we should?
                 if( stateAtLastNewline != null ) {
+
+					if( _profiler != null )
+						_profiler.PreRestore();
+					
                     RestoreStateSnapshot(stateAtLastNewline);
+
+					if( _profiler != null )
+						_profiler.PostRestore();
                 }
 
                 // Finished a section of content / reached a choice point?
@@ -375,6 +410,9 @@ namespace Ink.Runtime
 
                 _state.variablesState.batchObservingVariableChanges = false;
             }
+
+			if( _profiler != null )
+				_profiler.PostContinue();
 
             return currentText;
 		}
@@ -451,6 +489,10 @@ namespace Ink.Runtime
                 currentContainer = currentContentObj as Container;
             }
             currentContainer = state.callStack.currentElement.currentContainer;
+
+			if( _profiler != null ) {
+				_profiler.Step(state.callStack);
+			}
 
             // Is the current content object:
             //  - Normal content
@@ -2053,6 +2095,8 @@ namespace Ink.Runtime
         Container _temporaryEvaluationContainer;
 
         StoryState _state;
+
+		Profiler _profiler;
 	}
 }
 
