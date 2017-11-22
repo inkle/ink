@@ -114,7 +114,7 @@ namespace Ink.Runtime
                     Debug.Assert (this.parent != null, "Can't resolve relative path because we don't have a parent");
                     nearestContainer = this.parent as Container;
                     Debug.Assert (nearestContainer != null, "Expected parent to be a container");
-                    Debug.Assert (path.components [0].isParent);
+                    Debug.Assert (path.GetComponent(0).isParent);
                     path = path.tail;
                 }
 
@@ -132,12 +132,12 @@ namespace Ink.Runtime
 
             var ownPath = this.path;
 
-            int minPathLength = Math.Min (globalPath.components.Count, ownPath.components.Count);
+			int minPathLength = Math.Min (globalPath.componentCount, ownPath.componentCount);
             int lastSharedPathCompIndex = -1;
 
             for (int i = 0; i < minPathLength; ++i) {
-                var ownComp = ownPath.components [i];
-                var otherComp = globalPath.components [i];
+                var ownComp = ownPath.GetComponent(i);
+                var otherComp = globalPath.GetComponent(i);
 
                 if (ownComp.Equals (otherComp)) {
                     lastSharedPathCompIndex = i;
@@ -150,15 +150,15 @@ namespace Ink.Runtime
             if (lastSharedPathCompIndex == -1)
                 return globalPath;
 
-            int numUpwardsMoves = (ownPath.components.Count-1) - lastSharedPathCompIndex;
+            int numUpwardsMoves = (ownPath.componentCount-1) - lastSharedPathCompIndex;
 
             var newPathComps = new List<Path.Component> ();
 
             for(int up=0; up<numUpwardsMoves; ++up)
                 newPathComps.Add (Path.Component.ToParent ());
 
-            for (int down = lastSharedPathCompIndex + 1; down < globalPath.components.Count; ++down)
-                newPathComps.Add (globalPath.components [down]);
+			for (int down = lastSharedPathCompIndex + 1; down < globalPath.componentCount; ++down)
+				newPathComps.Add (globalPath.GetComponent(down));
 
             var relativePath = new Path (newPathComps, relative:true);
             return relativePath;
