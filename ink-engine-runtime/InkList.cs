@@ -126,7 +126,7 @@ namespace Ink.Runtime
             SetInitialOriginName (singleOriginListName);
 
             ListDefinition def;
-            if (originStory.listDefinitions.TryGetDefinition (singleOriginListName, out def))
+            if (originStory.listDefinitions.TryListGetDefinition (singleOriginListName, out def))
                 origins = new List<ListDefinition> { def };
             else
                 throw new System.Exception ("InkList origin could not be found in story when constructing new list: " + singleOriginListName);

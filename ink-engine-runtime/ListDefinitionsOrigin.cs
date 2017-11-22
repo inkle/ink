@@ -17,46 +17,37 @@ namespace Ink.Runtime
         public ListDefinitionsOrigin (List<Runtime.ListDefinition> lists)
         {
             _lists = new Dictionary<string, ListDefinition> ();
+			_allUnambiguousListValueCache = new Dictionary<string, ListValue>();
+
             foreach (var list in lists) {
                 _lists [list.name] = list;
+
+				foreach(var itemWithValue in list.items) {
+					var item = itemWithValue.Key;
+					var val = itemWithValue.Value;
+					var listValue = new ListValue(item, val);
+
+					// May be ambiguous, but compiler should've caught that,
+					// so we may be doing some replacement here, but that's okay.
+					_allUnambiguousListValueCache[item.itemName] = listValue;
+					_allUnambiguousListValueCache[item.fullName] = listValue;
+				}
             }
         }
 
-        public bool TryGetDefinition (string name, out ListDefinition def)
+        public bool TryListGetDefinition (string name, out ListDefinition def)
         {
             return _lists.TryGetValue (name, out def);
         }
 
         public ListValue FindSingleItemListWithName (string name)
         {
-            InkListItem item = InkListItem.Null;
-            ListDefinition list = null;
-
-            // Name could be in the form itemName or listName.itemName
-            var nameParts = name.Split ('.');
-            if (nameParts.Length == 2) {
-                item = new InkListItem (nameParts [0], nameParts [1]);
-                TryGetDefinition (item.originName, out list);
-            } else {
-                foreach (var namedList in _lists) {
-                    var listWithItem = namedList.Value;
-                    item = new InkListItem (namedList.Key, name);
-                    if (listWithItem.ContainsItem (item)) {
-                        list = listWithItem;
-                        break;
-                    }
-                }
-            }
-
-            // Manager to get the list that contains the given item?
-            if (list != null) {
-                int itemValue = list.ValueForItem (item);
-                return new ListValue (item, itemValue);
-            }
-
-            return null;
+			ListValue val = null;
+			_allUnambiguousListValueCache.TryGetValue(name, out val);
+			return val;
         }
 
         Dictionary<string, Runtime.ListDefinition> _lists;
+		Dictionary<string, ListValue> _allUnambiguousListValueCache;
     }
 }

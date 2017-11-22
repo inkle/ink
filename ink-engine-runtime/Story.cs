@@ -963,7 +963,7 @@ namespace Ink.Runtime
                     ListValue generatedListValue = null;
 
                     ListDefinition foundListDef;
-                    if (listDefinitions.TryGetDefinition (listNameVal.value, out foundListDef)) {
+                    if (listDefinitions.TryListGetDefinition (listNameVal.value, out foundListDef)) {
                         InkListItem foundItem;
                         if (foundListDef.TryGetItemWithValue (intVal.value, out foundItem)) {
                             generatedListValue = new ListValue (foundItem, intVal.value);
