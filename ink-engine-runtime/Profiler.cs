@@ -21,7 +21,7 @@ namespace Ink.Runtime
 	/// </summary>
 	public class Profiler
 	{
-		public ProfileNode rootNode {
+		internal ProfileNode rootNode {
 			get {
 				return _rootNode;
 			}
@@ -31,6 +31,9 @@ namespace Ink.Runtime
 			_rootNode = new ProfileNode();
 		}
 
+        /// <summary>
+        /// Generate a printable report based on the data recording during profiling.
+        /// </summary>
 		public string Report() {
 			var sb = new StringBuilder();
 			sb.AppendFormat("{0} CONTINUES / LINES:\n", _numContinues);
@@ -103,7 +106,13 @@ namespace Ink.Runtime
 			_stepDetails.Add(_currStepDetails);
 		}
 
-		public string StepLengthReport()
+        /// <summary>
+        /// Generate a printable report specifying the average and maximum times spent
+        /// stepping over different internal ink instruction types.
+        /// This report type is primarily used to profile the ink engine itself rather
+        /// than your own specific ink.
+        /// </summary>
+		internal string StepLengthReport()
 		{
 			var sb = new StringBuilder();
 
@@ -199,10 +208,16 @@ namespace Ink.Runtime
 	}
 
 
-	public class ProfileNode {
+	internal class ProfileNode {
 		public readonly string key;
 
-		public bool openInUI;
+        // Horribly hacky field only used by ink unity integration,
+        // but saves constructing an entire data structure that mirrors
+        // the one in here purely to store the state of whether each
+        // node in the UI has been opened or not.
+        #pragma warning disable 0649
+        public bool openInUI;
+        #pragma warning restore 0649
 
 		public bool hasChildren {
 			get {

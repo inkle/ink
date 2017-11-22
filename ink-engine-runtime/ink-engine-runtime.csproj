@@ -59,6 +59,7 @@
     <Compile Include="ListDefinition.cs" />
     <Compile Include="InkList.cs" />
     <Compile Include="ListDefinitionsOrigin.cs" />
+    <Compile Include="Profiler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>

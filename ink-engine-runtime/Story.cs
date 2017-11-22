@@ -103,11 +103,19 @@ namespace Ink.Runtime
         /// </summary>
         public StoryState state { get { return _state; } }
 
+        /// <summary>
+        /// Start recording ink profiling information during calls to Continue on Story.
+        /// Return a Profiler instance that you can request a report from when you're finished.
+        /// </summary>
 		public Profiler StartProfiling() {
 			_profiler = new Profiler();
 			return _profiler;
 		}
 
+        /// <summary>
+        /// Stop recording ink profiling information during calls to Continue on Story.
+        /// To generate a report from the profiler, call 
+        /// </summary>
 		public void EndProfiling() {
 			_profiler = null;
 		}
