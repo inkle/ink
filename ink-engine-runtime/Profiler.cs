@@ -21,7 +21,10 @@ namespace Ink.Runtime
 	/// </summary>
 	public class Profiler
 	{
-		internal ProfileNode rootNode {
+        /// <summary>
+        /// The root node in the hierarchical tree of recorded ink timings.
+        /// </summary>
+		public ProfileNode rootNode {
 			get {
 				return _rootNode;
 			}
@@ -112,7 +115,7 @@ namespace Ink.Runtime
         /// This report type is primarily used to profile the ink engine itself rather
         /// than your own specific ink.
         /// </summary>
-		internal string StepLengthReport()
+		public string StepLengthReport()
 		{
 			var sb = new StringBuilder();
 
@@ -208,17 +211,32 @@ namespace Ink.Runtime
 	}
 
 
-	internal class ProfileNode {
-		public readonly string key;
+    /// <summary>
+    /// Node used in the hierarchical tree of timings used by the Profiler.
+    /// Each node corresponds to a single line viewable in a UI-based representation.
+    /// </summary>
+	public class ProfileNode {
 
-        // Horribly hacky field only used by ink unity integration,
-        // but saves constructing an entire data structure that mirrors
-        // the one in here purely to store the state of whether each
-        // node in the UI has been opened or not.
+        /// <summary>
+        /// The key for the node corresponds to the printable name of the callstack element.
+        /// </summary>		
+        public readonly string key;
+
+
         #pragma warning disable 0649
+        /// <summary>
+        /// Horribly hacky field only used by ink unity integration,
+        /// but saves constructing an entire data structure that mirrors
+        /// the one in here purely to store the state of whether each
+        /// node in the UI has been opened or not  /// </summary>
         public bool openInUI;
         #pragma warning restore 0649
 
+        /// <summary>
+        /// Whether this node contains any sub-nodes - i.e. does it call anything else
+        /// that has been recorded?
+        /// </summary>
+        /// <value><c>true</c> if has children; otherwise, <c>false</c>.</value>
 		public bool hasChildren {
 			get {
 				return _nodes != null && _nodes.Count > 0;
@@ -265,6 +283,10 @@ namespace Ink.Runtime
 			node.AddSample(stack, stackIdx, duration);
 		}
 
+        /// <summary>
+        /// Returns a sorted enumerable of the nodes in descending order of
+        /// how long they took to run.
+        /// </summary>
 		public IEnumerable<KeyValuePair<string, ProfileNode>> descendingOrderedNodes {
 			get {
 				if( _nodes == null ) return null;
@@ -287,6 +309,13 @@ namespace Ink.Runtime
 			}
 		}
 
+        /// <summary>
+        /// Generates a string giving timing information for this single node, including
+        /// total milliseconds spent on the piece of ink, the time spent within itself
+        /// (v.s. spent in children), as well as the number of samples (instruction steps)
+        /// recorded for both too.
+        /// </summary>
+        /// <value>The own report.</value>
 		public string ownReport {
 			get {
 				var sb = new StringBuilder();
@@ -309,6 +338,10 @@ namespace Ink.Runtime
 			for(int i=0; i<spaces; i++) sb.Append("   ");
 		}
 
+        /// <summary>
+        /// String is a report of the sub-tree from this node, but without any of the header information
+        /// that's prepended by the Profiler in its Report() method.
+        /// </summary>
 		public override string ToString ()
 		{
 			var sb = new StringBuilder();
