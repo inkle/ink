@@ -2384,13 +2384,13 @@ The basic list print is not especially attractive for use in-game. The following
 	=== function listWithCommas(list, if_empty) 
 	    {LIST_COUNT(list): 
 	    - 2: 
-	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list))}
+	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list), if_empty)}
 	    - 1: 
 	        	{list}
 	    - 0: 
 				{if_empty}	        
 	    - else: 
-	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list))} 
+	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list), if_empty)} 
 	    }
 
 	LIST favouriteDinosaurs = (stegosaurs), brachiosaur, (anklyosaurus), (pleiosaur)
@@ -2406,7 +2406,7 @@ It's probably also useful to have an is/are function to hand:
 
 And to be pendantic:
 
-	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
+	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
 
 #### Lists don't need to have multiple entries 
