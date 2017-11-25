@@ -2750,7 +2750,6 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	LIST Inventory = (none), cane, knife
 	
 	=== function get(x) 
-	    ~ move_to_supporter(x, held) 
 	    ~ Inventory += x
 
 	//
@@ -2760,10 +2759,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	
 	LIST Supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
 	
-	=== function move_to_supporter(ref item_state, new_supporter) === 
-	    { Inventory ? item_state && new_supporter != held:
-	        ~ Inventory -= item_state
-	    }
+	=== function move_to_supporter(ref item_state, new_supporter) ===
 	    ~ item_state -= LIST_ALL(Supporters)
 	    ~ item_state += new_supporter
 	
