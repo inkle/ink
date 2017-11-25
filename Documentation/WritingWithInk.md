@@ -2640,7 +2640,7 @@ We could then describe the contents of any room by testing its state:
 	
 	=== function describe_room(roomState)
 		{ roomState ? Alfred: Alfred is here, standing quietly in a corner. } { roomState ? Batman: Batman's presence dominates all. } { roomState ? Robin: Robin is all but forgotten. }
-		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBER ASSISTANT? }
+		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT? }
 		
 So then:
 
@@ -2650,7 +2650,7 @@ produces:
 	
 	Alfred is here, standing quietly in a corner. Batman's presence dominates all.
 
-	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBER ASSISTANT?
+	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT?
 
 While:	
 
