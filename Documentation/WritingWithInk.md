@@ -2384,13 +2384,13 @@ The basic list print is not especially attractive for use in-game. The following
 	=== function listWithCommas(list, if_empty) 
 	    {LIST_COUNT(list): 
 	    - 2: 
-	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list))}
+	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list), if_empty)}
 	    - 1: 
 	        	{list}
 	    - 0: 
 				{if_empty}	        
 	    - else: 
-	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list))} 
+	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list), if_empty)} 
 	    }
 
 	LIST favouriteDinosaurs = (stegosaurs), brachiosaur, (anklyosaurus), (pleiosaur)
@@ -2406,7 +2406,7 @@ It's probably also useful to have an is/are function to hand:
 
 And to be pendantic:
 
-	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
+	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
 
 #### Lists don't need to have multiple entries 
@@ -2640,7 +2640,7 @@ We could then describe the contents of any room by testing its state:
 	
 	=== function describe_room(roomState)
 		{ roomState ? Alfred: Alfred is here, standing quietly in a corner. } { roomState ? Batman: Batman's presence dominates all. } { roomState ? Robin: Robin is all but forgotten. }
-		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBER ASSISTANT? }
+		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT? }
 		
 So then:
 
@@ -2650,7 +2650,7 @@ produces:
 	
 	Alfred is here, standing quietly in a corner. Batman's presence dominates all.
 
-	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBER ASSISTANT?
+	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT?
 
 While:	
 
@@ -2750,7 +2750,6 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	LIST Inventory = (none), cane, knife
 	
 	=== function get(x) 
-	    ~ move_to_supporter(x, held) 
 	    ~ Inventory += x
 
 	//
@@ -2760,10 +2759,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	
 	LIST Supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
 	
-	=== function move_to_supporter(ref item_state, new_supporter) === 
-	    { Inventory ? item_state && new_supporter != held:
-	        ~ Inventory -= item_state
-	    }
+	=== function move_to_supporter(ref item_state, new_supporter) ===
 	    ~ item_state -= LIST_ALL(Supporters)
 	    ~ item_state += new_supporter
 	
