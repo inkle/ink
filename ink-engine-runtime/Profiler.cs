@@ -74,7 +74,7 @@ namespace Ink.Runtime
 				var objPath = callstack.elements[i].currentObject.path;
 				string stackElementName = "";
 
-				for(int c=0; c<objPath.componentCount; c++) {
+				for(int c=0; c<objPath.length; c++) {
 					var comp = objPath.GetComponent(c);
 					if( !comp.isIndex ) {
 						stackElementName = comp.name;

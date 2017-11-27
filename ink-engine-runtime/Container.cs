@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
@@ -229,7 +229,7 @@ namespace Ink.Runtime
         public Runtime.Object ContentAtPath(Path path, int partialPathLength = -1)
 		{
             if (partialPathLength == -1)
-                partialPathLength = path.componentCount;
+                partialPathLength = path.length;
             
             Container currentContainer = this;
             Runtime.Object currentObj = this;

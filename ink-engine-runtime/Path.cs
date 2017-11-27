@@ -77,12 +77,6 @@ namespace Ink.Runtime
             }
 		}
 
-		public int componentCount {
-			get {
-				return _components.Count;
-			}
-		}
-
 		public Component GetComponent(int index)
 		{
 			return _components[index];

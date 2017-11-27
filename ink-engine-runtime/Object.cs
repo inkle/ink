@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -132,7 +132,7 @@ namespace Ink.Runtime
 
             var ownPath = this.path;
 
-			int minPathLength = Math.Min (globalPath.componentCount, ownPath.componentCount);
+			int minPathLength = Math.Min (globalPath.length, ownPath.length);
             int lastSharedPathCompIndex = -1;
 
             for (int i = 0; i < minPathLength; ++i) {
@@ -150,14 +150,14 @@ namespace Ink.Runtime
             if (lastSharedPathCompIndex == -1)
                 return globalPath;
 
-            int numUpwardsMoves = (ownPath.componentCount-1) - lastSharedPathCompIndex;
+            int numUpwardsMoves = (ownPath.length-1) - lastSharedPathCompIndex;
 
             var newPathComps = new List<Path.Component> ();
 
             for(int up=0; up<numUpwardsMoves; ++up)
                 newPathComps.Add (Path.Component.ToParent ());
 
-			for (int down = lastSharedPathCompIndex + 1; down < globalPath.componentCount; ++down)
+			for (int down = lastSharedPathCompIndex + 1; down < globalPath.length; ++down)
 				newPathComps.Add (globalPath.GetComponent(down));
 
             var relativePath = new Path (newPathComps, relative:true);
