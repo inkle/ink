@@ -37,7 +37,7 @@ produces output that looks the same.
 
 By default, all text in your file will appear in the output content, unless specially marked up. 
 
-The simplest mark-up is a comment. **ink** supports two kinds of comment. There's the kind used for someone reading the code, which the compiler ignores:
+The simplest mark-up is a comment. **ink** supports two kinds of comments. There's the kind used for someone reading the code, which the compiler ignores:
 
 	"What do you make of this?" she asked. 
 	
@@ -56,7 +56,7 @@ and there's the kind used for reminding the author what they need to do, that th
 
 ### Tags 
 
-Text content from the game will appear 'as is' when the engine runs. However, it can sometimes we useful to mark up a line of content with extra information to tell the game what to do with that content. 
+Text content from the game will appear 'as is' when the engine runs. However, it can sometimes be useful to mark up a line of content with extra information to tell the game what to do with that content. 
 
 **ink** provides a simple system for tagging lines of content, with hashtags. 
 
@@ -137,7 +137,7 @@ produces:
 
 To make choices really choices, we need to provide alternatives. We can do this simply by listing them:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	*	"I am somewhat tired[."]," I repeated.
 		"Really," he responded. "How deleterious."
 	*	"Nothing, Monsieur!"[] I replied.
@@ -147,7 +147,7 @@ To make choices really choices, we need to provide alternatives. We can do this 
  
 This produces the following game:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	
 	1: "I am somewhat tired."
 	2: "Nothing, Monsieur!"
@@ -778,7 +778,7 @@ Let's go back to the first multi-choice example at the top of this document.
 		
 In a real game, all three of these options might well lead to the same conclusion - Monsieur Fogg leaves the room. We can do this using a gather, without the need to create any new knots, or add any diverts.
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 		*	"I am somewhat tired[."]," I repeated.
 			"Really," he responded. "How deleterious."
 		*	"Nothing, Monsieur!"[] I replied.
@@ -790,7 +790,7 @@ In a real game, all three of these options might well lead to the same conclusio
 
 This produces the following playthrough:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	
 	1: "I am somewhat tired."
 	2: "Nothing, Monsieur!"
