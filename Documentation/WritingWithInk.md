@@ -37,7 +37,7 @@ produces output that looks the same.
 
 By default, all text in your file will appear in the output content, unless specially marked up. 
 
-The simplest mark-up is a comment. **ink** supports two kinds of comments. There's the kind used for someone reading the code, which the compiler ignores:
+The simplest mark-up is a comment. **ink** supports two kinds of comment. There's the kind used for someone reading the code, which the compiler ignores:
 
 	"What do you make of this?" she asked. 
 	
