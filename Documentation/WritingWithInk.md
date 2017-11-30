@@ -1084,7 +1084,7 @@ Labelling allows us to create loops inside weaves. Here's a standard pattern for
 
 	- (opts)
 		*	'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
-			'Sure. In the locker.' He grins. 'Don't think it'll fit you, thought.'
+			'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
 		*	'Tell me about the security system.'
 			'It's ancient,' the guard assures you. 'Old as coal.'
 		*	'Are there dogs?'
