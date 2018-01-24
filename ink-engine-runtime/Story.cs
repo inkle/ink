@@ -61,13 +61,23 @@ namespace Ink.Runtime
         /// <summary>
         /// The latest line of text to be generated from a Continue() call.
         /// </summary>
-		public string currentText { get  { return state.currentText; } }
+		public string currentText { 
+            get  { 
+                IfAsyncWeCant ("call currentText since it's a work in progress");
+                return state.currentText; 
+            } 
+        }
 
         /// <summary>
         /// Gets a list of tags as defined with '#' in source that were seen
         /// during the latest Continue() call.
         /// </summary>
-        public List<string> currentTags { get { return state.currentTags; } }
+        public List<string> currentTags { 
+            get { 
+                IfAsyncWeCant ("call currentTags since it's a work in progress");
+                return state.currentTags; 
+            } 
+        }
 
         /// <summary>
         /// Any errors generated during evaluation of the Story.
@@ -109,6 +119,7 @@ namespace Ink.Runtime
         /// Return a Profiler instance that you can request a report from when you're finished.
         /// </summary>
 		public Profiler StartProfiling() {
+            IfAsyncWeCant ("start profiling");
 			_profiler = new Profiler();
 			return _profiler;
 		}
@@ -191,6 +202,9 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetState()
         {
+            // TODO: Could make this possible
+            IfAsyncWeCant ("ResetState");
+
             _state = new StoryState (this);
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
 
@@ -215,6 +229,8 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetCallstack()
         {
+            IfAsyncWeCant ("ResetCallstack");
+
             _state.ForceEnd ();
         }
 
@@ -352,20 +368,19 @@ namespace Ink.Runtime
 
                 // Finished a section of content / reached a choice point?
                 if( !canContinue ) {
-                    if( state.callStack.canPopThread )
-    					Error ("Thread available to pop, threads should always be flat by the end of evaluation?");
+                    if (state.callStack.canPopThread)
+                        AddError ("Thread available to pop, threads should always be flat by the end of evaluation?");
 
-                    if( state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
-                        if( state.callStack.CanPop(PushPopType.Tunnel) )
-    						Error ("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                        else if( state.callStack.CanPop(PushPopType.Function) )
-    						Error ("unexpectedly reached end of content. Do you need a '~ return'?");
-                        else if( !state.callStack.canPop )
-    						Error ("ran out of content. Do you need a '-> DONE' or '-> END'?");
+                    if (state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null) {
+                        if (state.callStack.CanPop (PushPopType.Tunnel))
+                            AddError ("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+                        else if (state.callStack.CanPop (PushPopType.Function))
+                            AddError ("unexpectedly reached end of content. Do you need a '~ return'?");
+                        else if (!state.callStack.canPop)
+                            AddError ("ran out of content. Do you need a '-> DONE' or '-> END'?");
                         else
-    						Error ("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                            AddError ("unexpectedly reached end of content for unknown reason. Please debug compiler!");
                     }
-
                 }
 
                 state.didSafeExit = false;
@@ -476,6 +491,8 @@ namespace Ink.Runtime
         /// <returns>The resulting text evaluated by the ink engine, concatenated together.</returns>
         public string ContinueMaximally()
         {
+            IfAsyncWeCant ("ContinueMaximally");
+
             var sb = new StringBuilder ();
 
             while (canContinue) {
@@ -1194,10 +1211,16 @@ namespace Ink.Runtime
         /// <param name="arguments">Optional set of arguments to pass, if path is to a knot that takes them.</param>
         public void ChoosePathString (string path, params object [] arguments)
         {
+            IfAsyncWeCant ("call ChoosePathString right now");
             state.PassArgumentsToEvaluationStack (arguments);
             ChoosePath (new Path (path));
         }
 
+        void IfAsyncWeCant (string activityStr)
+        {
+            if (_asyncContinueActive)
+                throw new System.Exception ("Can't " + activityStr + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
+        }
             
         internal void ChoosePath(Path p)
         {
@@ -1264,6 +1287,8 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+            IfAsyncWeCant ("evaluate a function");
+
 			if(functionName == null) {
 				throw new System.Exception ("Function is null");
 			} else if(functionName == string.Empty || functionName.Trim() == string.Empty) {
@@ -1404,6 +1429,7 @@ namespace Ink.Runtime
         /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
         {
+            IfAsyncWeCant ("bind an external function");
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
             _externals [funcName] = func;
         }
@@ -1587,6 +1613,7 @@ namespace Ink.Runtime
         /// </summary>
         public void UnbindExternalFunction(string funcName)
         {
+            IfAsyncWeCant ("unbind an external a function");
             Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
             _externals.Remove (funcName);
         }
@@ -1675,6 +1702,8 @@ namespace Ink.Runtime
         /// <param name="observer">A delegate function to call when the variable changes.</param>
         public void ObserveVariable(string variableName, VariableObserver observer)
         {
+            IfAsyncWeCant ("observe a new variable");
+
             if (_variableObservers == null)
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
@@ -1712,6 +1741,8 @@ namespace Ink.Runtime
         /// <param name="specificVariableName">(Optional) Specific variable name to stop observing.</param>
         public void RemoveVariableObserver(VariableObserver observer, string specificVariableName = null)
         {
+            IfAsyncWeCant ("remove a variable observer");
+
             if (_variableObservers == null)
                 return;
 
@@ -2033,7 +2064,7 @@ namespace Ink.Runtime
             throw e;
         }
 
-        void AddError (string message, bool useEndLineNumber)
+        void AddError (string message, bool useEndLineNumber = false)
         {
             var dm = currentDebugMetadata;
 
