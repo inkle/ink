@@ -825,7 +825,7 @@ namespace Ink.Runtime
                         }
                     }
 
-                    if (state.TryExitExternalFunctionEvaluation ()) {
+                    if (state.TryExitFunctionEvaluationFromGame ()) {
                         break;
                     }
                     else if (state.callStack.currentElement.type != popType || !state.callStack.canPop) {
@@ -1251,7 +1251,7 @@ namespace Ink.Runtime
             }
 
             // State will temporarily replace the callstack in order to evaluate
-            state.StartExternalFunctionEvaluation (funcContainer, arguments);
+            state.StartFunctionEvaluationFromGame (funcContainer, arguments);
 
             // Evaluate the function, and collect the string output
             var stringOutput = new StringBuilder ();
@@ -1261,7 +1261,7 @@ namespace Ink.Runtime
             textOutput = stringOutput.ToString ();
 
             // Finish evaluation, and see whether anything was produced
-            var result = state.CompleteExternalFunctionEvaluation ();
+            var result = state.CompleteFunctionEvaluationFromGame ();
             return result;
         }
 
@@ -1839,7 +1839,7 @@ namespace Ink.Runtime
 
                     didPop = true;
                 } else {
-                    state.TryExitExternalFunctionEvaluation ();
+                    state.TryExitFunctionEvaluationFromGame ();
                 }
 
                 // Step past the point where we last called out

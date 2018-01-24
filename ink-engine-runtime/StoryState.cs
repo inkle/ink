@@ -256,15 +256,11 @@ namespace Ink.Runtime
             }
 
             copy.callStack = new CallStack (callStack);
-            if( _originalCallstack != null )
-                copy._originalCallstack = new CallStack(_originalCallstack);
 
             copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
             copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
-            copy._originalEvaluationStackHeight = _originalEvaluationStackHeight;
-			copy._isExternalFunctionEvaluation = _isExternalFunctionEvaluation;
 
             if (divertedTargetObject != null)
                 copy.divertedTargetObject = divertedTargetObject;
@@ -807,33 +803,16 @@ namespace Ink.Runtime
             currentTurnIndex++;
         }
 
-        internal void StartExternalFunctionEvaluation (Container funcContainer, params object[] arguments)
+        internal void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
         {
-            // We'll start a new callstack, so keep hold of the original,
-            // as well as the evaluation stack so we know if the function 
-            // returned something
-            _originalCallstack = callStack;
-            _originalEvaluationStackHeight = evaluationStack.Count;
-
-            // Create a new base call stack element.
-            callStack = new CallStack (funcContainer);
-            callStack.currentElement.type = PushPopType.Function;
-
-            // Change the callstack the variableState is looking at to be
-            // this temporary function evaluation one. We'll restore it afterwards
-            variablesState.callStack = callStack;
-
-            // By setting ourselves in external function evaluation mode,
-            // we're saying it's okay to end the flow without a Done or End,
-            // but with a ~ return instead.
-            _isExternalFunctionEvaluation = true;
+            callStack.Push (PushPopType.FunctionEvaluationFromGame, evaluationStack.Count);
+            callStack.currentElement.currentObject = funcContainer;
 
             PassArgumentsToEvaluationStack (arguments);
         }
 
         internal void PassArgumentsToEvaluationStack (params object [] arguments)
         {
-
             // Pass arguments onto the evaluation stack
             if (arguments != null) {
                 for (int i = 0; i < arguments.Length; i++) {
@@ -846,9 +825,9 @@ namespace Ink.Runtime
             }
         }
             
-        internal bool TryExitExternalFunctionEvaluation ()
+        internal bool TryExitFunctionEvaluationFromGame ()
         {
-            if (_isExternalFunctionEvaluation && callStack.elements.Count == 1 && callStack.currentElement.type == PushPopType.Function) {
+            if( callStack.currentElement.type == PushPopType.FunctionEvaluationFromGame ) {
                 currentContentObject = null;
                 didSafeExit = true;
                 return true;
@@ -857,30 +836,27 @@ namespace Ink.Runtime
             return false;
         }
 
-        internal object CompleteExternalFunctionEvaluation ()
+        internal object CompleteFunctionEvaluationFromGame ()
         {
+            if (callStack.currentElement.type != PushPopType.FunctionEvaluationFromGame) {
+                throw new StoryException ("Expected external function evaluation to be complete. Stack trace: "+callStack.callStackTrace);
+            }
+
+            int originalEvaluationStackHeight = callStack.currentElement.evaluationStackHeightWhenPushed;
             
             // Do we have a returned value?
             // Potentially pop multiple values off the stack, in case we need
             // to clean up after ourselves (e.g. caller of EvaluateFunction may 
             // have passed too many arguments, and we currently have no way to check for that)
             Runtime.Object returnedObj = null;
-            while (evaluationStack.Count > _originalEvaluationStackHeight) {
+            while (evaluationStack.Count > originalEvaluationStackHeight) {
                 var poppedObj = PopEvaluationStack ();
                 if (returnedObj == null)
                     returnedObj = poppedObj;
             }
 
-            // Restore our own state
-            callStack = _originalCallstack;
-            _originalCallstack = null;
-            _originalEvaluationStackHeight = 0;
-
-            // Restore the callstack that the variablesState uses
-            variablesState.callStack = callStack;
-
-			// No longer in external function eval
-			_isExternalFunctionEvaluation = false;
+            // Finally, pop the external function evaluation
+            callStack.Pop (PushPopType.FunctionEvaluationFromGame);
 
             // What did we get back?
             if (returnedObj) {
@@ -929,11 +905,6 @@ namespace Ink.Runtime
 		bool _outputStreamTagsDirty = true;
 
 		List<Choice> _currentChoices;
-
-        // Temporary state only, during externally called function evaluation
-        bool _isExternalFunctionEvaluation;
-        CallStack _originalCallstack;
-        int _originalEvaluationStackHeight;
     }
 }
 

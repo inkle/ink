@@ -15,6 +15,11 @@ namespace Ink.Runtime
             public Dictionary<string, Runtime.Object> temporaryVariables;
             public PushPopType type;
 
+            // When this callstack element is actually a function evaluation called from the game,
+            // we need to keep track of the size of the evaluation stack when it was called
+            // so that we know whether there was any return value.
+            public int evaluationStackHeightWhenPushed;
+
             public Runtime.Object currentObject {
                 get {
                     if (currentContainer && currentContentIndex < currentContainer.content.Count) {
@@ -57,6 +62,7 @@ namespace Ink.Runtime
             {
                 var copy = new Element (this.type, this.currentContainer, this.currentContentIndex, this.inExpressionEvaluation);
                 copy.temporaryVariables = new Dictionary<string,Object>(this.temporaryVariables);
+                copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
                 return copy;
             }
         }
@@ -263,10 +269,19 @@ namespace Ink.Runtime
             }
         }
 
-        public void Push(PushPopType type)
+        public void Push(PushPopType type, int externalEvaluationStackHeight = 0)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
-            callStack.Add (new Element(type, currentElement.currentContainer, currentElement.currentContentIndex, inExpressionEvaluation: false));
+            var element = new Element (
+                type, 
+                currentElement.currentContainer, 
+                currentElement.currentContentIndex, 
+                inExpressionEvaluation: false
+            );
+
+            element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
+
+            callStack.Add (element);
         }
 
         public bool CanPop(PushPopType? type = null) {
