@@ -74,6 +74,29 @@ namespace Ink.Parsed
             container.AddContent(Runtime.NativeFunctionCall.CallWithName(opName));
 		}
 
+        public override void ResolveReferences (Story context)
+        {
+            base.ResolveReferences (context);
+
+            // Check for the following case:
+            //
+            //    (not A) ? B
+            //
+            // Since this easy to accidentally do:
+            //
+            //    not A ? B
+            //
+            // when you intend:
+            //
+            //    not (A ? B)
+            if (NativeNameForOp (opName) == "?") {
+                var leftUnary = leftExpression as UnaryExpression;
+                if( leftUnary != null && (leftUnary.op == "not" || leftUnary.op == "!") ) {
+                    Error ("Using 'not' or '!' here negates '"+leftUnary.innerExpression+"' rather than the result of the '?' or 'has' operator. You need to add parentheses around the (A ? B) expression.");
+                }
+            }
+        }
+
         string NativeNameForOp(string opName)
         {
             if (opName == "and")
