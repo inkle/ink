@@ -43,7 +43,7 @@ namespace Ink.Parsed
             // switched value. If there's no final else clause
             // and we fall all the way through, we need to clean up.
             // (An else clause doesn't dup but it *does* pop)
-            if ( branches [0].ownExpression != null && !branches [branches.Count - 1].isElse) {
+            if (this.initialCondition != null && branches [0].ownExpression != null && !branches [branches.Count - 1].isElse) {
                 container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
             }
 

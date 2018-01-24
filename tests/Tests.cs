@@ -664,6 +664,21 @@ VAR x = 3
         	Assert.IsTrue (story.state.evaluationStack.Count == 0);
         }
 
+        [Test ()]
+        public void TestTrivialCondition ()
+        {
+        	var story = CompileString (@"
+{
+- false:
+   beep
+}
+                ");
+
+        	story.Continue ();
+
+        	Assert.IsFalse (story.hasError);
+        }
+
         [Test()]
         public void TestEmptySequenceContent()
         {
