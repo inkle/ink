@@ -420,7 +420,7 @@ namespace Ink.Runtime
                 if (_stateAtLastNewline != null) {
 
                     // Cover cases that non-text generated content was evaluated last step
-                    string currText = currentText;
+					string currText = state.currentText;
                     int prevTextLength = _stateAtLastNewline.currentText.Length;
 
                     // Take tags into account too, so that a tag following a content line:
@@ -430,7 +430,7 @@ namespace Ink.Runtime
                     int prevTagCount = _stateAtLastNewline.currentTags.Count;
 
                     // Output has been extended?
-                    if (!currText.Equals (_stateAtLastNewline.currentText) || prevTagCount != currentTags.Count) {
+                    if (!currText.Equals (_stateAtLastNewline.currentText) || prevTagCount != state.currentTags.Count) {
 
                         // Original newline still exists?
                         if (currText.Length >= prevTextLength && currText [prevTextLength - 1] == '\n') {
