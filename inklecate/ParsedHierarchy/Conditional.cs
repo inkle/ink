@@ -38,6 +38,15 @@ namespace Ink.Parsed
                 container.AddContent (branchContainer);
             }
 
+            // If it's a switch-like conditional, each branch
+            // will have a "duplicate" operation for the original
+            // switched value. If there's no final else clause
+            // and we fall all the way through, we need to clean up.
+            // (An else clause doesn't dup but it *does* pop)
+            if ( branches [0].ownExpression != null && !branches [branches.Count - 1].isElse) {
+                container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
+            }
+
             // Target for branches to rejoin to
             _reJoinTarget = Runtime.ControlCommand.NoOp ();
             container.AddContent (_reJoinTarget);

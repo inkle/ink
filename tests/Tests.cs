@@ -648,6 +648,22 @@ VAR x = 3
             Assert.AreEqual("", story.Continue());
         }
 
+
+        [Test ()]
+        public void TestAllSwitchBranchesFailIsClean ()
+        {
+        	var story = CompileString (@"
+{ 1:
+    - 2: x
+    - 3: y
+}
+        ");
+
+            story.Continue ();
+
+        	Assert.IsTrue (story.state.evaluationStack.Count == 0);
+        }
+
         [Test()]
         public void TestEmptySequenceContent()
         {
