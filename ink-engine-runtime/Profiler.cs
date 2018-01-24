@@ -42,8 +42,7 @@ namespace Ink.Runtime
 			sb.AppendFormat("{0} CONTINUES / LINES:\n", _numContinues);
 			sb.AppendFormat("TOTAL TIME: {0}\n", FormatMillisecs(_continueTotal));
 			sb.AppendFormat("SNAPSHOTTING: {0}\n", FormatMillisecs(_snapTotal));
-			sb.AppendFormat("RESTORING: {0}\n", FormatMillisecs(_restoreTotal));
-			sb.AppendFormat("OTHER: {0}\n", FormatMillisecs(_continueTotal - (_stepTotal + _snapTotal + _restoreTotal)));
+			sb.AppendFormat("OTHER: {0}\n", FormatMillisecs(_continueTotal - (_stepTotal + _snapTotal)));
 			sb.Append(_rootNode.ToString());
 			return sb.ToString();
 		}
@@ -153,16 +152,6 @@ namespace Ink.Runtime
 			_snapTotal += Millisecs(_snapWatch);
 		}
 
-		internal void PreRestore() {
-			_restoreWatch.Reset();
-			_restoreWatch.Start();
-		}
-
-		internal void PostRestore() {
-			_restoreWatch.Stop();
-			_restoreTotal += Millisecs(_restoreWatch);
-		}
-
 		double Millisecs(Stopwatch watch)
 		{
 			var ticks = watch.ElapsedTicks;
@@ -188,12 +177,10 @@ namespace Ink.Runtime
 		Stopwatch _continueWatch = new Stopwatch();
 		Stopwatch _stepWatch = new Stopwatch();
 		Stopwatch _snapWatch = new Stopwatch();
-		Stopwatch _restoreWatch = new Stopwatch();
 
 		double _continueTotal;
 		double _snapTotal;
 		double _stepTotal;
-		double _restoreTotal;
 
 		string[] _currStepStack;
 		StepDetails _currStepDetails;

@@ -242,24 +242,43 @@ namespace Ink.Runtime
         /// <returns>The line of text content.</returns>
         public string Continue()
         {
-            // TODO: Should we leave this to the client, since it could be
-            // slow to iterate through all the content an extra time?
-            if( !_hasValidatedExternals )
-                ValidateExternalBindings ();
-
-            //return ContinueInternal ();
-
-            ContinueInternal ();
-
+            ContinueAsync(0);
             return currentText;
         }
 
+
+        /// <summary>
+        /// Check whether more content is available if you were to call <c>Continue()</c> - i.e.
+        /// are we mid story rather than at a choice point or at the end.
+        /// </summary>
+        /// <value><c>true</c> if it's possible to call <c>Continue()</c>.</value>
+        public bool canContinue {
+        	get {
+                return state.canContinue;
+            }
+        }
+
+        /// <summary>
+        /// If ContinueAsync was called (with milliseconds limit > 0) then this property
+        /// will return false if the ink evaluation isn't yet finished, and you need to call 
+        /// it again in order for the Continue to fully complete.
+        /// </summary>
         public bool asyncContinueComplete {
             get {
                 return !_asyncContinueActive;
             }
         }
 
+        /// <summary>
+        /// An "asnychronous" version of Continue that only partially evaluates the ink,
+        /// with a budget of a certain time limit. It will exit ink evaluation early if
+        /// the evaluation isn't complete within the time limit, with the
+        /// asyncContinueComplete property being false.
+        /// This is useful if ink evaluation takes a long time, and you want to distribute
+        /// it over multiple game frames for smoother animation.
+        /// If you pass a limit of zero, then it will fully evaluate the ink in the same
+        /// way as calling Continue (and in fact, this exactly what Continue does internally).
+        /// </summary>
         public void ContinueAsync (float millisecsLimitAsync)
         {
             if( !_hasValidatedExternals )
@@ -280,7 +299,14 @@ namespace Ink.Runtime
             //  - Starting async run-through
             if (!_asyncContinueActive) {
                 _asyncContinueActive = isAsyncTimeLimited;
-				PrepareContinue ();
+				
+                if (!canContinue) {
+                    throw new StoryException ("Can't continue - should check canContinue before calling Continue");
+                }
+
+                _state.ResetOutput ();
+                _state.didSafeExit = false;
+                _state.variablesState.batchObservingVariableChanges = true;
             }
 
             // Start timing
@@ -317,29 +343,39 @@ namespace Ink.Runtime
             //
             // Successfully finished evaluation in time (or in error)
             if (outputStreamEndsInNewline || !canContinue) {
-                CompleteContinue ();
+
+                // Need to rewind, due to evaluating further than we should?
+                if( _stateAtLastNewline != null ) {
+    				RestoreStateSnapshot (_stateAtLastNewline);
+                    _stateAtLastNewline = null;
+                }
+
+                // Finished a section of content / reached a choice point?
+                if( !canContinue ) {
+                    if( state.callStack.canPopThread )
+    					Error ("Thread available to pop, threads should always be flat by the end of evaluation?");
+
+                    if( state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
+                        if( state.callStack.CanPop(PushPopType.Tunnel) )
+    						Error ("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+                        else if( state.callStack.CanPop(PushPopType.Function) )
+    						Error ("unexpectedly reached end of content. Do you need a '~ return'?");
+                        else if( !state.callStack.canPop )
+    						Error ("ran out of content. Do you need a '-> DONE' or '-> END'?");
+                        else
+    						Error ("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                    }
+
+                }
+
+                state.didSafeExit = false;
+                _state.variablesState.batchObservingVariableChanges = false;
                 _asyncContinueActive = false;
             }
 
             if( _profiler != null )
                 _profiler.PostContinue();
         }
-
-        void PrepareContinue ()
-        {
-            if (!canContinue) {
-                throw new StoryException ("Can't continue - should check canContinue before calling Continue");
-            }
-
-            _state.ResetOutput ();
-
-            _state.didSafeExit = false;
-
-            _state.variablesState.batchObservingVariableChanges = true;
-        }
-
-
-
 
         bool ContinueSingleStep ()
         {
@@ -430,108 +466,6 @@ namespace Ink.Runtime
 
             // outputStreamEndsInNewline = false
             return false;
-        }
-
-        void CompleteContinue ()
-        {
-            // Need to rewind, due to evaluating further than we should?
-            if( _stateAtLastNewline != null ) {
-
-                if( _profiler != null )
-                    _profiler.PreRestore();
-
-				RestoreStateSnapshot (_stateAtLastNewline);
-                _stateAtLastNewline = null;
-
-                if( _profiler != null )
-                    _profiler.PostRestore();
-            }
-
-            // Finished a section of content / reached a choice point?
-            if( !canContinue ) {
-
-                if( state.callStack.canPopThread ) {
-
-					Error ("Thread available to pop, threads should always be flat by the end of evaluation?");
-                }
-
-                if( state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
-                    if( state.callStack.CanPop(PushPopType.Tunnel) ) {
-
-						Error ("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                    } else if( state.callStack.CanPop(PushPopType.Function) ) {
-
-						Error ("unexpectedly reached end of content. Do you need a '~ return'?");
-                    } else if( !state.callStack.canPop ) {
-
-						Error ("ran out of content. Do you need a '-> DONE' or '-> END'?");
-                    } else {
-
-						Error ("unexpectedly reached end of content for unknown reason. Please debug compiler!");
-                    }
-                }
-
-            }
-
-            state.didSafeExit = false;
-
-            _state.variablesState.batchObservingVariableChanges = false;
-        }
-
-  //      string ContinueInternal()
-		//{
-  //          //         PrepareContinue ();
-
-  //          //         try {
-
-  //          //             // The basic algorithm here is:
-  //          //             //
-  //          //             //     do { Step() } while( canContinue && !outputStreamEndsInNewline );
-  //          //             //
-  //          //             // But the complexity comes from:
-  //          //             //  - Stepping beyond the newline in case it'll be absorbed by glue later
-  //          //             //  - Ensuring that non-text content beyond newlines are generated - i.e. choices,
-  //          //             //    which are actually built out of text content.
-  //          //             // So we have to take a snapshot of the state, continue prospectively,
-  //          //             // and rewind if necessary.
-  //          //             // This code is slightly fragile :-/ 
-  //          //             //
-  //          //             do {
-
-  //          //                 bool outputStreamEndsInNewline = ContinueSingleStep ();
-  //          //                 if (outputStreamEndsInNewline) break;
-
-  //          //	} while(canContinue);
-
-  //          //             CompleteContinue ();
-
-  //          //         } catch(StoryException e) {
-  //          //             AddError (e.Message, e.useEndLineNumber);
-  //          //         } finally {
-
-  //          //             state.didSafeExit = false;
-
-  //          //             _state.variablesState.batchObservingVariableChanges = false;
-  //          //         }
-
-  //          //if( _profiler != null )
-  //          //	_profiler.PostContinue();
-
-  //          ContinueInternalLimited ();
-
-  //          return currentText;
-		//}
-
-        /// <summary>
-        /// Check whether more content is available if you were to call <c>Continue()</c> - i.e.
-        /// are we mid story rather than at a choice point or at the end.
-        /// </summary>
-        /// <value><c>true</c> if it's possible to call <c>Continue()</c>.</value>
-        public bool canContinue
-        {
-            get {
-				return state.canContinue;
-            }
         }
 
         /// <summary>
