@@ -264,6 +264,7 @@ namespace Ink.Runtime
 
             copy.evaluationStack.AddRange (evaluationStack);
             copy._originalEvaluationStackHeight = _originalEvaluationStackHeight;
+			copy._isExternalFunctionEvaluation = _isExternalFunctionEvaluation;
 
             if (divertedTargetObject != null)
                 copy.divertedTargetObject = divertedTargetObject;
@@ -877,6 +878,9 @@ namespace Ink.Runtime
 
             // Restore the callstack that the variablesState uses
             variablesState.callStack = callStack;
+
+			// No longer in external function eval
+			_isExternalFunctionEvaluation = false;
 
             // What did we get back?
             if (returnedObj) {
