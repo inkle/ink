@@ -198,6 +198,13 @@ namespace Ink
                     } else {
                         throw e;
                     }
+                } catch (System.Exception e) {
+                    string storyPath = "<END>";
+                    var path = story.state.currentPath;
+                    if (path != null) {
+                        storyPath = path.ToString ();
+                    }
+                    throw new System.Exception(e.Message + " (Internal story path: " + storyPath + ")", e);
                 }
             } 
 
