@@ -134,6 +134,11 @@ namespace Ink.Parsed
                 elIndex++;
             }
 
+            // If all Once-only branches are done, then we need to pop the eval stack
+            // for the visit index that went unused (normally popped in each branch).
+            if( sequenceType == SequenceType.Once )
+                container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
+
             container.AddContent (postSequenceNoOp);
 
             return container;
