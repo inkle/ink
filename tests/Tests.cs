@@ -3022,16 +3022,66 @@ VAR x = ->place
 {6:
 - 5: five
 - else: else
-} 
+}
+
+-> onceTest ->
+-> onceTest ->
+
+== onceTest ==
+{once:
+- hi
+}
+->->
 ";
 
         	var story = CompileString (storyStr);
 
         	var result = story.ContinueMaximally ();
 
-        	Assert.AreEqual ("else\nelse\n", result);
+        	Assert.AreEqual ("else\nelse\nhi\n", result);
             Assert.IsTrue (story.state.evaluationStack.Count == 0);
         }
+
+        [Test ()]
+        public void TestGameInkBackAndForth ()
+        {
+        	var storyStr =
+            @"
+EXTERNAL gameInc(x)
+
+== function topExternal(x)
+In top external
+~ return gameInc(x)
+
+== function inkInc(x)
+~ return x + 1
+
+            ";
+
+        	var story = CompileString (storyStr);
+
+            // Crazy game/ink callstack:
+            // - Game calls "topExternal(5)" (Game -> ink)
+            // - topExternal calls gameInc(5) (ink -> Game)
+            // - gameInk increments to 6
+            // - gameInk calls inkInc(6) (Game -> ink)
+            // - inkInc just increments to 7 (ink)
+            // And the whole thing unwinds again back to game.
+
+            story.BindExternalFunction("gameInc", (int x) => {
+                x++;
+                x = (int) story.EvaluateFunction ("inkInc", x);
+                return x;
+            });
+
+            string strResult;
+            var finalResult = (int) story.EvaluateFunction ("topExternal", out strResult, 5);
+
+            Assert.AreEqual (7, finalResult);
+            Assert.AreEqual ("In top external\n", strResult);
+        }
+
+
 
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)

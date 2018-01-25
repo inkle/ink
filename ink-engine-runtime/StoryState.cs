@@ -389,9 +389,10 @@ namespace Ink.Runtime
             currentErrors = null;
         }
             
-        internal void ResetOutput()
+        internal void ResetOutput(List<Runtime.Object> objs = null)
         {
             _outputStream.Clear ();
+            if( objs != null ) _outputStream.AddRange (objs);
 			OutputStreamDirty();
         }
 

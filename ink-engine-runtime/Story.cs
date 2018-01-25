@@ -310,6 +310,8 @@ namespace Ink.Runtime
             
             var isAsyncTimeLimited = millisecsLimitAsync > 0;
 
+            _recursiveContinueCount++;
+
             // Doing either:
             //  - full run through non-async (so not active and don't want to be)
             //  - Starting async run-through
@@ -320,9 +322,14 @@ namespace Ink.Runtime
                     throw new StoryException ("Can't continue - should check canContinue before calling Continue");
                 }
 
-                _state.ResetOutput ();
                 _state.didSafeExit = false;
-                _state.variablesState.batchObservingVariableChanges = true;
+                _state.ResetOutput ();
+
+                // It's possible for ink to call game to call ink to call game etc
+                // In this case, we only want to batch observe variable changes
+                // for the outermost call.
+                if (_recursiveContinueCount == 1)
+                    _state.variablesState.batchObservingVariableChanges = true;
             }
 
             // Start timing
@@ -384,9 +391,14 @@ namespace Ink.Runtime
                 }
 
                 state.didSafeExit = false;
-                _state.variablesState.batchObservingVariableChanges = false;
+
+                if (_recursiveContinueCount == 1)
+                    _state.variablesState.batchObservingVariableChanges = false;
+
                 _asyncContinueActive = false;
             }
+
+            _recursiveContinueCount--;
 
             if( _profiler != null )
                 _profiler.PostContinue();
@@ -1305,6 +1317,10 @@ namespace Ink.Runtime
                     throw e;
             }
 
+            // Snapshot the output stream
+            var outputStreamBefore = new List<Runtime.Object>(state.outputStream);
+            _state.ResetOutput ();
+
             // State will temporarily replace the callstack in order to evaluate
             state.StartFunctionEvaluationFromGame (funcContainer, arguments);
 
@@ -1314,6 +1330,10 @@ namespace Ink.Runtime
                 stringOutput.Append (Continue ());
             }
             textOutput = stringOutput.ToString ();
+
+            // Restore the output stream in case this was called
+            // during main story evaluation.
+            _state.ResetOutput (outputStreamBefore);
 
             // Finish evaluation, and see whether anything was produced
             var result = state.CompleteFunctionEvaluationFromGame ();
@@ -2167,6 +2187,8 @@ namespace Ink.Runtime
 
         bool _asyncContinueActive;
         StoryState _stateAtLastNewline = null;
+
+        int _recursiveContinueCount = 0;
 
 		Profiler _profiler;
 	}
