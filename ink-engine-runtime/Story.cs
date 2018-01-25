@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace Ink.Runtime
 {
@@ -60,13 +61,23 @@ namespace Ink.Runtime
         /// <summary>
         /// The latest line of text to be generated from a Continue() call.
         /// </summary>
-		public string currentText { get  { return state.currentText; } }
+		public string currentText { 
+            get  { 
+                IfAsyncWeCant ("call currentText since it's a work in progress");
+                return state.currentText; 
+            } 
+        }
 
         /// <summary>
         /// Gets a list of tags as defined with '#' in source that were seen
         /// during the latest Continue() call.
         /// </summary>
-        public List<string> currentTags { get { return state.currentTags; } }
+        public List<string> currentTags { 
+            get { 
+                IfAsyncWeCant ("call currentTags since it's a work in progress");
+                return state.currentTags; 
+            } 
+        }
 
         /// <summary>
         /// Any errors generated during evaluation of the Story.
@@ -108,6 +119,7 @@ namespace Ink.Runtime
         /// Return a Profiler instance that you can request a report from when you're finished.
         /// </summary>
 		public Profiler StartProfiling() {
+            IfAsyncWeCant ("start profiling");
 			_profiler = new Profiler();
 			return _profiler;
 		}
@@ -190,6 +202,9 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetState()
         {
+            // TODO: Could make this possible
+            IfAsyncWeCant ("ResetState");
+
             _state = new StoryState (this);
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
 
@@ -214,6 +229,8 @@ namespace Ink.Runtime
         /// </summary>
         public void ResetCallstack()
         {
+            IfAsyncWeCant ("ResetCallstack");
+
             _state.ForceEnd ();
         }
 
@@ -241,200 +258,228 @@ namespace Ink.Runtime
         /// <returns>The line of text content.</returns>
         public string Continue()
         {
-            // TODO: Should we leave this to the client, since it could be
-            // slow to iterate through all the content an extra time?
-            if( !_hasValidatedExternals )
-                ValidateExternalBindings ();
-
-
-            return ContinueInternal ();
+            ContinueAsync(0);
+            return currentText;
         }
 
-
-        string ContinueInternal()
-		{
-			bool canContinue_cached = canContinue;
-			if (!canContinue_cached) {
-                throw new StoryException ("Can't continue - should check canContinue before calling Continue");
-            }
-
-			if( _profiler != null )
-				_profiler.PreContinue();
-
-            _state.ResetOutput ();
-
-            _state.didSafeExit = false;
-
-            _state.variablesState.batchObservingVariableChanges = true;
-
-            //_previousContainer = null;
-
-            try {
-
-                StoryState stateAtLastNewline = null;
-
-                // The basic algorithm here is:
-                //
-                //     do { Step() } while( canContinue && !outputStreamEndsInNewline );
-                //
-                // But the complexity comes from:
-                //  - Stepping beyond the newline in case it'll be absorbed by glue later
-                //  - Ensuring that non-text content beyond newlines are generated - i.e. choices,
-                //    which are actually built out of text content.
-                // So we have to take a snapshot of the state, continue prospectively,
-                // and rewind if necessary.
-                // This code is slightly fragile :-/ 
-                //
-
-                do {
-
-					if( _profiler != null )
-						_profiler.PreStep();
-
-                    // Run main step function (walks through content)
-                    Step();
-
-					if( _profiler != null )
-						_profiler.PostStep();
-
-                    // Run out of content and we have a default invisible choice that we can follow?
-					canContinue_cached = canContinue;
-					if( !canContinue_cached ) {
-                        TryFollowDefaultInvisibleChoice();
-						canContinue_cached = canContinue;
-                    }
-
-					if( _profiler != null )
-						_profiler.PreSnapshot();
-
-                    // Don't save/rewind during string evaluation, which is e.g. used for choices
-                    if( !state.inStringEvaluation ) {
-
-                        // We previously found a newline, but were we just double checking that
-                        // it wouldn't immediately be removed by glue?
-                        if( stateAtLastNewline != null ) {
-
-                            // Cover cases that non-text generated content was evaluated last step
-                            string currText = currentText;
-                            int prevTextLength = stateAtLastNewline.currentText.Length;
-
-                            // Take tags into account too, so that a tag following a content line:
-                            //   Content
-                            //   # tag
-                            // ... doesn't cause the tag to be wrongly associated with the content above.
-                            int prevTagCount = stateAtLastNewline.currentTags.Count;
-
-                            // Output has been extended?
-                            if( !currText.Equals(stateAtLastNewline.currentText) || prevTagCount != currentTags.Count ) {
-
-                                // Original newline still exists?
-                                if( currText.Length >= prevTextLength && currText[prevTextLength-1] == '\n' ) {
-                                    
-                                    RestoreStateSnapshot(stateAtLastNewline);
-                                    break;
-                                }
-
-                                // Newline that previously existed is no longer valid - e.g.
-                                // glue was encounted that caused it to be removed.
-                                else {
-                                    stateAtLastNewline = null;
-                                }
-                            }
-
-                        }
-
-                        // Current content ends in a newline - approaching end of our evaluation
-                        if( state.outputStreamEndsInNewline ) {
-
-                            // If we can continue evaluation for a bit:
-                            // Create a snapshot in case we need to rewind.
-                            // We're going to continue stepping in case we see glue or some
-                            // non-text content such as choices.
-							if( canContinue_cached ) {
-
-								// Don't bother to record the state beyond the current newline.
-								// e.g.:
-								// Hello world\n			// record state at the end of here
-								// ~ complexCalculation()   // don't actually need this unless it generates text
-								if( stateAtLastNewline == null )
-                                	stateAtLastNewline = StateSnapshot();
-                            } 
-
-                            // Can't continue, so we're about to exit - make sure we
-                            // don't have an old state hanging around.
-                            else {
-                                stateAtLastNewline = null;
-                            }
-
-                        }
-
-                    }
-
-					if( _profiler != null )
-						_profiler.PostSnapshot();
-
-				} while(canContinue_cached);
-
-
-                // Need to rewind, due to evaluating further than we should?
-                if( stateAtLastNewline != null ) {
-
-					if( _profiler != null )
-						_profiler.PreRestore();
-					
-                    RestoreStateSnapshot(stateAtLastNewline);
-
-					if( _profiler != null )
-						_profiler.PostRestore();
-                }
-
-                // Finished a section of content / reached a choice point?
-                if( !canContinue ) {
-
-                    if( state.callStack.canPopThread ) {
-                        Error("Thread available to pop, threads should always be flat by the end of evaluation?");
-                    }
-
-					if( state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null ) {
-                        if( state.callStack.CanPop(PushPopType.Tunnel) ) {
-                            Error("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
-                        } else if( state.callStack.CanPop(PushPopType.Function) ) {
-                            Error("unexpectedly reached end of content. Do you need a '~ return'?");
-                        } else if( !state.callStack.canPop ) {
-                            Error("ran out of content. Do you need a '-> DONE' or '-> END'?");
-                        } else {
-                            Error("unexpectedly reached end of content for unknown reason. Please debug compiler!");
-                        }
-                    }
-
-                }
-
-
-            } catch(StoryException e) {
-                AddError (e.Message, e.useEndLineNumber);
-            } finally {
-                
-                state.didSafeExit = false;
-
-                _state.variablesState.batchObservingVariableChanges = false;
-            }
-
-			if( _profiler != null )
-				_profiler.PostContinue();
-
-            return currentText;
-		}
 
         /// <summary>
         /// Check whether more content is available if you were to call <c>Continue()</c> - i.e.
         /// are we mid story rather than at a choice point or at the end.
         /// </summary>
         /// <value><c>true</c> if it's possible to call <c>Continue()</c>.</value>
-        public bool canContinue
-        {
-            get {
-				return state.canContinue;
+        public bool canContinue {
+        	get {
+                return state.canContinue;
             }
+        }
+
+        /// <summary>
+        /// If ContinueAsync was called (with milliseconds limit > 0) then this property
+        /// will return false if the ink evaluation isn't yet finished, and you need to call 
+        /// it again in order for the Continue to fully complete.
+        /// </summary>
+        public bool asyncContinueComplete {
+            get {
+                return !_asyncContinueActive;
+            }
+        }
+
+        /// <summary>
+        /// An "asnychronous" version of Continue that only partially evaluates the ink,
+        /// with a budget of a certain time limit. It will exit ink evaluation early if
+        /// the evaluation isn't complete within the time limit, with the
+        /// asyncContinueComplete property being false.
+        /// This is useful if ink evaluation takes a long time, and you want to distribute
+        /// it over multiple game frames for smoother animation.
+        /// If you pass a limit of zero, then it will fully evaluate the ink in the same
+        /// way as calling Continue (and in fact, this exactly what Continue does internally).
+        /// </summary>
+        public void ContinueAsync (float millisecsLimitAsync)
+        {
+            if( !_hasValidatedExternals )
+                ValidateExternalBindings ();
+
+            ContinueInternal (millisecsLimitAsync);
+        }
+
+        void ContinueInternal (float millisecsLimitAsync = 0)
+        {
+            if( _profiler != null )
+                _profiler.PreContinue();
+            
+            var isAsyncTimeLimited = millisecsLimitAsync > 0;
+
+            // Doing either:
+            //  - full run through non-async (so not active and don't want to be)
+            //  - Starting async run-through
+            if (!_asyncContinueActive) {
+                _asyncContinueActive = isAsyncTimeLimited;
+				
+                if (!canContinue) {
+                    throw new StoryException ("Can't continue - should check canContinue before calling Continue");
+                }
+
+                _state.ResetOutput ();
+                _state.didSafeExit = false;
+                _state.variablesState.batchObservingVariableChanges = true;
+            }
+
+            // Start timing
+            var durationStopwatch = new Stopwatch ();
+            durationStopwatch.Start ();
+
+            bool outputStreamEndsInNewline = false;
+            do {
+
+                try {
+                    outputStreamEndsInNewline = ContinueSingleStep ();
+                } catch(StoryException e) {
+                    AddError (e.Message, e.useEndLineNumber);
+                    break;
+                }
+                
+                if (outputStreamEndsInNewline) 
+                    break;
+
+                // Run out of async time?
+                if (_asyncContinueActive && durationStopwatch.ElapsedMilliseconds > millisecsLimitAsync) {
+                    break;
+                }
+
+            } while(canContinue);
+
+            durationStopwatch.Stop ();
+
+            // 4 outcomes:
+            //  - got newline (so finished this line of text)
+            //  - can't continue (e.g. choices or ending)
+            //  - ran out of time during evaluation
+            //  - error
+            //
+            // Successfully finished evaluation in time (or in error)
+            if (outputStreamEndsInNewline || !canContinue) {
+
+                // Need to rewind, due to evaluating further than we should?
+                if( _stateAtLastNewline != null ) {
+    				RestoreStateSnapshot (_stateAtLastNewline);
+                    _stateAtLastNewline = null;
+                }
+
+                // Finished a section of content / reached a choice point?
+                if( !canContinue ) {
+					if (state.callStack.canPopThread)
+                        AddError ("Thread available to pop, threads should always be flat by the end of evaluation?");
+
+                    if (state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null) {
+                        if (state.callStack.CanPop (PushPopType.Tunnel))
+                            AddError ("unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?");
+                        else if (state.callStack.CanPop (PushPopType.Function))
+                            AddError ("unexpectedly reached end of content. Do you need a '~ return'?");
+                        else if (!state.callStack.canPop)
+                            AddError ("ran out of content. Do you need a '-> DONE' or '-> END'?");
+                        else
+                            AddError ("unexpectedly reached end of content for unknown reason. Please debug compiler!");
+                    }
+                }
+
+                state.didSafeExit = false;
+                _state.variablesState.batchObservingVariableChanges = false;
+                _asyncContinueActive = false;
+            }
+
+            if( _profiler != null )
+                _profiler.PostContinue();
+        }
+
+        bool ContinueSingleStep ()
+        {
+            if (_profiler != null)
+                _profiler.PreStep ();
+
+            // Run main step function (walks through content)
+            Step ();
+
+            if (_profiler != null)
+                _profiler.PostStep ();
+
+            // Run out of content and we have a default invisible choice that we can follow?
+			if (!canContinue && !state.callStack.elementIsEvaluateFromGame) {
+                TryFollowDefaultInvisibleChoice ();
+            }
+
+            if (_profiler != null)
+                _profiler.PreSnapshot ();
+
+            // Don't save/rewind during string evaluation, which is e.g. used for choices
+            if (!state.inStringEvaluation) {
+
+                // We previously found a newline, but were we just double checking that
+                // it wouldn't immediately be removed by glue?
+                if (_stateAtLastNewline != null) {
+
+                    // Cover cases that non-text generated content was evaluated last step
+					string currText = state.currentText;
+                    int prevTextLength = _stateAtLastNewline.currentText.Length;
+
+                    // Take tags into account too, so that a tag following a content line:
+                    //   Content
+                    //   # tag
+                    // ... doesn't cause the tag to be wrongly associated with the content above.
+                    int prevTagCount = _stateAtLastNewline.currentTags.Count;
+
+                    // Output has been extended?
+                    if (!currText.Equals (_stateAtLastNewline.currentText) || prevTagCount != state.currentTags.Count) {
+
+                        // Original newline still exists?
+                        if (currText.Length >= prevTextLength && currText [prevTextLength - 1] == '\n') {
+                            RestoreStateSnapshot (_stateAtLastNewline);
+
+                            // Hit a newline for sure, we're done
+                            return true;
+                        }
+
+                        // Newline that previously existed is no longer valid - e.g.
+                        // glue was encounted that caused it to be removed.
+                        else {
+                            _stateAtLastNewline = null;
+                        }
+                    }
+
+                }
+
+                // Current content ends in a newline - approaching end of our evaluation
+                if (state.outputStreamEndsInNewline) {
+
+                    // If we can continue evaluation for a bit:
+                    // Create a snapshot in case we need to rewind.
+                    // We're going to continue stepping in case we see glue or some
+                    // non-text content such as choices.
+                    if (canContinue) {
+
+                        // Don't bother to record the state beyond the current newline.
+                        // e.g.:
+                        // Hello world\n            // record state at the end of here
+                        // ~ complexCalculation()   // don't actually need this unless it generates text
+                        if (_stateAtLastNewline == null)
+                            _stateAtLastNewline = StateSnapshot ();
+                    }
+
+                    // Can't continue, so we're about to exit - make sure we
+                    // don't have an old state hanging around.
+                    else {
+                        _stateAtLastNewline = null;
+                    }
+
+                }
+
+            }
+
+            if (_profiler != null)
+                _profiler.PostSnapshot ();
+
+            // outputStreamEndsInNewline = false
+            return false;
         }
 
         /// <summary>
@@ -445,6 +490,8 @@ namespace Ink.Runtime
         /// <returns>The resulting text evaluated by the ink engine, concatenated together.</returns>
         public string ContinueMaximally()
         {
+            IfAsyncWeCant ("ContinueMaximally");
+
             var sb = new StringBuilder ();
 
             while (canContinue) {
@@ -1163,10 +1210,16 @@ namespace Ink.Runtime
         /// <param name="arguments">Optional set of arguments to pass, if path is to a knot that takes them.</param>
         public void ChoosePathString (string path, params object [] arguments)
         {
+            IfAsyncWeCant ("call ChoosePathString right now");
             state.PassArgumentsToEvaluationStack (arguments);
             ChoosePath (new Path (path));
         }
 
+        void IfAsyncWeCant (string activityStr)
+        {
+            if (_asyncContinueActive)
+                throw new System.Exception ("Can't " + activityStr + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
+        }
             
         internal void ChoosePath(Path p)
         {
@@ -1233,6 +1286,8 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+            IfAsyncWeCant ("evaluate a function");
+
 			if(functionName == null) {
 				throw new System.Exception ("Function is null");
 			} else if(functionName == string.Empty || functionName.Trim() == string.Empty) {
@@ -1373,6 +1428,7 @@ namespace Ink.Runtime
         /// <param name="func">The C# function to bind.</param>
         public void BindExternalFunctionGeneral(string funcName, ExternalFunction func)
         {
+            IfAsyncWeCant ("bind an external function");
             Assert (!_externals.ContainsKey (funcName), "Function '" + funcName + "' has already been bound.");
             _externals [funcName] = func;
         }
@@ -1556,6 +1612,7 @@ namespace Ink.Runtime
         /// </summary>
         public void UnbindExternalFunction(string funcName)
         {
+            IfAsyncWeCant ("unbind an external a function");
             Assert (_externals.ContainsKey (funcName), "Function '" + funcName + "' has not been bound.");
             _externals.Remove (funcName);
         }
@@ -1644,6 +1701,8 @@ namespace Ink.Runtime
         /// <param name="observer">A delegate function to call when the variable changes.</param>
         public void ObserveVariable(string variableName, VariableObserver observer)
         {
+            IfAsyncWeCant ("observe a new variable");
+
             if (_variableObservers == null)
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
@@ -1681,6 +1740,8 @@ namespace Ink.Runtime
         /// <param name="specificVariableName">(Optional) Specific variable name to stop observing.</param>
         public void RemoveVariableObserver(VariableObserver observer, string specificVariableName = null)
         {
+            IfAsyncWeCant ("remove a variable observer");
+
             if (_variableObservers == null)
                 return;
 
@@ -2002,7 +2063,7 @@ namespace Ink.Runtime
             throw e;
         }
 
-        void AddError (string message, bool useEndLineNumber)
+        void AddError (string message, bool useEndLineNumber = false)
         {
             var dm = currentDebugMetadata;
 
@@ -2103,6 +2164,9 @@ namespace Ink.Runtime
         Container _temporaryEvaluationContainer;
 
         StoryState _state;
+
+        bool _asyncContinueActive;
+        StoryState _stateAtLastNewline = null;
 
 		Profiler _profiler;
 	}

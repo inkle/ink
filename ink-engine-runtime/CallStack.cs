@@ -265,9 +265,16 @@ namespace Ink.Runtime
         public bool canPopThread
         {
             get {
-                return _threads.Count > 1;
+				return _threads.Count > 1 && !elementIsEvaluateFromGame;
             }
         }
+
+		public bool elementIsEvaluateFromGame
+		{
+			get {
+				return currentElement.type == PushPopType.FunctionEvaluationFromGame;
+			}
+		}
 
         public void Push(PushPopType type, int externalEvaluationStackHeight = 0)
         {
