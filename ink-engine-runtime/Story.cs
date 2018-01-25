@@ -368,7 +368,7 @@ namespace Ink.Runtime
 
                 // Finished a section of content / reached a choice point?
                 if( !canContinue ) {
-                    if (state.callStack.canPopThread)
+					if (state.callStack.canPopThread)
                         AddError ("Thread available to pop, threads should always be flat by the end of evaluation?");
 
                     if (state.generatedChoices.Count == 0 && !state.didSafeExit && _temporaryEvaluationContainer == null) {
@@ -404,8 +404,7 @@ namespace Ink.Runtime
                 _profiler.PostStep ();
 
             // Run out of content and we have a default invisible choice that we can follow?
-            if (!canContinue) {
-
+			if (!canContinue && !state.callStack.elementIsEvaluateFromGame) {
                 TryFollowDefaultInvisibleChoice ();
             }
 
