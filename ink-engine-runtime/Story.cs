@@ -1204,7 +1204,15 @@ namespace Ink.Runtime
 
         /// <summary>
         /// Change the current position of the story to the given path.
+        /// 
+        /// WARNING: This is potentially dangerous! If you're in the middle of a tunnel,
+        /// it'll redirect only the inner-most tunnel, meaning that when you tunnel-return
+        /// using '->->', it'll return to where you were before. This may be what you
+        /// want though! If you want to reset the callstack (equivalent to calling -> END)
+        /// beforehand, use ResetCallstack().
+        /// 
         /// From here you can call Continue() to evaluate the next line.
+        /// 
         /// The path string is a dot-separated path as used internally by the engine.
         /// These examples should work:
         /// 
@@ -1223,6 +1231,18 @@ namespace Ink.Runtime
         public void ChoosePathString (string path, params object [] arguments)
         {
             IfAsyncWeCant ("call ChoosePathString right now");
+
+            // ChoosePathString is potentially dangerous since you can call it when the stack is
+            // pretty much in any state. Let's catch one of the worst offenders.
+            if (state.callStack.currentElement.type == PushPopType.Function) {
+                string funcDetail = "";
+                var container = state.callStack.currentElement.currentContainer;
+                if (container != null) {
+                    funcDetail = "("+container.path.ToString ()+") ";
+                }
+                throw new System.Exception ("Story was running a function "+funcDetail+"when you called ChoosePathString("+path+") - this is almost certainly not not what you want! Full stack trace: \n"+state.callStack.callStackTrace);
+            }
+
             state.PassArgumentsToEvaluationStack (arguments);
             ChoosePath (new Path (path));
         }
