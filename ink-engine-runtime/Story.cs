@@ -239,7 +239,7 @@ namespace Ink.Runtime
             if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
                 var originalPath = state.currentPath;
 
-                ChoosePathString ("global decl");
+                ChoosePathString ("global decl", resetCallstack: false);
 
                 // Continue, but without validating external bindings,
                 // since we may be doing this reset at initialisation time.
@@ -1203,15 +1203,8 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Change the current position of the story to the given path.
-        /// 
-        /// WARNING: This is potentially dangerous! If you're in the middle of a tunnel,
-        /// it'll redirect only the inner-most tunnel, meaning that when you tunnel-return
-        /// using '->->', it'll return to where you were before. This may be what you
-        /// want though! If you want to reset the callstack (equivalent to calling -> END)
-        /// beforehand, use ResetCallstack().
-        /// 
-        /// From here you can call Continue() to evaluate the next line.
+        /// Change the current position of the story to the given path. From here you can 
+        /// call Continue() to evaluate the next line.
         /// 
         /// The path string is a dot-separated path as used internally by the engine.
         /// These examples should work:
@@ -1225,22 +1218,43 @@ namespace Ink.Runtime
         /// 
         /// ...because of the way that content is nested within a weave structure.
         /// 
+        /// By default this will reset the callstack beforehand, which means that any
+        /// tunnels, threads or functions you were in at the time of calling will be
+        /// discarded. This is different from the behaviour of ChooseChoiceIndex, which
+        /// will always keep the callstack, since the choices are known to come from the
+        /// correct state, and known their source thread.
+        /// 
+        /// You have the option of passing false to the resetCallstack parameter if you
+        /// don't want this behaviour, and will leave any active threads, tunnels or
+        /// function calls in-tact.
+        /// 
+        /// This is potentially dangerous! If you're in the middle of a tunnel,
+        /// it'll redirect only the inner-most tunnel, meaning that when you tunnel-return
+        /// using '->->', it'll return to where you were before. This may be what you
+        /// want though. However, if you're in the middle of a function, ChoosePathString
+        /// will throw an exception.
+        /// 
         /// </summary>
         /// <param name="path">A dot-separted path string, as specified above.</param>
+        /// <param name="resetCallstack">Whether to reset the callstack first (see summary description).</param>
         /// <param name="arguments">Optional set of arguments to pass, if path is to a knot that takes them.</param>
-        public void ChoosePathString (string path, params object [] arguments)
+        public void ChoosePathString (string path, bool resetCallstack = true, params object [] arguments)
         {
             IfAsyncWeCant ("call ChoosePathString right now");
 
-            // ChoosePathString is potentially dangerous since you can call it when the stack is
-            // pretty much in any state. Let's catch one of the worst offenders.
-            if (state.callStack.currentElement.type == PushPopType.Function) {
-                string funcDetail = "";
-                var container = state.callStack.currentElement.currentContainer;
-                if (container != null) {
-                    funcDetail = "("+container.path.ToString ()+") ";
+            if (resetCallstack) {
+                ResetCallstack ();
+            } else {
+                // ChoosePathString is potentially dangerous since you can call it when the stack is
+                // pretty much in any state. Let's catch one of the worst offenders.
+                if (state.callStack.currentElement.type == PushPopType.Function) {
+                    string funcDetail = "";
+                    var container = state.callStack.currentElement.currentContainer;
+                    if (container != null) {
+                        funcDetail = "("+container.path.ToString ()+") ";
+                    }
+                    throw new System.Exception ("Story was running a function "+funcDetail+"when you called ChoosePathString("+path+") - this is almost certainly not not what you want! Full stack trace: \n"+state.callStack.callStackTrace);
                 }
-                throw new System.Exception ("Story was running a function "+funcDetail+"when you called ChoosePathString("+path+") - this is almost certainly not not what you want! Full stack trace: \n"+state.callStack.callStackTrace);
             }
 
             state.PassArgumentsToEvaluationStack (arguments);
