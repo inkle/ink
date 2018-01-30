@@ -2893,13 +2893,24 @@ Unreachable
 * ->
    - - 2
 - 3
-* [] ->
-- 4
 -> END
 ";
 
             var story = CompileString (storyStr);
-            Assert.AreEqual ("1\n2\n3\n4\n", story.ContinueMaximally ());
+            Assert.AreEqual ("1\n2\n3\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestVariousBlankChoiceWarning ()
+        {
+        	var storyStr =
+        @"
+* [] blank
+        ";
+
+        	CompileString (storyStr, testingErrors:true);
+            Assert.IsTrue (HadWarning ("Blank choice"));
         }
 
         [Test ()]

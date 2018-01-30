@@ -84,6 +84,10 @@ namespace Ink
             if (emptyContent && diverts == null)
                 Warning ("Choice is completely empty. Interpretting as a default fallback choice. Add a divert arrow to remove this warning: * ->");
 
+            // * [] some text
+            else if (!startContent && hasWeaveStyleInlineBrackets && !optionOnlyContent)
+                Warning ("Blank choice - if you intended a default fallback choice, use the `* ->` syntax");
+
             if (!innerContent) innerContent = new ContentList ();
 
             var tags = Parse (Tags);
