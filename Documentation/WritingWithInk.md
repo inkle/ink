@@ -1,6 +1,7 @@
-# Writing with ink
+# Table of Contents
 <!-- TOC depthFrom:1 depthTo:2 withLinks:1 updateOnSave:1 orderedList:0 -->
 
+- [Table of Contents](#table-of-contents)
 - [Writing with ink](#writing-with-ink)
 	- [Introduction](#introduction)
 - [Part One: The Basics](#part-one-the-basics)
@@ -40,6 +41,8 @@
 - [Part 6: International character support in identifiers](#part-6-international-character-support-in-identifiers)
 
 <!-- /TOC -->
+
+# Writing with ink
 ## Introduction
 
 **ink** is a scripting language built around the idea of marking up pure-text with flow in order to produce interactive scripts.
