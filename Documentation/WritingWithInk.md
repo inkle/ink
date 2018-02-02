@@ -4,16 +4,16 @@
 - [Table of Contents](#table-of-contents)
 - [Writing with ink](#writing-with-ink)
 	- [Introduction](#introduction)
-- [Part One: The Basics](#part-one-the-basics)
+- [Part 1: The Basics](#part-1-the-basics)
 	- [1) Content](#1-content)
 	- [2) Choices](#2-choices)
 	- [3) Knots](#3-knots)
 	- [4) Diverts](#4-diverts)
 	- [5) Branching The Flow](#5-branching-the-flow)
 	- [6) Includes and Stitches](#6-includes-and-stitches)
-	- [5) Varying Choices](#5-varying-choices)
-	- [6) Variable Text](#6-variable-text)
-	- [7) Game Queries](#7-game-queries)
+	- [7) Varying Choices](#7-varying-choices)
+	- [8) Variable Text](#8-variable-text)
+	- [9) Game Queries](#9-game-queries)
 - [Part 2: Weave](#part-2-weave)
 	- [1) Gathers](#1-gathers)
 	- [2) Nested Flow](#2-nested-flow)
@@ -55,7 +55,7 @@ The script aims to be clean and logically ordered, so branching dialogue can be 
 
 It's also designed with redrafting in mind; so editing a flow should be fast.
 
-# Part One: The Basics
+# Part 1: The Basics
 
 ## 1) Content
 
@@ -461,7 +461,7 @@ Include statements should always go at the top of a file, and not inside knots.
 There are no rules about what file a knot must be in to be diverted to. (In other words, separating files has no effect on the game's namespacing).
 
 
-## 5) Varying Choices
+## 7) Varying Choices
 
 ### Choices can only be used once
 
@@ -603,7 +603,7 @@ If it's non-zero, it'll return true in a test like the one above, but you can al
 **ink** supports a lot more logic and conditionality than covered here - see the section on 'variables and logic'.
 
 
-## 6) Variable Text
+## 8) Variable Text
 
 ### Text can vary
 
@@ -762,7 +762,7 @@ or:
 
 	"I missed him. Was he particularly evil?"
 
-## 7) Game Queries
+## 9) Game Queries
 
 **ink** provides a few useful 'game level' queries about game state, for use in conditional logic. They're not quite parts of the language, but they're always available, and they can't be edited by the author. In a sense, they're the "standard library functions" of the language.
 
