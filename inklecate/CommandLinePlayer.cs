@@ -60,6 +60,16 @@ namespace Ink
                         Console.Write("?> ");
                         string userInput = Console.ReadLine ();
 
+                        // If we have null user input, it means that we're
+                        // "at the end of the stream", or in other words, the input
+                        // stream has closed, so there's nothing more we can do.
+                        // We return immediately, since otherwise we get into a busy
+                        // loop waiting for user input.
+                        if (userInput == null) {
+                            Console.WriteLine ("<User input stream closed.>");
+                            return;
+                        }
+
                         var inputParser = new InkParser (userInput);
                         var input = inputParser.CommandLineUserInput();
 
