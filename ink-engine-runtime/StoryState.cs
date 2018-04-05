@@ -522,8 +522,9 @@ namespace Ink.Runtime
             else if( text ) {
 
                 var functionTrimIndex = -1;
-                if (callStack.currentElement.type == PushPopType.Function) {
-                    functionTrimIndex = callStack.currentElement.functionStartInOuputStream;
+                var currEl = callStack.currentElement;
+                if (currEl.type == PushPopType.Function) {
+                    functionTrimIndex = currEl.functionStartInOuputStream;
                 }
 
                 var glueTrimIndex = currentGlueIndex;
@@ -548,7 +549,9 @@ namespace Ink.Runtime
 
                     // Able to completely reset when normal text is pushed
                     else if (text.isNonWhitespace) {
-                        RemoveExistingGlue ();
+
+                        if( glueTrimIndex > -1 )
+                            RemoveExistingGlue ();
 
                         // Tell all functions in callstack that we have seen proper text,
                         // so trimming whitespace at the start is done.
