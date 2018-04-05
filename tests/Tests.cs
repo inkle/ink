@@ -1298,7 +1298,7 @@ VAR globalVal = 5
             Story story = CompileString(storyStr);
 
             // Bloody whitespace
-            Assert.AreEqual("5\n \n625\n", story.ContinueMaximally());
+            Assert.AreEqual("5\n625\n", story.ContinueMaximally());
         }
 
         [Test()]

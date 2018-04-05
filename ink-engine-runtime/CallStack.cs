@@ -20,6 +20,10 @@ namespace Ink.Runtime
             // so that we know whether there was any return value.
             public int evaluationStackHeightWhenPushed;
 
+            // When functions are called, we trim whitespace from the start and end of what
+            // they generate, so we make sure know where the function's start and end are.
+            public int functionStartInOuputStream;
+
             public Runtime.Object currentObject {
                 get {
                     if (currentContainer && currentContentIndex < currentContainer.content.Count) {
@@ -63,6 +67,7 @@ namespace Ink.Runtime
                 var copy = new Element (this.type, this.currentContainer, this.currentContentIndex, this.inExpressionEvaluation);
                 copy.temporaryVariables = new Dictionary<string,Object>(this.temporaryVariables);
                 copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
+                copy.functionStartInOuputStream = functionStartInOuputStream;
                 return copy;
             }
         }
@@ -276,7 +281,7 @@ namespace Ink.Runtime
 			}
 		}
 
-        public void Push(PushPopType type, int externalEvaluationStackHeight = 0)
+        public void Push(PushPopType type, int externalEvaluationStackHeight = 0, int outputStreamLengthWithPushed = 0)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
             var element = new Element (
@@ -287,6 +292,7 @@ namespace Ink.Runtime
             );
 
             element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
+            element.functionStartInOuputStream = outputStreamLengthWithPushed;
 
             callStack.Add (element);
         }

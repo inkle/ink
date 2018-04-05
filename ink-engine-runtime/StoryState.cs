@@ -407,6 +407,7 @@ namespace Ink.Runtime
                     foreach (var textObj in listText) {
                         PushToOutputStreamIndividual (textObj);
                     }
+                    OutputStreamDirty();
                     return;
                 }
             }
@@ -507,40 +508,66 @@ namespace Ink.Runtime
 
             bool includeInOutput = true;
 
+            // New glue, so chomp away any whitespace from the end of the stream
             if (glue) {
-
-                // Found matching left-glue for right-glue? Close it.
-                Glue matchingRightGlue = null;
-                if (glue.isLeft)
-                    matchingRightGlue = MatchRightGlueForLeftGlue (glue);
-
-                // Left/Right glue is auto-generated for inline expressions 
-                // where we want to absorb newlines but only in a certain direction.
-                // "Bi" glue is written by the user in their ink with <>
-                if (glue.isLeft || glue.isBi) {
-                    TrimNewlinesFromOutputStream(matchingRightGlue);
-                }
-
-                includeInOutput = glue.isBi || glue.isRight;
+                TrimNewlinesFromOutputStream();
+                includeInOutput = true;
             }
 
+            // New text: do we really want to append it, if it's whitespace?
+            // Two different reasons for whitespace to be thrown away:
+            //   - User defined glue: <>
+            //   - Function start/end trimming
+            // We also need to know when to stop trimming, when there's non-whitespace.
             else if( text ) {
 
-                if (currentGlueIndex != -1) {
+                var functionTrimIndex = -1;
+                if (callStack.currentElement.type == PushPopType.Function) {
+                    functionTrimIndex = callStack.currentElement.functionStartInOuputStream;
+                }
+
+                var glueTrimIndex = currentGlueIndex;
+
+                var trimIndex = -1;
+                if (glueTrimIndex != -1 && functionTrimIndex != -1)
+                    trimIndex = Math.Min (functionTrimIndex, glueTrimIndex);
+                else if (glueTrimIndex != -1)
+                    trimIndex = glueTrimIndex;
+                else
+                    trimIndex = functionTrimIndex;
+
+                if (trimIndex != -1) {
 
                     // Absorb any new newlines if there's existing glue
                     // in the output stream.
                     // Also trim any extra whitespace (spaces/tabs) if so.
                     if (text.isNewline) {
-                        TrimFromExistingGlue ();
+                        TrimWhitespaceForwardsFrom (trimIndex);
                         includeInOutput = false;
                     } 
 
-                    // Able to completely reset when 
+                    // Able to completely reset when normal text is pushed
                     else if (text.isNonWhitespace) {
                         RemoveExistingGlue ();
+
+                        // Tell all functions in callstack that we have seen proper text,
+                        // so trimming whitespace at the start is done.
+                        if (functionTrimIndex > -1) {
+                            var callstackElements = callStack.elements;
+                            for (int i = callstackElements.Count - 1; i >= 0; i--) {
+                                var el = callstackElements [i];
+                                if (el.type == PushPopType.Function) {
+                                    el.functionStartInOuputStream = -1;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
                     }
-                } else if (text.isNewline) {
+                } 
+
+                // De-duplicate newlines, and don't ever lead with a newline
+                else if (text.isNewline) {
                     if (outputStreamEndsInNewline || !outputStreamContainsContent)
                         includeInOutput = false;
                 }
@@ -553,31 +580,26 @@ namespace Ink.Runtime
 			OutputStreamDirty();
         }
 
-        void TrimNewlinesFromOutputStream(Glue rightGlueToStopAt)
+        void TrimNewlinesFromOutputStream()
         {
             int removeWhitespaceFrom = -1;
-            int rightGluePos = -1;
-            bool foundNonWhitespace = false;
 
             // Work back from the end, and try to find the point where
-            // we need to start removing content. There are two ways:
-            //  - Start from the matching right-glue (because we just saw a left-glue)
+            // we need to start removing content.
             //  - Simply work backwards to find the first newline in a string of whitespace
+            // e.g. This is the content   \n   \n\n
+            //                            ^---------^ whitespace to remove
+            //                        ^--- first while loop stops here
             int i = _outputStream.Count-1;
             while (i >= 0) {
                 var obj = _outputStream [i];
                 var cmd = obj as ControlCommand;
                 var txt = obj as StringValue;
-                var glue = obj as Glue;
 
                 if (cmd || (txt && txt.isNonWhitespace)) {
-                    foundNonWhitespace = true;
-                    if( rightGlueToStopAt == null )
-                        break;
-                } else if (rightGlueToStopAt && glue == rightGlueToStopAt) {
-                    rightGluePos = i;
                     break;
-                } else if (txt && txt.isNewline && !foundNonWhitespace) {
+                } 
+                else if (txt && txt.isNewline) {
                     removeWhitespaceFrom = i;
                 }
                 i--;
@@ -596,27 +618,12 @@ namespace Ink.Runtime
                 }
             }
 
-            // Remove the glue (it will come before the whitespace,
-            // so index is still valid)
-            // Also remove any other non-matching right glues that come after,
-            // since they'll have lost their matching glues already
-            if (rightGlueToStopAt && rightGluePos > -1) {
-                i = rightGluePos;
-                while(i < _outputStream.Count) {
-                    if (_outputStream [i] is Glue && ((Glue)_outputStream [i]).isRight) {
-                        _outputStream.RemoveAt (i);
-                    } else {
-                        i++;
-                    }
-                }
-            }
-
 			OutputStreamDirty();
         }
 
-        void TrimFromExistingGlue()
+        void TrimWhitespaceForwardsFrom(int startIndex)
         {
-            int i = currentGlueIndex;
+            int i = startIndex;
             while (i < _outputStream.Count) {
                 var txt = _outputStream [i] as StringValue;
                 if (txt && !txt.isNonWhitespace)
@@ -657,23 +664,7 @@ namespace Ink.Runtime
                 return -1;
             }
         }
-
-        Runtime.Glue MatchRightGlueForLeftGlue (Glue leftGlue)
-        {
-            if (!leftGlue.isLeft) return null;
-
-            for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                var c = _outputStream [i];
-                var g = c as Glue;
-                if (g && g.isRight && g.parent == leftGlue.parent) {
-                    return g;
-                } else if (c is ControlCommand) // e.g. BeginString
-                    break;
-            }
-
-            return null;
-        }
-            
+           
         internal bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
@@ -783,7 +774,7 @@ namespace Ink.Runtime
                 callStack.PopThread ();
 
             while (callStack.canPop)
-                callStack.Pop ();
+                PopCallstack ();
 
 			_currentChoices.Clear();
 
@@ -791,6 +782,47 @@ namespace Ink.Runtime
             previousContentObject = null;
 
             didSafeExit = true;
+        }
+
+        // Add the end of a function call, trim any whitespace from the end.
+        // We always trim the start and end of the text that a function produces.
+        // The start whitespace is discard as it is generated, and the end
+        // whitespace is trimmed in one go here when we pop the function.
+        void TrimWhitespaceFromFunctionEnd ()
+        {
+            Debug.Assert (callStack.currentElement.type == PushPopType.Function);
+
+            var functionStartPoint = callStack.currentElement.functionStartInOuputStream;
+
+            // If the start point has become -1, it means that some non-whitespace
+            // text has been pushed, so it's safe to go as far back as we're able.
+            if (functionStartPoint == -1) {
+                functionStartPoint = 0;
+            }
+
+            // Trim whitespace from END of function call
+            for (int i = _outputStream.Count - 1; i >= functionStartPoint; i--) {
+                var obj = _outputStream [i];
+                var txt = obj as StringValue;
+                var cmd = obj as ControlCommand;
+                if (!txt) continue;
+                if (cmd) break;
+
+                if (txt.isNewline || txt.isInlineWhitespace) {
+                    _outputStream.RemoveAt (i);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        internal void PopCallstack (PushPopType? popType = null)
+        {
+            // Add the end of a function call, trim any whitespace from the end.
+            if (callStack.currentElement.type == PushPopType.Function)
+                TrimWhitespaceFromFunctionEnd ();
+
+            callStack.Pop (popType);
         }
 
         // Don't make public since the method need to be wrapped in Story for visit counting
@@ -857,7 +889,7 @@ namespace Ink.Runtime
             }
 
             // Finally, pop the external function evaluation
-            callStack.Pop (PushPopType.FunctionEvaluationFromGame);
+            PopCallstack (PushPopType.FunctionEvaluationFromGame);
 
             // What did we get back?
             if (returnedObj) {

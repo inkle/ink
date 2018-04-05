@@ -16,7 +16,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 17;
+        public const int inkVersionCurrent = 18;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -33,7 +33,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The minimum legacy version of ink that can be loaded by the current version of the code.
         /// </summary>
-        const int inkVersionMinimumCompatible = 16;
+        const int inkVersionMinimumCompatible = 18;
 
         /// <summary>
         /// The list of Choice objects available at the current point in
@@ -804,7 +804,10 @@ namespace Ink.Runtime
                 }
 
                 if (currentDivert.pushesToStack) {
-                    state.callStack.Push (currentDivert.stackPushType);
+                    state.callStack.Push (
+                        currentDivert.stackPushType, 
+                        outputStreamLengthWithPushed:state.outputStream.Count
+                    );
                 }
 
                 if (state.divertedTargetObject == null && !currentDivert.isExternal) {
@@ -904,7 +907,7 @@ namespace Ink.Runtime
                     } 
 
                     else {
-                        state.callStack.Pop ();
+                        state.PopCallstack ();
 
                         // Does tunnel onwards override by diverting to a new ->-> target?
                         if( overrideTunnelReturnTarget )
@@ -1396,7 +1399,7 @@ namespace Ink.Runtime
             // have auto-popped, but just in case we didn't for some reason,
             // manually pop to restore the state (including currentPath).
             if (state.callStack.elements.Count > startCallStackHeight) {
-                state.callStack.Pop ();
+                state.PopCallstack ();
             }
 
             int endStackHeight = state.evaluationStack.Count;
@@ -1938,9 +1941,9 @@ namespace Ink.Runtime
                 bool didPop = false;
 
                 if (state.callStack.CanPop (PushPopType.Function)) {
-                    
+
                     // Pop from the call stack
-                    state.callStack.Pop (PushPopType.Function);
+                    state.PopCallstack (PushPopType.Function);
 
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it

@@ -142,12 +142,7 @@ namespace Ink.Runtime
                     return new StringValue ("\n");
 
                 // Glue
-                if (str == "<>")
-                    return new Runtime.Glue (GlueType.Bidirectional);
-                else if(str == "G<")
-                    return new Runtime.Glue (GlueType.Left);
-                else if(str == "G>")
-                    return new Runtime.Glue (GlueType.Right);
+                if (str == "<>") return new Runtime.Glue ();
 
                 // Control commands (would looking up in a hash set be faster?)
                 for (int i = 0; i < _controlCommandNames.Length; ++i) {
@@ -400,14 +395,7 @@ namespace Ink.Runtime
             }
 
             var glue = obj as Runtime.Glue;
-            if (glue) {
-                if (glue.isBi)
-                    return "<>";
-                else if (glue.isLeft)
-                    return "G<";
-                else
-                    return "G>";
-            }
+            if (glue) return "<>";
 
             var controlCmd = obj as ControlCommand;
             if (controlCmd) {

@@ -256,8 +256,7 @@ namespace Ink
             // surrounding the glue.
             var glueStr = ParseString("<>");
             if (glueStr != null) {
-                var glue = new Runtime.Glue (Runtime.GlueType.Bidirectional);
-                return new Parsed.Glue (glue);
+                return new Parsed.Glue (new Runtime.Glue ());
             } else {
                 return null;
             }
@@ -281,15 +280,6 @@ namespace Ink
             if (!contentList) {
                 contentList = new ContentList (logic);
             }
-
-            // Create left-glue. Like normal glue, except it only absorbs newlines to
-            // the left, ensuring that the logic is inline, but without having the side effect
-            // of possibly absorbing desired newlines that come after.
-            var rightGlue = new Parsed.Glue(new Runtime.Glue (Runtime.GlueType.Right));
-            var leftGlue = new Parsed.Glue(new Runtime.Glue (Runtime.GlueType.Left));
-            contentList.InsertContent (0, rightGlue);
-            contentList.AddContent (leftGlue);
-            contentList.dontFlatten = true;
                 
             Whitespace ();
 
