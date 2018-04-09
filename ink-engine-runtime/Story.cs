@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -237,7 +237,7 @@ namespace Ink.Runtime
         void ResetGlobals()
         {
             if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
-                var originalPath = state.currentPath;
+                var originalPointer = state.currentPointer;
 
                 ChoosePathString ("global decl", resetCallstack: false);
 
@@ -245,7 +245,7 @@ namespace Ink.Runtime
                 // since we may be doing this reset at initialisation time.
                 ContinueInternal ();
 
-                state.currentPath = originalPath;
+                state.currentPointer = originalPointer;
             }
         }
 
@@ -518,6 +518,24 @@ namespace Ink.Runtime
             return mainContentContainer.ContentAtPath (path);
         }
 
+        internal Pointer PointerAtPath (Path path)
+        {
+            if (path.length == 0)
+                return Pointer.Null;
+
+            var p = new Pointer ();
+
+            if( path.lastComponent.isIndex ) {
+                p.container = mainContentContainer.ContentAtPath (path, partialPathLength: path.length - 1) as Container;
+                p.index = path.lastComponent.index;
+            } else {
+                p.container = mainContentContainer.ContentAtPath (path) as Container;
+                p.index = -1;
+            }
+
+            return p;
+        }
+
         StoryState StateSnapshot()
         {
             return state.Copy ();
@@ -533,29 +551,27 @@ namespace Ink.Runtime
             bool shouldAddToStream = true;
 
             // Get current content
-            var currentContentObj = state.currentContentObject;
-            if (currentContentObj == null) {
+            var pointer = state.currentPointer;
+            if (pointer.isNull) {
                 return;
             }
-                
+
             // Step directly to the first element of content in a container (if necessary)
-            Container currentContainer = currentContentObj as Container;
-            while(currentContainer) {
+            Container containerToEnter = pointer.Resolve () as Container;
+            while(containerToEnter) {
 
                 // Mark container as being entered
-                VisitContainer (currentContainer, atStart:true);
+                VisitContainer (containerToEnter, atStart:true);
 
                 // No content? the most we can do is step past it
-                if (currentContainer.content.Count == 0)
+                if (containerToEnter.content.Count == 0)
                     break;
 
-                currentContentObj = currentContainer.content [0];
-                state.callStack.currentElement.currentContentIndex = 0;
-                state.callStack.currentElement.currentContainer = currentContainer;
 
-                currentContainer = currentContentObj as Container;
+                pointer = Pointer.StartOf (containerToEnter);
+                containerToEnter = pointer.Resolve() as Container;
             }
-            currentContainer = state.callStack.currentElement.currentContainer;
+            state.currentPointer = pointer;
 
 			if( _profiler != null ) {
 				_profiler.Step(state.callStack);
@@ -566,10 +582,11 @@ namespace Ink.Runtime
             //  - Or a logic/flow statement - if so, do it
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
+            var currentContentObj = pointer.Resolve ();
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
 
             // Has flow been forced to end by flow control above?
-            if (state.currentContentObject == null) {
+            if (state.currentPointer.isNull) {
                 return;
             }
 
@@ -642,31 +659,32 @@ namespace Ink.Runtime
             }
         }
 
-		HashSet<Container> _prevContainerSet;
+        List<Container> _prevContainers = new List<Container>();
         void VisitChangedContainersDueToDivert()
         {
-            var previousContentObject = state.previousContentObject;
-            var newContentObject = state.currentContentObject;
+            var previousPointer = state.previousPointer;
+            var pointer = state.currentPointer;
 
-            if (!newContentObject)
+            // Unless we're pointing *directly* at a piece of content, we don't do
+            // counting here. Otherwise, the main stepping function will do the counting.
+            if (pointer.isNull || pointer.index == -1)
                 return;
             
             // First, find the previously open set of containers
-			if( _prevContainerSet == null ) _prevContainerSet = new HashSet<Container> ();
-			_prevContainerSet.Clear();
-            if (previousContentObject) {
-                Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
+			_prevContainers.Clear();
+            if (!previousPointer.isNull) {
+                Container prevAncestor = previousPointer.Resolve() as Container ?? previousPointer.container as Container;
                 while (prevAncestor) {
-					_prevContainerSet.Add (prevAncestor);
+					_prevContainers.Add (prevAncestor);
                     prevAncestor = prevAncestor.parent as Container;
                 }
             }
 
             // If the new object is a container itself, it will be visited automatically at the next actual
             // content step. However, we need to walk up the new ancestry to see if there are more new containers
-            Runtime.Object currentChildOfContainer = newContentObject;
+            Runtime.Object currentChildOfContainer = pointer.Resolve();
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
-			while (currentContainerAncestor && !_prevContainerSet.Contains(currentContainerAncestor)) {
+			while (currentContainerAncestor && !_prevContainers.Contains(currentContainerAncestor)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
@@ -794,13 +812,13 @@ namespace Ink.Runtime
                     }
 
                     var target = (DivertTargetValue)varContents;
-                    state.divertedTargetObject = ContentAtPath(target.targetPath);
+                    state.divertedPointer = PointerAtPath(target.targetPath);
 
                 } else if (currentDivert.isExternal) {
                     CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
                     return true;
                 } else {
-                    state.divertedTargetObject = currentDivert.targetContent;
+                    state.divertedPointer = currentDivert.targetPointer;
                 }
 
                 if (currentDivert.pushesToStack) {
@@ -810,7 +828,7 @@ namespace Ink.Runtime
                     );
                 }
 
-                if (state.divertedTargetObject == null && !currentDivert.isExternal) {
+                if (state.divertedPointer.isNull && !currentDivert.isExternal) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
                     if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
@@ -911,7 +929,7 @@ namespace Ink.Runtime
 
                         // Does tunnel onwards override by diverting to a new ->-> target?
                         if( overrideTunnelReturnTarget )
-                            state.divertedTargetObject = ContentAtPath (overrideTunnelReturnTarget.targetPath);
+                            state.divertedPointer = PointerAtPath (overrideTunnelReturnTarget.targetPath);
                     }
 
                     break;
@@ -1027,7 +1045,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var count = VisitCountForContainer(state.currentContainer) - 1; // index not count
+                    var count = VisitCountForContainer(state.currentPointer.container) - 1; // index not count
                     state.PushEvaluationStack (new IntValue (count));
                     break;
 
@@ -1054,7 +1072,7 @@ namespace Ink.Runtime
                         state.didSafeExit = true;
 
                         // Stop flow in current thread
-                        state.currentContentObject = null;
+                        state.currentPointer = Pointer.Null;
                     }
 
                     break;
@@ -1252,7 +1270,7 @@ namespace Ink.Runtime
                 // pretty much in any state. Let's catch one of the worst offenders.
                 if (state.callStack.currentElement.type == PushPopType.Function) {
                     string funcDetail = "";
-                    var container = state.callStack.currentElement.currentContainer;
+                    var container = state.callStack.currentElement.currentPointer.container;
                     if (container != null) {
                         funcDetail = "("+container.path.ToString ()+") ";
                     }
@@ -1434,7 +1452,7 @@ namespace Ink.Runtime
 
                     // Divert direct into fallback function and we're done
                     state.callStack.Push (PushPopType.Function);
-                    state.divertedTargetObject = fallbackFunctionContainer;
+                    state.divertedPointer = Pointer.StartOf(fallbackFunctionContainer);
                     return;
 
                 } else {
@@ -1893,7 +1911,7 @@ namespace Ink.Runtime
         {
             var sb = new StringBuilder ();
 
-            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentPointer.Resolve());
 
             return sb.ToString ();
         }
@@ -1902,7 +1920,7 @@ namespace Ink.Runtime
         {
         	var sb = new StringBuilder ();
 
-        	container.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+            container.BuildStringOfHierarchy (sb, 0, state.currentPointer.Resolve());
 
         	return sb.ToString();
         }
@@ -1910,19 +1928,19 @@ namespace Ink.Runtime
 		private void NextContent()
 		{
             // Setting previousContentObject is critical for VisitChangedContainersDueToDivert
-            state.previousContentObject = state.currentContentObject;
+            state.previousPointer = state.currentPointer;
 
 			// Divert step?
-			if (state.divertedTargetObject != null) {
+			if (!state.divertedPointer.isNull) {
 
-                state.currentContentObject = state.divertedTargetObject;
-                state.divertedTargetObject = null;
+                state.currentPointer = state.divertedPointer;
+                state.divertedPointer = Pointer.Null;
 
                 // Internally uses state.previousContentObject and state.currentContentObject
                 VisitChangedContainersDueToDivert ();
 
                 // Diverted location has valid content?
-                if (state.currentContentObject != null) {
+                if (!state.currentPointer.isNull) {
                     return;
                 }
 				
@@ -1961,7 +1979,7 @@ namespace Ink.Runtime
                 }
 
                 // Step past the point where we last called out
-                if (didPop && state.currentContentObject != null) {
+                if (didPop && !state.currentPointer.isNull) {
                     NextContent ();
                 }
 			}
@@ -1971,33 +1989,36 @@ namespace Ink.Runtime
         {
             bool successfulIncrement = true;
 
-            var currEl = state.callStack.currentElement;
-            currEl.currentContentIndex++;
+            var pointer = state.callStack.currentElement.currentPointer;
+            pointer.index++;
 
             // Each time we step off the end, we fall out to the next container, all the
             // while we're in indexed rather than named content
-            while (currEl.currentContentIndex >= currEl.currentContainer.content.Count) {
+            while (pointer.index >= pointer.container.content.Count) {
 
                 successfulIncrement = false;
 
-                Container nextAncestor = currEl.currentContainer.parent as Container;
+                Container nextAncestor = pointer.container.parent as Container;
                 if (!nextAncestor) {
                     break;
                 }
 
-                var indexInAncestor = nextAncestor.content.IndexOf (currEl.currentContainer);
+                var indexInAncestor = nextAncestor.content.IndexOf (pointer.container);
                 if (indexInAncestor == -1) {
                     break;
                 }
 
-                currEl.currentContainer = nextAncestor;
-                currEl.currentContentIndex = indexInAncestor + 1;
+                pointer = new Pointer (nextAncestor, indexInAncestor);
+
+                // Increment to next content in outer container
+                pointer.index++;
 
                 successfulIncrement = true;
             }
 
-            if (!successfulIncrement)
-                currEl.currentContainer = null;
+            if (!successfulIncrement) pointer = Pointer.Null;
+
+            state.callStack.currentElement.currentPointer = pointer;
 
             return successfulIncrement;
         }
@@ -2072,7 +2093,7 @@ namespace Ink.Runtime
                 return 0;
             }
 
-            var seqContainer = state.currentContainer;
+            var seqContainer = state.currentPointer.container;
 
             int numElements = numElementsIntVal.value;
 
@@ -2127,8 +2148,8 @@ namespace Ink.Runtime
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
                 message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
-            } else if( state.currentPath != null  ) {
-				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPath, message);
+            } else if( !state.currentPointer.isNull  ) {
+				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPointer.path, message);
 			} else {
                 message = "RUNTIME ERROR: " + message;
             }
@@ -2159,9 +2180,9 @@ namespace Ink.Runtime
                 DebugMetadata dm;
 
                 // Try to get from the current path first
-                var currentContent = state.currentContentObject;
-                if (currentContent) {
-                    dm = currentContent.debugMetadata;
+                var pointer = state.currentPointer;
+                if (!pointer.isNull) {
+                    dm = pointer.Resolve().debugMetadata;
                     if (dm != null) {
                         return dm;
                     }
@@ -2169,9 +2190,12 @@ namespace Ink.Runtime
                     
                 // Move up callstack if possible
                 for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
-                    var currentObj = state.callStack.elements [i].currentObject;
-                    if (currentObj && currentObj.debugMetadata != null) {
-                        return currentObj.debugMetadata;
+                    pointer = state.callStack.elements [i].currentPointer;
+                    if (!pointer.isNull && pointer.Resolve() != null) {
+                        dm = pointer.Resolve().debugMetadata;
+                        if (dm != null) {
+                            return dm;
+                        }
                     }
                 }
 

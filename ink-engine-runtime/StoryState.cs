@@ -87,7 +87,7 @@ namespace Ink.Runtime
         internal VariablesState variablesState { get; private set; }
         internal CallStack callStack { get; set; }
         internal List<Runtime.Object> evaluationStack { get; private set; }
-        internal Runtime.Object divertedTargetObject { get; set; }
+        internal Pointer divertedPointer { get; set; }
         internal Dictionary<string, int> visitCounts { get; private set; }
         internal Dictionary<string, int> turnIndices { get; private set; }
         internal int currentTurnIndex { get; private set; }
@@ -97,48 +97,27 @@ namespace Ink.Runtime
 
         internal Story story { get; set; }
 
-        internal Path currentPath { 
-            get { 
-                if (currentContentObject == null)
-                    return null;
-
-                return currentContentObject.path;
-            } 
+        internal Runtime.Pointer currentPointer {
+            get {
+                return callStack.currentElement.currentPointer;
+            }
             set {
-                if (value != null)
-                    currentContentObject = story.ContentAtPath (value);
-                else
-                    currentContentObject = null;
+                callStack.currentElement.currentPointer = value;
             }
         }
 
-        internal Runtime.Object currentContentObject {
+        internal Pointer previousPointer { 
             get {
-                return callStack.currentElement.currentObject;
+                return callStack.currentThread.previousPointer;
             }
             set {
-                callStack.currentElement.currentObject = value;
-            }
-        }
-
-        internal Container currentContainer {
-            get {
-                return callStack.currentElement.currentContainer;
-            }
-        }
-
-        internal Runtime.Object previousContentObject { 
-            get {
-                return callStack.currentThread.previousContentObject;
-            }
-            set {
-                callStack.currentThread.previousContentObject = value;
+                callStack.currentThread.previousPointer = value;
             }
         }
 
 		internal bool canContinue {
 			get {
-				return currentContentObject != null && !hasError;
+				return !currentPointer.isNull && !hasError;
 			}
 		}
             
@@ -232,8 +211,7 @@ namespace Ink.Runtime
 
         internal void GoToStart()
         {
-            callStack.currentElement.currentContainer = story.mainContentContainer;
-            callStack.currentElement.currentContentIndex = 0;
+            callStack.currentElement.currentPointer = Pointer.StartOf (story.mainContentContainer);
         }
 
         // Warning: Any Runtime.Object content referenced within the StoryState will
@@ -262,10 +240,10 @@ namespace Ink.Runtime
 
             copy.evaluationStack.AddRange (evaluationStack);
 
-            if (divertedTargetObject != null)
-                copy.divertedTargetObject = divertedTargetObject;
+            if (!divertedPointer.isNull)
+                copy.divertedPointer = divertedPointer;
 
-            copy.previousContentObject = previousContentObject;
+            copy.previousPointer = previousPointer;
 
             copy.visitCounts = new Dictionary<string, int> (visitCounts);
             copy.turnIndices = new Dictionary<string, int> (turnIndices);
@@ -315,8 +293,8 @@ namespace Ink.Runtime
 
 				obj ["currentChoices"] = Json.ListToJArray (_currentChoices);
 
-                if( divertedTargetObject != null )
-                    obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
+                if( !divertedPointer.isNull )
+                    obj ["currentDivertTarget"] = divertedPointer.path.componentsString;
 
                 obj ["visitCounts"] = Json.IntDictionaryToJObject (visitCounts);
                 obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
@@ -356,7 +334,7 @@ namespace Ink.Runtime
 				object currentDivertTargetPath;
 				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
                     var divertPath = new Path (currentDivertTargetPath.ToString ());
-                    divertedTargetObject = story.ContentAtPath (divertPath);
+                    divertedPointer = story.PointerAtPath (divertPath);
                 }
                     
                 visitCounts = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["visitCounts"]);
@@ -781,8 +759,8 @@ namespace Ink.Runtime
 
 			_currentChoices.Clear();
 
-            currentContentObject = null;
-            previousContentObject = null;
+            currentPointer = Pointer.Null;
+            previousPointer = Pointer.Null;
 
             didSafeExit = true;
         }
@@ -834,7 +812,11 @@ namespace Ink.Runtime
             // Changing direction, assume we need to clear current set of choices
 			_currentChoices.Clear ();
 
-            currentPath = path;
+            var newPointer = story.PointerAtPath (path);
+            if (!newPointer.isNull && newPointer.index == -1)
+                newPointer.index = 0;
+
+            currentPointer = newPointer;
 
             currentTurnIndex++;
         }
@@ -842,7 +824,7 @@ namespace Ink.Runtime
         internal void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
         {
             callStack.Push (PushPopType.FunctionEvaluationFromGame, evaluationStack.Count);
-            callStack.currentElement.currentObject = funcContainer;
+            callStack.currentElement.currentPointer = Pointer.StartOf (funcContainer);
 
             PassArgumentsToEvaluationStack (arguments);
         }
@@ -864,7 +846,7 @@ namespace Ink.Runtime
         internal bool TryExitFunctionEvaluationFromGame ()
         {
             if( callStack.currentElement.type == PushPopType.FunctionEvaluationFromGame ) {
-                currentContentObject = null;
+                currentPointer = Pointer.Null;
                 didSafeExit = true;
                 return true;
             }

@@ -200,7 +200,7 @@ namespace Ink
                     }
                 } catch (System.Exception e) {
                     string storyPath = "<END>";
-                    var path = story.state.currentPath;
+                    var path = story.state.currentPointer.path;
                     if (path != null) {
                         storyPath = path.ToString ();
                     }

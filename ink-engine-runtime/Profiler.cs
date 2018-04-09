@@ -70,7 +70,7 @@ namespace Ink.Runtime
 
 			var stack = new string[callstack.elements.Count];
 			for(int i=0; i<stack.Length; i++) {
-				var objPath = callstack.elements[i].currentObject.path;
+				var objPath = callstack.elements[i].currentPointer.path;
 				string stackElementName = "";
 
 				for(int c=0; c<objPath.length; c++) {
@@ -86,7 +86,7 @@ namespace Ink.Runtime
 				
 			_currStepStack = stack;
 
-			var currObj = callstack.currentElement.currentObject ?? callstack.currentElement.currentContainer;
+            var currObj = callstack.currentElement.currentPointer.Resolve();
 
 			_currStepDetails = new StepDetails {
 				type = currObj.GetType().Name,

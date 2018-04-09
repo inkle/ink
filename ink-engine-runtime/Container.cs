@@ -226,7 +226,7 @@ namespace Ink.Runtime
 			}
 		}
 
-        public Runtime.Object ContentAtPath(Path path, int partialPathLength = -1)
+        public Runtime.Object ContentAtPath(Path path, int partialPathStart = 0, int partialPathLength = -1)
 		{
             if (partialPathLength == -1)
                 partialPathLength = path.length;
@@ -234,7 +234,7 @@ namespace Ink.Runtime
             Container currentContainer = this;
             Runtime.Object currentObj = this;
 
-            for (int i = 0; i < partialPathLength; ++i) {
+            for (int i = partialPathStart; i < partialPathLength; ++i) {
 				var comp = path.GetComponent(i);
                 if (currentContainer == null)
                     throw new System.Exception ("Path continued, but previous object wasn't a container: " + currentObj);
@@ -244,7 +244,7 @@ namespace Ink.Runtime
 
             return currentObj;
 		}
-            
+         
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
             Action appendIndentation = () => { 
