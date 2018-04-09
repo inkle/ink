@@ -138,8 +138,10 @@ namespace Ink.Runtime
 		}
 
         public Element currentElement { 
-            get { 
-                return callStack [callStack.Count - 1];
+            get {
+                var thread = _threads [_threads.Count - 1];
+                var cs = thread.callstack;
+                return cs [cs.Count - 1];
             } 
         }
 
