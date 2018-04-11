@@ -1320,7 +1320,7 @@ VAR globalVal = 5
             story.Continue();
 
             story.ChooseChoiceIndex(0);
-            Assert.AreEqual("option text. Conditional bit.\n", story.Continue());
+            Assert.AreEqual("option text.  Conditional bit.\n", story.Continue());
             Assert.AreEqual("Next.\n", story.Continue());
         }
 

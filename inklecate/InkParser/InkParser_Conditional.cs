@@ -21,7 +21,7 @@ namespace Ink
             List<ConditionalSingleBranch> alternatives;
 
             bool canBeInline = initialQueryExpression != null;
-            bool isInline = Newline () == null;
+            bool isInline = Parse(Newline) == null;
 
             if (isInline && !canBeInline) {
                 return null;
