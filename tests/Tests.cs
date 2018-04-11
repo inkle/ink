@@ -3094,6 +3094,23 @@ In top external
 
 
 
+        [Test ()]
+        public void TestStartingLineWithEscapedWhitespace ()
+        {
+        	var storyStr =
+        	@"
+hello{1:
+    \ world
+}
+            ";
+
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("hello world\n", story.ContinueMaximally ());
+        }
+
+
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
