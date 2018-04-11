@@ -24,6 +24,10 @@ namespace Ink
 
         protected List<Parsed.Object> LineOfMixedTextAndLogic()
         {
+            // Consume any whitespace at the start of the line
+            // (Except for escaped whitespace)
+            Parse (Whitespace);
+
             var result = Parse(MixedTextAndLogic);
 
             // Terminating tag
@@ -41,15 +45,10 @@ namespace Ink
             if (result == null || result.Count == 0)
                 return null;
 
-            // Trim whitepace from start
+            // Warn about accidentally writing "return" without "~"
             var firstText = result[0] as Text;
             if (firstText) {
-                firstText.text = firstText.text.TrimStart(' ', '\t');
-                if (firstText.text.Length == 0) {
-                    result.RemoveAt (0);
-                }
-
-                if (firstText.text.StartsWith ("return")) {
+                if (firstText.text.StartsWith ("return", System.StringComparison.InvariantCulture)) {
                     Warning ("Do you need a '~' before 'return'? If not, perhaps use a glue: <> (since it's lowercase) or rewrite somehow?");
                 }
             }
