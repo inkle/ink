@@ -1451,7 +1451,10 @@ namespace Ink.Runtime
                     Assert (fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound, and fallback ink function could not be found.");
 
                     // Divert direct into fallback function and we're done
-                    state.callStack.Push (PushPopType.Function);
+                    state.callStack.Push (
+                        PushPopType.Function, 
+                        outputStreamLengthWithPushed:state.outputStream.Count
+                    );
                     state.divertedPointer = Pointer.StartOf(fallbackFunctionContainer);
                     return;
 

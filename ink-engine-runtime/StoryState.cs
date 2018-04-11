@@ -517,11 +517,9 @@ namespace Ink.Runtime
 
                 if (trimIndex != -1) {
 
-                    // Absorb any new newlines if there's existing glue
-                    // in the output stream.
-                    // Also trim any extra whitespace (spaces/tabs) if so.
+                    // While trimming, we want to throw all newlines away,
+                    // whether due to glue or the start of a function
                     if (text.isNewline) {
-                        TrimWhitespaceForwardsFrom (trimIndex);
                         includeInOutput = false;
                     } 
 
@@ -601,21 +599,6 @@ namespace Ink.Runtime
 
 			OutputStreamDirty();
         }
-
-        void TrimWhitespaceForwardsFrom(int startIndex)
-        {
-            int i = startIndex;
-            while (i < _outputStream.Count) {
-                var txt = _outputStream [i] as StringValue;
-                if (txt && !txt.isNonWhitespace)
-                    _outputStream.RemoveAt (i);
-                else
-                    i++;
-            }
-
-			OutputStreamDirty();
-        }
-
 
         // Only called when non-whitespace is appended
         void RemoveExistingGlue()
