@@ -1,1 +1,1 @@
-﻿ *
+﻿This is a convenience test file for InkTestBed.

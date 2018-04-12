@@ -9,8 +9,6 @@ namespace Ink
 	class CommandLineTool : Ink.IFileHandler
 	{
 		class Options {
-			public bool testMode;
-            public bool stressTest;
             public bool verbose;
 			public bool playMode;
 			public string inputFile;
@@ -35,10 +33,6 @@ namespace Ink
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
                 "   -v:              Verbose mode - print compilation timings\n"+
-                "   -x <pluginname>: Use external plugin. 'ChoiceListPlugin' is only available plugin right now.\n"+
-                "   -t:              Test mode - loads up test.ink\n"+
-                "   -s:              Stress test mode - generates test content and \n" +
-                "                    times compilation\n" + 
                 "   -k:              Keep inklecate running in play mode even after story is complete\n");
             Environment.Exit (ExitCodeError);
         }
@@ -50,10 +44,6 @@ namespace Ink
 
             if (ProcessArguments (args) == false) {
                 ExitWithUsageInstructions ();
-            }
-
-            if (opts.testMode) {
-                opts.inputFile = "test.ink";
             }
 
             if (opts.inputFile == null) {
@@ -123,24 +113,8 @@ namespace Ink
             if (story == null || _errors.Count > 0) {
 				Environment.Exit (ExitCodeError);
 			}
-                
-            // JSON round trip testing
-            //if (opts.testMode) {
-            //    var jsonStr = story.ToJsonString ();
-            //    Console.WriteLine (jsonStr);
-
-            //    Console.WriteLine ("---------------------------------------------------");
-
-            //    var reloadedStory = new Runtime.Story (jsonStr);
-            //    var newJsonStr = reloadedStory.ToJsonString ();
-            //    Console.WriteLine (newJsonStr);
-
-            //    story = reloadedStory;
-            //}
 
 			// Play mode
-            // Test mode may use "-tp" in commmand line args to specify that
-            // the test script is also played
             if (opts.playMode) {
 
                 _playing = true;
@@ -202,6 +176,7 @@ namespace Ink
         {
             Console.ResetColor();
         }
+
         void OnError(string message, ErrorType errorType)
         {
             switch (errorType) {
@@ -277,14 +252,6 @@ namespace Ink
                         char argChar = arg [i];
 
                         switch (argChar) {
-                        case 't':
-                            opts.testMode = true;
-                            break;
-                        case 's':
-                            opts.testMode = true;
-                            opts.stressTest = true;
-                            opts.verbose = true;
-                            break;
                         case 'p':
                             opts.playMode = true;
                             break;

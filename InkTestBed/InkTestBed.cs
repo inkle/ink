@@ -6,7 +6,6 @@ using Ink;
 
 class InkTestBed : IFileHandler
 {
-
     // ---------------------------------------------------------------
     // Main area to test stuff!
     // ---------------------------------------------------------------
@@ -15,7 +14,7 @@ class InkTestBed : IFileHandler
     {
         CompileFile ("test.ink");
         Console.WriteLine(story.ContinueMaximally ());
-
+        JsonRoundtrip ();
 
         Compile ("Hello {1 + 2}!");
         Console.WriteLine(story.ContinueMaximally ());
@@ -23,7 +22,7 @@ class InkTestBed : IFileHandler
 
     // ---------------------------------------------------------------
 
-    public Ink.Runtime.Story Compile (string inkSource)
+    void Compile (string inkSource)
     {
     	var compiler = new Compiler (inkSource, new Compiler.Options {
     		countAllVisits = true,
@@ -34,12 +33,10 @@ class InkTestBed : IFileHandler
     	story = compiler.Compile ();
 
     	PrintAllMessages ();
-
-    	return story;
     }
 
 
-    public Ink.Runtime.Story CompileFile (string filename)
+    void CompileFile (string filename)
     {
         var inkSource = File.ReadAllText (filename);
 
@@ -53,8 +50,20 @@ class InkTestBed : IFileHandler
         story = compiler.Compile ();
 
         PrintAllMessages ();
+    }
 
-        return story;
+    void JsonRoundtrip ()
+    {
+        var jsonStr = story.ToJsonString ();
+        Console.WriteLine (jsonStr);
+
+        Console.WriteLine ("---------------------------------------------------");
+
+        var reloadedStory = new Ink.Runtime.Story (jsonStr);
+        var newJsonStr = reloadedStory.ToJsonString ();
+        Console.WriteLine (newJsonStr);
+
+        story = reloadedStory;
     }
 
     // ---------------------
