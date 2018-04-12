@@ -3110,6 +3110,30 @@ hello{1:
         }
 
 
+        [Test ()]
+        public void TestNewlinesWithStringEval ()
+        {
+        	var storyStr =
+@"
+A
+~temp someTemp = string()
+B
+
+A 
+{string()}
+B
+
+=== function string()    
+    ~ return ""{3}""
+}
+";
+
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("A\nB\nA\n3\nB\n", story.ContinueMaximally ());
+        }
+
+
 
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)

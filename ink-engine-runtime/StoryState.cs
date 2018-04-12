@@ -500,19 +500,45 @@ namespace Ink.Runtime
 
             // New text: do we really want to append it, if it's whitespace?
             // Two different reasons for whitespace to be thrown away:
-            //   - User defined glue: <>
             //   - Function start/end trimming
+            //   - User defined glue: <>
             // We also need to know when to stop trimming, when there's non-whitespace.
             else if( text ) {
 
+                // Where does the current function call begin?
                 var functionTrimIndex = -1;
                 var currEl = callStack.currentElement;
                 if (currEl.type == PushPopType.Function) {
                     functionTrimIndex = currEl.functionStartInOuputStream;
                 }
 
-                var glueTrimIndex = currentGlueIndex;
+                // Do 2 things:
+                //  - Find latest glue
+                //  - Check whether we're in the middle of string evaluation
+                // If we're in string eval within the current function, we
+                // don't want to trim back further than the length of the current string.
+                int glueTrimIndex = -1;
+                for (int i = _outputStream.Count - 1; i >= 0; i--) {
+                    var o = _outputStream [i];
+                    var c = o as ControlCommand;
+                    var g = o as Glue;
 
+                    // Find latest glue
+                    if (g) {
+                        glueTrimIndex = i;
+                        break;
+                    } 
+
+                    // Don't function-trim past the start of a string evaluation section
+                    else if (c && c.commandType == ControlCommand.CommandType.BeginString) {
+                        if (i >= functionTrimIndex) {
+                            functionTrimIndex = -1;
+                        }
+                        break;
+                    }
+                }
+
+                // Where is the most agressive (earliest) trim point?
                 var trimIndex = -1;
                 if (glueTrimIndex != -1 && functionTrimIndex != -1)
                     trimIndex = Math.Min (functionTrimIndex, glueTrimIndex);
@@ -521,6 +547,7 @@ namespace Ink.Runtime
                 else
                     trimIndex = functionTrimIndex;
 
+                // So, are we trimming then?
                 if (trimIndex != -1) {
 
                     // While trimming, we want to throw all newlines away,
@@ -560,9 +587,8 @@ namespace Ink.Runtime
 
             if (includeInOutput) {
                 _outputStream.Add (obj);
+                OutputStreamDirty();
             }
-
-			OutputStreamDirty();
         }
 
         void TrimNewlinesFromOutputStream()
@@ -621,20 +647,6 @@ namespace Ink.Runtime
 			OutputStreamDirty();
         }
 
-        int currentGlueIndex {
-            get {
-                for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                    var c = _outputStream [i];
-                    var glue = c as Glue;
-                    if (glue)
-                        return i;
-                    else if (c is ControlCommand) // e.g. BeginString
-                        break;
-                }
-                return -1;
-            }
-        }
-           
         internal bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
