@@ -41,6 +41,8 @@ namespace Ink.Parsed
 
         public bool isElse { get; set; }
 
+        public bool isInline { get; set; }
+
         public Runtime.Divert returnDivert { get; protected set; }
 
         public ConditionalSingleBranch (List<Parsed.Object> content)
@@ -110,6 +112,13 @@ namespace Ink.Parsed
 
             _contentContainer = GenerateRuntimeForContent ();
             _contentContainer.name = "b";
+
+            // Multi-line conditionals get a newline at the start of each branch
+            // (as opposed to the start of the multi-line conditional since the condition
+            //  may evaluate to false.)
+            if (!isInline) {
+                _contentContainer.InsertContent (new Runtime.StringValue ("\n"), 0);
+            }
 
             if( duplicatesStackValue || (isElse && matchingEquality) )
                 _contentContainer.InsertContent (Runtime.ControlCommand.PopEvaluatedValue (), 0);

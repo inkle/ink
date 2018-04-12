@@ -3106,7 +3106,7 @@ hello{1:
 
         	var story = CompileString (storyStr);
 
-        	Assert.AreEqual ("hello world\n", story.ContinueMaximally ());
+        	Assert.AreEqual ("hello\n world\n", story.ContinueMaximally ());
         }
 
 
@@ -3177,6 +3177,26 @@ Phrase 1
         	var story = CompileString (storyStr);
 
         	Assert.AreEqual ("a b\na b\n", story.ContinueMaximally ());
+        }
+
+
+
+        [Test ()]
+        public void TestNewlineAtStartOfMultilineConditional ()
+        {
+        	var storyStr =
+        @"
+{true():
+    x
+}
+
+=== function true()
+    X
+	~ return true
+        ";
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("X\nx\n", story.ContinueMaximally ());
         }
 
 

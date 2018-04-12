@@ -164,6 +164,10 @@ namespace Ink
             if (alternatives == null)
                 return null;
 
+            foreach (var branch in alternatives) {
+                branch.isInline = isInline;
+            }
+
             var cond = new Conditional (initialQueryExpression, alternatives);
             return cond;
         }

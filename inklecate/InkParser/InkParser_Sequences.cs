@@ -176,8 +176,13 @@ namespace Ink
 
             List<Parsed.Object> content = StatementsAtLevel (StatementLevel.InnerBlock);
 
-            if( content == null ) 
+            if (content == null)
                 MultilineWhitespace ();
+
+            // Add newline at the start of each branch
+            else {
+                content.Insert (0, new Parsed.Text ("\n"));
+            }
 
             return new ContentList (content);
         }
