@@ -3134,6 +3134,31 @@ B
         }
 
 
+        [Test ()]
+        public void TestNewlinesTrimmingWithFuncExternalFallback ()
+        {
+        	var storyStr =
+@"
+EXTERNAL TRUE ()
+
+Phrase 1 
+{ TRUE ():
+
+	Phrase 2
+}
+-> END 
+
+=== function TRUE ()
+	~ return true
+";
+
+        	var story = CompileString (storyStr);
+            story.allowExternalFunctionFallbacks = true;
+
+        	Assert.AreEqual ("Phrase 1\nPhrase 2\n", story.ContinueMaximally ());
+        }
+
+
 
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
