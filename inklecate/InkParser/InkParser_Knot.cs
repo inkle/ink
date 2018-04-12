@@ -48,8 +48,10 @@ namespace Ink
                 knotName = identifier;
             }
 
-            if (knotName == null)
+            if (knotName == null) {
                 Error ("Expected the name of the " + (isFunc ? "function" : "knot"));
+                knotName = ""; // prevent later null ref
+            }
 
             Whitespace ();
 
