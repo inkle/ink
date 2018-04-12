@@ -964,7 +964,7 @@ namespace Ink.Runtime
                     }
 
                     // Consume the content that was produced for this string
-                    state.outputStream.RemoveRange (state.outputStream.Count - outputCountConsumed, outputCountConsumed);
+                    state.PopFromOutputStream (outputCountConsumed);
 
                     // Build string out of the content we collected
                     var sb = new StringBuilder ();

@@ -395,6 +395,12 @@ namespace Ink.Runtime
 			OutputStreamDirty();
         }
 
+        internal void PopFromOutputStream (int count)
+        {
+            outputStream.RemoveRange (outputStream.Count - count, count);
+            OutputStreamDirty ();
+        }
+
 
         // At both the start and the end of the string, split out the new lines like so:
         //
@@ -774,6 +780,7 @@ namespace Ink.Runtime
 
                 if (txt.isNewline || txt.isInlineWhitespace) {
                     _outputStream.RemoveAt (i);
+                    OutputStreamDirty ();
                 } else {
                     break;
                 }
