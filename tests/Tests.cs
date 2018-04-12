@@ -3158,6 +3158,26 @@ Phrase 1
         	Assert.AreEqual ("Phrase 1\nPhrase 2\n", story.ContinueMaximally ());
         }
 
+        [Test ()]
+        public void TestMultilineLogicWithGlue ()
+        {
+        	var storyStr =
+@"
+{true:
+    a 
+} <> b
+
+
+{true:
+    a 
+} <> { true: 
+    b 
+}
+";
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("a b\na b\n", story.ContinueMaximally ());
+        }
 
 
         // Helper compile function

@@ -430,34 +430,27 @@ namespace Ink.Runtime
                 // it wouldn't immediately be removed by glue?
                 if (_stateAtLastNewline != null) {
 
-                    // Cover cases that non-text generated content was evaluated last step
-					string currText = state.currentText;
-                    int prevTextLength = _stateAtLastNewline.currentText.Length;
+                    // Has proper text or a tag been added? Then we know that the newline
+                    // that was previously added is definitely the end of the line.
+                    var change = CalculateNewlineOutputStateChange (
+                        _stateAtLastNewline.currentText,       state.currentText, 
+                        _stateAtLastNewline.currentTags.Count, state.currentTags.Count
+                    );
 
-                    // Take tags into account too, so that a tag following a content line:
-                    //   Content
-                    //   # tag
-                    // ... doesn't cause the tag to be wrongly associated with the content above.
-                    int prevTagCount = _stateAtLastNewline.currentTags.Count;
+                    // The last time we saw a newline, it was definitely the end of the line, so we
+                    // want to rewind to that point.
+                    if (change == OutputStateChange.ExtendedBeyondNewline) {
+                        RestoreStateSnapshot (_stateAtLastNewline);
 
-                    // Output has been extended?
-                    if (!currText.Equals (_stateAtLastNewline.currentText) || prevTagCount != state.currentTags.Count) {
+                        // Hit a newline for sure, we're done
+                        return true;
+                    } 
 
-                        // Original newline still exists?
-                        if (currText.Length >= prevTextLength && currText [prevTextLength - 1] == '\n') {
-                            RestoreStateSnapshot (_stateAtLastNewline);
-
-                            // Hit a newline for sure, we're done
-                            return true;
-                        }
-
-                        // Newline that previously existed is no longer valid - e.g.
-                        // glue was encounted that caused it to be removed.
-                        else {
-                            _stateAtLastNewline = null;
-                        }
+                    // Newline that previously existed is no longer valid - e.g.
+                    // glue was encounted that caused it to be removed.
+                    else if (change == OutputStateChange.NewlineRemoved) {
+                        _stateAtLastNewline = null;
                     }
-
                 }
 
                 // Current content ends in a newline - approaching end of our evaluation
@@ -493,6 +486,54 @@ namespace Ink.Runtime
             // outputStreamEndsInNewline = false
             return false;
         }
+
+
+
+
+        // Assumption: prevText is the snapshot where we saw a newline, and we're checking whether we're really done
+        //             with that line. Therefore prevText will definitely end in a newline.
+        //
+        // We take tags into account too, so that a tag following a content line:
+        //   Content
+        //   # tag
+        // ... doesn't cause the tag to be wrongly associated with the content above.
+        enum OutputStateChange
+        {
+        	NoChange,
+        	ExtendedBeyondNewline,
+        	NewlineRemoved
+        }
+        OutputStateChange CalculateNewlineOutputStateChange (string prevText, string currText, int prevTagCount, int currTagCount)
+        {
+            // Simple case: nothing's changed, and we still have a newline
+            // at the end of the current content
+            var newlineStillExists = currText.Length >= prevText.Length && currText [prevText.Length - 1] == '\n';
+            if (prevTagCount == currTagCount && prevText.Length == currText.Length 
+                && newlineStillExists)
+                return OutputStateChange.NoChange;
+
+            // Old newline has been removed, it wasn't the end of the line after all
+            if (!newlineStillExists) {
+                return OutputStateChange.NewlineRemoved;
+            }
+
+            // Tag added - definitely the start of a new line
+            if (currTagCount > prevTagCount)
+                return OutputStateChange.ExtendedBeyondNewline;
+
+            // There must be new content - check whether it's just whitespace
+            for (int i = prevText.Length; i < currText.Length; i++) {
+                var c = currText [i];
+                if (c != ' ' && c != '\t') {
+                    return OutputStateChange.ExtendedBeyondNewline;
+                }
+            }
+
+            // There's new text but it's just spaces and tabs, so there's still the potential
+            // for glue to kill the newline.
+            return OutputStateChange.NoChange;
+        }
+
 
         /// <summary>
         /// Continue the story until the next choice point or until it runs out of content.
