@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Ink
 {
-	class CommandLineTool
+	class CommandLineTool : Ink.IFileHandler
 	{
 		class Options {
 			public bool testMode;
@@ -69,81 +69,45 @@ namespace Ink
             if( !Path.IsPathRooted(opts.outputFile) )
                 opts.outputFile = Path.Combine (workingDirectory, opts.outputFile);
 
-            if (opts.stressTest) {
-
-                StressTestContentGenerator stressTestContent = null;
-                TimeOperation ("Generating test content", () => {
-                    stressTestContent = new StressTestContentGenerator (100);
-                });
-
-                Console.WriteLine ("Generated ~{0}k of test ink", stressTestContent.sizeInKiloChars);
-
-                inputString = stressTestContent.content;
-
-            } else {
-                try {
-                    string fullFilename = opts.inputFile;
-                    if(!Path.IsPathRooted(fullFilename)) {
-                        fullFilename = Path.Combine(workingDirectory, fullFilename);
-                    }
-
-                    // Make the working directory the directory for the root ink file,
-                    // so that relative paths for INCLUDE files are correct.
-                    workingDirectory = Path.GetDirectoryName(fullFilename);
-                    Directory.SetCurrentDirectory(workingDirectory);
-
-                    // Now make the input file relative to the working directory,
-                    // but just getting the file's actual name.
-                    opts.inputFile = Path.GetFileName(fullFilename);
-
-                    inputString = File.ReadAllText(opts.inputFile);
+            try {
+                string fullFilename = opts.inputFile;
+                if(!Path.IsPathRooted(fullFilename)) {
+                    fullFilename = Path.Combine(workingDirectory, fullFilename);
                 }
-                catch {
-                    Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
-                    Environment.Exit (ExitCodeError);
-                }
+
+                // Make the working directory the directory for the root ink file,
+                // so that relative paths for INCLUDE files are correct.
+                workingDirectory = Path.GetDirectoryName(fullFilename);
+                Directory.SetCurrentDirectory(workingDirectory);
+
+                // Now make the input file relative to the working directory,
+                // but just getting the file's actual name.
+                opts.inputFile = Path.GetFileName(fullFilename);
+
+                inputString = File.ReadAllText(opts.inputFile);
+            }
+            catch {
+                Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
+                Environment.Exit (ExitCodeError);
             }
 
-            InkParser parser = null;
-            Parsed.Story parsedStory = null;
-            Runtime.Story story = null;
-            errors = new List<string> ();
-            warnings = new List<string> ();
-            authorMessages = new List<string> ();
-            var pluginManager = new PluginManager (pluginNames);
+            var inputIsJson = opts.inputFile.EndsWith (".json", StringComparison.InvariantCultureIgnoreCase);
 
-            var inputIsJson = opts.inputFile.EndsWith (".json");
+            Runtime.Story story;
+            Compiler compiler = null;
 
             // Loading a normal ink file (as opposed to an already compiled json file)
             if (!inputIsJson) {
-                TimeOperation ("Creating parser", () => {
-                    parser = new InkParser (inputString, opts.inputFile, OnError);
+
+                compiler = new Compiler (inputString, new Compiler.Options {
+                    sourceFilename = opts.inputFile,
+                    pluginNames = pluginNames,
+                    countAllVisits = opts.countAllVisits,
+                    errorHandler = OnError,
+                    fileHandler = this
                 });
 
-                TimeOperation ("Parsing", () => {
-                    parsedStory = parser.Parse ();
-                });
-
-                TimeOperation ("PostParsePlugins", () => {
-                    pluginManager.PostParse(parsedStory);
-                });
-
-                if (parsedStory != null && errors.Count == 0) {
-
-                    if (opts.countAllVisits) {
-                        parsedStory.countAllVisits = true;
-                    }
-
-                    TimeOperation ("Exporting runtime", () => {
-                        story = parsedStory.ExportRuntime (OnError);
-                    });
-
-                    TimeOperation ("PostParsePlugins", () => {
-                        pluginManager.PostExport(parsedStory, story);
-                    });
-
-                }
-
+                story = compiler.Compile ();
             } 
 
             // Opening up a compiled json file for playing
@@ -156,7 +120,7 @@ namespace Ink
 
             PrintAllMessages ();
 
-            if (story == null || errors.Count > 0) {
+            if (story == null || _errors.Count > 0) {
 				Environment.Exit (ExitCodeError);
 			}
                 
@@ -184,7 +148,7 @@ namespace Ink
                 // Always allow ink external fallbacks
                 story.allowExternalFunctionFallbacks = true;
 
-                var player = new CommandLinePlayer (story, false, parsedStory, opts.keepOpenAfterStoryFinish);
+                var player = new CommandLinePlayer (story, false, compiler, opts.keepOpenAfterStoryFinish);
 
                 //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
                 Console.CancelKeyPress += OnExit;
@@ -200,7 +164,7 @@ namespace Ink
                     }
                 } catch (System.Exception e) {
                     string storyPath = "<END>";
-                    var path = story.state.currentPointer.path;
+                    var path = story.state.currentPathString;
                     if (path != null) {
                         storyPath = path.ToString ();
                     }
@@ -222,6 +186,18 @@ namespace Ink
             }
         }
 
+        public string ResolveInkFilename (string includeName)
+        {
+            var workingDir = Directory.GetCurrentDirectory ();
+            var fullRootInkPath = Path.Combine (workingDir, includeName);
+            return fullRootInkPath;
+        }
+
+        public string LoadInkFileContents (string fullFilename)
+        {
+        	return File.ReadAllText (fullFilename);
+        }
+
         private void OnExit(object sender, ConsoleCancelEventArgs e)
         {
             Console.ResetColor();
@@ -230,15 +206,15 @@ namespace Ink
         {
             switch (errorType) {
             case ErrorType.Author:
-                authorMessages.Add (message);
+                _authorMessages.Add (message);
                 break;
 
             case ErrorType.Warning:
-                warnings.Add (message);
+                _warnings.Add (message);
                 break;
 
             case ErrorType.Error:
-                errors.Add (message);
+                _errors.Add (message);
                 break;
             }
 
@@ -259,13 +235,13 @@ namespace Ink
 
         void PrintAllMessages ()
         {
-            PrintMessages (authorMessages, ConsoleColor.Green);
-            PrintMessages (warnings, ConsoleColor.Blue);
-            PrintMessages (errors, ConsoleColor.Red);
+            PrintMessages (_authorMessages, ConsoleColor.Green);
+            PrintMessages (_warnings, ConsoleColor.Blue);
+            PrintMessages (_errors, ConsoleColor.Red);
 
-            authorMessages.Clear ();
-            warnings.Clear ();
-            errors.Clear ();
+            _authorMessages.Clear ();
+            _warnings.Clear ();
+            _errors.Clear ();
         }
 
         bool ProcessArguments(string[] args)
@@ -345,34 +321,12 @@ namespace Ink
 			return true;
 		}
 
-        void TimeOperation(string opDescription, Action op)
-        {
-            if (!opts.verbose) {
-                op ();
-                return;
-            }
-
-            Console.WriteLine ("{0}...", opDescription);
-
-            var stopwatch = Stopwatch.StartNew ();
-            op ();
-            stopwatch.Stop ();
-
-            long duration = stopwatch.ElapsedMilliseconds;
-
-            if (duration > 500) {
-                Console.WriteLine ("{0} took {1}s", opDescription, duration / 1000.0f);  
-            } else {
-                Console.WriteLine ("{0} took {1}ms", opDescription, duration);  
-            }
-        }
-
         Options opts;
         List<string> pluginNames;
 
-        List<string> errors;
-        List<string> warnings;
-        List<string> authorMessages;
+        List<string> _errors = new List<string>();
+        List<string> _warnings = new List<string>();
+        List<string> _authorMessages = new List<string>();
 
         bool _playing;
 	}

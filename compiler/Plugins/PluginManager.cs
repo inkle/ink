@@ -11,10 +11,11 @@ namespace Ink
 
             // TODO: Make these plugin names DLL filenames, and load up their assemblies
             foreach (string pluginName in pluginNames) {
-                if (pluginName == "ChoiceListPlugin") {
-                    _plugins.Add (new InkPlugin.ChoiceListPlugin ());
-                } else {
-                    throw new SystemException ("Plugin not found");
+                //if (pluginName == "ChoiceListPlugin") {
+                //    _plugins.Add (new InkPlugin.ChoiceListPlugin ());
+                //}else  
+                {
+                    throw new System.Exception ("Plugin not found");
                 }
             }
         }

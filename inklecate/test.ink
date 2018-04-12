@@ -1,1 +1,7 @@
-﻿This is a convenience ink file where you can test out changes in the compiler code.
+﻿{true():
+    x
+}
+
+=== function true()
+    X
+    ~ return true

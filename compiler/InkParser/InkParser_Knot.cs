@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Ink.Parsed;
+using System.Linq;
 
 namespace Ink
 {
@@ -223,7 +224,7 @@ namespace Ink
             if (parameterNames == null)
                 parameterNames = new List<FlowBase.Argument> ();
 
-            var argNames = parameterNames.ConvertAll<string> (arg => arg.name);
+            var argNames = parameterNames.Select (arg => arg.name).ToList();
 
             return new ExternalDeclaration (funcName, argNames);
         }

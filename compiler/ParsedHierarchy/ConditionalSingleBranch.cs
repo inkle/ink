@@ -67,7 +67,7 @@ namespace Ink.Parsed
                     var text = c as Parsed.Text;
                     if (text) {
                         // Don't need to trim at the start since the parser handles that already
-                        if (text.text.StartsWith ("else:", System.StringComparison.InvariantCulture)) {
+                        if (text.text.StartsWith ("else:")) {
                             Warning ("Saw the text 'else:' which is being treated as content. Did you mean '- else:'?", text);
                         }
                     }

@@ -6,16 +6,17 @@ namespace Ink
 {
 	internal partial class InkParser : StringParser
 	{
-        public InkParser(string str, string filenameForMetadata = null, Ink.ErrorHandler externalErrorHandler = null) 
-            : this(str, filenameForMetadata, externalErrorHandler, null) 
+        public InkParser(string str, string filenameForMetadata = null, Ink.ErrorHandler externalErrorHandler = null, IFileHandler fileHandler = null) 
+            : this(str, filenameForMetadata, externalErrorHandler, null, fileHandler) 
         {  }
 
-        InkParser(string str, string inkFilename = null, Ink.ErrorHandler externalErrorHandler = null, InkParser rootParser = null) : base(str) { 
+        InkParser(string str, string inkFilename = null, Ink.ErrorHandler externalErrorHandler = null, InkParser rootParser = null, IFileHandler fileHandler = null) : base(str) { 
             _filename = inkFilename;
 			RegisterExpressionOperators ();
             GenerateStatementLevelRules ();
             this.errorHandler = OnError;
             _externalErrorHandler = externalErrorHandler;
+            _fileHandler = fileHandler;
 
             if (rootParser == null) {
                 _rootParser = this;
@@ -23,10 +24,7 @@ namespace Ink
                 _openFilenames = new HashSet<string> ();
 
                 if (inkFilename != null) {
-
-                    var workingDir = Directory.GetCurrentDirectory();
-                    var fullRootInkPath = Path.Combine (workingDir, inkFilename);
-                    
+                    var fullRootInkPath = _fileHandler.ResolveInkFilename (inkFilename);
                     _openFilenames.Add (fullRootInkPath);
                 }
 
@@ -145,9 +143,11 @@ namespace Ink
             if (_externalErrorHandler != null) {
                 _externalErrorHandler (fullMessage, isWarning ? ErrorType.Warning : ErrorType.Error);
             } else {
-                Console.WriteLine (fullMessage);
+                throw new System.Exception (fullMessage);
             }
         }
+
+        IFileHandler _fileHandler;
 
         Ink.ErrorHandler _externalErrorHandler;
 

@@ -18,7 +18,7 @@ namespace Tests
 
     [TestFixture(TestMode.Normal)]
     [TestFixture(TestMode.JsonRoundTrip)]
-    internal class Tests
+    internal class Tests : IFileHandler
     {
         private List<string> _errorMessages = new List<string>();
 
@@ -28,14 +28,26 @@ namespace Tests
 
         private List<string> _warningMessages = new List<string>();
 
-        public Tests(TestMode mode)
+        public Tests (TestMode mode)
         {
-            _mode = mode;            
-            var codeBase = Assembly.GetExecutingAssembly().Location;
-            var uri = new UriBuilder(codeBase);
-            var path = Uri.UnescapeDataString(uri.Path);
-                path = System.IO.Path.GetDirectoryName(path);
-            Directory.SetCurrentDirectory(path);            
+            _mode = mode;
+            var codeBase = Assembly.GetExecutingAssembly ().Location;
+            var uri = new UriBuilder (codeBase);
+            var path = Uri.UnescapeDataString (uri.Path);
+            path = System.IO.Path.GetDirectoryName (path);
+            Directory.SetCurrentDirectory (path);
+        }
+
+        public string ResolveInkFilename (string includeName)
+        {
+            var workingDir = Directory.GetCurrentDirectory ();
+            var fullRootInkPath = System.IO.Path.Combine (workingDir, includeName);
+            return fullRootInkPath;
+        }
+
+        public string LoadInkFileContents (string fullFilename)
+        {
+            return File.ReadAllText (fullFilename);
         }
 
         [Test()]
@@ -3207,7 +3219,7 @@ Phrase 1
             _errorMessages.Clear();
             _warningMessages.Clear();
 
-            InkParser parser = new InkParser(str, null, TestErrorHandler);
+            InkParser parser = new InkParser(str, null, TestErrorHandler, this);
             var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
 

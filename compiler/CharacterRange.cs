@@ -43,7 +43,7 @@ namespace Ink
         {
         	_start = start;
         	_end = end;
-        	_excludes = new HashSet<char> (excludes == null ? (IEnumerable<char>)string.Empty : excludes);
+            _excludes = excludes == null ? new HashSet<char>() : new HashSet<char> (excludes);
         }
 
         char _start;

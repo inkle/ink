@@ -32,9 +32,6 @@ namespace Ink
 			return this;
 		}
 
-        // IEnumerable<char> automatically makes it compatible with:
-        //  - string
-        //  - another CharacterSet
 		public CharacterSet AddCharacters(IEnumerable<char> chars)
 		{
             foreach (char c in chars) {
@@ -42,6 +39,14 @@ namespace Ink
 			}
 			return this;
 		}
+
+        public CharacterSet AddCharacters (string chars)
+        {
+        	foreach (char c in chars) {
+        		Add (c);
+        	}
+        	return this;
+        }
 
 	}
 }

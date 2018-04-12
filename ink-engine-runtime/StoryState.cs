@@ -97,6 +97,16 @@ namespace Ink.Runtime
 
         internal Story story { get; set; }
 
+        public string currentPathString {
+            get {
+                var pointer = currentPointer;
+                if (pointer.isNull)
+                    return null;
+                else
+                    return pointer.path.ToString();
+            }
+        }
+
         internal Runtime.Pointer currentPointer {
             get {
                 return callStack.currentElement.currentPointer;

@@ -151,7 +151,7 @@ namespace Ink.Parsed
                     }
                 }
 
-                System.Diagnostics.Debug.Fail ("Unexpected operation or number type");
+                throw new System.Exception ("Unexpected operation or number type");
             }
 
             // Normal fallback

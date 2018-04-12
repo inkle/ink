@@ -20,8 +20,7 @@ namespace Ink
             filename = filename.TrimEnd (' ', '\t');
 
             // Working directory should already have been set up relative to the root ink file.
-            var workingDirectory = Directory.GetCurrentDirectory ();
-            var fullFilename = System.IO.Path.Combine (workingDirectory, filename);
+            var fullFilename = _rootParser._fileHandler.ResolveInkFilename (filename);
 
             if (FilenameIsAlreadyOpen (fullFilename)) {
                 Error ("Recursive INCLUDE detected: '" + fullFilename + "' is already open.");
@@ -34,10 +33,10 @@ namespace Ink
             Parsed.Story includedStory = null;
             string includedString = null;
             try {
-                includedString = File.ReadAllText(fullFilename);
+                includedString = _rootParser._fileHandler.LoadInkFileContents(fullFilename);
             }
             catch {
-                Error ("Failed to load: '"+filename+"' (relative to directory: "+workingDirectory+")");
+                Error ("Failed to load: '"+filename+"'");
             }
 
 

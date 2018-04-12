@@ -110,7 +110,7 @@ namespace Ink
             object result = ParseObject(rule);
 			if (result == null) {
 				if (message == null) {
-                    message = rule.Method.Name;
+                    message = rule.GetMethodInfo().Name;
 				}
 
                 string butSaw;
@@ -147,7 +147,7 @@ namespace Ink
                 var errorType = isWarning ? "Warning" : "Error";
 
                 if (errorHandler == null) {
-                    Console.WriteLine (errorType+" on line " + lineNumber + ": " + message);
+                    throw new System.Exception (errorType+" on line " + lineNumber + ": " + message);
                 } else {
                     errorHandler (message, index, lineNumber-1, isWarning);
                 }

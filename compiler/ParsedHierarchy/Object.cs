@@ -306,7 +306,7 @@ namespace Ink.Parsed
             if (this.parent) {
                 this.parent.Error (message, source, isWarning);
             } else {
-                System.Diagnostics.Debug.Fail ("No parent object to send error to: "+message);
+                throw new System.Exception ("No parent object to send error to: "+message);
             }
 
             if (isWarning) {

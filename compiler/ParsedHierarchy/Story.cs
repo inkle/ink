@@ -335,7 +335,7 @@ namespace Ink.Parsed
             if (_errorHandler != null) {
                 _errorHandler (message, errorType);
             } else {
-                Console.WriteLine (message);
+                throw new System.Exception (message);
             }
 
             _hadError = errorType == ErrorType.Error;

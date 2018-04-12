@@ -48,7 +48,7 @@ namespace Ink
             // Warn about accidentally writing "return" without "~"
             var firstText = result[0] as Text;
             if (firstText) {
-                if (firstText.text.StartsWith ("return", System.StringComparison.InvariantCulture)) {
+                if (firstText.text.StartsWith ("return")) {
                     Warning ("Do you need a '~' before 'return'? If not, perhaps use a glue: <> (since it's lowercase) or rewrite somehow?");
                 }
             }
