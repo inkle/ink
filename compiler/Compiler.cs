@@ -37,7 +37,8 @@ namespace Ink
         {
             _inputString = inkSource;
             _options = options ?? new Options();
-            _pluginManager = new PluginManager (_options.pluginNames);
+            if( _options.pluginNames != null )
+                _pluginManager = new PluginManager (_options.pluginNames);
         }
 
         public Runtime.Story Compile ()
@@ -46,7 +47,8 @@ namespace Ink
 
             _parsedStory = _parser.Parse ();
 
-            _pluginManager.PostParse(_parsedStory);
+            if( _pluginManager != null )
+                _pluginManager.PostParse(_parsedStory);
 
             if (_parsedStory != null && _errors.Count == 0) {
 
@@ -54,7 +56,8 @@ namespace Ink
 
                 _runtimeStory = _parsedStory.ExportRuntime (OnError);
 
-                _pluginManager.PostExport (_parsedStory, _runtimeStory);
+                if( _pluginManager != null )
+                    _pluginManager.PostExport (_parsedStory, _runtimeStory);
             } else {
                 _runtimeStory = null;
             }

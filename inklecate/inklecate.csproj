@@ -28,16 +28,6 @@
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Test|x86' ">
-    <Optimize>false</Optimize>
-    <OutputPath>bin\x86\Test</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-tpc</Commandlineparameters>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <Externalconsole>true</Externalconsole>
-    <ExternalConsole>true</ExternalConsole>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
@@ -47,17 +37,6 @@
     <Compile Include="CommandLinePlayer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <None Include="test.ink">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file.ink">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file2.ink">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
       <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
