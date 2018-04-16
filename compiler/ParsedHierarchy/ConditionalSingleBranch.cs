@@ -138,20 +138,7 @@ namespace Ink.Parsed
                 return new Runtime.Container ();
             }
 
-            var container = _innerWeave.rootContainer;
-
-            // Small optimisation: If it's just one piece of content that has
-            // its own container already (without an explicit name), then just
-            // re-use that container rather than nesting further.
-            if (container.content.Count == 1) {
-                var runtimeObj = container.content [0];
-                var singleContentContainer = runtimeObj as Runtime.Container;
-                if (singleContentContainer && !singleContentContainer.hasValidName) {
-                    container = singleContentContainer;
-                }
-            } 
-
-            return container;
+            return _innerWeave.rootContainer;
         }
 
         public override void ResolveReferences (Story context)

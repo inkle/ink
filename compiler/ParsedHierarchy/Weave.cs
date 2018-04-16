@@ -304,7 +304,15 @@ namespace Ink.Parsed
                     looseEnds.Remove ((Parsed.Object)previousWeavePoint);
                 }
 
-                currentContainer.AddContent (((Choice)weavePoint).runtimeObject);
+                // Add choice point content
+                var choice = (Choice)weavePoint;
+                currentContainer.AddContent (choice.runtimeObject);
+
+                // Add choice's inner content to self
+                choice.innerContentContainer.name = "c-" + _choiceCount;
+                currentContainer.AddToNamedContentOnly (choice.innerContentContainer);
+                _choiceCount++;
+
                 hasSeenChoiceInSection = true;
             }
 
@@ -478,6 +486,8 @@ namespace Ink.Parsed
         bool hasSeenChoiceInSection = false;
 
         int _unnamedGatherCount;
+
+        int _choiceCount;
 
 
         Runtime.Container _rootContainer;

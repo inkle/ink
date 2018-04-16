@@ -33,6 +33,12 @@ namespace Ink.Parsed
         public Runtime.Container runtimeContainer { get { return _innerContentContainer; } }
 
 
+        public Runtime.Container innerContentContainer {
+            get {
+                return _innerContentContainer;
+            }
+        }
+
         public override Runtime.Container containerForCounting {
             get {
                 return _innerContentContainer;
@@ -92,20 +98,24 @@ namespace Ink.Parsed
             //     ... choice only content
             //     EndEval
             //     Condition expression
-            //     choice: -> "c"
+            //     choice: -> "c-0"
             //     (s) = [
             //         start content
             //         -> r          -- goto return label 1 or 2
             //     ]
-            //     (c) = [
-            //         EvalStart
-            //         assign $r = $r2   -- return target = return label 2
-            //         EndEval
-            //         -> s
-            //         [(r2)]            -- return label 1 (after start content)
-            //         inner content
-            //     ]
-            // ]
+            //  ]
+            //
+            //  in parent's container: (the inner content for the choice)
+            //
+            //  (c-0) = [
+            //      EvalStart
+            //      assign $r = $r2   -- return target = return label 2
+            //      EndEval
+            //      -> s
+            //      [(r2)]            -- return label 1 (after start content)
+            //      inner content
+            //  ]
+            // 
 
             _runtimeChoice = new Runtime.ChoicePoint (onceOnly);
             _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
@@ -217,10 +227,6 @@ namespace Ink.Parsed
             if (startContent || innerContent) {
                 _innerContentContainer.AddContent(new Runtime.StringValue("\n"));
             }
-
-            // Use "c" as the destination name within the choice's outer container
-            _innerContentContainer.name = "c";
-            _outerContainer.AddToNamedContentOnly (_innerContentContainer);
 
             if (this.story.countAllVisits) {
                 _innerContentContainer.visitsShouldBeCounted = true;
