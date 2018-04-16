@@ -82,7 +82,7 @@ class InkTestBed : IFileHandler
         story.ChooseChoiceIndex (choiceIndex);
     }
 
-    void Compile (string inkSource)
+    Ink.Runtime.Story Compile (string inkSource)
     {
     	var compiler = new Compiler (inkSource, new Compiler.Options {
     		countAllVisits = true,
@@ -93,10 +93,12 @@ class InkTestBed : IFileHandler
     	story = compiler.Compile ();
 
     	PrintAllMessages ();
+
+        return story;
     }
 
 
-    void CompileFile (string filename)
+    Ink.Runtime.Story CompileFile (string filename)
     {
         var inkSource = File.ReadAllText (filename);
 
@@ -110,6 +112,8 @@ class InkTestBed : IFileHandler
         story = compiler.Compile ();
 
         PrintAllMessages ();
+
+        return story;
     }
 
     void JsonRoundtrip ()
@@ -169,17 +173,17 @@ class InkTestBed : IFileHandler
 
 		SplitFile ("test.ink", out ink1, out ink2);
 
-		Compile (ink1);
+        var story1 = Compile (ink1);
 
         test1 ();
 
-        var saveState = story.state.ToJson ();
+        var saveState = story1.state.ToJson ();
 
         Console.WriteLine ("------ SECOND INK VERSION ------");
 
-		Compile (ink2);
+		var story2 = Compile (ink2);
 
-        story.state.LoadJson (saveState);
+        story2.state.LoadJson (saveState);
 
         test2 ();
     }
