@@ -85,9 +85,19 @@ namespace Ink.Runtime
         public List<string> currentErrors { get { return state.currentErrors; } }
 
         /// <summary>
+        /// Any warnings generated during evaluation of the Story.
+        /// </summary>
+        public List<string> currentWarnings { get { return state.currentWarnings; } }
+
+        /// <summary>
         /// Whether the currentErrors list contains any errors.
         /// </summary>
         public bool hasError { get { return state.hasError; } }
+
+        /// <summary>
+        /// Whether the currentWarnings list contains any warnings.
+        /// </summary>
+        public bool hasWarning { get { return state.hasWarning; } }
 
         /// <summary>
         /// The VariablesState object contains all the global variables in the story.
@@ -212,7 +222,7 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Reset the runtime error list within the state.
+        /// Reset the runtime error and warning list within the state.
         /// </summary>
         public void ResetErrors()
         {
@@ -244,6 +254,8 @@ namespace Ink.Runtime
                 // Continue, but without validating external bindings,
                 // since we may be doing this reset at initialisation time.
                 ContinueInternal ();
+
+                state.variablesState.SnapshotDefaultGlobals ();
 
                 state.currentPointer = originalPointer;
             }
@@ -342,7 +354,7 @@ namespace Ink.Runtime
                 try {
                     outputStreamEndsInNewline = ContinueSingleStep ();
                 } catch(StoryException e) {
-                    AddError (e.Message, e.useEndLineNumber);
+                    AddError (e.Message, useEndLineNumber:e.useEndLineNumber);
                     break;
                 }
                 
@@ -838,7 +850,10 @@ namespace Ink.Runtime
 
                     var varContents = state.variablesState.GetVariableWithName (varName);
 
-                    if (!(varContents is DivertTargetValue)) {
+                    if (varContents == null) {
+                        Error ("Tried to divert using a target from a variable that could not be found (" + varName + ")");
+                    }
+                    else if (!(varContents is DivertTargetValue)) {
 
                         var intContent = varContents as IntValue;
 
@@ -1241,8 +1256,18 @@ namespace Ink.Runtime
                     foundValue = state.variablesState.GetVariableWithName (varRef.name);
 
                     if (foundValue == null) {
-                        Error("Uninitialised variable: " + varRef.name);
-                        foundValue = new IntValue (0);
+                        var defaultVal = state.variablesState.TryGetDefaultVariableValue (varRef.name);
+                        if (defaultVal != null) {
+                            Warning ("Variable not found in save state: '" + varRef.name + "', but seems to have been newly created. Assigning value from latest ink's declaration: " + defaultVal);
+                            foundValue = defaultVal;
+
+                            // Save for future usage, preventing future errors
+                            // Only do this for variables that are known to be globals, not those that may be missing temps.
+                            state.variablesState.SetGlobal(varRef.name, foundValue);
+                        } else {
+                            Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false).");
+                            foundValue = new IntValue (0);
+                        }
                     }
                 }
 
@@ -2185,20 +2210,27 @@ namespace Ink.Runtime
             throw e;
         }
 
-        void AddError (string message, bool useEndLineNumber = false)
+        void Warning (string message)
+        {
+            AddError (message, isWarning:true);
+        }
+
+        void AddError (string message, bool isWarning = false, bool useEndLineNumber = false)
         {
             var dm = currentDebugMetadata;
 
+            var errorTypeStr = isWarning ? "WARNING" : "ERROR";
+
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-                message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
+                message = string.Format ("RUNTIME {0}: '{1}' line {2}: {3}", errorTypeStr, dm.fileName, lineNum, message);
             } else if( !state.currentPointer.isNull  ) {
-				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPointer.path, message);
+                message = string.Format ("RUNTIME {0}: ({1}): {2}", errorTypeStr, state.currentPointer.path, message);
 			} else {
-                message = "RUNTIME ERROR: " + message;
+                message = "RUNTIME "+errorTypeStr+": " + message;
             }
 
-            state.AddError (message);
+            state.AddError (message, isWarning);
 
             // In a broken state don't need to know about any other errors.
             state.ForceEnd ();

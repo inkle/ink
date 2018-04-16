@@ -37,12 +37,19 @@ class InkTestBed : IFileHandler
     {
         Console.WriteLine(story.Continue ());
         PrintChoicesIfNecessary ();
+        PrintAllMessages (); // errors etc
     }
 
     void ContinueMaximally ()
     {
         Console.WriteLine (story.ContinueMaximally ());
         PrintChoicesIfNecessary ();
+        PrintAllMessages (); // errors etc
+    }
+
+    void Choose (int choiceIdx)
+    {
+        story.ChooseChoiceIndex (choiceIdx);
     }
 
     void PlayerChoice ()
@@ -210,6 +217,14 @@ class InkTestBed : IFileHandler
         _authorMessages.Clear ();
         _warnings.Clear ();
         _errors.Clear ();
+
+        if (story != null) {
+            if( story.hasError )
+                PrintMessages (story.currentErrors, ConsoleColor.Red);
+            if( story.hasWarning )
+                PrintMessages (story.currentWarnings, ConsoleColor.Blue);
+            story.ResetErrors ();
+        }
     }
 
     void PrintChoicesIfNecessary ()

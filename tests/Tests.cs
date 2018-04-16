@@ -3212,6 +3212,36 @@ Phrase 1
         }
 
 
+        [Test ()]
+        public void TestWarnVariableNotFound ()
+        {
+            var storyStr1 =
+        @"
+VAR x = 0
+Hello world!
+{x}
+        ";
+            var story1 = CompileString (storyStr1);
+
+            story1.Continue ();
+
+            var saveState = story1.state.ToJson ();
+
+var storyStr2 =
+@"
+VAR y = 0
+Hello world!
+{y}
+        ";
+            var story2 = CompileString (storyStr2);
+            story2.state.LoadJson (saveState);
+            story2.Continue ();
+
+            Assert.IsTrue (story2.hasWarning);
+            Assert.IsTrue (HadErrorOrWarning ("not found", story2.currentWarnings));
+        }
+
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

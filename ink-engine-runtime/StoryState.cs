@@ -84,6 +84,7 @@ namespace Ink.Runtime
 			}
 		}
         internal List<string> currentErrors { get; private set; }
+        internal List<string> currentWarnings { get; private set; }
         internal VariablesState variablesState { get; private set; }
         internal CallStack callStack { get; set; }
         internal List<Runtime.Object> evaluationStack { get; private set; }
@@ -97,6 +98,9 @@ namespace Ink.Runtime
 
         internal Story story { get; set; }
 
+        /// <summary>
+        /// String representation of the location where the story currently is.
+        /// </summary>
         public string currentPathString {
             get {
                 var pointer = currentPointer;
@@ -135,6 +139,12 @@ namespace Ink.Runtime
         {
             get {
                 return currentErrors != null && currentErrors.Count > 0;
+            }
+        }
+
+        internal bool hasWarning {
+            get {
+                return currentWarnings != null && currentWarnings.Count > 0;
             }
         }
 
@@ -241,6 +251,10 @@ namespace Ink.Runtime
             if (hasError) {
                 copy.currentErrors = new List<string> ();
                 copy.currentErrors.AddRange (currentErrors); 
+            }
+            if (hasWarning) {
+                copy.currentWarnings = new List<string> ();
+                copy.currentWarnings.AddRange (currentWarnings); 
             }
 
             copy.callStack = new CallStack (callStack);
@@ -375,6 +389,7 @@ namespace Ink.Runtime
         internal void ResetErrors()
         {
             currentErrors = null;
+            currentWarnings = null;
         }
             
         internal void ResetOutput(List<Runtime.Object> objs = null)
@@ -910,14 +925,15 @@ namespace Ink.Runtime
             return null;
         }
 
-        internal void AddError(string message)
+        internal void AddError(string message, bool isWarning)
         {
-            // TODO: Could just add to output?
-            if (currentErrors == null) {
-                currentErrors = new List<string> ();
+            if (!isWarning) {
+                if (currentErrors == null) currentErrors = new List<string> ();
+                currentErrors.Add (message);
+            } else {
+                if (currentWarnings == null) currentWarnings = new List<string> ();
+                currentWarnings.Add (message);
             }
-
-            currentErrors.Add (message);
         }
 
 		void OutputStreamDirty()
