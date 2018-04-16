@@ -13,14 +13,55 @@ class InkTestBed : IFileHandler
     void Run ()
     {
         CompileFile ("test.ink");
-        Console.WriteLine(story.ContinueMaximally ());
-        JsonRoundtrip ();
-
-        Compile ("Hello {1 + 2}!");
-        Console.WriteLine(story.ContinueMaximally ());
+        Continue ();
+        PlayerChoice ();
     }
 
     // ---------------------------------------------------------------
+    // Useful functions when testing
+    // ---------------------------------------------------------------
+
+    void Continue ()
+    {
+        Console.WriteLine(story.Continue ());
+        PrintChoicesIfNecessary ();
+    }
+
+    void ContinueMaximally ()
+    {
+        Console.WriteLine (story.ContinueMaximally ());
+        PrintChoicesIfNecessary ();
+    }
+
+    void PlayerChoice ()
+    {
+        bool hasValidChoice = false;
+        int choiceIndex = -1;
+
+        while (!hasValidChoice) {
+            Console.Write (">>> ");
+
+            string userInput = Console.ReadLine ();
+
+            if (userInput == null)
+                throw new System.Exception ("<User input stream closed.>");
+
+            int choiceNum;
+            if (int.TryParse (userInput, out choiceNum)) {
+                choiceIndex = choiceNum - 1;
+
+                if (choiceIndex >= 0 && choiceIndex < story.currentChoices.Count) {
+                    hasValidChoice = true;
+                } else {
+                    Console.WriteLine ("Choice out of range");
+                }
+            } else {
+                Console.WriteLine ("Not a number");
+            }
+        }
+
+        story.ChooseChoiceIndex (choiceIndex);
+    }
 
     void Compile (string inkSource)
     {
@@ -75,6 +116,8 @@ class InkTestBed : IFileHandler
     public static void Main (string [] args)
     {
         new InkTestBed ().Run ();
+
+        Console.WriteLine (">>> TEST BED ENDED <<<");
     }
 
     void PrintMessages (List<string> messageList, ConsoleColor colour)
@@ -97,6 +140,18 @@ class InkTestBed : IFileHandler
         _authorMessages.Clear ();
         _warnings.Clear ();
         _errors.Clear ();
+    }
+
+    void PrintChoicesIfNecessary ()
+    {
+        if (!story.canContinue && story.currentChoices != null) {
+
+            int number = 1;
+            foreach (var c in story.currentChoices) {
+                Console.WriteLine (" {0}) {1}", number, c.text);
+                number++;
+            }
+        }
     }
 
     void OnError (string message, Ink.ErrorType errorType)
