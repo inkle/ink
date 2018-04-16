@@ -12,14 +12,26 @@ class InkTestBed : IFileHandler
 
     void Run ()
     {
-        CompileFile ("test.ink");
-        Continue ();
-        PlayerChoice ();
+        Play ();
     }
 
     // ---------------------------------------------------------------
     // Useful functions when testing
     // ---------------------------------------------------------------
+
+    // Full play loop
+    void Play ()
+    {
+        if (story == null) CompileFile ("test.ink");
+
+        while (story.canContinue || story.currentChoices.Count > 0) {
+            if (story.canContinue)
+                ContinueMaximally ();
+
+            if (story.currentChoices.Count > 0)
+                PlayerChoice ();
+        }
+    }
 
     void Continue ()
     {
@@ -105,6 +117,64 @@ class InkTestBed : IFileHandler
         Console.WriteLine (newJsonStr);
 
         story = reloadedStory;
+    }
+
+    // e.g.:
+    //
+    // Hello world
+    // + choice
+    //     done!
+    //     -> END
+    //
+    // ------ SECOND INK VERSION ------
+    //
+    // Hello world
+    // + choice
+    //     done!
+    //     -> END
+    //
+    void SplitFile (string filename, out string ink1, out string ink2)
+    {
+        const string splitStr = "------ SECOND INK VERSION ------";
+
+        var fullSource = File.ReadAllText (filename);
+
+        var idx = fullSource.IndexOf (splitStr, StringComparison.InvariantCulture);
+        if (idx == -1)
+            throw new System.Exception ("Split point not found in " + filename);
+
+        ink1 = fullSource.Substring (0, idx);
+        ink2 = fullSource.Substring (idx + splitStr.Length);
+    }
+
+    // e.g.:
+    //
+    //     InkChangingTest (() => {
+    //         ContinueMaximally ();
+    //         story.ChooseChoiceIndex (0);
+    //     }, () => {
+    //         ContinueMaximally ();
+    //     });
+    //
+    void InkChangingTest (Action test1, Action test2)
+    {
+        string ink1, ink2;
+
+		SplitFile ("test.ink", out ink1, out ink2);
+
+		Compile (ink1);
+
+        test1 ();
+
+        var saveState = story.state.ToJson ();
+
+        Console.WriteLine ("------ SECOND INK VERSION ------");
+
+		Compile (ink2);
+
+        story.state.LoadJson (saveState);
+
+        test2 ();
     }
 
     // ---------------------
