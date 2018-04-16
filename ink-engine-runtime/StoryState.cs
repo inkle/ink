@@ -17,8 +17,8 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 7;
-        const int kMinCompatibleLoadVersion = 6;
+        public const int kInkSaveStateVersion = 8;
+        const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
         /// Exports the current state to json format, in order to save the game.
@@ -294,7 +294,6 @@ namespace Ink.Runtime
 
 				Dictionary<string, object> choiceThreads = null;
 				foreach (Choice c in _currentChoices) {
-                    c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
 					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
@@ -372,8 +371,6 @@ namespace Ink.Runtime
 				var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
 
 				foreach (var c in _currentChoices) {
-					c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
-
 					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 					if( foundActiveThread != null ) {
 						c.threadAtGeneration = foundActiveThread;

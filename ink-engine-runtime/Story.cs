@@ -49,7 +49,7 @@ namespace Ink.Runtime
                 // Don't include invisible choices for external usage.
                 var choices = new List<Choice>();
                 foreach (var c in _state.currentChoices) {
-                    if (!c.choicePoint.isInvisibleDefault) {
+                    if (!c.isInvisibleDefault) {
                         c.index = choices.Count;
                         choices.Add (c);
                     }
@@ -784,9 +784,6 @@ namespace Ink.Runtime
                     showChoice = false;
                 }
             }
-                
-            var choice = new Choice (choicePoint);
-            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // We go through the full process of creating the choice above so
             // that we consume the content for it, since otherwise it'll
@@ -794,6 +791,12 @@ namespace Ink.Runtime
             if (!showChoice) {
                 return null;
             }
+
+            var choice = new Choice ();
+            choice.targetPath = choicePoint.pathOnChoice;
+            choice.sourcePath = choicePoint.path.ToString ();
+            choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
+            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // Set final text for the choice
             choice.text = startText + choiceOnlyText;
@@ -1380,7 +1383,7 @@ namespace Ink.Runtime
             var choiceToChoose = choices [choiceIdx];
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
-            ChoosePath (choiceToChoose.choicePoint.choiceTarget.path);
+            ChoosePath (choiceToChoose.targetPath);
         }
 
         /// <summary>
@@ -2097,13 +2100,13 @@ namespace Ink.Runtime
             var allChoices = _state.currentChoices;
 
             // Is a default invisible choice the ONLY choice?
-            var invisibleChoices = allChoices.Where (c => c.choicePoint.isInvisibleDefault).ToList();
+            var invisibleChoices = allChoices.Where (c => c.isInvisibleDefault).ToList();
             if (invisibleChoices.Count == 0 || allChoices.Count > invisibleChoices.Count)
                 return false;
 
             var choice = invisibleChoices [0];
 
-            ChoosePath (choice.choicePoint.choiceTarget.path);
+            ChoosePath (choice.targetPath);
 
             return true;
         }

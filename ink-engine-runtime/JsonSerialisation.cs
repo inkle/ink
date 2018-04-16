@@ -550,8 +550,9 @@ namespace Ink.Runtime
             var choice = new Choice();
             choice.text = jObj ["text"].ToString();
             choice.index = (int)jObj ["index"];
-            choice.originalChoicePath = jObj ["originalChoicePath"].ToString();
+            choice.sourcePath = jObj ["originalChoicePath"].ToString();
             choice.originalThreadIndex = (int)jObj ["originalThreadIndex"];
+            choice.pathStringOnChoice = jObj ["targetPath"].ToString();
             return choice;
         }
 
@@ -560,8 +561,9 @@ namespace Ink.Runtime
             var jObj = new Dictionary<string, object> ();
             jObj ["text"] = choice.text;
             jObj ["index"] = choice.index;
-            jObj ["originalChoicePath"] = choice.originalChoicePath;
+            jObj ["originalChoicePath"] = choice.sourcePath;
             jObj ["originalThreadIndex"] = choice.originalThreadIndex;
+            jObj ["targetPath"] = choice.pathStringOnChoice;
             return jObj;
         }
 
