@@ -255,10 +255,10 @@ namespace Ink.Runtime
                 // since we may be doing this reset at initialisation time.
                 ContinueInternal ();
 
-                state.variablesState.SnapshotDefaultGlobals ();
-
                 state.currentPointer = originalPointer;
             }
+
+            state.variablesState.SnapshotDefaultGlobals ();
         }
 
         /// <summary>
