@@ -98,8 +98,9 @@ class InkTestBed : IFileHandler
     }
 
 
-    Ink.Runtime.Story CompileFile (string filename)
+    Ink.Runtime.Story CompileFile (string filename = null)
     {
+        if (filename == null) filename = "test.ink";
         var inkSource = File.ReadAllText (filename);
 
         var compiler = new Compiler (inkSource, new Compiler.Options {

@@ -45,15 +45,7 @@ namespace Ink.Runtime
             // Try to get a line number from debug metadata
             var root = this.rootContentContainer;
             if (root) {
-                Runtime.Object targetContent = null;
-
-                // Sometimes paths can be "invalid" if they're externally defined
-                // in the game. TODO: Change ContentAtPath to return null, and
-                // only throw an exception in places that actually care!
-                try {
-                    targetContent = root.ContentAtPath (path);
-                } catch { }
-
+                Runtime.Object targetContent = root.ContentAtPath (path).obj;
                 if (targetContent) {
                     var dm = targetContent.debugMetadata;
                     if (dm != null) {
@@ -105,7 +97,7 @@ namespace Ink.Runtime
 		}
         Path _path;
 
-        internal Runtime.Object ResolvePath(Path path)
+        internal SearchResult ResolvePath(Path path)
         {
             if (path.isRelative) {
 

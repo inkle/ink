@@ -61,6 +61,7 @@
     <Compile Include="ListDefinitionsOrigin.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="Pointer.cs" />
+    <Compile Include="SearchResult.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 </Project>

@@ -566,9 +566,18 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        internal Runtime.Object ContentAtPath(Path path)
+        internal SearchResult ContentAtPath(Path path)
         {
             return mainContentContainer.ContentAtPath (path);
+        }
+
+        internal Runtime.Container KnotContainerWithName (string name)
+        {
+            INamedContent namedContainer;
+            if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
+                return namedContainer as Container;
+            else
+                return null;
         }
 
         internal Pointer PointerAtPath (Path path)
@@ -578,13 +587,24 @@ namespace Ink.Runtime
 
             var p = new Pointer ();
 
+            int pathLengthToUse = path.length;
+
+            SearchResult result;
             if( path.lastComponent.isIndex ) {
-                p.container = mainContentContainer.ContentAtPath (path, partialPathLength: path.length - 1) as Container;
+                pathLengthToUse = path.length - 1;
+                result = mainContentContainer.ContentAtPath (path, pathLengthToUse);
+                p.container = result.container;
                 p.index = path.lastComponent.index;
             } else {
-                p.container = mainContentContainer.ContentAtPath (path) as Container;
+                result = mainContentContainer.ContentAtPath (path);
+                p.container = result.container;
                 p.index = -1;
             }
+
+            if (result.obj == null || result.obj == mainContentContainer && pathLengthToUse > 0)
+                Error ("Failed to find content at path '" + path + "', and no approximation of it was possible.");
+            else if (result.approximate)
+                Warning ("Failed to find content at path '" + path + "', so it was approximated to: '"+result.obj.path+"'.");
 
             return p;
         }
@@ -736,6 +756,10 @@ namespace Ink.Runtime
             // If the new object is a container itself, it will be visited automatically at the next actual
             // content step. However, we need to walk up the new ancestry to see if there are more new containers
             Runtime.Object currentChildOfContainer = pointer.Resolve();
+
+            // Invalid pointer? May happen if attemptingto 
+            if (currentChildOfContainer == null) return;
+
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
 			while (currentContainerAncestor && !_prevContainers.Contains(currentContainerAncestor)) {
 
@@ -1053,13 +1077,22 @@ namespace Ink.Runtime
                     }
                         
                     var divertTarget = target as DivertTargetValue;
-                    var container = ContentAtPath (divertTarget.targetPath) as Container;
+                    var container = ContentAtPath (divertTarget.targetPath).correctObj as Container;
 
                     int eitherCount;
-                    if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
-                        eitherCount = TurnsSinceForContainer (container);
-                    else
-                        eitherCount = VisitCountForContainer (container);
+                    if (container != null) {
+                        if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                            eitherCount = TurnsSinceForContainer (container);
+                        else
+                            eitherCount = VisitCountForContainer (container);
+                    } else {
+                        if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                            eitherCount = -1; // turn count, default to never/unknown
+                        else
+                            eitherCount = 0; // visit count, assume 0 to default to allowing entry
+
+                        Warning ("Failed to find container for " + evalCommand.ToString () + " lookup at " + divertTarget.targetPath.ToString ());
+                    }
                     
                     state.PushEvaluationStack (new IntValue (eitherCount));
                     break;
@@ -1394,7 +1427,7 @@ namespace Ink.Runtime
         public bool HasFunction (string functionName)
         {
             try {
-                return ContentAtPath (new Path (functionName)) is Runtime.Container;
+                return KnotContainerWithName (functionName) != null;
             } catch {
                 return false;
             }
@@ -1431,15 +1464,9 @@ namespace Ink.Runtime
 			}
 
             // Get the content that we need to run
-            Runtime.Container funcContainer = null;
-            try {
-                funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
-            } catch (StoryException e) {
-                if (e.Message.Contains ("not found"))
-                    throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
-                else
-                    throw e;
-            }
+            var funcContainer = KnotContainerWithName (functionName);
+            if( funcContainer == null )
+                throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
 
             // Snapshot the output stream
             var outputStreamBefore = new List<Runtime.Object>(state.outputStream);
@@ -1516,7 +1543,7 @@ namespace Ink.Runtime
             // Try to use fallback function?
             if (!foundExternal) {
                 if (allowExternalFunctionFallbacks) {
-                    fallbackFunctionContainer = ContentAtPath (new Path (funcName)) as Container;
+                    fallbackFunctionContainer = KnotContainerWithName (funcName);
                     Assert (fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound, and fallback ink function could not be found.");
 
                     // Divert direct into fallback function and we're done
@@ -1951,7 +1978,7 @@ namespace Ink.Runtime
             var path = new Runtime.Path (pathString);
 
             // Expected to be global story, knot or stitch
-            var flowContainer = ContentAtPath (path) as Container;
+            var flowContainer = ContentAtPath (path).container;
             while(true) {
                 var firstContent = flowContainer.content [0];
                 if (firstContent is Container)
@@ -2206,14 +2233,14 @@ namespace Ink.Runtime
 
         // Throw an exception that gets caught and causes AddError to be called,
         // then exits the flow.
-        void Error(string message, bool useEndLineNumber = false)
+        internal void Error(string message, bool useEndLineNumber = false)
         {
             var e = new StoryException (message);
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }
 
-        void Warning (string message)
+        internal void Warning (string message)
         {
             AddError (message, isWarning:true);
         }

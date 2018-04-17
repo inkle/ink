@@ -66,8 +66,15 @@ namespace Ink.Runtime
 					object currentContainerPathStrToken;
 					if (jElementObj.TryGetValue ("cPath", out currentContainerPathStrToken)) {
 						currentContainerPathStr = currentContainerPathStrToken.ToString ();
-						pointer.container = storyContext.ContentAtPath (new Path(currentContainerPathStr)) as Container;
-                        pointer.index = (int) jElementObj ["idx"];
+
+                        var threadPointerResult = storyContext.ContentAtPath (new Path (currentContainerPathStr));
+                        pointer.container = threadPointerResult.container;
+                        pointer.index = (int)jElementObj ["idx"];
+
+                        if (threadPointerResult.obj == null)
+                            throw new System.Exception ("When loading state, internal story location couldn't be found: " + currentContainerPathStr + ". Has the story changed since this save data was created?");
+                        else if (threadPointerResult.approximate)
+                            storyContext.Warning ("When loading state, exact internal story location couldn't be found: '" + currentContainerPathStr + "', so it was approximated to '"+pointer.container.path.ToString()+"' to recover. Has the story changed since this save data was created?");
 					}
 
                     bool inExpressionEvaluation = (bool)jElementObj ["exp"];

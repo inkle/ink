@@ -28,7 +28,7 @@ namespace Ink.Runtime
 
         internal Container choiceTarget {
             get {
-                return this.ResolvePath (_pathOnChoice) as Container;
+                return this.ResolvePath (_pathOnChoice).container;
             }
         }
 

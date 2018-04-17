@@ -25,7 +25,7 @@ namespace Ink.Runtime
         public Pointer targetPointer {
             get {
                 if (_targetPointer.isNull) {
-                    var targetObj = ResolvePath (_targetPath);
+                    var targetObj = ResolvePath (_targetPath).obj;
 
                     if (_targetPath.lastComponent.isIndex) {
                         _targetPointer.container = targetObj.parent as Container;
