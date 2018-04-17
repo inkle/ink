@@ -297,8 +297,12 @@ namespace Ink.Parsed
                 var contentIdx = parentContainer.content.IndexOf (container);
                 parentContainer.content.RemoveAt (contentIdx);
 
+                var dm = container.ownDebugMetadata;
+
                 foreach (var innerContent in container.content) {
                     innerContent.parent = null;
+                    if (dm != null && innerContent.ownDebugMetadata == null)
+                        innerContent.debugMetadata = dm;
                     parentContainer.InsertContent (innerContent, contentIdx);
                     contentIdx++;
                 }

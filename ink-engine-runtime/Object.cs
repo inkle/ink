@@ -32,6 +32,12 @@ namespace Ink.Runtime
             }
         }
 
+        internal Runtime.DebugMetadata ownDebugMetadata {
+            get {
+                return _debugMetadata;
+            }
+        }
+
         // TODO: Come up with some clever solution for not having
         // to have debug metadata on the object itself, perhaps
         // for serialisation purposes at least.
