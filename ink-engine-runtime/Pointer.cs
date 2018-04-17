@@ -24,8 +24,11 @@ namespace Ink.Runtime
 		public Runtime.Object Resolve ()
 		{
             if (index < 0) return container;
-            if (container == null || index >= container.content.Count) return null;
+            if (container == null) return null;
+            if (container.content.Count == 0) return container;
+            if (index >= container.content.Count) return null;
             return container.content [index];
+
 		}
 
         public bool isNull {
