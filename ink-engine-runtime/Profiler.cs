@@ -86,11 +86,18 @@ namespace Ink.Runtime
 				
 			_currStepStack = stack;
 
-            var currObj = callstack.currentElement.currentPointer.Resolve();
+			var currObj = callstack.currentElement.currentPointer.Resolve();
+
+			string stepType = null;
+			var controlCommandStep = currObj as ControlCommand;
+			if( controlCommandStep )
+				stepType = controlCommandStep.commandType.ToString() + " CC";
+			else
+				stepType = currObj.GetType().Name;
 
 			_currStepDetails = new StepDetails {
-				type = currObj.GetType().Name,
-				detail = currObj.ToString()
+				type = stepType,
+				obj = currObj
 			};
 
 			_stepWatch.Start();
@@ -118,6 +125,8 @@ namespace Ink.Runtime
 		{
 			var sb = new StringBuilder();
 
+			sb.AppendLine("TOTAL: "+_rootNode.totalMillisecs+"ms");
+
 			var averageStepTimes = _stepDetails
 				.GroupBy(s => s.type)
 				.Select(typeToDetails => new KeyValuePair<string, double>(typeToDetails.Key, typeToDetails.Average(d => d.time)))
@@ -131,13 +140,41 @@ namespace Ink.Runtime
 
 			sb.AppendLine("AVERAGE STEP TIMES: "+string.Join(", ", averageStepTimes));
 
-			var maxStepTimes = _stepDetails
-				.OrderByDescending(d => d.time)
-				.Select(d => d.detail + ":" + d.time + "ms")
-				.Take(100)
+			var accumStepTimes = _stepDetails
+				.GroupBy(s => s.type)
+				.Select(typeToDetails => new KeyValuePair<string, double>(typeToDetails.Key + " (x"+typeToDetails.Count()+")", typeToDetails.Sum(d => d.time)))
+				.OrderByDescending(stepTypeToAccum => stepTypeToAccum.Value)
+				.Select(stepTypeToAccum => {
+					var typeName = stepTypeToAccum.Key;
+					var time = stepTypeToAccum.Value;
+					return typeName + ": " + time;
+				})
 				.ToArray();
 
-			sb.AppendLine("MAX STEP TIMES: "+string.Join("\n", maxStepTimes));
+			sb.AppendLine("ACCUMULATED STEP TIMES: "+string.Join(", ", accumStepTimes));
+
+			return sb.ToString();
+		}
+
+        /// <summary>
+        /// Create a large log of all the internal instructions that were evaluated while profiling was active.
+        /// Log is in a tab-separated format, for easy loading into a spreadsheet application.
+        /// </summary>
+		public string Megalog()
+		{
+			var sb = new StringBuilder();
+
+			sb.AppendLine("Step type\tDescription\tPath\tTime");
+
+			foreach(var step in _stepDetails) {
+				sb.Append(step.type);
+				sb.Append("\t");
+				sb.Append(step.obj.ToString());
+				sb.Append("\t");
+				sb.Append(step.obj.path);
+				sb.Append("\t");
+				sb.AppendLine(step.time.ToString("F8"));
+			}
 
 			return sb.ToString();
 		}
@@ -189,7 +226,7 @@ namespace Ink.Runtime
 
 		struct StepDetails {
 			public string type;
-			public string detail;
+			public Runtime.Object obj;
 			public double time;
 		}
 		List<StepDetails> _stepDetails = new List<StepDetails>();
@@ -227,6 +264,12 @@ namespace Ink.Runtime
 		public bool hasChildren {
 			get {
 				return _nodes != null && _nodes.Count > 0;
+			}
+		}
+
+		public int totalMillisecs {
+			get {
+				return (int)_totalMillisecs;
 			}
 		}
 
