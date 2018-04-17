@@ -2263,7 +2263,8 @@ namespace Ink.Runtime
             state.AddError (message, isWarning);
 
             // In a broken state don't need to know about any other errors.
-            state.ForceEnd ();
+            if( !isWarning )
+                state.ForceEnd ();
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)

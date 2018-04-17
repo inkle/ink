@@ -123,13 +123,19 @@ namespace Ink
                         Console.WriteLine (errorMsg, ConsoleColor.Red);
                     }
                 }
+
+                if (story.hasWarning) {
+                    foreach (var warningMsg in story.currentWarnings) {
+                        Console.WriteLine (warningMsg, ConsoleColor.Blue);
+                    }
+                }
+
+                story.ResetErrors ();
             }
 
             if (story.currentChoices.Count == 0 && keepOpenAfterStoryFinish) {
                 Console.WriteLine ("--- End of story ---");
             }
-
-            story.ResetErrors ();
         }
 
         Compiler _compiler;

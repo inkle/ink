@@ -28,6 +28,8 @@ class InkTestBed : IFileHandler
             if (story.canContinue)
                 ContinueMaximally ();
 
+            PrintAllMessages ();
+
             if (story.currentChoices.Count > 0)
                 PlayerChoice ();
         }

@@ -3242,6 +3242,23 @@ Hello world!
         }
 
 
+        [Test ()]
+        public void TestTempNotFound ()
+        {
+        	var storyStr =
+        @"
+{x}
+~temp x = 5
+hello
+                ";
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("0\nhello\n", story.ContinueMaximally ());
+
+        	Assert.IsTrue (story.hasWarning);
+        }
+
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
