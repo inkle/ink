@@ -24,6 +24,9 @@ class InkTestBed : IFileHandler
     {
         if (story == null) CompileFile ("test.ink");
 
+        // Errors to the extent that story couldn't be constructed?
+        if (story == null) return;
+
         while (story.canContinue || story.currentChoices.Count > 0) {
             if (story.canContinue)
                 ContinueMaximally ();

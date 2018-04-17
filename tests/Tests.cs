@@ -3259,6 +3259,29 @@ hello
         }
 
 
+        [Test ()]
+        public void TestTempNotAllowedCrossStitch ()
+        {
+        	var storyStr =
+                @"
+-> knot.stitch
+
+== knot (y) ==
+~temp x = 5
+-> END
+
+= stitch
+{x} {y}
+-> END
+			";
+            
+        	CompileStringWithoutRuntime (storyStr, testingErrors:true);
+
+            Assert.IsTrue (HadError ("Unresolved variable: x"));
+            Assert.IsTrue (HadError ("Unresolved variable: y"));
+        }
+
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

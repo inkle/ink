@@ -91,40 +91,36 @@ namespace Ink.Parsed
         {
             var result = new VariableResolveResult ();
 
-            if (fromNode == null) {
-                fromNode = this;
-            }
-                
-            var ancestor = fromNode;
-            while (ancestor) {
+            // Search in the stitch / knot that owns the node first
+            var ownerFlow = fromNode == null ? this : fromNode.ClosestFlowBase ();
 
-                if (ancestor is FlowBase) {
-                    var ancestorFlow = (FlowBase)ancestor;
-
-
-                    if (ancestorFlow.arguments != null ) {
-                        foreach (var arg in ancestorFlow.arguments) {
-                            if (arg.name.Equals (varName)) {
-                                result.found = true;
-                                result.isArgument = true;
-                                result.ownerFlow = ancestorFlow;
-                                return result;
-                            }
-                        }
-                    }
-
-                    if (ancestorFlow.variableDeclarations.ContainsKey (varName)) {
+            // Argument
+            if (ownerFlow.arguments != null ) {
+                foreach (var arg in ownerFlow.arguments) {
+                    if (arg.name.Equals (varName)) {
                         result.found = true;
-                        result.ownerFlow = ancestorFlow;
-                        if ( !(ancestorFlow is Story) ) {
-                            result.isTemporary = true;
-                        }
+                        result.isArgument = true;
+                        result.ownerFlow = ownerFlow;
                         return result;
                     }
-
                 }
+            }
 
-                ancestor = ancestor.parent;
+            // Temp
+            var story = this.story; // optimisation
+            if (ownerFlow != story && ownerFlow.variableDeclarations.ContainsKey (varName)) {
+                result.found = true;
+                result.ownerFlow = ownerFlow;
+                result.isTemporary = true;
+                return result;
+            }
+
+            // Global
+            if (story.variableDeclarations.ContainsKey (varName)) {
+                result.found = true;
+                result.ownerFlow = story;
+                result.isTemporary = false;
+                return result;
             }
 
             result.found = false;
