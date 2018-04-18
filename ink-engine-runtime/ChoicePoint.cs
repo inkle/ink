@@ -28,7 +28,7 @@ namespace Ink.Runtime
 
         internal Container choiceTarget {
             get {
-                return this.ResolvePath (_pathOnChoice) as Container;
+                return this.ResolvePath (_pathOnChoice).container;
             }
         }
 
@@ -79,7 +79,7 @@ namespace Ink.Runtime
             string targetString = pathOnChoice.ToString ();
 
             if (targetLineNum != null) {
-                targetString = " line " + targetLineNum;
+                targetString = " line " + targetLineNum + "("+targetString+")";
             } 
 
             return "Choice: -> " + targetString;

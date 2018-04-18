@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +16,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 17;
+        public const int inkVersionCurrent = 18;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format (which is um, currently nonexistant)
@@ -33,7 +33,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The minimum legacy version of ink that can be loaded by the current version of the code.
         /// </summary>
-        const int inkVersionMinimumCompatible = 16;
+        const int inkVersionMinimumCompatible = 18;
 
         /// <summary>
         /// The list of Choice objects available at the current point in
@@ -49,7 +49,7 @@ namespace Ink.Runtime
                 // Don't include invisible choices for external usage.
                 var choices = new List<Choice>();
                 foreach (var c in _state.currentChoices) {
-                    if (!c.choicePoint.isInvisibleDefault) {
+                    if (!c.isInvisibleDefault) {
                         c.index = choices.Count;
                         choices.Add (c);
                     }
@@ -85,9 +85,19 @@ namespace Ink.Runtime
         public List<string> currentErrors { get { return state.currentErrors; } }
 
         /// <summary>
+        /// Any warnings generated during evaluation of the Story.
+        /// </summary>
+        public List<string> currentWarnings { get { return state.currentWarnings; } }
+
+        /// <summary>
         /// Whether the currentErrors list contains any errors.
         /// </summary>
         public bool hasError { get { return state.hasError; } }
+
+        /// <summary>
+        /// Whether the currentWarnings list contains any warnings.
+        /// </summary>
+        public bool hasWarning { get { return state.hasWarning; } }
 
         /// <summary>
         /// The VariablesState object contains all the global variables in the story.
@@ -212,7 +222,7 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Reset the runtime error list within the state.
+        /// Reset the runtime error and warning list within the state.
         /// </summary>
         public void ResetErrors()
         {
@@ -237,7 +247,7 @@ namespace Ink.Runtime
         void ResetGlobals()
         {
             if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
-                var originalPath = state.currentPath;
+                var originalPointer = state.currentPointer;
 
                 ChoosePathString ("global decl", resetCallstack: false);
 
@@ -245,8 +255,10 @@ namespace Ink.Runtime
                 // since we may be doing this reset at initialisation time.
                 ContinueInternal ();
 
-                state.currentPath = originalPath;
+                state.currentPointer = originalPointer;
             }
+
+            state.variablesState.SnapshotDefaultGlobals ();
         }
 
         /// <summary>
@@ -342,7 +354,7 @@ namespace Ink.Runtime
                 try {
                     outputStreamEndsInNewline = ContinueSingleStep ();
                 } catch(StoryException e) {
-                    AddError (e.Message, e.useEndLineNumber);
+                    AddError (e.Message, useEndLineNumber:e.useEndLineNumber);
                     break;
                 }
                 
@@ -430,34 +442,27 @@ namespace Ink.Runtime
                 // it wouldn't immediately be removed by glue?
                 if (_stateAtLastNewline != null) {
 
-                    // Cover cases that non-text generated content was evaluated last step
-					string currText = state.currentText;
-                    int prevTextLength = _stateAtLastNewline.currentText.Length;
+                    // Has proper text or a tag been added? Then we know that the newline
+                    // that was previously added is definitely the end of the line.
+                    var change = CalculateNewlineOutputStateChange (
+                        _stateAtLastNewline.currentText,       state.currentText, 
+                        _stateAtLastNewline.currentTags.Count, state.currentTags.Count
+                    );
 
-                    // Take tags into account too, so that a tag following a content line:
-                    //   Content
-                    //   # tag
-                    // ... doesn't cause the tag to be wrongly associated with the content above.
-                    int prevTagCount = _stateAtLastNewline.currentTags.Count;
+                    // The last time we saw a newline, it was definitely the end of the line, so we
+                    // want to rewind to that point.
+                    if (change == OutputStateChange.ExtendedBeyondNewline) {
+                        RestoreStateSnapshot (_stateAtLastNewline);
 
-                    // Output has been extended?
-                    if (!currText.Equals (_stateAtLastNewline.currentText) || prevTagCount != state.currentTags.Count) {
+                        // Hit a newline for sure, we're done
+                        return true;
+                    } 
 
-                        // Original newline still exists?
-                        if (currText.Length >= prevTextLength && currText [prevTextLength - 1] == '\n') {
-                            RestoreStateSnapshot (_stateAtLastNewline);
-
-                            // Hit a newline for sure, we're done
-                            return true;
-                        }
-
-                        // Newline that previously existed is no longer valid - e.g.
-                        // glue was encounted that caused it to be removed.
-                        else {
-                            _stateAtLastNewline = null;
-                        }
+                    // Newline that previously existed is no longer valid - e.g.
+                    // glue was encounted that caused it to be removed.
+                    else if (change == OutputStateChange.NewlineRemoved) {
+                        _stateAtLastNewline = null;
                     }
-
                 }
 
                 // Current content ends in a newline - approaching end of our evaluation
@@ -494,6 +499,54 @@ namespace Ink.Runtime
             return false;
         }
 
+
+
+
+        // Assumption: prevText is the snapshot where we saw a newline, and we're checking whether we're really done
+        //             with that line. Therefore prevText will definitely end in a newline.
+        //
+        // We take tags into account too, so that a tag following a content line:
+        //   Content
+        //   # tag
+        // ... doesn't cause the tag to be wrongly associated with the content above.
+        enum OutputStateChange
+        {
+        	NoChange,
+        	ExtendedBeyondNewline,
+        	NewlineRemoved
+        }
+        OutputStateChange CalculateNewlineOutputStateChange (string prevText, string currText, int prevTagCount, int currTagCount)
+        {
+            // Simple case: nothing's changed, and we still have a newline
+            // at the end of the current content
+            var newlineStillExists = currText.Length >= prevText.Length && currText [prevText.Length - 1] == '\n';
+            if (prevTagCount == currTagCount && prevText.Length == currText.Length 
+                && newlineStillExists)
+                return OutputStateChange.NoChange;
+
+            // Old newline has been removed, it wasn't the end of the line after all
+            if (!newlineStillExists) {
+                return OutputStateChange.NewlineRemoved;
+            }
+
+            // Tag added - definitely the start of a new line
+            if (currTagCount > prevTagCount)
+                return OutputStateChange.ExtendedBeyondNewline;
+
+            // There must be new content - check whether it's just whitespace
+            for (int i = prevText.Length; i < currText.Length; i++) {
+                var c = currText [i];
+                if (c != ' ' && c != '\t') {
+                    return OutputStateChange.ExtendedBeyondNewline;
+                }
+            }
+
+            // There's new text but it's just spaces and tabs, so there's still the potential
+            // for glue to kill the newline.
+            return OutputStateChange.NoChange;
+        }
+
+
         /// <summary>
         /// Continue the story until the next choice point or until it runs out of content.
         /// This is as opposed to the Continue() method which only evaluates one line of
@@ -513,9 +566,47 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        internal Runtime.Object ContentAtPath(Path path)
+        internal SearchResult ContentAtPath(Path path)
         {
             return mainContentContainer.ContentAtPath (path);
+        }
+
+        internal Runtime.Container KnotContainerWithName (string name)
+        {
+            INamedContent namedContainer;
+            if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
+                return namedContainer as Container;
+            else
+                return null;
+        }
+
+        internal Pointer PointerAtPath (Path path)
+        {
+            if (path.length == 0)
+                return Pointer.Null;
+
+            var p = new Pointer ();
+
+            int pathLengthToUse = path.length;
+
+            SearchResult result;
+            if( path.lastComponent.isIndex ) {
+                pathLengthToUse = path.length - 1;
+                result = mainContentContainer.ContentAtPath (path, pathLengthToUse);
+                p.container = result.container;
+                p.index = path.lastComponent.index;
+            } else {
+                result = mainContentContainer.ContentAtPath (path);
+                p.container = result.container;
+                p.index = -1;
+            }
+
+            if (result.obj == null || result.obj == mainContentContainer && pathLengthToUse > 0)
+                Error ("Failed to find content at path '" + path + "', and no approximation of it was possible.");
+            else if (result.approximate)
+                Warning ("Failed to find content at path '" + path + "', so it was approximated to: '"+result.obj.path+"'.");
+
+            return p;
         }
 
         StoryState StateSnapshot()
@@ -533,29 +624,27 @@ namespace Ink.Runtime
             bool shouldAddToStream = true;
 
             // Get current content
-            var currentContentObj = state.currentContentObject;
-            if (currentContentObj == null) {
+            var pointer = state.currentPointer;
+            if (pointer.isNull) {
                 return;
             }
-                
+
             // Step directly to the first element of content in a container (if necessary)
-            Container currentContainer = currentContentObj as Container;
-            while(currentContainer) {
+            Container containerToEnter = pointer.Resolve () as Container;
+            while(containerToEnter) {
 
                 // Mark container as being entered
-                VisitContainer (currentContainer, atStart:true);
+                VisitContainer (containerToEnter, atStart:true);
 
                 // No content? the most we can do is step past it
-                if (currentContainer.content.Count == 0)
+                if (containerToEnter.content.Count == 0)
                     break;
 
-                currentContentObj = currentContainer.content [0];
-                state.callStack.currentElement.currentContentIndex = 0;
-                state.callStack.currentElement.currentContainer = currentContainer;
 
-                currentContainer = currentContentObj as Container;
+                pointer = Pointer.StartOf (containerToEnter);
+                containerToEnter = pointer.Resolve() as Container;
             }
-            currentContainer = state.callStack.currentElement.currentContainer;
+            state.currentPointer = pointer;
 
 			if( _profiler != null ) {
 				_profiler.Step(state.callStack);
@@ -566,10 +655,11 @@ namespace Ink.Runtime
             //  - Or a logic/flow statement - if so, do it
             // Stop flow if we hit a stack pop when we're unable to pop (e.g. return/done statement in knot
             // that was diverted to rather than called as a function)
+            var currentContentObj = pointer.Resolve ();
             bool isLogicOrFlowControl = PerformLogicAndFlowControl (currentContentObj);
 
             // Has flow been forced to end by flow control above?
-            if (state.currentContentObject == null) {
+            if (state.currentPointer.isNull) {
                 return;
             }
 
@@ -642,31 +732,36 @@ namespace Ink.Runtime
             }
         }
 
-		HashSet<Container> _prevContainerSet;
+        List<Container> _prevContainers = new List<Container>();
         void VisitChangedContainersDueToDivert()
         {
-            var previousContentObject = state.previousContentObject;
-            var newContentObject = state.currentContentObject;
+            var previousPointer = state.previousPointer;
+            var pointer = state.currentPointer;
 
-            if (!newContentObject)
+            // Unless we're pointing *directly* at a piece of content, we don't do
+            // counting here. Otherwise, the main stepping function will do the counting.
+            if (pointer.isNull || pointer.index == -1)
                 return;
             
             // First, find the previously open set of containers
-			if( _prevContainerSet == null ) _prevContainerSet = new HashSet<Container> ();
-			_prevContainerSet.Clear();
-            if (previousContentObject) {
-                Container prevAncestor = previousContentObject as Container ?? previousContentObject.parent as Container;
+			_prevContainers.Clear();
+            if (!previousPointer.isNull) {
+                Container prevAncestor = previousPointer.Resolve() as Container ?? previousPointer.container as Container;
                 while (prevAncestor) {
-					_prevContainerSet.Add (prevAncestor);
+					_prevContainers.Add (prevAncestor);
                     prevAncestor = prevAncestor.parent as Container;
                 }
             }
 
             // If the new object is a container itself, it will be visited automatically at the next actual
             // content step. However, we need to walk up the new ancestry to see if there are more new containers
-            Runtime.Object currentChildOfContainer = newContentObject;
+            Runtime.Object currentChildOfContainer = pointer.Resolve();
+
+            // Invalid pointer? May happen if attemptingto 
+            if (currentChildOfContainer == null) return;
+
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
-			while (currentContainerAncestor && !_prevContainerSet.Contains(currentContainerAncestor)) {
+			while (currentContainerAncestor && !_prevContainers.Contains(currentContainerAncestor)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
@@ -713,9 +808,6 @@ namespace Ink.Runtime
                     showChoice = false;
                 }
             }
-                
-            var choice = new Choice (choicePoint);
-            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // We go through the full process of creating the choice above so
             // that we consume the content for it, since otherwise it'll
@@ -723,6 +815,12 @@ namespace Ink.Runtime
             if (!showChoice) {
                 return null;
             }
+
+            var choice = new Choice ();
+            choice.targetPath = choicePoint.pathOnChoice;
+            choice.sourcePath = choicePoint.path.ToString ();
+            choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
+            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // Set final text for the choice
             choice.text = startText + choiceOnlyText;
@@ -779,7 +877,10 @@ namespace Ink.Runtime
 
                     var varContents = state.variablesState.GetVariableWithName (varName);
 
-                    if (!(varContents is DivertTargetValue)) {
+                    if (varContents == null) {
+                        Error ("Tried to divert using a target from a variable that could not be found (" + varName + ")");
+                    }
+                    else if (!(varContents is DivertTargetValue)) {
 
                         var intContent = varContents as IntValue;
 
@@ -794,20 +895,23 @@ namespace Ink.Runtime
                     }
 
                     var target = (DivertTargetValue)varContents;
-                    state.divertedTargetObject = ContentAtPath(target.targetPath);
+                    state.divertedPointer = PointerAtPath(target.targetPath);
 
                 } else if (currentDivert.isExternal) {
                     CallExternalFunction (currentDivert.targetPathString, currentDivert.externalArgs);
                     return true;
                 } else {
-                    state.divertedTargetObject = currentDivert.targetContent;
+                    state.divertedPointer = currentDivert.targetPointer;
                 }
 
                 if (currentDivert.pushesToStack) {
-                    state.callStack.Push (currentDivert.stackPushType);
+                    state.callStack.Push (
+                        currentDivert.stackPushType, 
+                        outputStreamLengthWithPushed:state.outputStream.Count
+                    );
                 }
 
-                if (state.divertedTargetObject == null && !currentDivert.isExternal) {
+                if (state.divertedPointer.isNull && !currentDivert.isExternal) {
 
                     // Human readable name available - runtime divert is part of a hard-written divert that to missing content
                     if (currentDivert && currentDivert.debugMetadata.sourceName != null) {
@@ -904,11 +1008,11 @@ namespace Ink.Runtime
                     } 
 
                     else {
-                        state.callStack.Pop ();
+                        state.PopCallstack ();
 
                         // Does tunnel onwards override by diverting to a new ->-> target?
                         if( overrideTunnelReturnTarget )
-                            state.divertedTargetObject = ContentAtPath (overrideTunnelReturnTarget.targetPath);
+                            state.divertedPointer = PointerAtPath (overrideTunnelReturnTarget.targetPath);
                     }
 
                     break;
@@ -943,7 +1047,7 @@ namespace Ink.Runtime
                     }
 
                     // Consume the content that was produced for this string
-                    state.outputStream.RemoveRange (state.outputStream.Count - outputCountConsumed, outputCountConsumed);
+                    state.PopFromOutputStream (outputCountConsumed);
 
                     // Build string out of the content we collected
                     var sb = new StringBuilder ();
@@ -973,13 +1077,22 @@ namespace Ink.Runtime
                     }
                         
                     var divertTarget = target as DivertTargetValue;
-                    var container = ContentAtPath (divertTarget.targetPath) as Container;
+                    var container = ContentAtPath (divertTarget.targetPath).correctObj as Container;
 
                     int eitherCount;
-                    if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
-                        eitherCount = TurnsSinceForContainer (container);
-                    else
-                        eitherCount = VisitCountForContainer (container);
+                    if (container != null) {
+                        if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                            eitherCount = TurnsSinceForContainer (container);
+                        else
+                            eitherCount = VisitCountForContainer (container);
+                    } else {
+                        if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
+                            eitherCount = -1; // turn count, default to never/unknown
+                        else
+                            eitherCount = 0; // visit count, assume 0 to default to allowing entry
+
+                        Warning ("Failed to find container for " + evalCommand.ToString () + " lookup at " + divertTarget.targetPath.ToString ());
+                    }
                     
                     state.PushEvaluationStack (new IntValue (eitherCount));
                     break;
@@ -1024,7 +1137,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var count = VisitCountForContainer(state.currentContainer) - 1; // index not count
+                    var count = VisitCountForContainer(state.currentPointer.container) - 1; // index not count
                     state.PushEvaluationStack (new IntValue (count));
                     break;
 
@@ -1051,7 +1164,7 @@ namespace Ink.Runtime
                         state.didSafeExit = true;
 
                         // Stop flow in current thread
-                        state.currentContentObject = null;
+                        state.currentPointer = Pointer.Null;
                     }
 
                     break;
@@ -1179,8 +1292,18 @@ namespace Ink.Runtime
                     foundValue = state.variablesState.GetVariableWithName (varRef.name);
 
                     if (foundValue == null) {
-                        Error("Uninitialised variable: " + varRef.name);
-                        foundValue = new IntValue (0);
+                        var defaultVal = state.variablesState.TryGetDefaultVariableValue (varRef.name);
+                        if (defaultVal != null) {
+                            Warning ("Variable not found in save state: '" + varRef.name + "', but seems to have been newly created. Assigning value from latest ink's declaration: " + defaultVal);
+                            foundValue = defaultVal;
+
+                            // Save for future usage, preventing future errors
+                            // Only do this for variables that are known to be globals, not those that may be missing temps.
+                            state.variablesState.SetGlobal(varRef.name, foundValue);
+                        } else {
+                            Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit.");
+                            foundValue = new IntValue (0);
+                        }
                     }
                 }
 
@@ -1249,7 +1372,7 @@ namespace Ink.Runtime
                 // pretty much in any state. Let's catch one of the worst offenders.
                 if (state.callStack.currentElement.type == PushPopType.Function) {
                     string funcDetail = "";
-                    var container = state.callStack.currentElement.currentContainer;
+                    var container = state.callStack.currentElement.currentPointer.container;
                     if (container != null) {
                         funcDetail = "("+container.path.ToString ()+") ";
                     }
@@ -1293,7 +1416,7 @@ namespace Ink.Runtime
             var choiceToChoose = choices [choiceIdx];
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
-            ChoosePath (choiceToChoose.choicePoint.choiceTarget.path);
+            ChoosePath (choiceToChoose.targetPath);
         }
 
         /// <summary>
@@ -1304,7 +1427,7 @@ namespace Ink.Runtime
         public bool HasFunction (string functionName)
         {
             try {
-                return ContentAtPath (new Path (functionName)) is Runtime.Container;
+                return KnotContainerWithName (functionName) != null;
             } catch {
                 return false;
             }
@@ -1341,15 +1464,9 @@ namespace Ink.Runtime
 			}
 
             // Get the content that we need to run
-            Runtime.Container funcContainer = null;
-            try {
-                funcContainer = ContentAtPath (new Path (functionName)) as Runtime.Container;
-            } catch (StoryException e) {
-                if (e.Message.Contains ("not found"))
-                    throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
-                else
-                    throw e;
-            }
+            var funcContainer = KnotContainerWithName (functionName);
+            if( funcContainer == null )
+                throw new System.Exception ("Function doesn't exist: '" + functionName + "'");
 
             // Snapshot the output stream
             var outputStreamBefore = new List<Runtime.Object>(state.outputStream);
@@ -1396,7 +1513,7 @@ namespace Ink.Runtime
             // have auto-popped, but just in case we didn't for some reason,
             // manually pop to restore the state (including currentPath).
             if (state.callStack.elements.Count > startCallStackHeight) {
-                state.callStack.Pop ();
+                state.PopCallstack ();
             }
 
             int endStackHeight = state.evaluationStack.Count;
@@ -1426,12 +1543,15 @@ namespace Ink.Runtime
             // Try to use fallback function?
             if (!foundExternal) {
                 if (allowExternalFunctionFallbacks) {
-                    fallbackFunctionContainer = ContentAtPath (new Path (funcName)) as Container;
+                    fallbackFunctionContainer = KnotContainerWithName (funcName);
                     Assert (fallbackFunctionContainer != null, "Trying to call EXTERNAL function '" + funcName + "' which has not been bound, and fallback ink function could not be found.");
 
                     // Divert direct into fallback function and we're done
-                    state.callStack.Push (PushPopType.Function);
-                    state.divertedTargetObject = fallbackFunctionContainer;
+                    state.callStack.Push (
+                        PushPopType.Function, 
+                        outputStreamLengthWithPushed:state.outputStream.Count
+                    );
+                    state.divertedPointer = Pointer.StartOf(fallbackFunctionContainer);
                     return;
 
                 } else {
@@ -1858,7 +1978,7 @@ namespace Ink.Runtime
             var path = new Runtime.Path (pathString);
 
             // Expected to be global story, knot or stitch
-            var flowContainer = ContentAtPath (path) as Container;
+            var flowContainer = ContentAtPath (path).container;
             while(true) {
                 var firstContent = flowContainer.content [0];
                 if (firstContent is Container)
@@ -1890,7 +2010,7 @@ namespace Ink.Runtime
         {
             var sb = new StringBuilder ();
 
-            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+            mainContentContainer.BuildStringOfHierarchy (sb, 0, state.currentPointer.Resolve());
 
             return sb.ToString ();
         }
@@ -1899,7 +2019,7 @@ namespace Ink.Runtime
         {
         	var sb = new StringBuilder ();
 
-        	container.BuildStringOfHierarchy (sb, 0, state.currentContentObject);
+            container.BuildStringOfHierarchy (sb, 0, state.currentPointer.Resolve());
 
         	return sb.ToString();
         }
@@ -1907,19 +2027,19 @@ namespace Ink.Runtime
 		private void NextContent()
 		{
             // Setting previousContentObject is critical for VisitChangedContainersDueToDivert
-            state.previousContentObject = state.currentContentObject;
+            state.previousPointer = state.currentPointer;
 
 			// Divert step?
-			if (state.divertedTargetObject != null) {
+			if (!state.divertedPointer.isNull) {
 
-                state.currentContentObject = state.divertedTargetObject;
-                state.divertedTargetObject = null;
+                state.currentPointer = state.divertedPointer;
+                state.divertedPointer = Pointer.Null;
 
                 // Internally uses state.previousContentObject and state.currentContentObject
                 VisitChangedContainersDueToDivert ();
 
                 // Diverted location has valid content?
-                if (state.currentContentObject != null) {
+                if (!state.currentPointer.isNull) {
                     return;
                 }
 				
@@ -1938,9 +2058,9 @@ namespace Ink.Runtime
                 bool didPop = false;
 
                 if (state.callStack.CanPop (PushPopType.Function)) {
-                    
+
                     // Pop from the call stack
-                    state.callStack.Pop (PushPopType.Function);
+                    state.PopCallstack (PushPopType.Function);
 
                     // This pop was due to dropping off the end of a function that didn't return anything,
                     // so in this case, we make sure that the evaluator has something to chomp on if it needs it
@@ -1958,7 +2078,7 @@ namespace Ink.Runtime
                 }
 
                 // Step past the point where we last called out
-                if (didPop && state.currentContentObject != null) {
+                if (didPop && !state.currentPointer.isNull) {
                     NextContent ();
                 }
 			}
@@ -1968,33 +2088,36 @@ namespace Ink.Runtime
         {
             bool successfulIncrement = true;
 
-            var currEl = state.callStack.currentElement;
-            currEl.currentContentIndex++;
+            var pointer = state.callStack.currentElement.currentPointer;
+            pointer.index++;
 
             // Each time we step off the end, we fall out to the next container, all the
             // while we're in indexed rather than named content
-            while (currEl.currentContentIndex >= currEl.currentContainer.content.Count) {
+            while (pointer.index >= pointer.container.content.Count) {
 
                 successfulIncrement = false;
 
-                Container nextAncestor = currEl.currentContainer.parent as Container;
+                Container nextAncestor = pointer.container.parent as Container;
                 if (!nextAncestor) {
                     break;
                 }
 
-                var indexInAncestor = nextAncestor.content.IndexOf (currEl.currentContainer);
+                var indexInAncestor = nextAncestor.content.IndexOf (pointer.container);
                 if (indexInAncestor == -1) {
                     break;
                 }
 
-                currEl.currentContainer = nextAncestor;
-                currEl.currentContentIndex = indexInAncestor + 1;
+                pointer = new Pointer (nextAncestor, indexInAncestor);
+
+                // Increment to next content in outer container
+                pointer.index++;
 
                 successfulIncrement = true;
             }
 
-            if (!successfulIncrement)
-                currEl.currentContainer = null;
+            if (!successfulIncrement) pointer = Pointer.Null;
+
+            state.callStack.currentElement.currentPointer = pointer;
 
             return successfulIncrement;
         }
@@ -2004,13 +2127,13 @@ namespace Ink.Runtime
             var allChoices = _state.currentChoices;
 
             // Is a default invisible choice the ONLY choice?
-            var invisibleChoices = allChoices.Where (c => c.choicePoint.isInvisibleDefault).ToList();
+            var invisibleChoices = allChoices.Where (c => c.isInvisibleDefault).ToList();
             if (invisibleChoices.Count == 0 || allChoices.Count > invisibleChoices.Count)
                 return false;
 
             var choice = invisibleChoices [0];
 
-            ChoosePath (choice.choicePoint.choiceTarget.path);
+            ChoosePath (choice.targetPath);
 
             return true;
         }
@@ -2069,7 +2192,7 @@ namespace Ink.Runtime
                 return 0;
             }
 
-            var seqContainer = state.currentContainer;
+            var seqContainer = state.currentPointer.container;
 
             int numElements = numElementsIntVal.value;
 
@@ -2110,30 +2233,38 @@ namespace Ink.Runtime
 
         // Throw an exception that gets caught and causes AddError to be called,
         // then exits the flow.
-        void Error(string message, bool useEndLineNumber = false)
+        internal void Error(string message, bool useEndLineNumber = false)
         {
             var e = new StoryException (message);
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }
 
-        void AddError (string message, bool useEndLineNumber = false)
+        internal void Warning (string message)
+        {
+            AddError (message, isWarning:true);
+        }
+
+        void AddError (string message, bool isWarning = false, bool useEndLineNumber = false)
         {
             var dm = currentDebugMetadata;
 
+            var errorTypeStr = isWarning ? "WARNING" : "ERROR";
+
             if (dm != null) {
                 int lineNum = useEndLineNumber ? dm.endLineNumber : dm.startLineNumber;
-                message = string.Format ("RUNTIME ERROR: '{0}' line {1}: {2}", dm.fileName, lineNum, message);
-            } else if( state.currentPath != null  ) {
-				message = string.Format ("RUNTIME ERROR: ({0}): {1}", state.currentPath, message);
+                message = string.Format ("RUNTIME {0}: '{1}' line {2}: {3}", errorTypeStr, dm.fileName, lineNum, message);
+            } else if( !state.currentPointer.isNull  ) {
+                message = string.Format ("RUNTIME {0}: ({1}): {2}", errorTypeStr, state.currentPointer.path, message);
 			} else {
-                message = "RUNTIME ERROR: " + message;
+                message = "RUNTIME "+errorTypeStr+": " + message;
             }
 
-            state.AddError (message);
+            state.AddError (message, isWarning);
 
             // In a broken state don't need to know about any other errors.
-            state.ForceEnd ();
+            if( !isWarning )
+                state.ForceEnd ();
         }
 
         void Assert(bool condition, string message = null, params object[] formatParams)
@@ -2156,9 +2287,9 @@ namespace Ink.Runtime
                 DebugMetadata dm;
 
                 // Try to get from the current path first
-                var currentContent = state.currentContentObject;
-                if (currentContent) {
-                    dm = currentContent.debugMetadata;
+                var pointer = state.currentPointer;
+                if (!pointer.isNull) {
+                    dm = pointer.Resolve().debugMetadata;
                     if (dm != null) {
                         return dm;
                     }
@@ -2166,9 +2297,12 @@ namespace Ink.Runtime
                     
                 // Move up callstack if possible
                 for (int i = state.callStack.elements.Count - 1; i >= 0; --i) {
-                    var currentObj = state.callStack.elements [i].currentObject;
-                    if (currentObj && currentObj.debugMetadata != null) {
-                        return currentObj.debugMetadata;
+                    pointer = state.callStack.elements [i].currentPointer;
+                    if (!pointer.isNull && pointer.Resolve() != null) {
+                        dm = pointer.Resolve().debugMetadata;
+                        if (dm != null) {
+                            return dm;
+                        }
                     }
                 }
 

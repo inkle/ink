@@ -18,17 +18,20 @@ namespace Ink.Runtime
         /// The target path that the Story should be diverted to if
         /// this Choice is chosen.
         /// </summary>
-        public string pathStringOnChoice { get { return choicePoint.pathStringOnChoice; } }
+        public string pathStringOnChoice {
+            get {
+                return targetPath.ToString ();
+            }
+            set {
+                targetPath = new Path (value);
+            }
+        }
 
         /// <summary>
         /// Get the path to the original choice point - where was this choice defined in the story?
         /// </summary>
         /// <value>A dot separated path into the story data.</value>
-        public string sourcePath {
-            get {
-                return choicePoint.path.componentsString;
-            }
-        }
+        public string sourcePath;
 
         /// <summary>
         /// The original index into currentChoices list on the Story when
@@ -36,23 +39,16 @@ namespace Ink.Runtime
         /// </summary>
         public int index { get; set; }
 
-        internal ChoicePoint choicePoint { get; set; }
+        internal Path targetPath;
+
         internal CallStack.Thread threadAtGeneration { get; set; }
         internal int originalThreadIndex;
 
-        // Only used temporarily for loading/saving from JSON
-        internal string originalChoicePath;
-
+        internal bool isInvisibleDefault;
 
         internal Choice()
         {
         }
-
-		internal Choice (ChoicePoint choice)
-		{
-			this.choicePoint = choice;
-		}
-
 	}
 }
 

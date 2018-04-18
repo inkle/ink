@@ -10,7 +10,7 @@
 
         internal Container containerForCount {
             get {
-                return this.ResolvePath (pathForCount) as Container;
+                return this.ResolvePath (pathForCount).container;
             }
         }
             

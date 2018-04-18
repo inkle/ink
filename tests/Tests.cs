@@ -18,7 +18,7 @@ namespace Tests
 
     [TestFixture(TestMode.Normal)]
     [TestFixture(TestMode.JsonRoundTrip)]
-    internal class Tests
+    internal class Tests : IFileHandler
     {
         private List<string> _errorMessages = new List<string>();
 
@@ -28,14 +28,26 @@ namespace Tests
 
         private List<string> _warningMessages = new List<string>();
 
-        public Tests(TestMode mode)
+        public Tests (TestMode mode)
         {
-            _mode = mode;            
-            var codeBase = Assembly.GetExecutingAssembly().Location;
-            var uri = new UriBuilder(codeBase);
-            var path = Uri.UnescapeDataString(uri.Path);
-                path = System.IO.Path.GetDirectoryName(path);
-            Directory.SetCurrentDirectory(path);            
+            _mode = mode;
+            var codeBase = Assembly.GetExecutingAssembly ().Location;
+            var uri = new UriBuilder (codeBase);
+            var path = Uri.UnescapeDataString (uri.Path);
+            path = System.IO.Path.GetDirectoryName (path);
+            Directory.SetCurrentDirectory (path);
+        }
+
+        public string ResolveInkFilename (string includeName)
+        {
+            var workingDir = Directory.GetCurrentDirectory ();
+            var fullRootInkPath = System.IO.Path.Combine (workingDir, includeName);
+            return fullRootInkPath;
+        }
+
+        public string LoadInkFileContents (string fullFilename)
+        {
+            return File.ReadAllText (fullFilename);
         }
 
         [Test()]
@@ -1298,7 +1310,7 @@ VAR globalVal = 5
             Story story = CompileString(storyStr);
 
             // Bloody whitespace
-            Assert.AreEqual("5\n \n625\n", story.ContinueMaximally());
+            Assert.AreEqual("5\n625\n", story.ContinueMaximally());
         }
 
         [Test()]
@@ -3106,9 +3118,168 @@ hello{1:
 
         	var story = CompileString (storyStr);
 
-        	Assert.AreEqual ("hello world\n", story.ContinueMaximally ());
+        	Assert.AreEqual ("hello\n world\n", story.ContinueMaximally ());
         }
 
+
+        [Test ()]
+        public void TestNewlinesWithStringEval ()
+        {
+        	var storyStr =
+@"
+A
+~temp someTemp = string()
+B
+
+A 
+{string()}
+B
+
+=== function string()    
+    ~ return ""{3}""
+}
+";
+
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("A\nB\nA\n3\nB\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestNewlinesTrimmingWithFuncExternalFallback ()
+        {
+        	var storyStr =
+@"
+EXTERNAL TRUE ()
+
+Phrase 1 
+{ TRUE ():
+
+	Phrase 2
+}
+-> END 
+
+=== function TRUE ()
+	~ return true
+";
+
+        	var story = CompileString (storyStr);
+            story.allowExternalFunctionFallbacks = true;
+
+        	Assert.AreEqual ("Phrase 1\nPhrase 2\n", story.ContinueMaximally ());
+        }
+
+        [Test ()]
+        public void TestMultilineLogicWithGlue ()
+        {
+        	var storyStr =
+@"
+{true:
+    a 
+} <> b
+
+
+{true:
+    a 
+} <> { true: 
+    b 
+}
+";
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("a b\na b\n", story.ContinueMaximally ());
+        }
+
+
+
+        [Test ()]
+        public void TestNewlineAtStartOfMultilineConditional ()
+        {
+        	var storyStr =
+        @"
+{true():
+    x
+}
+
+=== function true()
+    X
+	~ return true
+        ";
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("X\nx\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
+        public void TestWarnVariableNotFound ()
+        {
+            var storyStr1 =
+        @"
+VAR x = 0
+Hello world!
+{x}
+        ";
+            var story1 = CompileString (storyStr1);
+
+            story1.Continue ();
+
+            var saveState = story1.state.ToJson ();
+
+var storyStr2 =
+@"
+VAR y = 0
+Hello world!
+{y}
+        ";
+            var story2 = CompileString (storyStr2);
+            story2.state.LoadJson (saveState);
+            story2.Continue ();
+
+            Assert.IsTrue (story2.hasWarning);
+            Assert.IsTrue (HadErrorOrWarning ("not found", story2.currentWarnings));
+        }
+
+
+        [Test ()]
+        public void TestTempNotFound ()
+        {
+        	var storyStr =
+        @"
+{x}
+~temp x = 5
+hello
+                ";
+        	var story = CompileString (storyStr);
+
+        	Assert.AreEqual ("0\nhello\n", story.ContinueMaximally ());
+
+        	Assert.IsTrue (story.hasWarning);
+        }
+
+
+        [Test ()]
+        public void TestTempNotAllowedCrossStitch ()
+        {
+        	var storyStr =
+                @"
+-> knot.stitch
+
+== knot (y) ==
+~temp x = 5
+-> END
+
+= stitch
+{x} {y}
+-> END
+			";
+            
+        	CompileStringWithoutRuntime (storyStr, testingErrors:true);
+
+            Assert.IsTrue (HadError ("Unresolved variable: x"));
+            Assert.IsTrue (HadError ("Unresolved variable: y"));
+        }
 
 
         // Helper compile function
@@ -3118,7 +3289,7 @@ hello{1:
             _errorMessages.Clear();
             _warningMessages.Clear();
 
-            InkParser parser = new InkParser(str, null, TestErrorHandler);
+            InkParser parser = new InkParser(str, null, TestErrorHandler, this);
             var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
 
