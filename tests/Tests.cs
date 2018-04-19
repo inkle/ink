@@ -20,13 +20,14 @@ namespace Tests
     [TestFixture(TestMode.JsonRoundTrip)]
     internal class Tests : IFileHandler
     {
-        private List<string> _errorMessages = new List<string>();
-
+        
         private TestMode _mode;
 
         private bool _testingErrors;
-
+        private List<string> _errorMessages = new List<string> ();
         private List<string> _warningMessages = new List<string>();
+        private List<string> _authorMessages = new List<string>();
+
 
         public Tests (TestMode mode)
         {
@@ -3290,6 +3291,7 @@ hello
             _testingErrors = testingErrors;
             _errorMessages.Clear();
             _warningMessages.Clear();
+            _authorMessages.Clear ();
 
             InkParser parser = new InkParser(str, null, TestErrorHandler, this);
             var parsedStory = parser.Parse();
@@ -3314,6 +3316,7 @@ hello
             _testingErrors = testingErrors;
             _errorMessages.Clear();
             _warningMessages.Clear();
+            _authorMessages.Clear ();
 
             InkParser parser = new InkParser(str, null, TestErrorHandler);
             var parsedStory = parser.Parse();
@@ -3358,9 +3361,11 @@ hello
             if (_testingErrors)
             {
                 if (errorType == ErrorType.Error)
-                    _errorMessages.Add(message);
+                    _errorMessages.Add (message);
+                else if (errorType == ErrorType.Warning)
+                    _warningMessages.Add (message);
                 else
-                    _warningMessages.Add(message);
+                    _authorMessages.Add (message);
             }
             else
                 Assert.Fail(message);
