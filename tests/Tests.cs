@@ -1567,6 +1567,7 @@ In second.
 
 = aside
     * {false} DONE
+	- -> DONE
 ");
             Assert.AreEqual("1\n1\n", story.ContinueMaximally());
         }
@@ -1879,6 +1880,7 @@ Done.
 == thread_with_options ==
 * C
 * D
+- -> DONE
 ");
 
             Assert.IsFalse(story.ContinueMaximally().Contains("Finished tunnel"));

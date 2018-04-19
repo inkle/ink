@@ -26,7 +26,7 @@ namespace Ink.Parsed
         // larger safe file, with a lot of potentially redundant counts.
         public bool countAllVisits = false;
 
-        public Story (List<Parsed.Object> toplevelObjects) : base(null, toplevelObjects)
+        public Story (List<Parsed.Object> toplevelObjects, bool isInclude = false) : base(null, toplevelObjects, isIncludedStory:isInclude)
 		{
             // Don't do anything much on construction, leave it lightweight until
             // the ExportRuntime method is called.

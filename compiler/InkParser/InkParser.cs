@@ -44,7 +44,7 @@ namespace Ink
             // continue with errors. Returning an empty include files meant that anything
             // that *did* compile successfully would otherwise be ignored, generating way
             // more errors than necessary.
-            return new Parsed.Story (topLevelContent);
+            return new Parsed.Story (topLevelContent, isInclude:_rootParser != this);
         }
 
         protected List<T> SeparatedList<T> (SpecificParseRule<T> mainRule, ParseRule separatorRule) where T : class

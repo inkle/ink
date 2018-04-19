@@ -20,7 +20,7 @@ namespace Ink.Parsed
         public abstract FlowLevel flowLevel { get; }
         public bool isFunction { get; protected set; }
 
-        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null, bool isFunction = false)
+        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null, bool isFunction = false, bool isIncludedStory = false)
 		{
 			this.name = name;
 
@@ -31,7 +31,7 @@ namespace Ink.Parsed
             // Used by story to add includes
             PreProcessTopLevelObjects (topLevelObjects);
 
-            topLevelObjects = SplitWeaveAndSubFlowContent (topLevelObjects);
+            topLevelObjects = SplitWeaveAndSubFlowContent (topLevelObjects, isRootStory:this is Story && !isIncludedStory);
 
             AddContent(topLevelObjects);
 
@@ -40,7 +40,7 @@ namespace Ink.Parsed
             this.variableDeclarations = new Dictionary<string, VariableAssignment> ();
 		}
 
-        List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs)
+        List<Parsed.Object> SplitWeaveAndSubFlowContent(List<Parsed.Object> contentObjs, bool isRootStory)
         {
             var weaveObjs = new List<Parsed.Object> ();
             var subFlowObjs = new List<Parsed.Object> ();
@@ -61,11 +61,19 @@ namespace Ink.Parsed
                 }
             }
 
+            // Implicit final gather in top level story for ending without warning that you run out of content
+            if (isRootStory) {
+            	weaveObjs.Add (new Gather (null, 1));
+            	weaveObjs.Add (new Divert (new Path ("END")));
+            }
+
             var finalContent = new List<Parsed.Object> ();
+
             if (weaveObjs.Count > 0) {
                 _rootWeave = new Weave (weaveObjs, 0);
                 finalContent.Add (_rootWeave);
             }
+
             if (subFlowObjs.Count > 0) {
                 finalContent.AddRange (subFlowObjs);
             }
@@ -161,13 +169,17 @@ namespace Ink.Parsed
             
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            // Check whether flow has a loose end:
-            //  - Most flows should end in a choice or a divert (otherwise issue a warning)
-            //  - Functions need a return, otherwise an implicit one is added
-            ValidateTermination();
-
+            Return foundReturn = null;
             if (isFunction) {
                 CheckForDisallowedFunctionFlowControl ();
+            } 
+
+            // Non-functon: Make sure knots and stitches don't attempt to use Return statement
+            else if( flowLevel == FlowLevel.Knot || flowLevel == FlowLevel.Stitch ) {
+                foundReturn = Find<Return> ();
+                if (foundReturn != null) {
+                    Error ("Return statements can only be used in knots that are declared as functions: == function " + this.name + " ==", foundReturn);
+                }
             }
 
             var container = new Runtime.Container ();
@@ -234,23 +246,15 @@ namespace Ink.Parsed
                 contentIdx++;
             }
 
-            // Tie up final loose ends to the very end
-            if (_rootWeave && _rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
-
-                foreach (var looseEnd in _rootWeave.looseEnds) {
-
-                    Divert looseEndDivert = looseEnd as Divert;
-
-                    if (looseEndDivert == null) continue;
-
-					if (_finalLooseEnds == null) {
-						_finalLooseEnds = new List<Ink.Runtime.Divert> ();
-						_finalLooseEndTarget = Runtime.ControlCommand.NoOp ();
-						container.AddContent (_finalLooseEndTarget);
-					}
-					
-					_finalLooseEnds.Add ((Runtime.Divert)looseEndDivert.runtimeObject);
-                }
+            // CHECK FOR FINAL LOOSE ENDS!
+            // Notes:
+            //  - Functions don't need to terminate - they just implicitly return
+            //  - If return statement was found, don't continue finding warnings for missing control flow,
+            // since it's likely that a return statement has been used instead of a ->-> or something,
+            // or the writer failed to mark the knot as a function.
+            //  - _rootWeave may be null if it's a knot that only has stitches
+            if (flowLevel != FlowLevel.Story && !this.isFunction && _rootWeave != null && foundReturn == null) {
+                _rootWeave.ValidateTermination (WarningInTermination);
             }
                 
             return container;
@@ -331,13 +335,6 @@ namespace Ink.Parsed
 
         public override void ResolveReferences (Story context)
         {
-            if (_finalLooseEndTarget) {
-                var flowEndPath = _finalLooseEndTarget.path;
-                foreach (var finalLooseEndDivert in _finalLooseEnds) {
-                    finalLooseEndDivert.targetPath = flowEndPath;
-                }
-            }
-
             if (_startingSubFlowDivert) {
                 _startingSubFlowDivert.targetPath = _startingSubFlowRuntime.path;
             }
@@ -387,102 +384,19 @@ namespace Ink.Parsed
             }
         }
 
-        void ValidateTermination()
-        {
-            // Stories don't have to explicitly terminate
-            // Functions don't have to terimate - they simply drop out automatically
-            if (this is Story || this.isFunction)
-                return;
-
-            // Nothing in the main weave - probably a knot with stitches
-            if (_rootWeave == null) {
-                return;
-            }
-
-            if (_rootWeave.looseEnds != null && _rootWeave.looseEnds.Count > 0) {
-                foreach (var looseEndObj in _rootWeave.looseEnds) {
-                    Error ("Found loose end from weave structure", looseEndObj);
-                }
-                return;
-            }
-
-            var foundReturn = Find<Return> ();
-            if (foundReturn != null) {
-                Error ("Return statements can only be used in knots that are declared as functions: == function " + this.name + " ==", foundReturn);
-
-                // Don't continue finding warnings for missing control flow, since it's likely that a return
-                // statement has been used instead of a ->-> or something, or the writer failed to mark the knot as a function.
-                return;
-            }
-
-            // Knots/stitches have to terminate in a choice, a divert,
-            // a conditional that contains a choice or divert.
-            var lastObjectInFlow = _rootWeave.lastParsedSignificantObject;
-
-
-            var terminatingDivert = lastObjectInFlow as Divert;
-            if (terminatingDivert) {
-                ValidateTerminatingDivert (terminatingDivert);
-                return;
-            }
-
-            if (lastObjectInFlow is TunnelOnwards) {
-                return;
-            }
-
-            if (lastObjectInFlow is Choice) {
-                return;
-            }
-
-            // Author has left a note to self here - clearly we don't need
-            // to leave them with another warning since they know what they're doing.
-            if (lastObjectInFlow is AuthorWarning) {
-                return;
-            }
-
-            var innerDiverts = lastObjectInFlow.FindAll<Divert> ();
-            if (innerDiverts.Count > 0) {
-                var finalDivert = innerDiverts [innerDiverts.Count - 1];
-                ValidateTerminatingDivert (finalDivert);
-                return;
-            }
-
-            var innerChoices = lastObjectInFlow.FindAll<Choice> ();
-            if (innerChoices.Count > 0) {
-                return;
-            }
-
-            var innerTunnelOnwards = lastObjectInFlow.FindAll<TunnelOnwards> ();
-            if (innerTunnelOnwards.Count > 0) {
-                return;
-            }
-
-            WarningInTermination (lastObjectInFlow);
-        }
-
-        void ValidateTerminatingDivert(Divert terminatingDivert)
-        {
-            if (terminatingDivert.isFunctionCall) {
-                WarningInTermination (terminatingDivert);
-                return;
-            }
-
-            if (terminatingDivert.isTunnel) {
-                WarningInTermination (terminatingDivert, "When final tunnel to '"+terminatingDivert.target+" ->' returns it won't have anywhere to go.");
-            }
-        }
-
-        void WarningInTermination(Parsed.Object terminatingObject, string additionalExplanation = null)
+        void WarningInTermination(Parsed.Object terminatingObject)
         {
             string message = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
-            if (additionalExplanation != null) {
-                message = message + " " + additionalExplanation;
-            }
-            if (_firstChildFlow) {
+            if (terminatingObject.parent == _rootWeave && _firstChildFlow) {
                 message = message + " Note that if you intend to enter '"+_firstChildFlow.name+"' next, you need to divert to it explicitly.";
             }
 
-            Warning (additionalExplanation == null ? message : message + " " + additionalExplanation, terminatingObject);
+            var terminatingDivert = terminatingObject as Divert;
+            if (terminatingDivert && terminatingDivert.isTunnel) {
+                message = message + " When final tunnel to '"+terminatingDivert.target+" ->' returns it won't have anywhere to go.";
+            }
+
+            Warning (message, terminatingObject);
         }
 
         protected Dictionary<string, FlowBase> subFlowsByName {
@@ -505,10 +419,8 @@ namespace Ink.Parsed
 
         Weave _rootWeave;
         Dictionary<string, FlowBase> _subFlowsByName;
-        List<Runtime.Divert> _finalLooseEnds;
         Runtime.Divert _startingSubFlowDivert;
         Runtime.Object _startingSubFlowRuntime;
-        Runtime.Object _finalLooseEndTarget;
         FlowBase _firstChildFlow;
             
 	}
