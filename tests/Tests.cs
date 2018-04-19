@@ -20,13 +20,14 @@ namespace Tests
     [TestFixture(TestMode.JsonRoundTrip)]
     internal class Tests : IFileHandler
     {
-        private List<string> _errorMessages = new List<string>();
-
+        
         private TestMode _mode;
 
         private bool _testingErrors;
-
+        private List<string> _errorMessages = new List<string> ();
         private List<string> _warningMessages = new List<string>();
+        private List<string> _authorMessages = new List<string>();
+
 
         public Tests (TestMode mode)
         {
@@ -1113,6 +1114,43 @@ CONST Y = 2
             Assert.IsTrue(_warningMessages.Count == 0);
         }
 
+
+        [Test ()]
+        public void TestLooseEnds ()
+        {
+        	CompileStringWithoutRuntime (
+@"No loose ends in main content.
+
+== knot1 ==
+* loose end choice
+* loose end
+	on second line of choice
+
+== knot2 ==
+* A
+* B
+TODO: Fix loose ends but don't warn
+
+== knot3 ==
+Loose end when there's no weave
+
+== knot4 ==
+{true:
+    {false:
+        Ignore loose end when there's a divert
+        in a conditional.
+        -> knot4
+	}
+}
+        ", testingErrors: true);
+
+            Assert.IsTrue (_warningMessages.Count == 3);
+            Assert.IsTrue (HadWarning ("line 4: Apparent loose end"));
+            Assert.IsTrue (HadWarning ("line 6: Apparent loose end"));
+            Assert.IsTrue (HadWarning ("line 14: Apparent loose end"));
+            Assert.IsTrue (_authorMessages.Count == 1);
+        }
+
         [Test()]
         public void TestKnotThreadInteraction()
         {
@@ -1567,6 +1605,7 @@ In second.
 
 = aside
     * {false} DONE
+	- -> DONE
 ");
             Assert.AreEqual("1\n1\n", story.ContinueMaximally());
         }
@@ -1879,6 +1918,7 @@ Done.
 == thread_with_options ==
 * C
 * D
+- -> DONE
 ");
 
             Assert.IsFalse(story.ContinueMaximally().Contains("Finished tunnel"));
@@ -3288,6 +3328,7 @@ hello
             _testingErrors = testingErrors;
             _errorMessages.Clear();
             _warningMessages.Clear();
+            _authorMessages.Clear ();
 
             InkParser parser = new InkParser(str, null, TestErrorHandler, this);
             var parsedStory = parser.Parse();
@@ -3312,6 +3353,7 @@ hello
             _testingErrors = testingErrors;
             _errorMessages.Clear();
             _warningMessages.Clear();
+            _authorMessages.Clear ();
 
             InkParser parser = new InkParser(str, null, TestErrorHandler);
             var parsedStory = parser.Parse();
@@ -3356,9 +3398,11 @@ hello
             if (_testingErrors)
             {
                 if (errorType == ErrorType.Error)
-                    _errorMessages.Add(message);
+                    _errorMessages.Add (message);
+                else if (errorType == ErrorType.Warning)
+                    _warningMessages.Add (message);
                 else
-                    _warningMessages.Add(message);
+                    _authorMessages.Add (message);
             }
             else
                 Assert.Fail(message);

@@ -26,7 +26,7 @@ namespace Ink.Parsed
         // Loose ends are:
         //  - Choices or Gathers that need to be joined up
         //  - Explicit Divert to gather points (i.e. "->" without a target)
-        public List<Parsed.Object> looseEnds;
+        public List<IWeavePoint> looseEnds;
 
         public List<GatherPointToResolve> gatherPointsToResolve;
         internal class GatherPointToResolve
@@ -38,38 +38,30 @@ namespace Ink.Parsed
         public Parsed.Object lastParsedSignificantObject
         {
             get {
-                if (content.Count > 0) {
+                if (content.Count == 0) return null;
 
-                    // Don't count extraneous newlines or VAR/CONST declarations,
-                    // since they're "empty" statements outside of the main flow.
-                    Parsed.Object lastObject = null;
-                    for (int i = content.Count - 1; i >= 0; --i) {
-                        lastObject = content [i];
+                // Don't count extraneous newlines or VAR/CONST declarations,
+                // since they're "empty" statements outside of the main flow.
+                Parsed.Object lastObject = null;
+                for (int i = content.Count - 1; i >= 0; --i) {
+                    lastObject = content [i];
 
-                        var lastText = lastObject as Parsed.Text;
-                        if (lastText && lastText.text == "\n") {
-                            continue;
-                        }
-
-                        var varAss = lastObject as VariableAssignment;
-                        if (varAss && varAss.isGlobalDeclaration && varAss.isDeclaration)
-                            continue;
-
-                        var constDecl = lastObject as ConstantDeclaration;
-                        if (constDecl)
-                            continue;
-                        
-                        break;
+                    var lastText = lastObject as Parsed.Text;
+                    if (lastText && lastText.text == "\n") {
+                        continue;
                     }
 
-                    var lastWeave = lastObject as Weave;
-                    if (lastWeave)
-                        return lastWeave.lastParsedSignificantObject;
-                    else
-                        return lastObject;
-                } else {
-                    return this;
+                    if (IsGlobalDeclaration (lastObject))
+                        continue;
+                    
+                    break;
                 }
+
+                var lastWeave = lastObject as Weave;
+                if (lastWeave)
+                    lastObject = lastWeave.lastParsedSignificantObject;
+                
+                return lastObject;
             }
         }
                         
@@ -175,7 +167,7 @@ namespace Ink.Parsed
         public override Runtime.Object GenerateRuntimeObject ()
         {
             _rootContainer = currentContainer = new Runtime.Container();
-            looseEnds = new List<Parsed.Object> ();
+            looseEnds = new List<IWeavePoint> ();
 
             gatherPointsToResolve = new List<GatherPointToResolve> ();
 
@@ -255,7 +247,9 @@ namespace Ink.Parsed
             }
 
             // Consume loose ends: divert them to this gather
-            foreach (Parsed.Object looseEnd in looseEnds) {
+            foreach (IWeavePoint looseEndWeavePoint in looseEnds) {
+
+                var looseEnd = (Parsed.Object)looseEndWeavePoint;
 
                 // Skip gather loose ends that are at the same level
                 // since they'll be handled by the auto-enter code below
@@ -301,7 +295,7 @@ namespace Ink.Parsed
                 // Gathers that contain choices are no longer loose ends
                 // (same as when weave points get nested content)
                 if (previousWeavePoint is Gather) {
-                    looseEnds.Remove ((Parsed.Object)previousWeavePoint);
+                    looseEnds.Remove (previousWeavePoint);
                 }
 
                 // Add choice point content
@@ -319,7 +313,7 @@ namespace Ink.Parsed
             // Keep track of loose ends
             addContentToPreviousWeavePoint = false; // default
             if (WeavePointHasLooseEnd (weavePoint)) {
-                looseEnds.Add ((Parsed.Object)weavePoint);
+                looseEnds.Add (weavePoint);
 
 
                 var looseChoice = weavePoint as Choice;
@@ -340,7 +334,7 @@ namespace Ink.Parsed
             // Now there's a deeper indentation level, the previous weave point doesn't
             // count as a loose end (since it will have content to go to)
             if (previousWeavePoint != null) {
-                looseEnds.Remove ((Parsed.Object)previousWeavePoint);
+                looseEnds.Remove (previousWeavePoint);
                 addContentToPreviousWeavePoint = false;
             }
         }
@@ -373,7 +367,7 @@ namespace Ink.Parsed
             }
         }
 
-        public void ReceiveLooseEnds(List<Parsed.Object> childWeaveLooseEnds)
+        public void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
         {
             looseEnds.AddRange (childWeaveLooseEnds);
         }
@@ -399,6 +393,139 @@ namespace Ink.Parsed
                 return weavePointResult;
 
             return null;
+        }
+
+        // Global VARs and CONSTs are treated as "outside of the flow"
+        // when iterating over content that follows loose ends
+        bool IsGlobalDeclaration (Parsed.Object obj)
+        {
+
+            var varAss = obj as VariableAssignment;
+            if (varAss && varAss.isGlobalDeclaration && varAss.isDeclaration)
+                return true;
+            
+            var constDecl = obj as ConstantDeclaration;
+            if (constDecl)
+                return true;
+
+            return false;
+        }
+
+        // While analysing final loose ends, we look to see whether there
+        // are any diverts etc which choices etc divert from
+        IEnumerable<Parsed.Object> ContentThatFollowsWeavePoint (IWeavePoint weavePoint)
+        {
+            var obj = (Parsed.Object)weavePoint;
+
+            // Inner content first (e.g. for a choice)
+            if (obj.content != null) {
+                foreach (var contentObj in obj.content) {
+
+                    // Global VARs and CONSTs are treated as "outside of the flow"
+                    if (IsGlobalDeclaration (contentObj)) continue;
+
+                    yield return contentObj;
+                }
+            }
+
+
+            var parentWeave = obj.parent as Weave;
+            if (parentWeave == null) {
+                throw new System.Exception ("Expected weave point parent to be weave?");
+            }
+
+            var weavePointIdx = parentWeave.content.IndexOf (obj);
+
+            for (int i = weavePointIdx+1; i < parentWeave.content.Count; i++) {
+                var laterObj = parentWeave.content [i];
+
+                // Global VARs and CONSTs are treated as "outside of the flow"
+                if (IsGlobalDeclaration (laterObj)) continue;
+
+                // End of the current flow
+                if (laterObj is IWeavePoint) 
+                    break;
+
+                // Other weaves will be have their own loose ends
+                if (laterObj is Weave)
+                    break;
+
+                yield return laterObj;
+            }
+        }
+
+        public delegate void BadTerminationHandler (Parsed.Object terminatingObj);
+        public void ValidateTermination (BadTerminationHandler badTerminationHandler)
+        {
+            // Don't worry if the last object in the flow is a "TODO",
+            // even if there are other loose ends in other places
+            if (lastParsedSignificantObject is AuthorWarning) {
+                return;
+            }
+
+            // By now, any sub-weaves will have passed loose ends up to the root weave (this).
+            // So there are 2 possible situations:
+            //  - There are loose ends from somewhere in the flow.
+            //    These aren't necessarily "real" loose ends - they're weave points
+            //    that don't connect to any lower weave points, so we just
+            //    have to check that they terminate properly.
+            //  - This weave is just a list of content with no actual weave points,
+            //    so we just need to check that the list of content terminates.
+
+            bool hasLooseEnds = looseEnds != null && looseEnds.Count > 0;
+
+            if (hasLooseEnds) {
+                foreach (var looseEnd in looseEnds) {
+                    var looseEndFlow = ContentThatFollowsWeavePoint (looseEnd);
+                    ValidateFlowOfObjectsTerminates (looseEndFlow, (Parsed.Object)looseEnd, badTerminationHandler);
+                }
+            }
+
+            // No loose ends... is there any inner weaving at all?
+            // If not, make sure the single content stream is terminated correctly
+            else {
+
+                // If there's any actual weaving, assume that content is 
+                // terminated correctly since we would've had a loose end otherwise
+                foreach (var obj in content) {
+                    if (obj is IWeavePoint) return;
+                }
+
+                // Straight linear flow? Check it terminates
+                ValidateFlowOfObjectsTerminates (content, this, badTerminationHandler);
+            }
+        }
+
+        void ValidateFlowOfObjectsTerminates (IEnumerable<Parsed.Object> objFlow, Parsed.Object defaultObj, BadTerminationHandler badTerminationHandler)
+        {
+            bool terminated = false;
+            Parsed.Object terminatingObj = defaultObj;
+            foreach (var flowObj in objFlow) {
+
+                var divert = flowObj.Find<Divert> (d => !d.isThread && !d.isTunnel && !d.isFunctionCall);
+                if (divert != null) {
+                    terminated = true;
+                }
+
+                if (flowObj.Find<TunnelOnwards> () != null) {
+                    terminated = true;
+                    break;
+                }
+
+                terminatingObj = flowObj;
+            }
+
+
+            if (!terminated) {
+
+                // Author has left a note to self here - clearly we don't need
+                // to leave them with another warning since they know what they're doing.
+                if (terminatingObj is AuthorWarning) {
+                    return;
+                }
+
+                badTerminationHandler (terminatingObj);
+            }
         }
 
         Weave closestWeaveAncestor {

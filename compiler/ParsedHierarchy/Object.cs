@@ -223,15 +223,15 @@ namespace Ink.Parsed
         public delegate bool FindQueryFunc<T>(T obj);
         public T Find<T>(FindQueryFunc<T> queryFunc = null) where T : class
         {
+            var tObj = this as T;
+            if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
+                return tObj;
+            }
+
             if (content == null)
                 return null;
             
             foreach (var obj in content) {
-                var tObj = obj as T;
-                if (tObj != null && (queryFunc == null || queryFunc (tObj) == true)) {
-                    return tObj;
-                }
-
                 var nestedResult = obj.Find (queryFunc);
                 if (nestedResult != null)
                     return nestedResult;
