@@ -38,38 +38,30 @@ namespace Ink.Parsed
         public Parsed.Object lastParsedSignificantObject
         {
             get {
-                if (content.Count > 0) {
+                if (content.Count == 0) return null;
 
-                    // Don't count extraneous newlines or VAR/CONST declarations,
-                    // since they're "empty" statements outside of the main flow.
-                    Parsed.Object lastObject = null;
-                    for (int i = content.Count - 1; i >= 0; --i) {
-                        lastObject = content [i];
+                // Don't count extraneous newlines or VAR/CONST declarations,
+                // since they're "empty" statements outside of the main flow.
+                Parsed.Object lastObject = null;
+                for (int i = content.Count - 1; i >= 0; --i) {
+                    lastObject = content [i];
 
-                        var lastText = lastObject as Parsed.Text;
-                        if (lastText && lastText.text == "\n") {
-                            continue;
-                        }
-
-                        var varAss = lastObject as VariableAssignment;
-                        if (varAss && varAss.isGlobalDeclaration && varAss.isDeclaration)
-                            continue;
-
-                        var constDecl = lastObject as ConstantDeclaration;
-                        if (constDecl)
-                            continue;
-                        
-                        break;
+                    var lastText = lastObject as Parsed.Text;
+                    if (lastText && lastText.text == "\n") {
+                        continue;
                     }
 
-                    var lastWeave = lastObject as Weave;
-                    if (lastWeave)
-                        return lastWeave.lastParsedSignificantObject;
-                    else
-                        return lastObject;
-                } else {
-                    return this;
+                    if (IsGlobalDeclaration (lastObject))
+                        continue;
+                    
+                    break;
                 }
+
+                var lastWeave = lastObject as Weave;
+                if (lastWeave)
+                    lastObject = lastWeave.lastParsedSignificantObject;
+                
+                return lastObject;
             }
         }
                         
@@ -465,6 +457,12 @@ namespace Ink.Parsed
         public delegate void BadTerminationHandler (Parsed.Object terminatingObj);
         public void ValidateTermination (BadTerminationHandler badTerminationHandler)
         {
+            // Don't worry if the last object in the flow is a "TODO",
+            // even if there are other loose ends in other places
+            if (lastParsedSignificantObject is AuthorWarning) {
+                return;
+            }
+
             // By now, any sub-weaves will have passed loose ends up to the root weave (this).
             // So there are 2 possible situations:
             //  - There are loose ends from somewhere in the flow.
