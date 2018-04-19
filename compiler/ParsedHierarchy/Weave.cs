@@ -502,12 +502,9 @@ namespace Ink.Parsed
             Parsed.Object terminatingObj = defaultObj;
             foreach (var flowObj in objFlow) {
 
-                var divert = flowObj.Find<Divert> ();
+                var divert = flowObj.Find<Divert> (d => !d.isThread && !d.isTunnel && !d.isFunctionCall);
                 if (divert != null) {
-                    bool divertComesBackHere = divert.isThread || divert.isTunnel || divert.isFunctionCall;
-                    if (!divertComesBackHere) {
-                        terminated = true;
-                    }
+                    terminated = true;
                 }
 
                 if (flowObj.Find<TunnelOnwards> () != null) {
