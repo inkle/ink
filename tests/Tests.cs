@@ -1114,6 +1114,43 @@ CONST Y = 2
             Assert.IsTrue(_warningMessages.Count == 0);
         }
 
+
+        [Test ()]
+        public void TestLooseEnds ()
+        {
+        	CompileStringWithoutRuntime (
+@"No loose ends in main content.
+
+== knot1 ==
+* loose end choice
+* loose end
+	on second line of choice
+
+== knot2 ==
+* A
+* B
+TODO: Fix loose ends but don't warn
+
+== knot3 ==
+Loose end when there's no weave
+
+== knot4 ==
+{true:
+    {false:
+        Ignore loose end when there's a divert
+        in a conditional.
+        -> knot4
+	}
+}
+        ", testingErrors: true);
+
+            Assert.IsTrue (_warningMessages.Count == 3);
+            Assert.IsTrue (HadWarning ("line 4: Apparent loose end"));
+            Assert.IsTrue (HadWarning ("line 6: Apparent loose end"));
+            Assert.IsTrue (HadWarning ("line 14: Apparent loose end"));
+            Assert.IsTrue (_authorMessages.Count == 1);
+        }
+
         [Test()]
         public void TestKnotThreadInteraction()
         {
