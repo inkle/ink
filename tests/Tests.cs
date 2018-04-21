@@ -3322,6 +3322,27 @@ hello
         }
 
 
+
+        [Test ()]
+        public void TestTopFlowTerminatorShouldntKillThreadChoices ()
+        {
+        	var storyStr =
+        		@"
+<- move
+Limes 
+
+=== move
+	* boop
+        -> END
+                    ";
+
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("Limes\n", story.Continue ());
+            Assert.IsTrue (story.currentChoices.Count == 1);
+        }
+
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

@@ -64,7 +64,7 @@ namespace Ink.Parsed
             // Implicit final gather in top level story for ending without warning that you run out of content
             if (isRootStory) {
             	weaveObjs.Add (new Gather (null, 1));
-            	weaveObjs.Add (new Divert (new Path ("END")));
+            	weaveObjs.Add (new Divert (new Path ("DONE")));
             }
 
             var finalContent = new List<Parsed.Object> ();
