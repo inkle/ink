@@ -61,14 +61,6 @@ namespace Ink
                     innerContent = new ContentList (innerTextAndLogic);
             }
 
-            // Trim
-            if( innerContent )
-                TrimChoiceContent (ref innerContent);
-            else if( optionOnlyContent )
-                TrimChoiceContent (ref optionOnlyContent);
-            else 
-                TrimChoiceContent (ref startContent);
-
 			Whitespace ();
 
             // Finally, now we know we're at the end of the main choice body, parse
@@ -95,8 +87,6 @@ namespace Ink
                 innerContent.AddContent(tags);
             }
 
-            innerContent.AddContent (new Text ("\n"));
-
             // Normal diverts on the end of a choice - simply add to the normal content
             if (diverts != null) {
                 foreach (var divObj in diverts) {
@@ -112,7 +102,10 @@ namespace Ink
                 }
             }
 
-
+            // Terminate main content with a newline since this is the end of the line
+            // Note that this will be redundant if the diverts above definitely take
+            // the flow away permanently.
+            innerContent.AddContent (new Text ("\n"));
 
             var choice = new Choice (startContent, optionOnlyContent, innerContent);
             choice.name = optionalName;
@@ -125,16 +118,6 @@ namespace Ink
             return choice;
 
 		}
-
-        void TrimChoiceContent(ref ContentList content)
-        {
-            if (content != null) {
-                content.TrimTrailingWhitespace ();
-                if (content.content.Count == 0) {
-                    content = null;
-                }
-            }
-        }
             
         protected Expression ChoiceCondition()
         {

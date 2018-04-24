@@ -162,7 +162,7 @@ namespace Ink.Runtime
 						}
 					}
 
-					_currentText = sb.ToString ();
+                    _currentText = CleanOutputWhitespace (sb.ToString ());
 
 					_outputStreamTextDirty = false;
 				}
@@ -171,6 +171,34 @@ namespace Ink.Runtime
             }
         }
 		string _currentText;
+
+        string CleanOutputWhitespace (string str)
+        {
+        	var sb = new StringBuilder (str.Length);
+
+        	int currentWhitespaceStart = -1;
+
+        	for (int i = 0; i < str.Length; i++) {
+        		var c = str [i];
+
+        		bool isInlineWhitespace = c == ' ' || c == '\t';
+
+        		if (isInlineWhitespace && currentWhitespaceStart == -1)
+        			currentWhitespaceStart = i;
+
+        		if (!isInlineWhitespace) {
+        			if (c != '\n' && currentWhitespaceStart > 0) {
+        				sb.Append (str.Substring (currentWhitespaceStart, i - currentWhitespaceStart));
+        			}
+        			currentWhitespaceStart = -1;
+        		}
+
+        		if (!isInlineWhitespace)
+        			sb.Append (c);
+        	}
+
+        	return sb.ToString ();
+        }
 
         internal List<string> currentTags 
         {

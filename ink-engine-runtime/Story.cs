@@ -823,7 +823,7 @@ namespace Ink.Runtime
             choice.threadAtGeneration = state.callStack.currentThread.Copy ();
 
             // Set final text for the choice
-            choice.text = startText + choiceOnlyText;
+            choice.text = (startText + choiceOnlyText).Trim(' ', '\t');
 
             return choice;
         }

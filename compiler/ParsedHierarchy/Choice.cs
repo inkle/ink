@@ -223,11 +223,6 @@ namespace Ink.Parsed
                 _innerContentContainer.AddContentsOfContainer (innerChoiceOnlyContent);
             }
 
-            // Fully parsed choice will be a full line, so it needs to be terminated
-            if (startContent || innerContent) {
-                _innerContentContainer.AddContent(new Runtime.StringValue("\n"));
-            }
-
             if (this.story.countAllVisits) {
                 _innerContentContainer.visitsShouldBeCounted = true;
                 _innerContentContainer.turnIndexShouldBeCounted = true;
