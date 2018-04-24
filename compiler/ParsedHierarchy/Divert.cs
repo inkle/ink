@@ -318,9 +318,25 @@ namespace Ink.Parsed
                 FlowBase.Argument flowArg = targetFlow.arguments [i];
                 Parsed.Expression divArgExpr = arguments [i];
 
+                // Expecting a divert target as an argument, let's do some basic type checking
                 if (flowArg.isDivertTarget) {
-                    if ( !(divArgExpr is VariableReference || divArgExpr is DivertTarget) ) {
-                        Error ("Target '"+targetFlow.name + "' expects a divert target for the parameter named -> " + flowArg.name + " but saw "+divArgExpr, divArgExpr);
+
+                    // Not passing a divert target or any kind of variable reference?
+                    var varRef = divArgExpr as VariableReference;
+                    if (!(divArgExpr is DivertTarget) && varRef == null ) {
+                        Error ("Target '" + targetFlow.name + "' expects a divert target for the parameter named -> " + flowArg.name + " but saw " + divArgExpr, divArgExpr);
+                    } 
+
+                    // Passing 'a' instead of '-> a'? 
+                    // i.e. read count instead of divert target
+                    else if (varRef != null) {
+
+                        // Unfortunately have to manually resolve here since we're still in code gen
+                        var knotCountPath = new Path(varRef.path);
+                        Parsed.Object targetForCount = knotCountPath.ResolveFromContext (varRef);
+                        if (targetForCount != null) {
+                            Error ("Passing read count of '" + knotCountPath.dotSeparatedComponents + "' instead of a divert target. You probably meant '" + knotCountPath + "'");
+                        }
                     }
                 }
             }
