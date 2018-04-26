@@ -9,6 +9,8 @@ namespace Ink
         //  - Parsed.Divert
         //  - Variable declaration/assignment
         //  - Epression
+        //  - Lookup debug source for character offset
+        //  - Lookup debug source for runtime path
         public CommandLineInput CommandLineUserInput()
         {
             CommandLineInput result = new CommandLineInput ();
@@ -25,7 +27,12 @@ namespace Ink
                 return result;
             }
 
-            return (CommandLineInput) OneOf (DebugSource, UserChoiceNumber, UserImmediateModeStatement);
+            return (CommandLineInput) OneOf (
+                DebugSource,
+                DebugPathLookup,
+                UserChoiceNumber, 
+                UserImmediateModeStatement
+            );
         }
 
         CommandLineInput DebugSource ()
@@ -58,6 +65,35 @@ namespace Ink
             return inputStruct;
         }
 
+        CommandLineInput DebugPathLookup ()
+        {
+            Whitespace ();
+
+            if (ParseString ("DebugPath") == null)
+                return null;
+
+            if (Whitespace () == null)
+                return null;
+
+            var pathStr = Expect (RuntimePath, "path") as string;
+
+            var inputStruct = new CommandLineInput ();
+            inputStruct.debugPathLookup = pathStr;
+            return inputStruct;
+        }
+
+        string RuntimePath ()
+        {
+            if (_runtimePathCharacterSet == null) {
+                _runtimePathCharacterSet = new CharacterSet (identifierCharSet);
+                _runtimePathCharacterSet.Add ('-'); // for c-0, g-0 etc
+                _runtimePathCharacterSet.Add ('.');
+
+            }
+            
+            return ParseCharactersFromCharSet (_runtimePathCharacterSet);
+        }
+
         CommandLineInput UserChoiceNumber()
         {
             Whitespace ();
@@ -86,6 +122,8 @@ namespace Ink
             inputStruct.userImmediateModeStatement = statement;
             return inputStruct;
         }
+
+        CharacterSet _runtimePathCharacterSet;
     }
 }
 

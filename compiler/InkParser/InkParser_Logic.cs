@@ -366,18 +366,8 @@ namespace Ink
         // but not if they *only* comprise numbers
         protected string Identifier()
         {
-            if (_identifierCharSet == null) {
-                (_identifierCharSet = new CharacterSet ())
-                	.AddRange ('A', 'Z')
-                	.AddRange ('a', 'z')
-                	.AddRange ('0', '9')
-                	.Add ('_');
-                // Enable non-ASCII characters for story identifiers.
-                ExtendIdentifierCharacterRanges(_identifierCharSet);
-            }
-
             // Parse remaining characters (if any)
-            var name = ParseCharactersFromCharSet (_identifierCharSet);
+            var name = ParseCharactersFromCharSet (identifierCharSet);
             if (name == null)
                 return null;
 
@@ -394,6 +384,21 @@ namespace Ink
             }
 
             return name;
+        }
+
+        CharacterSet identifierCharSet {
+            get {
+                if (_identifierCharSet == null) {
+                    (_identifierCharSet = new CharacterSet ())
+                        .AddRange ('A', 'Z')
+                        .AddRange ('a', 'z')
+                        .AddRange ('0', '9')
+                        .Add ('_');
+                    // Enable non-ASCII characters for story identifiers.
+                    ExtendIdentifierCharacterRanges (_identifierCharSet);
+                }
+                return _identifierCharSet;
+            }
         }
             
         private CharacterSet _identifierCharSet;

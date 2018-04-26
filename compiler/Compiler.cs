@@ -101,6 +101,17 @@ namespace Ink
                     result.output = "DebugSource: " + dm.ToString ();
                 else
                     result.output = "DebugSource: Unknown source";
+            } 
+
+            // Request for runtime path lookup (to line number)
+            else if (inputResult.debugPathLookup != null) {
+                var pathStr = inputResult.debugPathLookup;
+                var contentResult = _runtimeStory.ContentAtPath (new Runtime.Path (pathStr));
+                var dm = contentResult.obj.debugMetadata;
+                if( dm != null )
+                    result.output = "DebugSource: " + dm.ToString ();
+                else
+                    result.output = "DebugSource: Unknown source";
             }
 
             // User entered some ink
