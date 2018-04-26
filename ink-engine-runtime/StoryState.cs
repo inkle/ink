@@ -401,7 +401,7 @@ namespace Ink.Runtime
 				foreach (var c in _currentChoices) {
 					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 					if( foundActiveThread != null ) {
-						c.threadAtGeneration = foundActiveThread;
+                        c.threadAtGeneration = foundActiveThread.Copy ();
 					} else {
 						var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
 						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
