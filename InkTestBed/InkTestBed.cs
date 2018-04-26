@@ -89,7 +89,7 @@ class InkTestBed : IFileHandler
 
     Ink.Runtime.Story Compile (string inkSource)
     {
-    	var compiler = new Compiler (inkSource, new Compiler.Options {
+    	compiler = new Compiler (inkSource, new Compiler.Options {
     		countAllVisits = true,
     		errorHandler = OnError,
     		fileHandler = this
@@ -106,9 +106,15 @@ class InkTestBed : IFileHandler
     Ink.Runtime.Story CompileFile (string filename = null)
     {
         if (filename == null) filename = "test.ink";
+
+        if (Path.IsPathRooted (filename)) {
+            var dir = Path.GetDirectoryName (filename);
+            Directory.SetCurrentDirectory (dir);
+        }
+
         var inkSource = File.ReadAllText (filename);
 
-        var compiler = new Compiler (inkSource, new Compiler.Options {
+        compiler = new Compiler (inkSource, new Compiler.Options {
 			sourceFilename = filename,
 			countAllVisits = true,
 			errorHandler = OnError,
@@ -197,6 +203,7 @@ class InkTestBed : IFileHandler
     // ---------------------
 
     public Ink.Runtime.Story story;
+    public Compiler compiler;
 
     public InkTestBed () { }
 
