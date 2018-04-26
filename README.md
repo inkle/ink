@@ -170,3 +170,7 @@ See the [architectural overview documentation](https://github.com/inkle/ink/blob
 # License
 
 **ink** is released under the [MIT license](https://github.com/inkle/ink/blob/master/LICENSE.txt). Although we don't require attribution, we'd love to know if you decide to use **ink** a project! Let us know on [Twitter](http://www.twitter.com/inkleStudios) or [by email](mailto:info@inklestudios.com).
+
+# Support us!
+
+**ink** is free forever, but represents multiple years of thought, design, development and testing. Please consider supporting us via [Patreon](http://www.patreon.com/inkle). Thank you, and have fun!
