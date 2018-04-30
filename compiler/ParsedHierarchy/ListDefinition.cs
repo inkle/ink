@@ -14,8 +14,13 @@ namespace Ink.Parsed
         public Runtime.ListDefinition runtimeListDefinition {
             get {
                 var allItems = new Dictionary<string, int> ();
-                foreach (var e in itemDefinitions)
-                    allItems.Add (e.name, e.seriesValue);
+                foreach (var e in itemDefinitions) {
+                    if( !allItems.ContainsKey(e.name) )
+                        allItems.Add (e.name, e.seriesValue);
+                    else
+                        Error("List '"+name+"' contains dupicate items called '"+e.name+"'");
+                }
+                
                 return new Runtime.ListDefinition (name, allItems);
             }
         }
