@@ -75,7 +75,7 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            if (divertAfter)
+            if (divertAfter && divertAfter.targetContent)
                 _overrideDivertTarget.targetPath = divertAfter.targetContent.runtimePath;
         }
 
