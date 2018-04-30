@@ -40,7 +40,11 @@ namespace Ink.Parsed
                         if (listName == null)
                             listName = ((ListDefinition)listItem.parent).name;
                         var item = new Runtime.InkListItem (listName, listItem.name);
-                        runtimeRawList.Add (item, listItem.seriesValue);
+
+                        if (runtimeRawList.ContainsKey (item))
+                            Warning ("Duplicate of item '"+itemName+"' in list.");
+                        else 
+                            runtimeRawList [item] = listItem.seriesValue;
                     }
                 }
             }
