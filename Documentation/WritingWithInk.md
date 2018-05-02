@@ -1387,9 +1387,7 @@ Sometimes, a global variable is unwieldy. **ink** provides temporary variables f
 			That night I was colder than I have ever been.
 		}
 
-The value in a temporary variable is thrown away after the story leaves the knot in which it was defined. 
-
-TODO: check this is actually true
+The value in a temporary variable is thrown away after the story leaves the stitch in which it was defined. 
 
 ### Knots and stitches can take parameters
 
@@ -1408,7 +1406,7 @@ A particularly useful form of temporary variable is a parameter. Any knot or sti
 		"And why not?" Poirot shot back. 	
 		
 	
-	
+... and you'll need to use parameters if you want to pass a temporary value from one stitch to another!	
 
 #### Example: a recursive knot definition
 
