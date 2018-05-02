@@ -355,6 +355,7 @@ namespace Ink.Runtime
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
                 AddStringBinaryOp (NotEquals, (x, y) => !x.Equals (y) ? (int)1 : (int)0);
                 AddStringBinaryOp (Has,    (x, y) => x.Contains(y) ? (int)1 : (int)0);
+                AddStringBinaryOp (Hasnt,   (x, y) => x.Contains(y) ? (int)0 : (int)1);
 
                 // List operations
                 AddListBinaryOp (Add, (x, y) => x.Union (y));
