@@ -36,7 +36,7 @@ namespace Ink.Parsed
                     // Only allowed to compare for equality
 
                     var binaryExprParent = usageParent as BinaryExpression;
-                    if (binaryExprParent.opName != "==") {
+                    if (binaryExprParent.opName != "==" && binaryExprParent.opName != "!=") {
                         badUsage = true;
                     } else {
                         if (!(binaryExprParent.leftExpression is DivertTarget || binaryExprParent.leftExpression is VariableReference)) {

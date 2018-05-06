@@ -385,11 +385,15 @@ namespace Ink.Runtime
                 AddListUnaryOp (Count,  (x) => x.Count);
                 AddListUnaryOp (ValueOfList,  (x) => x.maxItem.Value);
 
-                // Special case: The only operation you can do on divert target values
+                // Special case: The only operations you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
                     return d1.Equals (d2) ? 1 : 0;
                 };
+                BinaryOp<Path> divertTargetsNotEqual = (Path d1, Path d2) => {
+                	return d1.Equals (d2) ? 0 : 1;
+                };
                 AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+                AddOpToNativeFunc (NotEquals, 2, ValueType.DivertTarget, divertTargetsNotEqual);
 
             }
         }
