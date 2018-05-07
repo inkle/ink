@@ -104,6 +104,14 @@ namespace Ink.Parsed
                                 break;
                             }
 
+                            // Check that we're not attempting to pass a read count by reference
+                            var targetPath = new Path(varRef.path);
+                            Parsed.Object targetForCount = targetPath.ResolveFromContext (this);
+                            if (targetForCount != null) {
+                                Error ("can't pass a read count by reference. '" + targetPath.dotSeparatedComponents+"' is a knot/stitch/label, but '"+target.dotSeparatedComponents+"' requires the name of a VAR to be passed.");
+                                break;
+                            }
+
                             var varPointer = new Runtime.VariablePointerValue (varRef.name);
                             container.AddContent (varPointer);
                         } 

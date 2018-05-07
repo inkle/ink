@@ -80,6 +80,14 @@ namespace Ink.Parsed
 
                 targetForCount.containerForCounting.visitsShouldBeCounted = true;
 
+                // If this is an argument to a function that wants a variable to be
+                // passed by reference, then the Parsed.Divert will have generated a
+                // Runtime.VariablePointerValue instead of allowing this object
+                // to generate its RuntimeVariableReference. This only happens under
+                // error condition since we shouldn't be passing a read count by
+                // reference, but we don't want it to crash!
+                if (_runtimeVarRef == null) return;
+
                 _runtimeVarRef.pathForCount = targetForCount.runtimePath;
                 _runtimeVarRef.name = null;
 
