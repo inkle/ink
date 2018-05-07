@@ -408,6 +408,8 @@ namespace Ink.Parsed
             Temp
         }
 
+        // Check given symbol type against everything that's of a higher priority in the ordered SymbolType enum (above).
+        // When the given symbol type level is reached, we early-out / return.
         public void CheckForNamingCollisions (Parsed.Object obj, string name, SymbolType symbolType, string typeNameOverride = null)
         {
             string typeNameToPrint = typeNameOverride ?? obj.typeName;

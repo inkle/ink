@@ -2430,11 +2430,11 @@ Top level content
 * choice
 
 == somewhere ==
-= else
+= here
 -> DONE
 
 == function test ==
-~ return -> somewhere.else
+~ return -> somewhere.here
 ";
 
             Story story = CompileString (storyStr);
@@ -2443,7 +2443,7 @@ Top level content
             var returnedDivertTarget = story.EvaluateFunction ("test");
 
             // Divert target should get returned as a string
-            Assert.AreEqual ("somewhere.else", returnedDivertTarget);
+            Assert.AreEqual ("somewhere.here", returnedDivertTarget);
         }
 
         [Test ()]
@@ -2866,6 +2866,24 @@ TODO: b
 
             Assert.AreEqual ("choice\nnextline\n", story.ContinueMaximally ());
         }
+
+
+        [Test ()]
+        public void TestStitchNamingCollision ()
+        {
+            var storyStr =
+                @"
+VAR stitch = 0
+
+== knot ==
+= stitch
+->DONE
+";
+            CompileString (storyStr, countAllVisits: false, testingErrors: true);
+
+            Assert.IsTrue (HadError ("already been used for a var"));
+        }
+
 
         [Test ()]
         public void TestWeavePointNamingCollision ()

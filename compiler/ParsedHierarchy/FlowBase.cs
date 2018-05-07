@@ -357,6 +357,9 @@ namespace Ink.Parsed
                     }
                 }
             }
+
+            if( flowLevel == FlowLevel.Stitch )
+                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
         }
 
         void CheckForDisallowedFunctionFlowControl()
