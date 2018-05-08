@@ -4,7 +4,7 @@ cd "`dirname "$0"`"
 mono NuGet.exe restore ink.sln
 
 # Build the release code
-xbuild /p:Configuration=Release ink.sln
+msbuild /p:Configuration=Release ink.sln
 
 # Create folders
 mkdir -p ReleaseBinary
