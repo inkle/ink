@@ -28,6 +28,8 @@ namespace Ink.Runtime
         public const string Min      = "MIN";
         public const string Max      = "MAX";
 
+        public const string Pow      = "POW";
+
         public const string Has      = "?";
         public const string Hasnt    = "!?";
         public const string Intersect = "^";
@@ -328,6 +330,9 @@ namespace Ink.Runtime
                 AddIntBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddIntBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
+                // Have to cast to float since you could do POW(2, -1)
+                AddIntBinaryOp (Pow,      (x, y) => (float) Math.Pow(x, y));
+
                 // Float operations
                 AddFloatBinaryOp(Add,      (x, y) => x + y);
                 AddFloatBinaryOp(Subtract, (x, y) => x - y);
@@ -349,6 +354,8 @@ namespace Ink.Runtime
 
                 AddFloatBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
+
+                AddFloatBinaryOp (Pow,      (x, y) => (float)Math.Pow(x, y));
 
                 // String operations
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
