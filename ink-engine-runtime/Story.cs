@@ -1065,6 +1065,10 @@ namespace Ink.Runtime
                     state.PushEvaluationStack (new Runtime.IntValue (choiceCount));
                     break;
 
+                case ControlCommand.CommandType.Turns:
+                    state.PushEvaluationStack (new IntValue (state.currentTurnIndex+1));
+                    break;
+
                 case ControlCommand.CommandType.TurnsSince:
                 case ControlCommand.CommandType.ReadCount:
                     var target = state.PopEvaluationStack();
@@ -1096,32 +1100,34 @@ namespace Ink.Runtime
                     
                     state.PushEvaluationStack (new IntValue (eitherCount));
                     break;
+                    
 
-                case ControlCommand.CommandType.Random:
-                    var maxInt = state.PopEvaluationStack () as IntValue;
-                    var minInt = state.PopEvaluationStack () as IntValue;
+                case ControlCommand.CommandType.Random: {
+                        var maxInt = state.PopEvaluationStack () as IntValue;
+                        var minInt = state.PopEvaluationStack () as IntValue;
 
-                    if (minInt == null)
-                        Error ("Invalid value for minimum parameter of RANDOM(min, max)");
+                        if (minInt == null)
+                            Error ("Invalid value for minimum parameter of RANDOM(min, max)");
 
-                    if (maxInt == null)
-                        Error ("Invalid value for maximum parameter of RANDOM(min, max)");
+                        if (maxInt == null)
+                            Error ("Invalid value for maximum parameter of RANDOM(min, max)");
 
-                    // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
-                    var randomRange = maxInt.value - minInt.value + 1;
-                    if (randomRange <= 0)
-                        Error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
+                        // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
+                        var randomRange = maxInt.value - minInt.value + 1;
+                        if (randomRange <= 0)
+                            Error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
 
-                    var resultSeed = state.storySeed + state.previousRandom;
-                    var random = new Random(resultSeed);
+                        var resultSeed = state.storySeed + state.previousRandom;
+                        var random = new Random (resultSeed);
 
-                    var nextRandom = random.Next ();
-                    var chosenValue = (nextRandom % randomRange) + minInt.value;
-                    state.PushEvaluationStack (new IntValue (chosenValue));
+                        var nextRandom = random.Next ();
+                        var chosenValue = (nextRandom % randomRange) + minInt.value;
+                        state.PushEvaluationStack (new IntValue (chosenValue));
 
-                    // Next random number (rather than keeping the Random object around)
-                    state.previousRandom = nextRandom;
-                    break;
+                        // Next random number (rather than keeping the Random object around)
+                        state.previousRandom = nextRandom;
+                        break;
+                    }
 
                 case ControlCommand.CommandType.SeedRandom:
                     var seed = state.PopEvaluationStack () as IntValue;
@@ -1247,6 +1253,48 @@ namespace Ink.Runtime
                         }
                             
                         state.PushEvaluationStack (result);
+                        break;
+                    }
+
+                case ControlCommand.CommandType.ListRandom: {
+
+                        var listVal = state.PopEvaluationStack () as ListValue;
+                        if (listVal == null)
+                            throw new StoryException ("Expected list for LIST_RANDOM");
+                        
+                        var list = listVal.value;
+
+                        InkList newList = null;
+
+                        // List was empty: return empty list
+                        if (list.Count == 0) {
+                            newList = new InkList ();
+                        } 
+
+                        // Non-empty source list
+                        else {
+                            // Generate a random index for the element to take
+                            var resultSeed = state.storySeed + state.previousRandom;
+                            var random = new Random (resultSeed);
+
+                            var nextRandom = random.Next ();
+                            var listItemIndex = nextRandom % list.Count;
+
+                            // Iterate through to get the random element
+                            var listEnumerator = list.GetEnumerator ();
+                            for (int i = 0; i <= listItemIndex; i++) {
+                                listEnumerator.MoveNext ();
+                            }
+                            var randomItem = listEnumerator.Current;
+
+                            // Origin list is simply the origin of the one element
+                            newList = new InkList (randomItem.Key.originName, this);
+                            newList.Add (randomItem.Key, randomItem.Value);
+
+                            state.previousRandom = nextRandom;
+                        }
+
+                        state.PushEvaluationStack (new ListValue(newList));
                         break;
                     }
 

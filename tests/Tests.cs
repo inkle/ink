@@ -3384,6 +3384,53 @@ world
         }
 
 
+        [Test ()]
+        public void TestListRandom ()
+        {
+            var storyStr =
+                @"
+LIST l = A, (B), (C), (D), E
+{LIST_RANDOM(l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+{LIST_RANDOM (l)}
+                    ";
+
+            var story = CompileString (storyStr);
+
+            while (story.canContinue) {
+                var result = story.Continue ();
+                Assert.IsTrue (result == "B\n" || result == "C\n" || result == "D\n");
+            }
+        }
+
+
+        [Test ()]
+        public void TestTurns ()
+        {
+            var storyStr =
+                @"
+-> c
+- (top)
++ (c) [choice]
+    {TURNS ()}
+    -> top
+                    ";
+
+            var story = CompileString (storyStr);
+
+            for (int i = 0; i < 10; i++) {
+                Assert.AreEqual(i + "\n", story.Continue ());
+            }
+        }
+        
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

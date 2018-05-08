@@ -642,6 +642,7 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.EndString] = "/str";
             _controlCommandNames [(int)ControlCommand.CommandType.NoOp] = "nop";
             _controlCommandNames [(int)ControlCommand.CommandType.ChoiceCount] = "choiceCnt";
+            _controlCommandNames [(int)ControlCommand.CommandType.Turns] = "turn";
             _controlCommandNames [(int)ControlCommand.CommandType.TurnsSince] = "turns";
             _controlCommandNames [(int)ControlCommand.CommandType.ReadCount] = "readc";
             _controlCommandNames [(int)ControlCommand.CommandType.Random] = "rnd";
@@ -653,6 +654,7 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.End] = "end";
             _controlCommandNames [(int)ControlCommand.CommandType.ListFromInt] = "listInt";
             _controlCommandNames [(int)ControlCommand.CommandType.ListRange] = "range";
+            _controlCommandNames [(int)ControlCommand.CommandType.ListRandom] = "lrnd";
 
             for (int i = 0; i < (int)ControlCommand.CommandType.TOTAL_VALUES; ++i) {
                 if (_controlCommandNames [i] == null)

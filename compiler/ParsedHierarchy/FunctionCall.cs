@@ -8,10 +8,12 @@ namespace Ink.Parsed
         public List<Expression> arguments { get { return _proxyDivert.arguments; } }
         public Runtime.Divert runtimeDivert { get { return _proxyDivert.runtimeDivert; } }
         public bool isChoiceCount { get { return name == "CHOICE_COUNT"; } }
+        public bool isTurns { get { return name == "TURNS"; } }
         public bool isTurnsSince { get { return name == "TURNS_SINCE"; } }
         public bool isRandom { get { return name == "RANDOM"; } } 
         public bool isSeedRandom { get { return name == "SEED_RANDOM"; } }
         public bool isListRange { get { return name == "LIST_RANGE"; } }
+        public bool isListRandom { get { return name == "LIST_RANDOM"; } }
         public bool isReadCount { get { return name == "READ_COUNT"; } }
 
         public bool shouldPopReturnedValue;
@@ -27,6 +29,8 @@ namespace Ink.Parsed
         {
             var foundList = story.ResolveList (name);
 
+            bool usingProxyDivert = false;
+
             if (isChoiceCount) {
 
                 if (arguments.Count > 0)
@@ -34,13 +38,20 @@ namespace Ink.Parsed
 
                 container.AddContent (Runtime.ControlCommand.ChoiceCount ());
 
+            } else if (isTurns) { 
+
+                if (arguments.Count > 0)
+                    Error ("The TURNS() function shouldn't take any arguments");
+
+                container.AddContent (Runtime.ControlCommand.Turns ());
+                
             } else if (isTurnsSince || isReadCount) {
 
                 var divertTarget = arguments [0] as DivertTarget;
                 var variableDivertTarget = arguments [0] as VariableReference;
 
                 if (arguments.Count != 1 || (divertTarget == null && variableDivertTarget == null)) {
-                    Error ("The "+name+"() function should take one argument: a divert target to the target knot, stitch, gather or choice you want to check. e.g. TURNS_SINCE(-> myKnot)");
+                    Error ("The " + name + "() function should take one argument: a divert target to the target knot, stitch, gather or choice you want to check. e.g. TURNS_SINCE(-> myKnot)");
                     return;
                 }
 
@@ -64,7 +75,7 @@ namespace Ink.Parsed
                     container.AddContent (Runtime.ControlCommand.TurnsSince ());
                 else
                     container.AddContent (Runtime.ControlCommand.ReadCount ());
-                
+
             } else if (isRandom) {
                 if (arguments.Count != 2)
                     Error ("RANDOM should take 2 parameters: a minimum and a maximum integer");
@@ -83,6 +94,7 @@ namespace Ink.Parsed
                 }
 
                 container.AddContent (Runtime.ControlCommand.Random ());
+
             } else if (isSeedRandom) {
                 if (arguments.Count != 1)
                     Error ("SEED_RANDOM should take 1 parameter - an integer seed");
@@ -95,17 +107,23 @@ namespace Ink.Parsed
                 arguments [0].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.SeedRandom ());
+
             } else if (isListRange) {
                 if (arguments.Count != 3)
-                    Error ("LIST_VALUE should take 3 parameters - a list, a min and a max");
+                    Error ("LIST_RANGE should take 3 parameters - a list, a min and a max");
 
                 for (int arg = 0; arg < arguments.Count; arg++)
                     arguments [arg].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.ControlCommand.ListRange ());
 
-                // Don't attempt to resolve as a divert
-                content.Remove (_proxyDivert);
+            } else if( isListRandom ) {
+                if (arguments.Count != 1)
+                    Error ("LIST_RANDOM should take 1 parameter - a list");
+
+                arguments [0].GenerateIntoContainer (container);
+
+                container.AddContent (Runtime.ControlCommand.ListRandom ());
 
             } else if (Runtime.NativeFunctionCall.CallExistsWithName (name)) {
 
@@ -122,9 +140,6 @@ namespace Ink.Parsed
                     arguments [arg].GenerateIntoContainer (container);
 
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName (name));
-
-                // Don't attempt to resolve as a divert
-                content.Remove (_proxyDivert);
             } else if (foundList != null) {
                 if (arguments.Count > 1)
                     Error ("Can currently only construct a list from one integer (or an empty list from a given list definition)");
@@ -142,15 +157,16 @@ namespace Ink.Parsed
                     list.SetInitialOriginName (name);
                     container.AddContent (new Runtime.ListValue (list));
                 }
-
-                // Don't attempt to resolve as a divert
-                content.Remove (_proxyDivert);
             }
 
-                // Normal function call
-                else {
+            // Normal function call
+            else {
                 container.AddContent (_proxyDivert.runtimeObject);
+                usingProxyDivert = true;
             }
+
+            // Don't attempt to resolve as a divert if we're not doing a normal function call
+            if( !usingProxyDivert ) content.Remove (_proxyDivert);
 
             // Function calls that are used alone on a tilda-based line:
             //  ~ func()
