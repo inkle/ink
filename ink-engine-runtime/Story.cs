@@ -249,7 +249,7 @@ namespace Ink.Runtime
             if (_mainContentContainer.namedContent.ContainsKey ("global decl")) {
                 var originalPointer = state.currentPointer;
 
-                ChoosePathString ("global decl", resetCallstack: false);
+                ChoosePath (new Path ("global decl"), incrementingTurnIndex: false);
 
                 // Continue, but without validating external bindings,
                 // since we may be doing this reset at initialisation time.
@@ -1438,9 +1438,9 @@ namespace Ink.Runtime
                 throw new System.Exception ("Can't " + activityStr + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
         }
             
-        internal void ChoosePath(Path p)
+        internal void ChoosePath(Path p, bool incrementingTurnIndex = true)
         {
-            state.SetChosenPath (p);
+            state.SetChosenPath (p, incrementingTurnIndex);
 
             // Take a note of newly visited containers for read counts etc
             VisitChangedContainersDueToDivert ();
@@ -2181,7 +2181,7 @@ namespace Ink.Runtime
 
             var choice = invisibleChoices [0];
 
-            ChoosePath (choice.targetPath);
+            ChoosePath (choice.targetPath, incrementingTurnIndex: false);
 
             return true;
         }

@@ -859,7 +859,7 @@ namespace Ink.Runtime
         }
 
         // Don't make public since the method need to be wrapped in Story for visit counting
-        internal void SetChosenPath(Path path)
+        internal void SetChosenPath(Path path, bool incrementingTurnIndex)
         {
             // Changing direction, assume we need to clear current set of choices
 			_currentChoices.Clear ();
@@ -870,7 +870,8 @@ namespace Ink.Runtime
 
             currentPointer = newPointer;
 
-            currentTurnIndex++;
+            if( incrementingTurnIndex )
+                currentTurnIndex++;
         }
 
         internal void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
