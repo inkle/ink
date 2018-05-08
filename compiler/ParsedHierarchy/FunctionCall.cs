@@ -223,9 +223,11 @@ namespace Ink.Parsed
             
             return name == "CHOICE_COUNT" 
                 || name == "TURNS_SINCE" 
+                || name == "TURNS"
                 || name == "RANDOM" 
                 || name == "SEED_RANDOM" 
                 || name == "LIST_VALUE"
+                || name == "LIST_RANDOM"
                 || name == "READ_COUNT";
         }
 

@@ -358,8 +358,12 @@ namespace Ink.Parsed
                 }
             }
 
-            if( flowLevel == FlowLevel.Stitch )
-                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
+            // Check naming collisions for knots and stitches
+            if (flowLevel != FlowLevel.Story) {
+                // Weave points aren't FlowBases, so this will only be knot or stitch
+                var symbolType = flowLevel == FlowLevel.Knot ? Story.SymbolType.Knot : Story.SymbolType.SubFlowAndWeave;
+                context.CheckForNamingCollisions (this, name, symbolType);
+            }                
         }
 
         void CheckForDisallowedFunctionFlowControl()

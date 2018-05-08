@@ -3238,11 +3238,11 @@ Phrase 1
         {
         	var storyStr =
         @"
-{true():
+{isTrue():
     x
 }
 
-=== function true()
+=== function isTrue()
     X
 	~ return true
         ";
@@ -3427,6 +3427,7 @@ LIST l = A, (B), (C), (D), E
 
             for (int i = 0; i < 10; i++) {
                 Assert.AreEqual(i + "\n", story.Continue ());
+                story.ChooseChoiceIndex (0);
             }
         }
         

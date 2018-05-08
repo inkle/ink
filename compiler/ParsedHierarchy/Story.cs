@@ -414,7 +414,12 @@ namespace Ink.Parsed
         {
             string typeNameToPrint = typeNameOverride ?? obj.typeName;
             if (IsReservedKeyword (name)) {
-                obj.Error ("'"+name + "' cannot be used for the name of a " + typeNameToPrint + " because it's a reserved keyword");
+                obj.Error ("'"+name + "' cannot be used for the name of a " + typeNameToPrint.ToLower() + " because it's a reserved keyword");
+                return;
+            }
+
+            if (FunctionCall.IsBuiltIn (name)) {
+                obj.Error ("'"+name + "' cannot be used for the name of a " + typeNameToPrint.ToLower() + " because it's a built in function");
                 return;
             }
 
