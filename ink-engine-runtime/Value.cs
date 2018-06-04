@@ -287,15 +287,10 @@ namespace Ink.Runtime
             }
         }
 
-        // Truthy if it contains any non-zero items
+        // Truthy if it is non-empty
         public override bool isTruthy {
             get {
-                foreach (var kv in value) {
-                    int listItemIntValue = kv.Value;
-                    if (listItemIntValue != 0)
-                        return true;
-                }
-                return false;
+                return value.Count > 0;
             }
         }
                 
