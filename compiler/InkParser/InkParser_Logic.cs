@@ -48,17 +48,22 @@ namespace Ink
                 }
             }
 
-            // A function call on its own line could result in a text side effect, in which case
-            // it needs a newline on the end. e.g.
+            // Line is pure function call? e.g.
+            //  ~ f()
+            // Add extra pop to make sure we tidy up after ourselves.
+            // We no longer need anything on the evaluation stack.
+            var funCall = result as FunctionCall;
+            if (funCall) funCall.shouldPopReturnedValue = true;
+
+            // If the expression contains a function call, then it could produce a text side effect,
+            // in which case it needs a newline on the end. e.g.
             //  ~ printMyName()
+            //  ~ x = 1 + returnAValueAndAlsoPrintStuff()
             // If no text gets printed, then the extra newline will have to be culled later.
-            if (result is FunctionCall) {
-
-                // Add extra pop to make sure we tidy up after ourselves - we no longer need anything on the evaluation stack.
-                var funCall = result as FunctionCall;
-                funCall.shouldPopReturnedValue = true;
-
-                result = new ContentList (funCall, new Parsed.Text ("\n"));
+            // Multiple newlines on the output will be removed, so there will be no "leak" for
+            // long running calculations. It's disappointingly messy though :-/
+            if (result.Find<FunctionCall>() != null ) {
+                result = new ContentList (result, new Parsed.Text ("\n"));
             }
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);

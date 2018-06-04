@@ -3430,6 +3430,32 @@ LIST l = A, (B), (C), (D), E
                 story.ChooseChoiceIndex (0);
             }
         }
+
+
+
+
+        [Test ()]
+        public void TestLogicLinesWithNewlines ()
+        {
+            // Both "~" lines should be followed by newlines
+            // since func() has a text output side effect.
+            var storyStr =
+        @"
+~ func ()
+text 2
+
+~temp tempVar = func ()
+text 2
+
+== function func ()
+	text1
+	~ return true
+";
+
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual("text1\ntext 2\ntext1\ntext 2\n", story.ContinueMaximally ());
+        }
         
 
         // Helper compile function
