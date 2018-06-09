@@ -1,7 +1,6 @@
-﻿
-namespace Ink.Parsed
+﻿namespace Ink.Parsed
 {
-	internal class Text : Parsed.Object
+	public class Text : Parsed.Object
 	{
 		public string text { get; set; }
 

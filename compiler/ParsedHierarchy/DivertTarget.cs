@@ -1,7 +1,6 @@
-﻿
-namespace Ink.Parsed
+﻿namespace Ink.Parsed
 {
-    internal class DivertTarget : Expression
+    public class DivertTarget : Expression
     {
         public Divert divert;
 

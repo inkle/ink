@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Ink
 {
-    internal partial class InkParser
+    public partial class InkParser
     {
         void TrimEndWhitespace(List<Parsed.Object> mixedTextAndLogicResults, bool terminateWithSpace)
         {
@@ -38,7 +38,10 @@ namespace Ink
                     result = tags.Cast<Parsed.Object> ().ToList ();
                     onlyTags = true;
                 } else {
-                    result.AddRange (tags);
+                    foreach(var tag in tags)
+                    {
+                        result.Add(tag);
+                    }
                 }
             }
 

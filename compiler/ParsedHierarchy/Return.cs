@@ -1,6 +1,6 @@
 ﻿namespace Ink.Parsed
 {
-    internal class Return : Parsed.Object
+    public class Return : Parsed.Object
     {
         public Expression returnedExpression { get; protected set; }
 

@@ -1,67 +1,44 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{52E3F3D0-2702-44E5-82F5-783B82647CA5}</ProjectGuid>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{F559720B-73B3-43FF-B556-32AE25DC14F2}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ink</RootNamespace>
     <AssemblyName>ink_compiler</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ParsedHierarchy\AuthorWarning.cs" />
-    <Compile Include="ParsedHierarchy\Choice.cs" />
-    <Compile Include="ParsedHierarchy\Conditional.cs" />
-    <Compile Include="ParsedHierarchy\ConditionalSingleBranch.cs" />
-    <Compile Include="ParsedHierarchy\ConstantDeclaration.cs" />
-    <Compile Include="ParsedHierarchy\ContentList.cs" />
-    <Compile Include="ParsedHierarchy\Divert.cs" />
-    <Compile Include="ParsedHierarchy\DivertTarget.cs" />
-    <Compile Include="ParsedHierarchy\Expression.cs" />
-    <Compile Include="ParsedHierarchy\ExternalDeclaration.cs" />
-    <Compile Include="ParsedHierarchy\FlowBase.cs" />
-    <Compile Include="ParsedHierarchy\FlowLevel.cs" />
-    <Compile Include="ParsedHierarchy\FunctionCall.cs" />
-    <Compile Include="ParsedHierarchy\Gather.cs" />
-    <Compile Include="ParsedHierarchy\INamedContent.cs" />
-    <Compile Include="ParsedHierarchy\IWeavePoint.cs" />
-    <Compile Include="ParsedHierarchy\IncludedFile.cs" />
-    <Compile Include="ParsedHierarchy\Knot.cs" />
-    <Compile Include="ParsedHierarchy\List.cs" />
-    <Compile Include="ParsedHierarchy\ListDefinition.cs" />
-    <Compile Include="ParsedHierarchy\Number.cs" />
-    <Compile Include="ParsedHierarchy\Object.cs" />
-    <Compile Include="ParsedHierarchy\Path.cs" />
-    <Compile Include="ParsedHierarchy\Return.cs" />
-    <Compile Include="ParsedHierarchy\Sequence.cs" />
-    <Compile Include="ParsedHierarchy\Stitch.cs" />
-    <Compile Include="ParsedHierarchy\Story.cs" />
-    <Compile Include="ParsedHierarchy\StringExpression.cs" />
-    <Compile Include="ParsedHierarchy\Text.cs" />
-    <Compile Include="ParsedHierarchy\TunnelOnwards.cs" />
-    <Compile Include="ParsedHierarchy\VariableAssignment.cs" />
-    <Compile Include="ParsedHierarchy\VariableReference.cs" />
-    <Compile Include="ParsedHierarchy\Weave.cs" />
-    <Compile Include="ParsedHierarchy\Wrap.cs" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CharacterRange.cs" />
+    <Compile Include="CharacterSet.cs" />
+    <Compile Include="CommandLineInput.cs" />
+    <Compile Include="Compiler.cs" />
+    <Compile Include="Error.cs" />
+    <Compile Include="IFileHandler.cs" />
     <Compile Include="InkParser\CommentEliminator.cs" />
     <Compile Include="InkParser\InkParser.cs" />
     <Compile Include="InkParser\InkParser_AuthorWarning.cs" />
@@ -79,24 +56,52 @@
     <Compile Include="InkParser\InkParser_Statements.cs" />
     <Compile Include="InkParser\InkParser_Tags.cs" />
     <Compile Include="InkParser\InkParser_Whitespace.cs" />
-    <Compile Include="Compiler.cs" />
+    <Compile Include="ParsedHierarchy\AuthorWarning.cs" />
+    <Compile Include="ParsedHierarchy\Choice.cs" />
+    <Compile Include="ParsedHierarchy\Conditional.cs" />
+    <Compile Include="ParsedHierarchy\ConditionalSingleBranch.cs" />
+    <Compile Include="ParsedHierarchy\ConstantDeclaration.cs" />
+    <Compile Include="ParsedHierarchy\ContentList.cs" />
+    <Compile Include="ParsedHierarchy\Divert.cs" />
+    <Compile Include="ParsedHierarchy\DivertTarget.cs" />
+    <Compile Include="ParsedHierarchy\Expression.cs" />
+    <Compile Include="ParsedHierarchy\ExternalDeclaration.cs" />
+    <Compile Include="ParsedHierarchy\FlowBase.cs" />
+    <Compile Include="ParsedHierarchy\FlowLevel.cs" />
+    <Compile Include="ParsedHierarchy\FunctionCall.cs" />
+    <Compile Include="ParsedHierarchy\Gather.cs" />
+    <Compile Include="ParsedHierarchy\INamedContent.cs" />
+    <Compile Include="ParsedHierarchy\IncludedFile.cs" />
+    <Compile Include="ParsedHierarchy\IWeavePoint.cs" />
+    <Compile Include="ParsedHierarchy\Knot.cs" />
+    <Compile Include="ParsedHierarchy\List.cs" />
+    <Compile Include="ParsedHierarchy\ListDefinition.cs" />
+    <Compile Include="ParsedHierarchy\Number.cs" />
+    <Compile Include="ParsedHierarchy\Object.cs" />
+    <Compile Include="ParsedHierarchy\Path.cs" />
+    <Compile Include="ParsedHierarchy\Return.cs" />
+    <Compile Include="ParsedHierarchy\Sequence.cs" />
+    <Compile Include="ParsedHierarchy\Stitch.cs" />
+    <Compile Include="ParsedHierarchy\Story.cs" />
+    <Compile Include="ParsedHierarchy\StringExpression.cs" />
+    <Compile Include="ParsedHierarchy\Text.cs" />
+    <Compile Include="ParsedHierarchy\TunnelOnwards.cs" />
+    <Compile Include="ParsedHierarchy\VariableAssignment.cs" />
+    <Compile Include="ParsedHierarchy\VariableReference.cs" />
+    <Compile Include="ParsedHierarchy\Weave.cs" />
+    <Compile Include="ParsedHierarchy\Wrap.cs" />
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
-    <Compile Include="CharacterRange.cs" />
-    <Compile Include="CharacterSet.cs" />
-    <Compile Include="Error.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringConversionExtensions.cs" />
     <Compile Include="StringParser\StringParser.cs" />
     <Compile Include="StringParser\StringParserState.cs" />
-    <Compile Include="IFileHandler.cs">
-      <IncludeInPackage>true</IncludeInPackage>
-    </Compile>
-    <Compile Include="CommandLineInput.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
-      <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
-      <Name>ink-engine-runtime</Name>
+      <Project>{71079ded-9d09-416d-b9a2-c249727792a7}</Project>
+      <Name>ink-engine-runtime_3_5</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

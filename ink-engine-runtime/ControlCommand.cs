@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    internal class ControlCommand : Runtime.Object
+    public class ControlCommand : Runtime.Object
     {
         public enum CommandType
         {
@@ -45,7 +45,7 @@ namespace Ink.Runtime
         // Require default constructor for serialisation
         public ControlCommand() : this(CommandType.NotSet) {}
 
-        internal override Object Copy()
+        public override Object Copy()
         {
             return new ControlCommand (commandType);
         }

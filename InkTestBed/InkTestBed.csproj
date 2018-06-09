@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -32,16 +32,6 @@
   <ItemGroup>
     <Compile Include="InkTestBed.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\compiler\ink_compiler.csproj">
-      <Project>{52E3F3D0-2702-44E5-82F5-783B82647CA5}</Project>
-      <Name>ink_compiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
-      <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
-      <Name>ink-engine-runtime</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="test.ink">

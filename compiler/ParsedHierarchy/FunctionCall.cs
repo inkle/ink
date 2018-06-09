@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    internal class FunctionCall : Expression
+    public class FunctionCall : Expression
     {
         public string name { get { return _proxyDivert.target.firstComponent; } }
         public List<Expression> arguments { get { return _proxyDivert.arguments; } }
@@ -233,7 +233,7 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            var strArgs = string.Join (", ", arguments);
+            var strArgs = string.Join (", ", arguments.ToStringsArray());
             return string.Format ("{0}({1})", name, strArgs);
         }
             

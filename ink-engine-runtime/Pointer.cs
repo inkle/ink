@@ -8,9 +8,9 @@ namespace Ink.Runtime
     /// a reference to the current container, and the index of the current piece of 
     /// content within that container. This scheme makes it as fast and efficient as
     /// possible to increment the pointer (move the story forwards) in a way that's as
-    /// native to the internal engine as possible.
+    /// native to the public engine as possible.
     /// </summary>
-	internal struct Pointer
+	public struct Pointer
 	{
 		public Container container;
 		public int index;

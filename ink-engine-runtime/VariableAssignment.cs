@@ -3,7 +3,7 @@
 namespace Ink.Runtime
 {
     // The value to be assigned is popped off the evaluation stack, so no need to keep it here
-    internal class VariableAssignment : Runtime.Object
+    public class VariableAssignment : Runtime.Object
     {
         public string variableName { get; protected set; }
         public bool isNewDeclaration { get; protected set; }

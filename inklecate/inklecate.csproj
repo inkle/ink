@@ -37,13 +37,13 @@
     <Compile Include="CommandLinePlayer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ink-engine-runtime_3_5\ink-engine-runtime_3_5.csproj">
+    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
       <Project>{71079ded-9d09-416d-b9a2-c249727792a7}</Project>
-      <Name>ink-engine-runtime_3_5</Name>
+      <Name>ink-engine-runtime</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ink_compiler_3_5\ink_compiler_3_5.csproj">
+    <ProjectReference Include="..\compiler\ink_compiler.csproj">
       <Project>{f559720b-73b3-43ff-b556-32ae25dc14f2}</Project>
-      <Name>ink_compiler_3_5</Name>
+      <Name>ink_compiler</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

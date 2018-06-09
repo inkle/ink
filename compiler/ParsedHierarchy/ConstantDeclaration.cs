@@ -1,8 +1,6 @@
-﻿//using System.Collections.Generic;
-
-namespace Ink.Parsed
+﻿namespace Ink.Parsed
 {
-    internal class ConstantDeclaration : Parsed.Object
+    public class ConstantDeclaration : Parsed.Object
     {
         public string constantName { get; protected set; }
         public Expression expression { get; protected set; }

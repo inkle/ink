@@ -1,6 +1,6 @@
 ﻿namespace Ink.Runtime
 {
-    internal class VariableReference : Runtime.Object
+    public class VariableReference : Runtime.Object
     {
         // Normal named variable
         public string name { get; set; }
@@ -8,7 +8,7 @@
         // Variable reference is actually a path for a visit (read) count
         public Path pathForCount { get; set; }
 
-        internal Container containerForCount {
+        public Container containerForCount {
             get {
                 return this.ResolvePath (pathForCount).container;
             }

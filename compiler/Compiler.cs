@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Ink;
+﻿using System.Collections.Generic;
 
 namespace Ink
 {
@@ -191,7 +189,7 @@ namespace Ink
             return null;
         }
 
-        internal struct DebugSourceRange
+        public struct DebugSourceRange
         {
             public int length;
             public Runtime.DebugMetadata debugMetadata;
