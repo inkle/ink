@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-	internal class Divert : Parsed.Object
+	public class Divert : Parsed.Object
 	{
 		public Parsed.Path target { get; protected set; }
         public Parsed.Object targetContent { get; protected set; }

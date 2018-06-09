@@ -10,7 +10,7 @@ namespace Ink.Parsed
         Once
     }
 
-    internal class Sequence : Parsed.Object
+    public class Sequence : Parsed.Object
     {
 
         public List<Parsed.Object> sequenceElements;

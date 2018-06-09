@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Ink.Parsed
 {
-    internal class ContentList : Parsed.Object
+    public class ContentList : Parsed.Object
     {
         public bool dontFlatten { get; set; }
 

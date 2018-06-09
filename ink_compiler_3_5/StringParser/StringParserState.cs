@@ -1,7 +1,6 @@
-﻿
-namespace Ink
+﻿namespace Ink
 {
-	internal class StringParserState
+	public class StringParserState
 	{
 		public int lineIndex { 
 			get { return currentElement.lineIndex; } 
@@ -30,7 +29,7 @@ namespace Ink
             }
         }
 					
-		internal class Element {
+		public class Element {
 			public int characterIndex;
 			public int lineIndex;
             public bool reportedErrorInScope;

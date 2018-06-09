@@ -6,7 +6,7 @@ namespace Ink
     /// <summary>
     /// A class representing a character range. Allows for lazy-loading a corresponding <see cref="CharacterSet">character set</see>.
     /// </summary>
-    internal sealed class CharacterRange
+    public sealed class CharacterRange
     {
         public static CharacterRange Define(char start, char end, IEnumerable<char> excludes = null)
         {
@@ -18,7 +18,7 @@ namespace Ink
         /// represented by the current instance.
         /// </summary>
         /// <remarks>
-        /// The internal character set is created once and cached in memory.
+        /// The i1nternal character set is created once and cached in memory.
         /// </remarks>
         /// <returns>The char set.</returns>
         public CharacterSet ToCharacterSet ()

@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    internal class FunctionCall : Expression
+    public class FunctionCall : Expression
     {
         public string name { get { return _proxyDivert.target.firstComponent; } }
         public List<Expression> arguments { get { return _proxyDivert.arguments; } }

@@ -1,5 +1,4 @@
-﻿
-namespace Ink
+﻿namespace Ink
 {
     /// <summary>
     /// Pre-pass before main ink parser runs. It actually performs two main tasks:
@@ -7,7 +6,7 @@ namespace Ink
     ///  - Conversion of Windows line endings (\r\n) to the simpler Unix style (\n), so
     ///    we don't have to worry about them later.
     /// </summary>
-    internal class CommentEliminator : StringParser
+    public class CommentEliminator : StringParser
     {
         public CommentEliminator (string input) : base(input)
         {

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
 namespace Ink.Parsed
 {
-    internal class StringExpression : Parsed.Expression
+    public class StringExpression : Parsed.Expression
     {
         public bool isSingleString {
             get {

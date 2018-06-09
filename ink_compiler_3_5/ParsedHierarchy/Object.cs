@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Ink.Parsed
 {
-	internal abstract class Object
+	public abstract class Object
 	{
         public Runtime.DebugMetadata debugMetadata { 
             get {

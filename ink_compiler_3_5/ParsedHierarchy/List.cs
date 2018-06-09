@@ -4,7 +4,7 @@ namespace Ink.Parsed
 {
     using StrList = System.Collections.Generic.List<string>;
 
-    internal class List : Parsed.Expression
+    public class List : Parsed.Expression
     {
         public StrList itemNameList;
 

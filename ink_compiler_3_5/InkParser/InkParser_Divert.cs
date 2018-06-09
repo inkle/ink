@@ -4,7 +4,7 @@ using Ink.Parsed;
 
 namespace Ink
 {
-    internal partial class InkParser
+    public partial class InkParser
     {
         protected List<Parsed.Object> MultiDivert()
         {

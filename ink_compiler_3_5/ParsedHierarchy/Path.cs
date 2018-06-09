@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-	internal class Path
+	public class Path
 	{
         public FlowLevel baseTargetLevel { 
             get { 

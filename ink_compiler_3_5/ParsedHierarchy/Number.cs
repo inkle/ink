@@ -1,7 +1,7 @@
 ﻿
 namespace Ink.Parsed
 {
-	internal class Number : Parsed.Expression
+	public class Number : Parsed.Expression
 	{
 		public object value;
 		
