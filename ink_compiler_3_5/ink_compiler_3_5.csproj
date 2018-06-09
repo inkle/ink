@@ -93,6 +93,7 @@
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringConversionExtensions.cs" />
     <Compile Include="StringParser\StringParser.cs" />
     <Compile Include="StringParser\StringParserState.cs" />
   </ItemGroup>

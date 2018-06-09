@@ -38,7 +38,7 @@ namespace Ink.Parsed
 
         public string dotSeparatedComponents {
             get {
-                return string.Join (".", _components);
+                return string.Join (".", _components.ToArray());
             }
         }
 

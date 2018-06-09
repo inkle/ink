@@ -1,5 +1,4 @@
-﻿
-namespace Ink.Parsed
+﻿namespace Ink.Parsed
 {
     public class AuthorWarning : Parsed.Object
     {
