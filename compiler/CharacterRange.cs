@@ -18,7 +18,7 @@ namespace Ink
         /// represented by the current instance.
         /// </summary>
         /// <remarks>
-        /// The i1nternal character set is created once and cached in memory.
+        /// The internal character set is created once and cached in memory.
         /// </remarks>
         /// <returns>The char set.</returns>
         public CharacterSet ToCharacterSet ()

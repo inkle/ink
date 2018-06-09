@@ -369,7 +369,7 @@ namespace Ink.Parsed
         void CheckForDisallowedFunctionFlowControl()
         {
             if (!(this is Knot)) {
-                Error ("Functions cannot be stitches - i.e. they should be defined as '== function myFunc ==' rather than i1nternal to another knot.");
+                Error ("Functions cannot be stitches - i.e. they should be defined as '== function myFunc ==' rather than internal to another knot.");
             }
 
             // Not allowed sub-flows
