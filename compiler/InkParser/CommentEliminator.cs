@@ -6,7 +6,7 @@
     ///  - Conversion of Windows line endings (\r\n) to the simpler Unix style (\n), so
     ///    we don't have to worry about them later.
     /// </summary>
-    public class CommentEliminator : StringParser
+    internal class CommentEliminator : StringParser
     {
         public CommentEliminator (string input) : base(input)
         {

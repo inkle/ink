@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Ink.Parsed
 {
-	public class Story : FlowBase
+    internal class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
         public bool hadError { get { return _hadError; } }
@@ -209,7 +209,7 @@ namespace Ink.Parsed
 			return runtimeStory;
 		}
 
-        public ListDefinition ResolveList (string listName)
+        internal ListDefinition ResolveList (string listName)
         {
             ListDefinition list;
             if (!_listDefs.TryGetValue (listName, out list))
@@ -217,7 +217,7 @@ namespace Ink.Parsed
             return list;
         }
 
-        public ListElementDefinition ResolveListItem (string listName, string itemName, Parsed.Object source = null)
+        internal ListElementDefinition ResolveListItem (string listName, string itemName, Parsed.Object source = null)
         {
             ListDefinition listDef = null;
 

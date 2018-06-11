@@ -1,6 +1,6 @@
 ﻿namespace Ink.Parsed
 {
-    public class ConstantDeclaration : Parsed.Object
+    internal class ConstantDeclaration : Parsed.Object
     {
         public string constantName { get; protected set; }
         public Expression expression { get; protected set; }

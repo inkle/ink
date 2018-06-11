@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-	public abstract class Expression : Parsed.Object
+    internal abstract class Expression : Parsed.Object
 	{
         public bool outputWhenComplete { get; set; }
 
@@ -51,7 +51,7 @@ namespace Ink.Parsed
         Runtime.Container _prototypeRuntimeConstantExpression;
 	}
 
-	public class BinaryExpression : Expression
+    internal class BinaryExpression : Expression
 	{
 		public Expression leftExpression;
 		public Expression rightExpression;
@@ -123,7 +123,7 @@ namespace Ink.Parsed
         }
 	}
 
-    public class UnaryExpression : Expression
+    internal class UnaryExpression : Expression
 	{
 		public Expression innerExpression;
         public string op;
@@ -190,7 +190,7 @@ namespace Ink.Parsed
         }
 	}
 
-    public class IncDecExpression : Expression
+    internal class IncDecExpression : Expression
     {
         public string varName;
         public bool isInc;
@@ -264,7 +264,7 @@ namespace Ink.Parsed
         }
     }
 
-    public class MultipleConditionExpression : Expression
+    internal class MultipleConditionExpression : Expression
     {
         public List<Expression> subExpressions {
             get {

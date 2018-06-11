@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    public class VariableReference : Expression
+    internal class VariableReference : Expression
     {
         // - Normal variables have a single item in their "path"
         // - Knot/stitch names for read counts are actual dot-separated paths

@@ -1,7 +1,7 @@
 ﻿
 namespace Ink.Parsed
 {
-    public class IncludedFile : Parsed.Object
+    internal class IncludedFile : Parsed.Object
     {
         public Parsed.Story includedStory { get; private set; }
 

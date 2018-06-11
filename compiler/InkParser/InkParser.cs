@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Ink
 {
-	public partial class InkParser : StringParser
+    internal partial class InkParser : StringParser
 	{
         public InkParser(string str, string filenameForMetadata = null, Ink.ErrorHandler externalErrorHandler = null, IFileHandler fileHandler = null) 
             : this(str, filenameForMetadata, externalErrorHandler, null, fileHandler) 

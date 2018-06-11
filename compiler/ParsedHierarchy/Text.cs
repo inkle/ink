@@ -1,6 +1,6 @@
 ﻿namespace Ink.Parsed
 {
-	public class Text : Parsed.Object
+    internal class Text : Parsed.Object
 	{
 		public string text { get; set; }
 

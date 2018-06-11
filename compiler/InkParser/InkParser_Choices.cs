@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Ink
 {
-	public partial class InkParser
+    internal partial class InkParser
 	{
 		protected Choice Choice()
 		{

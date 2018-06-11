@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    public class ConditionalSingleBranch : Parsed.Object
+    internal class ConditionalSingleBranch : Parsed.Object
     {
         // bool condition, e.g.:
         // { 5 == 4:

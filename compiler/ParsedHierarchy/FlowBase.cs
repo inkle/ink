@@ -2,10 +2,10 @@
 
 namespace Ink.Parsed
 {
-	// Base class for Knots and Stitches
-    public abstract class FlowBase : Parsed.Object, INamedContent
+    // Base class for Knots and Stitches
+    internal abstract class FlowBase : Parsed.Object, INamedContent
 	{
-        public class Argument
+	    internal class Argument
         {
             public string name;
             public bool isByReference;

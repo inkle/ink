@@ -2,7 +2,7 @@
 
 namespace Ink
 {
-    public class PluginManager
+    internal class PluginManager
     {
         public PluginManager (List<string> pluginNames)
         {

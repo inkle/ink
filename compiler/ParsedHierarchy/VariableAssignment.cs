@@ -1,6 +1,6 @@
 ﻿namespace Ink.Parsed
 {
-    public class VariableAssignment : Parsed.Object
+    internal class VariableAssignment : Parsed.Object
     {
         public string variableName { get; protected set; }
         public Expression expression { get; protected set; }

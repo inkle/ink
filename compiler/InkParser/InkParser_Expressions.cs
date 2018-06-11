@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Ink
 {
-	public partial class InkParser
+    internal partial class InkParser
 	{
 		protected class InfixOperator
 		{

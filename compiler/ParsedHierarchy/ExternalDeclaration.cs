@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace Ink.Parsed
 {
-    public class ExternalDeclaration : Parsed.Object, INamedContent
+    internal class ExternalDeclaration : Parsed.Object, INamedContent
     {
         public string name { get; set; }
         public List<string> argumentNames { get; set; }
 
-        public ExternalDeclaration (string name, List<string> argumentNames)
+        internal ExternalDeclaration (string name, List<string> argumentNames)
         {
             this.name = name;
             this.argumentNames = argumentNames;

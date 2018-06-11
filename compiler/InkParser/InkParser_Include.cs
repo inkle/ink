@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Ink
 {
-    public partial class InkParser
+    internal partial class InkParser
     {
         protected object IncludeStatement()
         {

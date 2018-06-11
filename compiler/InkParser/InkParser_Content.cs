@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Ink
 {
-    public partial class InkParser
+    internal partial class InkParser
     {
         void TrimEndWhitespace(List<Parsed.Object> mixedTextAndLogicResults, bool terminateWithSpace)
         {

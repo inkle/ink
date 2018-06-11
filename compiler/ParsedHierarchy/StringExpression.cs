@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Ink.Parsed
 {
-    public class StringExpression : Parsed.Expression
+    internal class StringExpression : Parsed.Expression
     {
         public bool isSingleString {
             get {

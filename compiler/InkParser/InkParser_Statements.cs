@@ -5,7 +5,7 @@ using Ink.Parsed;
 
 namespace Ink
 {
-	public partial class InkParser
+    internal partial class InkParser
 	{
 		protected enum StatementLevel
 		{

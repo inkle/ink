@@ -189,7 +189,7 @@ namespace Ink
             return null;
         }
 
-        public struct DebugSourceRange
+        internal struct DebugSourceRange
         {
             public int length;
             public Runtime.DebugMetadata debugMetadata;

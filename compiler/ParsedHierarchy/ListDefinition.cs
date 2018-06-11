@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-    public class ListDefinition : Parsed.Object
+    internal class ListDefinition : Parsed.Object
     {
         public string name;
         public List<ListElementDefinition> itemDefinitions;
@@ -90,7 +90,7 @@ namespace Ink.Parsed
         Dictionary<string, ListElementDefinition> _elementsByName;
     }
 
-    public class ListElementDefinition : Parsed.Object
+    internal class ListElementDefinition : Parsed.Object
     {
         public string name;
         public int? explicitValue;
