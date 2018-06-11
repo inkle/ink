@@ -1,11 +1,11 @@
 ﻿namespace Ink.Runtime
 {
-	public class DebugMetadata
+    internal class DebugMetadata
 	{
-		public int startLineNumber = 0;
-        public int endLineNumber = 0;
-        public string fileName = null;
-        public string sourceName = null;
+	    internal int startLineNumber = 0;
+	    internal int endLineNumber = 0;
+	    internal string fileName = null;
+	    internal string sourceName = null;
 
 		public DebugMetadata ()
 		{

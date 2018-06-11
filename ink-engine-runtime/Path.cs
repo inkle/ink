@@ -6,12 +6,12 @@ using Ink.Runtime;
 
 namespace Ink.Runtime
 {
-    public class Path : IEquatable<Path>
+    internal class Path : IEquatable<Path>
 	{
         static string parentId = "^";
 
         // Immutable Component
-        public class Component : IEquatable<Component>
+	    internal class Component : IEquatable<Component>
 		{
 			public int index { get; private set; }
 			public string name { get; private set; }

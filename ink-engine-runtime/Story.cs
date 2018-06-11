@@ -106,7 +106,7 @@ namespace Ink.Runtime
         /// </summary>
         public VariablesState variablesState{ get { return state.variablesState; } }
 
-        public ListDefinitionsOrigin listDefinitions {
+	    internal ListDefinitionsOrigin listDefinitions {
             get {
                 return _listDefinitions;
             }
@@ -141,11 +141,11 @@ namespace Ink.Runtime
 		public void EndProfiling() {
 			_profiler = null;
 		}
-            
+
         // Warning: When creating a Story using this constructor, you need to
         // call ResetState on it before use. Intended for compiler use only.
         // For normal use, use the constructor that takes a json string.
-        public Story (Container contentContainer, List<Runtime.ListDefinition> lists = null)
+	    internal Story (Container contentContainer, List<Runtime.ListDefinition> lists = null)
 		{
 			_mainContentContainer = contentContainer;
 
@@ -566,12 +566,12 @@ namespace Ink.Runtime
             return sb.ToString ();
         }
 
-        public SearchResult ContentAtPath(Path path)
+	    internal SearchResult ContentAtPath(Path path)
         {
             return mainContentContainer.ContentAtPath (path);
         }
 
-        public Runtime.Container KnotContainerWithName (string name)
+	    internal Runtime.Container KnotContainerWithName (string name)
         {
             INamedContent namedContainer;
             if (mainContentContainer.namedContent.TryGetValue (name, out namedContainer))
@@ -580,7 +580,7 @@ namespace Ink.Runtime
                 return null;
         }
 
-        public Pointer PointerAtPath (Path path)
+	    internal Pointer PointerAtPath (Path path)
         {
             if (path.length == 0)
                 return Pointer.Null;
@@ -1437,8 +1437,8 @@ namespace Ink.Runtime
             if (_asyncContinueActive)
                 throw new System.Exception ("Can't " + activityStr + ". Story is in the middle of a ContinueAsync(). Make more ContinueAsync() calls or a single Continue() call beforehand.");
         }
-            
-        public void ChoosePath(Path p, bool incrementingTurnIndex = true)
+
+	    internal void ChoosePath(Path p, bool incrementingTurnIndex = true)
         {
             state.SetChosenPath (p, incrementingTurnIndex);
 
@@ -1541,7 +1541,7 @@ namespace Ink.Runtime
 
         // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
         // CommandLinePlayer.
-        public Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
+	    internal Runtime.Object EvaluateExpression(Runtime.Container exprContainer)
         {
             int startCallStackHeight = state.callStack.elements.Count;
 
@@ -1581,7 +1581,7 @@ namespace Ink.Runtime
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
 
-        public void CallExternalFunction(string funcName, int numberOfArguments)
+	    internal void CallExternalFunction(string funcName, int numberOfArguments)
         {
             ExternalFunction func = null;
             Container fallbackFunctionContainer = null;
@@ -2281,14 +2281,14 @@ namespace Ink.Runtime
 
         // Throw an exception that gets caught and causes AddError to be called,
         // then exits the flow.
-        public void Error(string message, bool useEndLineNumber = false)
+	    internal void Error(string message, bool useEndLineNumber = false)
         {
             var e = new StoryException (message);
             e.useEndLineNumber = useEndLineNumber;
             throw e;
         }
 
-        public void Warning (string message)
+	    internal void Warning (string message)
         {
             AddError (message, isWarning:true);
         }
@@ -2380,7 +2380,7 @@ namespace Ink.Runtime
             }
         }
 
-        public Container mainContentContainer {
+	    internal Container mainContentContainer {
             get {
                 if (_temporaryEvaluationContainer) {
                     return _temporaryEvaluationContainer;

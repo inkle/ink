@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    public class ListDefinitionsOrigin
+    internal class ListDefinitionsOrigin
     {
         public List<Runtime.ListDefinition> lists {
             get {

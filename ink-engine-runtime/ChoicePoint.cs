@@ -7,9 +7,9 @@ namespace Ink.Runtime
     /// a Choice instance gets generated. The distinction is made
     /// because the text of the Choice can be dynamically generated.
     /// </summary>
-	public class ChoicePoint : Runtime.Object
+    internal class ChoicePoint : Runtime.Object
 	{
-        public Path pathOnChoice {
+	    internal Path pathOnChoice {
             get {
                 // Resolve any relative paths to global ones as we come across them
                 if (_pathOnChoice != null && _pathOnChoice.isRelative) {
@@ -26,13 +26,13 @@ namespace Ink.Runtime
         }
         Path _pathOnChoice;
 
-        public Container choiceTarget {
+	    internal Container choiceTarget {
             get {
                 return this.ResolvePath (_pathOnChoice).container;
             }
         }
 
-        public string pathStringOnChoice {
+	    internal string pathStringOnChoice {
             get {
                 return CompactPathString (pathOnChoice);
             }
@@ -41,13 +41,13 @@ namespace Ink.Runtime
             }
         }
 
-        public bool hasCondition { get; set; }
-        public bool hasStartContent { get; set; }
-        public bool hasChoiceOnlyContent { get; set; }
-        public bool onceOnly { get; set; }
-        public bool isInvisibleDefault { get; set; }
+	    internal bool hasCondition { get; set; }
+	    internal bool hasStartContent { get; set; }
+	    internal bool hasChoiceOnlyContent { get; set; }
+	    internal bool onceOnly { get; set; }
+	    internal bool isInvisibleDefault { get; set; }
 
-        public int flags {
+	    internal int flags {
             get {
                 int flags = 0;
                 if (hasCondition)         flags |= 1;
@@ -66,7 +66,7 @@ namespace Ink.Runtime
             }
         }
 
-        public ChoicePoint (bool onceOnly)
+	    internal ChoicePoint (bool onceOnly)
 		{
             this.onceOnly = onceOnly;
 		}

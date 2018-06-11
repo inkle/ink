@@ -5,7 +5,7 @@
     /// An exception being thrown of this type is typically when there's
     /// a bug in your ink, rather than in the ink engine itself!
     /// </summary>
-    public class StoryException : System.Exception
+    internal class StoryException : System.Exception
     {
         public bool useEndLineNumber;
 

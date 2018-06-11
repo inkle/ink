@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    public class Tag : Runtime.Object
+    internal class Tag : Runtime.Object
     {
         public string text { get; private set; }
 

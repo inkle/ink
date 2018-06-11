@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Ink.Runtime
 {
-    public static class Json
+    internal static class Json
     {
         public static List<object> ListToJArray<T>(List<T> serialisables) where T : Runtime.Object
         {

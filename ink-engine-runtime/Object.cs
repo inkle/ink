@@ -16,7 +16,7 @@ namespace Ink.Runtime
         /// <value>The parent.</value>
 		public Runtime.Object parent { get; set; }
 
-        public Runtime.DebugMetadata debugMetadata { 
+	    internal Runtime.DebugMetadata debugMetadata { 
             get {
                 if (_debugMetadata == null) {
                     if (parent) {
@@ -32,7 +32,7 @@ namespace Ink.Runtime
             }
         }
 
-        public Runtime.DebugMetadata ownDebugMetadata {
+	    internal Runtime.DebugMetadata ownDebugMetadata {
             get {
                 return _debugMetadata;
             }
@@ -43,7 +43,7 @@ namespace Ink.Runtime
         // for serialisation purposes at least.
         DebugMetadata _debugMetadata;
 
-        public int? DebugLineNumberOfPath(Path path)
+        internal int? DebugLineNumberOfPath(Path path)
         {
             if (path == null)
                 return null;
@@ -63,7 +63,7 @@ namespace Ink.Runtime
             return null;
         }
 
-		public Path path 
+	    internal Path path 
 		{ 
 			get 
 			{
@@ -103,7 +103,7 @@ namespace Ink.Runtime
 		}
         Path _path;
 
-        public SearchResult ResolvePath(Path path)
+	    internal SearchResult ResolvePath(Path path)
         {
             if (path.isRelative) {
 
@@ -122,7 +122,7 @@ namespace Ink.Runtime
             }
         }
 
-        public Path ConvertPathToRelative(Path globalPath)
+	    internal Path ConvertPathToRelative(Path globalPath)
         {
             // 1. Find last shared ancestor
             // 2. Drill up using ".." style (actually represented as "^")
@@ -163,7 +163,7 @@ namespace Ink.Runtime
         }
 
         // Find most compact representation for a path, whether relative or global
-        public string CompactPathString(Path otherPath)
+	    internal string CompactPathString(Path otherPath)
         {
             string globalPathStr = null;
             string relativePathStr = null;
@@ -182,7 +182,7 @@ namespace Ink.Runtime
                 return globalPathStr;
         }
 
-        public Container rootContentContainer
+	    internal Container rootContentContainer
         {
             get 
             {
@@ -194,16 +194,16 @@ namespace Ink.Runtime
             }
         }
 
-		public Object ()
+	    internal Object ()
 		{
 		}
 
-        public virtual Object Copy()
+	    internal virtual Object Copy()
         {
             throw new System.NotImplementedException (GetType ().Name + " doesn't support copying");
         }
 
-        public void SetChild<T>(ref T obj, T value) where T : Runtime.Object
+	    internal void SetChild<T>(ref T obj, T value) where T : Runtime.Object
         {
             if (obj)
                 obj.parent = null;

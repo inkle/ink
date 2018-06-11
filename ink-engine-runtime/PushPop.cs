@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
-    public enum PushPopType 
+    internal enum PushPopType 
     {
         Tunnel,
         Function,

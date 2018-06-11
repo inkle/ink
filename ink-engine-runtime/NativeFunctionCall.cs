@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
-    public class NativeFunctionCall : Runtime.Object
+    internal class NativeFunctionCall : Runtime.Object
     {
         public const string Add      = "+";
         public const string Subtract = "-";

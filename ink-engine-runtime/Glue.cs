@@ -1,6 +1,6 @@
 ﻿namespace Ink.Runtime
 {
-    public class Glue : Runtime.Object
+    internal class Glue : Runtime.Object
     {
         public Glue() { }
 

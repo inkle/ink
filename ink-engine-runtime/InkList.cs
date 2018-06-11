@@ -40,13 +40,13 @@ namespace Ink.Runtime
             this.itemName = nameParts [1];
         }
 
-        public static InkListItem Null {
+        internal static InkListItem Null {
             get {
                 return new InkListItem (null, null);
             }
         }
 
-        public bool isNull {
+        internal bool isNull {
             get {
                 return originName == null && itemName == null;
             }
@@ -132,7 +132,7 @@ namespace Ink.Runtime
                 throw new System.Exception ("InkList origin could not be found in story when constructing new list: " + singleOriginListName);
         }
 
-        public InkList (KeyValuePair<InkListItem, int> singleElement)
+        internal InkList (KeyValuePair<InkListItem, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
         }
@@ -210,8 +210,8 @@ namespace Ink.Runtime
         // necessary for certain operations (e.g. interacting with ints).
         // Only the story has access to the full set of lists, so that
         // the origin can be resolved from the originListName.
-        public List<ListDefinition> origins;
-        public ListDefinition originOfMaxItem {
+        internal List<ListDefinition> origins;
+        internal ListDefinition originOfMaxItem {
             get {
                 if (origins == null) return null;
 
@@ -228,7 +228,7 @@ namespace Ink.Runtime
         // Origin name needs to be serialised when content is empty,
         // assuming a name is availble, for list definitions with variable
         // that is currently empty.
-        public List<string> originNames {
+        internal List<string> originNames {
             get {
                 if (this.Count > 0) {
                     if (_originNames == null && this.Count > 0)
@@ -245,12 +245,12 @@ namespace Ink.Runtime
         }
         List<string> _originNames;
 
-        public void SetInitialOriginName (string initialOriginName)
+        internal void SetInitialOriginName (string initialOriginName)
         {
             _originNames = new List<string> { initialOriginName };
         }
 
-        public void SetInitialOriginNames (List<string> initialOriginNames)
+        internal void SetInitialOriginNames (List<string> initialOriginNames)
         {
             if (initialOriginNames == null)
                 _originNames = null;
@@ -431,7 +431,7 @@ namespace Ink.Runtime
                 && minItem.Value <= otherList.minItem.Value;
         }
 
-        public InkList MaxAsList ()
+        internal InkList MaxAsList ()
         {
             if (Count > 0)
                 return new InkList (maxItem);
@@ -439,7 +439,7 @@ namespace Ink.Runtime
                 return new InkList ();
         }
 
-        public InkList MinAsList ()
+        internal InkList MinAsList ()
         {
             if (Count > 0)
                 return new InkList (minItem);
