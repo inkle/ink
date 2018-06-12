@@ -233,7 +233,7 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            var strArgs = string.Join (", ", arguments);
+            var strArgs = string.Join (", ", arguments.ToStringsArray());
             return string.Format ("{0}({1})", name, strArgs);
         }
             

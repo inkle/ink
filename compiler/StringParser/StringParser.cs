@@ -110,7 +110,7 @@ namespace Ink
             object result = ParseObject(rule);
 			if (result == null) {
 				if (message == null) {
-                    message = rule.GetMethodInfo().Name;
+                    message = rule.Method.Name;
 				}
 
                 string butSaw;

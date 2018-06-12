@@ -69,7 +69,7 @@ namespace Ink.Parsed
         {
             var sb = new StringBuilder ();
             sb.Append ("ContentList(");
-            sb.Append(string.Join (", ", content));
+            sb.Append(string.Join (", ", content.ToStringsArray()));
             sb.Append (")");
             return sb.ToString ();
         }
