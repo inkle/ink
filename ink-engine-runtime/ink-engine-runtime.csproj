@@ -61,5 +61,8 @@
     <Compile Include="Pointer.cs" />
     <Compile Include="SearchResult.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
