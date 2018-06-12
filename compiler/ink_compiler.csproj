@@ -100,7 +100,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
       <Project>{71079ded-9d09-416d-b9a2-c249727792a7}</Project>
-      <Name>ink-engine-runtime_3_5</Name>
+      <Name>ink-engine-runtime</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
