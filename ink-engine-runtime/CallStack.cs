@@ -358,7 +358,7 @@ namespace Ink.Runtime
             }
         }
 
-		internal string callStackTrace {
+		public string callStackTrace {
 			get {
 				var sb = new System.Text.StringBuilder();
 

@@ -1,7 +1,7 @@
 ﻿
 namespace Ink.Runtime
 {
-	internal interface INamedContent
+	public interface INamedContent
 	{
 		string name { get; }
 		bool hasValidName { get; }

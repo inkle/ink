@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-	internal class Path
+    internal class Path
 	{
         public FlowLevel baseTargetLevel { 
             get { 
@@ -38,7 +38,7 @@ namespace Ink.Parsed
 
         public string dotSeparatedComponents {
             get {
-                return string.Join (".", _components);
+                return string.Join (".", _components.ToArray());
             }
         }
 

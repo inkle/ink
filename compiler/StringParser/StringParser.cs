@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
 namespace Ink
 {
-	internal class StringParser
+    internal class StringParser
 	{
 		public delegate object ParseRule();
 
@@ -28,8 +26,8 @@ namespace Ink
 			
 			inputString = str;
 		}
-            
-		internal class ParseSuccessStruct {};
+
+	    internal class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");
@@ -110,7 +108,7 @@ namespace Ink
             object result = ParseObject(rule);
 			if (result == null) {
 				if (message == null) {
-                    message = rule.GetMethodInfo().Name;
+                    message = rule.Method.Name;
 				}
 
                 string butSaw;

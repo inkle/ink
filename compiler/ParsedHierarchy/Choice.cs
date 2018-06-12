@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Ink.Parsed
+﻿namespace Ink.Parsed
 {
     internal class Choice : Parsed.Object, IWeavePoint, INamedContent
 	{

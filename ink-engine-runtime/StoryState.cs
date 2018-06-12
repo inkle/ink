@@ -58,7 +58,7 @@ namespace Ink.Runtime
             return 0;
         }
 
-		internal int callstackDepth {
+        internal int callstackDepth {
 			get {
 				return callStack.depth;
 			}
@@ -69,7 +69,7 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
 
         internal List<Runtime.Object> outputStream { get { return _outputStream; } }
-		internal List<Choice> currentChoices { 
+        internal List<Choice> currentChoices { 
 			get { 
 				// If we can continue generating text content rather than choices,
 				// then we reflect the choice list as being empty, since choices
@@ -78,7 +78,7 @@ namespace Ink.Runtime
 				return _currentChoices;
 			} 
 		}
-		internal List<Choice> generatedChoices {
+        internal List<Choice> generatedChoices {
 			get {
 				return _currentChoices;
 			}
@@ -129,12 +129,12 @@ namespace Ink.Runtime
             }
         }
 
-		internal bool canContinue {
+        internal bool canContinue {
 			get {
 				return !currentPointer.isNull && !hasError;
 			}
 		}
-            
+
         internal bool hasError
         {
             get {
@@ -230,7 +230,7 @@ namespace Ink.Runtime
                 callStack.currentElement.inExpressionEvaluation = value;
             }
         }
-            
+
         internal StoryState (Story story)
         {
             this.story = story;
@@ -410,13 +410,13 @@ namespace Ink.Runtime
 
             }
         }
-            
+
         internal void ResetErrors()
         {
             currentErrors = null;
             currentWarnings = null;
         }
-            
+
         internal void ResetOutput(List<Runtime.Object> objs = null)
         {
             _outputStream.Clear ();
@@ -895,7 +895,7 @@ namespace Ink.Runtime
                 }
             }
         }
-            
+
         internal bool TryExitFunctionEvaluationFromGame ()
         {
             if( callStack.currentElement.type == PushPopType.FunctionEvaluationFromGame ) {

@@ -1,5 +1,4 @@
-﻿
-namespace Ink.Parsed
+﻿namespace Ink.Parsed
 {
     internal class Wrap<T> : Parsed.Object where T : Runtime.Object
     {

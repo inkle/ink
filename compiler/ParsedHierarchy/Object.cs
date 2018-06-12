@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Ink.Parsed
 {
-	internal abstract class Object
+    internal abstract class Object
 	{
         public Runtime.DebugMetadata debugMetadata { 
             get {
@@ -177,7 +177,7 @@ namespace Ink.Parsed
 
                 var scopeSB = new StringBuilder ();
                 if (locationNames.Count > 0) {
-                    var locationsListStr = string.Join (", ", locationNames);
+                    var locationsListStr = string.Join (", ", locationNames.ToArray());
                     scopeSB.Append (locationsListStr);
                     scopeSB.Append (" and ");
                 }

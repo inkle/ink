@@ -36,15 +36,15 @@
     <Compile Include="CommandLineTool.cs" />
     <Compile Include="CommandLinePlayer.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
-      <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
+      <Project>{71079ded-9d09-416d-b9a2-c249727792a7}</Project>
       <Name>ink-engine-runtime</Name>
     </ProjectReference>
     <ProjectReference Include="..\compiler\ink_compiler.csproj">
-      <Project>{52E3F3D0-2702-44E5-82F5-783B82647CA5}</Project>
+      <Project>{f559720b-73b3-43ff-b556-32ae25dc14f2}</Project>
       <Name>ink_compiler</Name>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

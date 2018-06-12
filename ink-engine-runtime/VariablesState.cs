@@ -130,7 +130,7 @@ namespace Ink.Runtime
                 }
             }
         }
-            
+
         internal Dictionary<string, object> jsonToken
         {
             get {
@@ -153,7 +153,7 @@ namespace Ink.Runtime
             return val;
         }
 
-		internal bool GlobalVariableExistsWithName(string name)
+        internal bool GlobalVariableExistsWithName(string name)
 		{
 			return _globalVariables.ContainsKey(name);
 		}

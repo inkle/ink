@@ -5,9 +5,9 @@
     /// An exception being thrown of this type is typically when there's
     /// a bug in your ink, rather than in the ink engine itself!
     /// </summary>
-    public class StoryException : System.Exception
+    internal class StoryException : System.Exception
     {
-        internal bool useEndLineNumber;
+        public bool useEndLineNumber;
 
         /// <summary>
         /// Constructs a default instance of a StoryException without a message.

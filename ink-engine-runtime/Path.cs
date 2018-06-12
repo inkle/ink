@@ -11,7 +11,7 @@ namespace Ink.Runtime
         static string parentId = "^";
 
         // Immutable Component
-        internal class Component : IEquatable<Component>
+	    internal class Component : IEquatable<Component>
 		{
 			public int index { get; private set; }
 			public string name { get; private set; }

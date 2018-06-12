@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Ink.Parsed
 {
-	internal abstract class Expression : Parsed.Object
+    internal abstract class Expression : Parsed.Object
 	{
         public bool outputWhenComplete { get; set; }
 
@@ -51,7 +51,7 @@ namespace Ink.Parsed
         Runtime.Container _prototypeRuntimeConstantExpression;
 	}
 
-	internal class BinaryExpression : Expression
+    internal class BinaryExpression : Expression
 	{
 		public Expression leftExpression;
 		public Expression rightExpression;

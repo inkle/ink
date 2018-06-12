@@ -39,14 +39,14 @@ namespace Ink.Runtime
         /// </summary>
         public int index { get; set; }
 
-        internal Path targetPath;
+	    internal Path targetPath;
 
-        internal CallStack.Thread threadAtGeneration { get; set; }
-        internal int originalThreadIndex;
+	    internal CallStack.Thread threadAtGeneration { get; set; }
+	    internal int originalThreadIndex;
 
-        internal bool isInvisibleDefault;
+	    internal bool isInvisibleDefault;
 
-        internal Choice()
+	    internal Choice()
         {
         }
 	}
