@@ -19,7 +19,7 @@ namespace Ink
             var stringList = Interleave<string>(Optional (CommentsAndNewlines), Optional(MainInk));
 
             if (stringList != null) {
-                return string.Join("", stringList);
+                return string.Join("", stringList.ToArray());
             } else {
                 return null;
             }
@@ -35,7 +35,7 @@ namespace Ink
             var newlines = Interleave<string> (Optional (ParseNewline), Optional (ParseSingleComment));
 
             if (newlines != null) {
-                return string.Join ("", newlines);
+                return string.Join ("", newlines.ToArray());
             } else {
                 return null;
             }

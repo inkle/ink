@@ -38,7 +38,9 @@ namespace Ink
                     result = tags.Cast<Parsed.Object> ().ToList ();
                     onlyTags = true;
                 } else {
-                    result.AddRange (tags);
+                    foreach (var tag in tags) {
+                        result.Add(tag);
+                    }
                 }
             }
 
