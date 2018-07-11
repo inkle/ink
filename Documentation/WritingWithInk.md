@@ -566,17 +566,17 @@ If it's non-zero, it'll return true in a test like the one above, but you can al
 
 So far, all the content we've seen has been static, fixed pieces of text. But content can also vary at the moment of being printed. 
 
-### Sequences, cycles and other lists
+### Sequences, cycles and other alternatives
 
-The simplest variations of text are from lists, which are selected from depending on some kind of rule. **ink** supports several types. Lists are written inside `{`...`}` curly brackets, with elements separated by `|` symbols (vertical divider lines).
+The simplest variations of text are provided by alternatives, which are selected from depending on some kind of rule. **ink** supports several types. Alternatives are written inside `{`...`}` curly brackets, with elements separated by `|` symbols (vertical divider lines).
 
 These are only useful if a piece of content is visited more than once!
 
-#### List types
+#### Types of alternatives
 
 **Sequences** (the default):
 
-A sequence (or a "stopping list") is a list that tracks how many times its been seen, and each time, shows the next element along. When it runs out of new content it continues the show the final element.
+A sequence (or a "stopping block") is a set of alternatives that tracks how many times its been seen, and each time, shows the next element along. When it runs out of new content it continues the show the final element.
 
 	The radio hissed into life. {"Three!"|"Two!"|"One!"|There was the white noise racket of an explosion.|But it was just static.}
 
@@ -591,7 +591,7 @@ Cycles are like sequences, but they loop their content.
 
 **Once-only** (marked with a `!`):
 	
-Once-only lists are like sequences, but when they run out of new content to display, they display nothing. (You can think of a once-only list as a sequence with a blank last entry.)
+Once-only alternatives are like sequences, but when they run out of new content to display, they display nothing. (You can think of a once-only alternative as a sequence with a blank last entry.)
 	
 	He told me a joke. {!I laughed politely.|I smiled.|I grimaced.|I promised myself to not react again.}
 	
@@ -601,17 +601,17 @@ Shuffles produce randomised output.
 	
 	I tossed the coin. {~Heads|Tails}.
 
-#### Features of Lists 
+#### Features of Alternatives 
 
-Lists can contain blank elements.
+Alternatives can contain blank elements.
 
 	I took a step forward. {!||||Then the lights went out. -> eek}
 
-Lists can be nested.
+Alternatives can be nested.
 
 	The Ratbear {&{wastes no time and |}swipes|scratches} {&at you|into your {&leg|arm|cheek}}.
 
-Lists can include divert statements. 
+Alternatives can include divert statements. 
 
 	I {waited.|waited some more.|snoozed.|woke up and waited more.|gave up and left. -> leave_post_office}
 
@@ -621,9 +621,11 @@ They can also be used inside choice text:
 	
 (...with one caveat; you can't start an option's text with a `{`, as it'll look like a conditional.)
 
+(...but the caveat has a caveat, if you escape a whitespace `\ ` before your `{` ink will recognise it as text.)
+
 #### Examples
 
-Lists can be used inside loops to create the appearance of intelligent, state-tracking gameplay without particular effort.
+Alternatives can be used inside loops to create the appearance of intelligent, state-tracking gameplay without particular effort.
 
 Here's a one-knot version of whack-a-mole. Note we use once-only options, and a fallback, to ensure the mole doesn't move around, and the game will always end.
 
@@ -688,8 +690,8 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 
 
 
-#### Advanced: Multiline lists
-**ink** has another format for making lists of varying content blocks, too. See the section on "multiline blocks" for details.
+#### Sneak Preview: Multiline alternatives
+**ink** has another format for making alternatives of varying content blocks, too. See the section on "multiline blocks" for details.
 
 
 
@@ -1383,9 +1385,9 @@ You can even put options inside conditional blocks:
 
 ...but note that the lack of weave-syntax and nesting in the above example isn't accidental: to avoid confusing the various kinds of nesting at work, you aren't allowed to include gather points inside conditional blocks.
 
-### Multiline list blocks
+### Multiline blocks
 
-There's one other class of multiline block, which expands on the list functionality previous mentioned. The following are all valid and do what you might expect:
+There's one other class of multiline block, which expands on the alternatives system from above. The following are all valid and do what you might expect:
  
  	// Sequence: go through the alternatives, and stick on last 
 	{ stopping:
