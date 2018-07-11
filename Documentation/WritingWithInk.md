@@ -1301,7 +1301,7 @@ Else conditions can be provided:
 	- else:
 		~ y = x + 1
 	}
-	
+
 ### Extended if/else if/else blocks
 
 The above syntax is actually a specific case of a more general structure, something like a "switch" statement of another language:
@@ -1325,6 +1325,17 @@ And using this form we can include 'else-if' conditions:
 	}
 
 (Note, as with everything else, the white-space is purely for readability and has no syntactic meaning.)
+
+### Switch blocks
+
+And there's also an actual switch statement: 
+
+	{ x:
+	- 0: 	zero 
+	- 1: 	one 
+	- 2: 	two 
+	- else: lots
+	}
 	
 #### Example: context-relevant content
 
