@@ -1370,7 +1370,7 @@ VAR globalVal = 5
             story.Continue();
 
             story.ChooseChoiceIndex(0);
-            Assert.AreEqual("option text.  Conditional bit. Next.\n", story.Continue());
+            Assert.AreEqual("option text. Conditional bit. Next.\n", story.Continue());
         }
 
         [Test()]
@@ -1831,7 +1831,7 @@ CONST kX = ""hi""
             Assert.AreEqual(@"test1 ""test2 test3""", story.currentChoices[0].text);
 
             story.ChooseChoiceIndex(0);
-            Assert.AreEqual("test1  test4\n", story.Continue());
+            Assert.AreEqual("test1 test4\n", story.Continue());
         }
 
         [Test()]
@@ -2415,7 +2415,7 @@ Content
             Assert.AreEqual ("1", story.currentChoices[0].text);
             story.ChooseChoiceIndex (0);
 
-            Assert.AreEqual ("1\nEnd of choice\nthis  another\n", story.ContinueMaximally ());
+            Assert.AreEqual ("1\nEnd of choice\nthis another\n", story.ContinueMaximally ());
 
             Assert.AreEqual (0, story.currentChoices.Count);
         }

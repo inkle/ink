@@ -172,32 +172,39 @@ namespace Ink.Runtime
         }
 		string _currentText;
 
-        string CleanOutputWhitespace (string str)
+        // Cleans inline whitespace in the following way:
+        //  - Removes all whitespace from the start and end of line (including just before a \n)
+        //  - Turns all consecutive space and tab runs into single spaces (HTML style)
+        string CleanOutputWhitespace(string str)
         {
-        	var sb = new StringBuilder (str.Length);
+            var sb = new StringBuilder(str.Length);
 
-        	int currentWhitespaceStart = -1;
+            int currentWhitespaceStart = -1;
+            int startOfLine = 0;
 
-        	for (int i = 0; i < str.Length; i++) {
-        		var c = str [i];
+            for (int i = 0; i < str.Length; i++) {
+                var c = str[i];
 
-        		bool isInlineWhitespace = c == ' ' || c == '\t';
+                bool isInlineWhitespace = c == ' ' || c == '\t';
 
-        		if (isInlineWhitespace && currentWhitespaceStart == -1)
-        			currentWhitespaceStart = i;
+                if (isInlineWhitespace && currentWhitespaceStart == -1)
+                    currentWhitespaceStart = i;
 
-        		if (!isInlineWhitespace) {
-        			if (c != '\n' && currentWhitespaceStart > 0) {
-        				sb.Append (str.Substring (currentWhitespaceStart, i - currentWhitespaceStart));
-        			}
-        			currentWhitespaceStart = -1;
-        		}
+                if (!isInlineWhitespace) {
+                    if (c != '\n' && currentWhitespaceStart > 0 && currentWhitespaceStart != startOfLine) {
+                        sb.Append(' ');
+                    }
+                    currentWhitespaceStart = -1;
+                }
 
-        		if (!isInlineWhitespace)
-        			sb.Append (c);
-        	}
+                if (c == '\n')
+                    startOfLine = i + 1;
 
-        	return sb.ToString ();
+                if (!isInlineWhitespace)
+                    sb.Append(c);
+            }
+
+            return sb.ToString();
         }
 
         internal List<string> currentTags 
