@@ -1976,9 +1976,9 @@ namespace Ink.Runtime
 
             // Remove observer for all variables
             else {
-                foreach (var keyValue in _variableObservers) {
-                    var varName = keyValue.Key;
-                    _variableObservers [varName] -= observer;
+                var keys = new List<string>(_variableObservers.Keys);
+                foreach (var varName in keys) {
+                    _variableObservers[varName] -= observer;
                 }
             }
         }
