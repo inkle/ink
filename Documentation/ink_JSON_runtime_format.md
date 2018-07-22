@@ -84,7 +84,7 @@ Control commands are special instructions to the text engine to perform various 
 * `"nop"` - No-operation. Does nothing, but is useful as an addressable piece of content to divert to.
 * `"choiceCnt"` - Pushes an integer with the current number of choices to the evaluation stack.
 * `"turns"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of turns since that target was last visited by the story engine.
-* `"visit"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of visits to that target by the story engine.
+* `"visit"` - Pushes an integer with the number of visits to the current container by the story engine.
 * `"seq"` - Pops an integer, expected to be the number of elements in a sequence that's being entered. In return, it pushes an integer with the next sequence shuffle index to the evaluation stack. This shuffle index is derived from the number of elements in the sequence, the number of elements in it, and the story's random seed from when it was first begun.
 * `"thread"` - Clones/starts a new thread, as used with the `<- knot` syntax in ink. This essentially clones the entire callstack, branching it.
 * `"done"` - Tries to close/pop the active thread, otherwise marks the story flow safe to exit without a loose end warning.
