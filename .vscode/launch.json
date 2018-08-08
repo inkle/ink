@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ink Testbed (output only)",
+            "type": "mono", // Mono Debug extension
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/InkTestBed/bin/Debug/InkTestBed.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/InkTestBed/bin/Debug/",
+            "console": "internalConsole",    //
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": "ink Testbed (choices in terminal)",
+            "type": "mono", // Mono Debug extension
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/InkTestBed/bin/Debug/InkTestBed.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/InkTestBed/bin/Debug/",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}
