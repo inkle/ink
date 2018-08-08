@@ -168,9 +168,9 @@ namespace Ink.Runtime
 
             int formatFromFile = (int)versionObj;
             if (formatFromFile > inkVersionCurrent) {
-                throw new System.Exception ("Version of ink used to build story was newer than the current verison of the engine");
+                throw new System.Exception ("Version of ink used to build story was newer than the current version of the engine");
             } else if (formatFromFile < inkVersionMinimumCompatible) {
-                throw new System.Exception ("Version of ink used to build story is too old to be loaded by this verison of the engine");
+                throw new System.Exception ("Version of ink used to build story is too old to be loaded by this version of the engine");
             } else if (formatFromFile != inkVersionCurrent) {
                 System.Diagnostics.Debug.WriteLine ("WARNING: Version of ink used to build story doesn't match current version of engine. Non-critical, but recommend synchronising.");
             }

@@ -200,7 +200,7 @@ You can register a delegate function to be called whenever a particular variable
 The reason that the variable name is passed in is so that you can have a single observer function that observes multiple different variables.
 
 
-## Exernal functions
+## External functions
 
 You can define game-side functions in C# that can be called directly from **ink**. To do so:
 
