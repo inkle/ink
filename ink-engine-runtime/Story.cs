@@ -1207,52 +1207,17 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.ListRange: {
-                        var max = state.PopEvaluationStack ();
-                        var min = state.PopEvaluationStack ();
+                        var max = state.PopEvaluationStack () as Value;
+                        var min = state.PopEvaluationStack () as Value;
 
                         var targetList = state.PopEvaluationStack () as ListValue;
 
                         if (targetList == null || min == null || max == null)
                             throw new StoryException ("Expected list, minimum and maximum for LIST_RANGE");
 
-                        // Allow either int or a particular list item to be passed for the bounds,
-                        // so wrap up a function to handle this casting for us.
-                        Func<Runtime.Object, int> IntBound = (obj) => {
-                            var listValue = obj as ListValue;
-                            if (listValue) {
-                                return (int)listValue.value.maxItem.Value;
-                            }
+                        var result = targetList.value.ListWithSubRange(min.valueObject, max.valueObject);
 
-                            var intValue = obj as IntValue;
-                            if (intValue) {
-                                return intValue.value;
-                            }
-
-                            return -1;
-                        };
-
-                        int minVal = IntBound (min);
-                        int maxVal = IntBound (max);
-                        if (minVal == -1)
-                            throw new StoryException ("Invalid min range bound passed to LIST_VALUE(): " + min);
-
-                        if (maxVal == -1)
-                            throw new StoryException ("Invalid max range bound passed to LIST_VALUE(): " + max);
-
-                        // Extract the range of items from the origin list
-                        ListValue result = new ListValue ();
-                        var origins = targetList.value.origins;
-
-                        if (origins != null) {
-                            foreach(var origin in origins) {
-                                var rangeFromOrigin = origin.ListRange (minVal, maxVal);
-                                foreach (var kv in rangeFromOrigin.value) {
-                                    result.value [kv.Key] = kv.Value;
-                                }
-                            }
-                        }
-                            
-                        state.PushEvaluationStack (result);
+                        state.PushEvaluationStack (new ListValue(result));
                         break;
                     }
 

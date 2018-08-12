@@ -3474,6 +3474,34 @@ text 2
 
             Assert.AreEqual("1\n1\n2\n0.6666667\n0\n1\n", story.ContinueMaximally());
         }
+
+        [Test()]
+        public void TestListRange()
+        {
+            var storyStr =
+        @"
+LIST Food = Pizza, Pasta, Curry, Paella
+LIST Currency = Pound, Euro, Dollar
+LIST Numbers = One, Two, Three, Four, Five, Six, Seven
+
+VAR all = ()
+~ all = LIST_ALL(Food) + LIST_ALL(Currency)
+~ temp secondLastIdx = LIST_COUNT(all)-2
+{all}
+{LIST_RANGE(all, 1, secondLastIdx)}
+{LIST_RANGE(LIST_ALL(Numbers), Two, Six)}
+{LIST_RANGE((Pizza, Pasta), 1, 3)} // allow out of range
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella
+Pizza, Euro, Pasta, Dollar, Curry
+Two, Three, Four, Five, Six
+Pasta
+", story.ContinueMaximally());
+        }
         
 
         // Helper compile function

@@ -448,6 +448,74 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Returns a sublist with the elements given the minimum and maxmimum bounds.
+        /// The bounds can either be ints which are indices into the entire (sorted) list,
+        /// or they can be InkLists themselves. These are intended to be single-item lists so
+        /// you can specify the upper and lower bounds. If you pass in multi-item lists, it'll
+        /// use the minimum and maximum items in those lists respectively.
+        /// WARNING: Calling this method requires a full sort of all the elements in the list.
+        /// </summary>
+        public InkList ListWithSubRange(object minBound, object maxBound) 
+        {
+            var ordered = orderedItems;
+
+            int minIdx = -1;
+            int maxIdx = -1;
+
+            if (minBound is int)
+            {
+                minIdx = (int)minBound;
+            }
+
+            else
+            {
+                if( minBound is InkList ) {
+                    var minBoundItem = ((InkList)minBound).minItem;
+                    if (!minBoundItem.Key.isNull)
+                    {
+                        minIdx = ordered.IndexOf(minBoundItem);
+                    }
+                }
+
+
+                if (minIdx == -1)
+                    throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
+            }
+
+            if (maxBound is int)
+                maxIdx = (int)maxBound;
+            else 
+            {
+                if (minBound is InkList) {
+                    var maxBoundItem = ((InkList)maxBound).maxItem;
+                    if (!maxBoundItem.Key.isNull)
+                    {
+                        maxIdx = ordered.IndexOf(maxBoundItem);
+                    }
+                }
+
+                if (maxIdx == -1)
+                    throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
+            }
+
+            if (this.Count == 0) return new InkList();
+
+            // If out of range, silently clamp (better than crashing for a language like ink)
+            if (minIdx < 0) minIdx = 0;
+            if (minIdx >= this.Count) minIdx = this.Count-1;
+            if (maxIdx < 0) maxIdx = 0;
+            if (maxIdx >= this.Count) maxIdx = this.Count-1;
+
+            var subList = new InkList();
+            subList.SetInitialOriginNames(originNames);
+            for (int i = minIdx; i <= maxIdx; i++) {
+                var el = ordered[i];
+                subList.Add(el.Key, el.Value);
+            }
+            return subList;
+        }
+
+        /// <summary>
         /// Returns true if the passed object is also an ink list that contains
         /// the same items as the current list, false otherwise.
         /// </summary>
@@ -476,15 +544,29 @@ namespace Ink.Runtime
             return ownHash;
         }
 
+        List<KeyValuePair<InkListItem, int>> orderedItems {
+            get {
+                var ordered = new List<KeyValuePair<InkListItem, int>>();
+                ordered.AddRange(this);
+                ordered.Sort((x, y) => {
+                    // Ensure consistent ordering of mixed lists.
+                    if( x.Value == y.Value ) {
+                        return x.Key.originName.CompareTo(y.Key.originName);
+                    } else {
+                        return x.Value.CompareTo(y.Value);
+                    }
+                });
+                return ordered;
+            }
+        }
+
         /// <summary>
         /// Returns a string in the form "a, b, c" with the names of the items in the list, without
         /// the origin list definition names. Equivalent to writing {list} in ink.
         /// </summary>
         public override string ToString ()
         {
-            var ordered = new List<KeyValuePair<InkListItem, int>> ();
-            ordered.AddRange (this);
-            ordered.Sort ((x, y) => x.Value.CompareTo (y.Value));
+            var ordered = orderedItems;
 
             var sb = new StringBuilder ();
             for (int i = 0; i < ordered.Count; i++) {
