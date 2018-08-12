@@ -29,6 +29,10 @@ namespace Ink.Runtime
         public const string Max      = "MAX";
 
         public const string Pow      = "POW";
+        public const string Floor    = "FLOOR";
+        public const string Ceiling  = "CEILING";
+        public const string Int      = "INT";
+        public const string Float    = "FLOAT";
 
         public const string Has      = "?";
         public const string Hasnt    = "!?";
@@ -302,7 +306,14 @@ namespace Ink.Runtime
             this.name = name;
             this.numberOfParameters = numberOfParamters;
         }
-            
+
+        // For defining operations that do nothing to the specific type
+        // (but are still supported), such as floor/ceil on int and float
+        // cast on float.
+        static object Identity<T>(T t) {
+            return t;
+        }
+
         static void GenerateNativeFunctionsIfNecessary()
         {
             if (_nativeFunctions == null) {
@@ -332,6 +343,10 @@ namespace Ink.Runtime
 
                 // Have to cast to float since you could do POW(2, -1)
                 AddIntBinaryOp (Pow,      (x, y) => (float) Math.Pow(x, y));
+                AddIntUnaryOp(Floor,      Identity);
+                AddIntUnaryOp(Ceiling,    Identity);
+                AddIntUnaryOp(Int,        Identity);
+                AddIntUnaryOp (Float,     x => (float)x);
 
                 // Float operations
                 AddFloatBinaryOp(Add,      (x, y) => x + y);
@@ -356,6 +371,10 @@ namespace Ink.Runtime
                 AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
                 AddFloatBinaryOp (Pow,      (x, y) => (float)Math.Pow(x, y));
+                AddFloatUnaryOp(Floor,      x => (float)Math.Floor(x));
+                AddFloatUnaryOp(Ceiling,    x => (float)Math.Ceiling(x));
+                AddFloatUnaryOp(Int,        x => (int)x);
+                AddFloatUnaryOp(Float,      Identity);
 
                 // String operations
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat

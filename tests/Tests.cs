@@ -3456,6 +3456,24 @@ text 2
 
             Assert.AreEqual("text1\ntext 2\ntext1\ntext 2\n", story.ContinueMaximally ());
         }
+
+        [Test()]
+        public void TestFloorCeilingAndCasts()
+        {
+            var storyStr =
+        @"
+{FLOOR(1.2)}
+{INT(1.2)}
+{CEILING(1.2)}
+{CEILING(1.2) / 3}
+{INT(CEILING(1.2)) / 3}
+{FLOOR(1)}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual("1\n1\n2\n0.6666667\n0\n1\n", story.ContinueMaximally());
+        }
         
 
         // Helper compile function
