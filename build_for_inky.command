@@ -4,7 +4,7 @@ cd "`dirname "$0"`"
 mono NuGet.exe restore ink.sln
 
 # Build the debug code
-xbuild /p:Configuration=Debug ink.sln
+msbuild /p:Configuration=Debug ink.sln
 
 # Create folders
 mkdir -p BuildForInky
