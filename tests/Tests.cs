@@ -3502,6 +3502,23 @@ Two, Three, Four, Five, Six
 Pasta
 ", story.ContinueMaximally());
         }
+           
+        // Fix for rogue "can't use as sub-expression" bug
+        [Test()]
+        public void TestUsingFunctionAndIncrementTogether()
+        {
+            var storyStr =
+        @"
+VAR x = 5
+~ x += one()
+    
+=== function one()
+~ return 1
+";
+             
+            // Ensure it just compiles
+            CompileStringWithoutRuntime(storyStr);
+        }
         
 
         // Helper compile function

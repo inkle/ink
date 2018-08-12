@@ -241,7 +241,7 @@ namespace Ink.Parsed
                 Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
             }
 
-            if (!(parent is Weave) && !(parent is FlowBase)) {
+            if (!(parent is Weave) && !(parent is FlowBase) && !(parent is ContentList)) {
                 Error ("Can't use " + incrementDecrementWord + " as sub-expression");
             }
         }
