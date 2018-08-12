@@ -16,10 +16,10 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 18;
+        public const int inkVersionCurrent = 19;
 
         // Version numbers are for engine itself and story file, rather
-        // than the story state save format (which is um, currently nonexistant)
+        // than the story state save format
         //  -- old engine, new format: always fail
         //  -- new engine, old format: possibly cope, based on this number
         // When incrementing the version number above, the question you
