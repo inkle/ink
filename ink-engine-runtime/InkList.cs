@@ -457,61 +457,40 @@ namespace Ink.Runtime
         /// </summary>
         public InkList ListWithSubRange(object minBound, object maxBound) 
         {
+            if (this.Count == 0) return new InkList();
+
             var ordered = orderedItems;
 
-            int minIdx = -1;
-            int maxIdx = -1;
+            int minValue = 0;
+            int maxValue = int.MaxValue;
 
             if (minBound is int)
             {
-                minIdx = (int)minBound;
+                minValue = (int)minBound;
             }
 
             else
             {
-                if( minBound is InkList ) {
-                    var minBoundItem = ((InkList)minBound).minItem;
-                    if (!minBoundItem.Key.isNull)
-                    {
-                        minIdx = ordered.IndexOf(minBoundItem);
-                    }
-                }
-
-
-                if (minIdx == -1)
-                    throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
+                if( minBound is InkList && ((InkList)minBound).Count > 0 )
+                    minValue = ((InkList)minBound).minItem.Value;
             }
 
             if (maxBound is int)
-                maxIdx = (int)maxBound;
+                maxValue = (int)maxBound;
             else 
             {
-                if (minBound is InkList) {
-                    var maxBoundItem = ((InkList)maxBound).maxItem;
-                    if (!maxBoundItem.Key.isNull)
-                    {
-                        maxIdx = ordered.IndexOf(maxBoundItem);
-                    }
-                }
-
-                if (maxIdx == -1)
-                    throw new StoryException("Invalid minimum bound for LIST_RANGE: " + minBound);
+                if (minBound is InkList && ((InkList)minBound).Count > 0)
+                    maxValue = ((InkList)maxBound).maxItem.Value;
             }
-
-            if (this.Count == 0) return new InkList();
-
-            // If out of range, silently clamp (better than crashing for a language like ink)
-            if (minIdx < 0) minIdx = 0;
-            if (minIdx >= this.Count) minIdx = this.Count-1;
-            if (maxIdx < 0) maxIdx = 0;
-            if (maxIdx >= this.Count) maxIdx = this.Count-1;
 
             var subList = new InkList();
             subList.SetInitialOriginNames(originNames);
-            for (int i = minIdx; i <= maxIdx; i++) {
-                var el = ordered[i];
-                subList.Add(el.Key, el.Value);
+            foreach(var item in ordered) {
+                if( item.Value >= minValue && item.Value <= maxValue ) {
+                    subList.Add(item.Key, item.Value);
+                }
             }
+
             return subList;
         }
 
