@@ -761,7 +761,8 @@ namespace Ink.Runtime
             if (currentChildOfContainer == null) return;
 
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
-			while (currentContainerAncestor && !_prevContainers.Contains(currentContainerAncestor)) {
+
+            while (currentContainerAncestor && (!_prevContainers.Contains(currentContainerAncestor) || currentContainerAncestor.countingAtStartOnly)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
