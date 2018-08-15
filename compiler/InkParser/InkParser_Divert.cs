@@ -137,8 +137,20 @@ namespace Ink
             if (diverts == null)
                 return null;
 
+            // Ideally we'd report errors if we get the
+            // wrong kind of divert, but unfortunately we
+            // have to hack around the fact that sequences use
+            // a very similar syntax.
+            // i.e. if you have a multi-divert at the start
+            // of a sequence, it initially tries to parse it
+            // as a divert target (part of an expression of
+            // a conditional) and gives errors. So instead
+            // we just have to blindly reject it as a single
+            // divert, and give a slightly less nice error
+            // when you DO use a multi divert as a divert taret.
+
             if (diverts.Count != 1) {
-                Error ("Expected just one single divert");
+                return null;
             }
 
             var singleDivert = diverts [0];
@@ -148,10 +160,7 @@ namespace Ink
 
             var divert = diverts [0] as Divert;
             if (divert.isTunnel) {
-                Error ("Didn't expect tunnel, but a normal divert");
-
-                // Convert to normal divert to continue parsing
-                divert.isTunnel = false;
+                return null;
             }
 
             return divert;
