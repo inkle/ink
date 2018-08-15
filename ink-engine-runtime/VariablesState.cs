@@ -75,7 +75,7 @@ namespace Ink.Runtime
             }
             set {
                 if (!_defaultGlobalVariables.ContainsKey (variableName))
-                    throw new StoryException ("Cannot assign to a variable that hasn't been declared in the story");
+                    throw new StoryException ("Cannot assign to a variable ("+variableName+") that hasn't been declared in the story");
                 
                 var val = Runtime.Value.Create(value);
                 if (val == null) {
