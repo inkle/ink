@@ -11,13 +11,22 @@ namespace Ink
         {
             // Trim whitespace from end
             if (mixedTextAndLogicResults.Count > 0) {
-                var lastObj = mixedTextAndLogicResults[mixedTextAndLogicResults.Count-1];
+                var lastObjIdx = mixedTextAndLogicResults.Count - 1;
+                var lastObj = mixedTextAndLogicResults[lastObjIdx];
                 if (lastObj is Text) {
                     var text = (Text)lastObj;
                     text.text = text.text.TrimEnd (' ', '\t');
 
                     if (terminateWithSpace)
                         text.text += " ";
+
+                    // No content left at all? trim the whole object
+                    else if( text.text.Length == 0 ) {
+                        mixedTextAndLogicResults.RemoveAt(lastObjIdx);
+
+                        // Recurse in case there's more whitespace
+                        TrimEndWhitespace(mixedTextAndLogicResults, terminateWithSpace:false);
+                    }
                 }
             }
         }
