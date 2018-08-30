@@ -300,11 +300,11 @@ namespace Ink.Runtime
         }
 
         // Only called internally to generate prototypes
-        NativeFunctionCall (string name, int numberOfParamters)
+        NativeFunctionCall (string name, int numberOfParameters)
         {
             _isPrototype = true;
             this.name = name;
-            this.numberOfParameters = numberOfParamters;
+            this.numberOfParameters = numberOfParameters;
         }
 
         // For defining operations that do nothing to the specific type
