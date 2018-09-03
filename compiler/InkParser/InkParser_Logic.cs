@@ -154,9 +154,6 @@ namespace Ink
             if (allElements == null)
                 return null;
 
-            if (allElements.Count == 1)
-                Error ("Expected more than one element in the list");
-
             return new ListDefinition (allElements);
         }
 
