@@ -127,7 +127,7 @@ namespace Ink.Parsed
             if (story.variableDeclarations.ContainsKey (varName)) {
                 result.found = true;
                 result.ownerFlow = story;
-                result.isTemporary = false;
+                result.isGlobal = true;
                 return result;
             }
 

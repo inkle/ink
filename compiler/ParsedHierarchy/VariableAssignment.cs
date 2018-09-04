@@ -65,7 +65,8 @@ namespace Ink.Parsed
             else if( listDefinition != null )
                 container.AddContent (listDefinition.runtimeObject);
 
-            container.AddContent (new Runtime.VariableAssignment (variableName, isNewTemporaryDeclaration));
+            _runtimeAssignment = new Runtime.VariableAssignment(variableName, isNewTemporaryDeclaration);
+            container.AddContent (_runtimeAssignment);
 
             return container;
         }
@@ -78,6 +79,7 @@ namespace Ink.Parsed
             if( this.isDeclaration && listDefinition == null )
                 context.CheckForNamingCollisions (this, variableName, this.isGlobalDeclaration ? Story.SymbolType.Var : Story.SymbolType.Temp);
 
+            // Initial VAR x = [intialValue] declaration, not re-assignment
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
                 if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
@@ -86,13 +88,19 @@ namespace Ink.Parsed
             }
 
             if (!this.isNewTemporaryDeclaration) {
-                if (!context.ResolveVariableWithName (this.variableName, fromNode:this).found) {
+                var resolvedVarAssignment = context.ResolveVariableWithName(this.variableName, fromNode: this);
+                if (!resolvedVarAssignment.found) {
                     if (story.constants.ContainsKey (variableName)) {
                         Error ("Can't re-assign to a constant (do you need to use VAR when declaring '" + this.variableName + "'?)", this);
                     } else {
                         Error ("Variable could not be found to assign to: '" + this.variableName + "'", this);
                     }
                 }
+
+                // A runtime assignment may not have been generated if it's the initial global declaration,
+                // since these are hoisted out and handled specially in Story.ExportRuntime.
+                if( _runtimeAssignment != null ) 
+                    _runtimeAssignment.isGlobal = resolvedVarAssignment.isGlobal;
             }
         }
 
@@ -105,7 +113,7 @@ namespace Ink.Parsed
             }
         }
 
-
+        Runtime.VariableAssignment _runtimeAssignment;
     }
 }
 

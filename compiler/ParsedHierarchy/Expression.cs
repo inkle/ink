@@ -230,16 +230,20 @@ namespace Ink.Parsed
             container.AddContent (Runtime.NativeFunctionCall.CallWithName (isInc ? "+" : "-"));
 
             // 4.
-            container.AddContent (new Runtime.VariableAssignment (varName, false));
+            _runtimeAssignment = new Runtime.VariableAssignment(varName, false);
+            container.AddContent (_runtimeAssignment);
         }
 
         public override void ResolveReferences (Story context)
         {
             base.ResolveReferences (context);
 
-            if (!context.ResolveVariableWithName (varName, fromNode:this).found) {
+            var varResolveResult = context.ResolveVariableWithName(varName, fromNode: this);
+            if (!varResolveResult.found) {
                 Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
             }
+
+            _runtimeAssignment.isGlobal = varResolveResult.isGlobal;
 
             if (!(parent is Weave) && !(parent is FlowBase) && !(parent is ContentList)) {
                 Error ("Can't use " + incrementDecrementWord + " as sub-expression");
@@ -262,6 +266,8 @@ namespace Ink.Parsed
             else
                 return varName + (isInc ? "++" : "--");
         }
+
+        Runtime.VariableAssignment _runtimeAssignment;
     }
 
     internal class MultipleConditionExpression : Expression
