@@ -148,27 +148,63 @@ namespace Ink.Runtime
             {
                 Expect ("\"");
 
-                var startOffset = _offset;
+                var sb = new StringBuilder();
 
                 for (; _offset < _text.Length; _offset++) {
                     var c = _text [_offset];
 
-                    // Escaping. Escaped character will be skipped over in next loop.
                     if (c == '\\') {
+                        // Escaped character
                         _offset++;
+                        if (_offset >= _text.Length) {
+                            throw new Exception("Unexpected EOF while reading string");
+                        }
+                        c = _text[_offset];
+                        switch (c)
+                        {
+                            case '"':
+                            case '\\':
+                            case '/': // Yes, JSON allows this to be escaped
+                                sb.Append(c);
+                                break;
+                            case 'n':
+                                sb.Append('\n');
+                                break;
+                            case 't':
+                                sb.Append('\t');
+                                break;
+                            case 'r':
+                            case 'b':
+                            case 'f':
+                                // Ignore other control characters
+                                break;
+                            case 'u':
+                                // 4-digit Unicode
+                                if (_offset + 4 >=_text.Length) {
+                                    throw new Exception("Unexpected EOF while reading string");
+                                }
+                                var digits = _text.Substring(_offset + 1, 4);
+                                int uchar;
+                                if (int.TryParse(digits, System.Globalization.NumberStyles.AllowHexSpecifier, System.Globalization.CultureInfo.InvariantCulture, out uchar)) {
+                                    sb.Append((char)uchar);
+                                    _offset += 4;
+                                } else {
+                                    throw new Exception("Invalid Unicode escape character at offset " + (_offset - 1));
+                                }
+                                break;
+                            default:
+                                // The escaped character is invalid per json spec
+                                throw new Exception("Invalid Unicode escape character at offset " + (_offset - 1));
+                        }
                     } else if( c == '"' ) {
                         break;
+                    } else {
+                        sb.Append(c);
                     }
                 }
 
                 Expect ("\"");
-
-                var str = _text.Substring (startOffset, _offset - startOffset - 1);
-                str = str.Replace ("\\\\", "\\");
-                str = str.Replace ("\\\"", "\"");
-                str = str.Replace ("\\r", "");
-                str = str.Replace ("\\n", "\n");
-                return str;
+                return sb.ToString();
             }
 
             object ReadNumber ()
@@ -277,14 +313,40 @@ namespace Ink.Runtime
                     _sb.Append ("null");
                 } else if (obj is string) {
                     string str = (string)obj;
+                    _sb.EnsureCapacity(_sb.Length + str.Length + 2);
+                    _sb.Append('"');
 
-                    // Escape backslashes, quotes and newlines
-                    str = str.Replace ("\\", "\\\\");
-                    str = str.Replace ("\"", "\\\"");
-                    str = str.Replace ("\n", "\\n");
-                    str = str.Replace ("\r", "");
+                    foreach (var c in str)
+                    {
+                        if (c < ' ')
+                        {
+                            // Don't write any control characters except \n and \t
+                            switch (c)
+                            {
+                                case '\n':
+                                    _sb.Append("\\n");
+                                    break;
+                                case '\t':
+                                    _sb.Append("\\t");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (c)
+                            {
+                                case '\\':
+                                case '"':
+                                    _sb.Append('\\').Append(c);
+                                    break;
+                                default:
+                                    _sb.Append(c);
+                                    break;
+                            }
+                        }
+                    }
 
-                    _sb.AppendFormat ("\"{0}\"", str);
+                    _sb.Append('"');
                 } else if (obj is Dictionary<string, object>) {
                     WriteDictionary ((Dictionary<string, object>)obj);
                 } else if (obj is List<object>) {
