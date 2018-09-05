@@ -821,7 +821,15 @@ namespace Ink.Runtime
             choice.targetPath = choicePoint.pathOnChoice;
             choice.sourcePath = choicePoint.path.ToString ();
             choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
-            choice.threadAtGeneration = state.callStack.currentThread.Copy ();
+
+            // We need to capture the state of the callstack at the point where
+            // the choice was generated, since after the generation of this choice
+            // we may go on to pop out from a tunnel (possible if the choice was
+            // wrapped in a conditional), or we may pop out from a thread,
+            // at which point that thread is discarded.
+            // Fork clones the thread, gives it a new ID, but without affecting
+            // the thread stack itself.
+            choice.threadAtGeneration = state.callStack.ForkThread();
 
             // Set final text for the choice
             choice.text = (startText + choiceOnlyText).Trim(' ', '\t');

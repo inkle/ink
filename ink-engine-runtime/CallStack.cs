@@ -234,6 +234,14 @@ namespace Ink.Runtime
             _threads.Add (newThread);
         }
 
+        public Thread ForkThread()
+        {
+            var forkedThread = currentThread.Copy();
+            _threadCounter++;
+            forkedThread.threadIndex = _threadCounter;
+            return forkedThread;
+        }
+
         public void PopThread()
         {
             if (canPopThread) {
