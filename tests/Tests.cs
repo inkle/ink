@@ -3588,7 +3588,44 @@ VAR gatherCount = 0
 3 2
 ", story.ContinueMaximally());
         }
-        
+
+        // Fix for threads being incorrectly reused between choices
+        // and the main thread after save/reload
+        // https://github.com/inkle/ink/issues/463
+        [Test()]
+        public void TestChoiceThreadForking()
+        {
+            var storyStr =
+        @"
+-> generate_choice(1) ->
+
+== generate_choice(x) ==
+{true:
+    + A choice
+        Vaue of local var is: {x}
+        -> END
+}
+->->
+";
+
+            // Generate the choice with the forked thread
+            var story = CompileString(storyStr);
+            story.Continue();
+
+            // Save/reload
+            var savedState = story.state.ToJson();
+            story = CompileString(storyStr);
+            story.state.LoadJson(savedState);
+
+            // Load the choice, it should have its own thread still
+            // that still has the captured temp x
+            story.ChooseChoiceIndex(0);
+            story.ContinueMaximally();
+
+            // Don't want this warning:
+            // RUNTIME WARNING: '' line 7: Variable not found: 'x'
+            Assert.IsFalse(story.hasWarning);
+        }
 
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
