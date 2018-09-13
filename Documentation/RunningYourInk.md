@@ -278,28 +278,28 @@ To create a list with items from a single origin, and assign it to a variable in
 	
 If you're modifying a list, and you know that it has/had elements from a particular origin already:
 
-        var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
-        fruit.AddItem("Apple");
+	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	fruit.AddItem("Apple");
 	
 You can also create lists from items if you explicitly know all the metadata for the items - i.e. the origin name as as well as the int value assigned to it. This is useful if you're building a list out of existing lists. Note that InkLists actually derive from `Dictionary`, where the key is an `InkListItem` (which in turn has `originName` and `itemName` strings), and the value is the int value:
 
-        var newList = new Ink.Runtime.InkList();
-        var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
-        var places = story.variablesState["places"] as Ink.Runtime.InkList;
-        foreach(var item in fruit) {
-            newList.Add(item.Key, item.Value);
-        }
-        foreach (var item in places) {
-            newList.Add(item.Key, item.Value);
-        }
-        story.variablesState["myList"] = newList;
+	var newList = new Ink.Runtime.InkList();
+	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	var places = story.variablesState["places"] as Ink.Runtime.InkList;
+	foreach(var item in fruit) {
+	    newList.Add(item.Key, item.Value);
+	}
+	foreach (var item in places) {
+	    newList.Add(item.Key, item.Value);
+	}
+	story.variablesState["myList"] = newList;
 
 To test if your list contains a particular item:
 
-        fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
-        if( fruit.ContainsItemNamed("Apple") ) {
-            // We're eating apple's tonight!
-        }
+	fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	if( fruit.ContainsItemNamed("Apple") ) {
+	    // We're eating apple's tonight!
+	}
 	
 Lists also expose many of the operations you can do in ink:
 
