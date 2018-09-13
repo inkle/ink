@@ -266,7 +266,7 @@ Lists always need to know the origin of their items. For example, in ink you can
 
     ~ myList = (Orange, House)
     
-...even though `Orange` may have come from a list called `Fruit` and `House` may have come from a list called `Places`. In ink these *origin* lists are automatically resolved for you when writing. However when work in game code, you have to be more explicit, and tell the engine which origin lists your items belong to.
+...even though `Orange` may have come from a list called `fruit` and `House` may have come from a list called `places`. In ink these *origin* lists are automatically resolved for you when writing. However when work in game code, you have to be more explicit, and tell the engine which origin lists your items belong to.
 
 To create a list with items from a single origin, and assign it to a variable in the game:
 
