@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ink-engine-runtime", "ink-engine-runtime\ink-engine-runtime.csproj", "{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ink_compiler", "compiler\ink_compiler.csproj", "{52E3F3D0-2702-44E5-82F5-783B82647CA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InkTestBed", "InkTestBed\InkTestBed.csproj", "{714B52DE-576A-4760-BA2E-F8483DD2CAAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,8 @@ Global
 		Release|x86 = Release|x86
 		Test|Any CPU = Test|Any CPU
 		Test|x86 = Test|x86
+		InkTestBed|Any CPU = InkTestBed|Any CPU
+		InkTestBed|x86 = InkTestBed|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -25,10 +31,10 @@ Global
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.ActiveCfg = Release|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.Build.0 = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|Any CPU.ActiveCfg = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|Any CPU.Build.0 = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|x86.ActiveCfg = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|x86.Build.0 = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|Any CPU.ActiveCfg = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|Any CPU.Build.0 = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|x86.ActiveCfg = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|x86.Build.0 = Release|Any CPU
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|Any CPU.Build.0 = Debug|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.ActiveCfg = Debug|x86
@@ -37,10 +43,9 @@ Global
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|Any CPU.Build.0 = Release|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.ActiveCfg = Release|x86
 		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.Build.0 = Release|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|Any CPU.ActiveCfg = Test|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|Any CPU.Build.0 = Test|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|x86.ActiveCfg = Test|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|x86.Build.0 = Test|x86
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|Any CPU.ActiveCfg = InkTestBed|x86
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|Any CPU.Build.0 = InkTestBed|x86
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|x86.ActiveCfg = InkTestBed|x86
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -49,10 +54,34 @@ Global
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|x86.ActiveCfg = Release|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|x86.Build.0 = Release|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|Any CPU.ActiveCfg = Debug|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|Any CPU.Build.0 = Debug|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|x86.ActiveCfg = Debug|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|x86.Build.0 = Debug|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|x86.Build.0 = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|x86.ActiveCfg = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|x86.Build.0 = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|x86.Build.0 = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|x86.ActiveCfg = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|x86.Build.0 = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0

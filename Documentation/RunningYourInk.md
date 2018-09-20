@@ -200,7 +200,7 @@ You can register a delegate function to be called whenever a particular variable
 The reason that the variable name is passed in is so that you can have a single observer function that observes multiple different variables.
 
 
-## Exernal functions
+## External functions
 
 You can define game-side functions in C# that can be called directly from **ink**. To do so:
 
@@ -222,6 +222,31 @@ You can define game-side functions in C# that can be called directly from **ink*
 
 The types you can use as parameters and return values are int, float, bool (automatically converted from **ink**’s internal ints) and string.
 
+### Important notes on the usage of external functions
+
+EXTERNAL functions should generally be *pure* or almost pure - that's computer science lingo to mean - they shouldn't be used to cause side effects (e.g. print a message) in the game. The reason is that [due to way the ink engine works](https://github.com/inkle/ink/issues/253#issuecomment-272395950), they can end up being called multiple times when you expect them to be called just once. They can also end up being called ahead of time, before the game should've reached a particular line. So, some examples of when external functions work well:
+
+* Relatively complex calculations that would be slow in an ink function (ink will always be slower than a native C# function)
+* **Getting** values from your game state
+
+Some examples of when external functions **shouldn't** be used:
+
+* **Setting** values in your game state
+* To show a dialog box or create a piece of UI
+* To print a message for the player
+
+... since these may often end up being called twice, or called when you don't expect. Also, it's not great practice to be doing UI stuff or complex code while the ink is in the middle of being evaluated anyway - if you run some code that would end up calling back into the ink engine, you'll get some very nasty bugs!
+
+So, what's the workaround? There are 3 possible approaches, depending on what you're trying to achieve:
+
+* You can set up a variable observer if you just want the game to know when some state has changed. This is perfect for say, changing the score in the UI.
+* You can use [tags](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
+* In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
+
+    `>>> SHOT: view_over_bridge`
+
+We understand though that this isn't ideal for everyone's use case, so we plan to find a good solution to the problem in future!
+
 ### Fallbacks for external functions
 
 When testing your story, either in [Inky](https://github.com/inkle/inky) or in the [ink-unity integration](https://github.com/inkle/ink-unity-integration/) player window, you don't get an opportunity to bind a game function before running the story. To get around this, you can define a *fallback function* within ink, which is run if the `EXTERNAL` function can't be found. To do so, simply create an ink function with the same name and parameters. For example, for the above `multiply` example, create the ink function:
@@ -232,6 +257,60 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 // results, otherwise they'd be defined in ink!
 ~ return 1 
 ```
+
+## Working with LISTs
+
+Ink lists are a more complex type used in the ink engine, so interacting with them is a bit more involved than with ints, floats and strings.
+
+Lists always need to know the origin of their items. For example, in ink you can do:
+
+    ~ myList = (Orange, House)
+    
+...even though `Orange` may have come from a list called `fruit` and `House` may have come from a list called `places`. In ink these *origin* lists are automatically resolved for you when writing. However when work in game code, you have to be more explicit, and tell the engine which origin lists your items belong to.
+
+To create a list with items from a single origin, and assign it to a variable in the game:
+
+	var newList = new Ink.Runtime.InkList("fruit", story);
+	newList.AddItem("Orange");
+	newList.AddItem("Apple");
+	story.variablesState["myList"] = newList;
+    
+	
+If you're modifying a list, and you know that it has/had elements from a particular origin already:
+
+	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	fruit.AddItem("Apple");
+	
+You can also create lists from items if you explicitly know all the metadata for the items - i.e. the origin name as as well as the int value assigned to it. This is useful if you're building a list out of existing lists. Note that InkLists actually derive from `Dictionary`, where the key is an `InkListItem` (which in turn has `originName` and `itemName` strings), and the value is the int value:
+
+	var newList = new Ink.Runtime.InkList();
+	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	var places = story.variablesState["places"] as Ink.Runtime.InkList;
+	foreach(var item in fruit) {
+	    newList.Add(item.Key, item.Value);
+	}
+	foreach (var item in places) {
+	    newList.Add(item.Key, item.Value);
+	}
+	story.variablesState["myList"] = newList;
+
+To test if your list contains a particular item:
+
+	fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	if( fruit.ContainsItemNamed("Apple") ) {
+	    // We're eating apple's tonight!
+	}
+	
+Lists also expose many of the operations you can do in ink:
+
+	list.minItem 	// equivalent to calling LIST_MIN(list) in ink
+	list.maxItem 	// equivalent to calling LIST_MAX(list) in ink
+	list.inverse 	// equivalent to calling LIST_INVERT(list) in ink
+	list.all 	// equivalent to calling LIST_ALL(list) in ink
+	list.Union(otherList)      // equivalent to (list + otherList) in ink
+	list.Intersect(otherList)  // equivalent to (list ^ otherList) in ink
+	list.Without(otherList)    // equivalent to (list - otherList) in ink
+	list.Contains(otherList)   // equivalent to (list ? otherList) in ink
 
 ## Debugging ink engine issues
 

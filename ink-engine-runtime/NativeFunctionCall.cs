@@ -28,6 +28,12 @@ namespace Ink.Runtime
         public const string Min      = "MIN";
         public const string Max      = "MAX";
 
+        public const string Pow      = "POW";
+        public const string Floor    = "FLOOR";
+        public const string Ceiling  = "CEILING";
+        public const string Int      = "INT";
+        public const string Float    = "FLOAT";
+
         public const string Has      = "?";
         public const string Hasnt    = "!?";
         public const string Intersect = "^";
@@ -294,13 +300,20 @@ namespace Ink.Runtime
         }
 
         // Only called internally to generate prototypes
-        NativeFunctionCall (string name, int numberOfParamters)
+        NativeFunctionCall (string name, int numberOfParameters)
         {
             _isPrototype = true;
             this.name = name;
-            this.numberOfParameters = numberOfParamters;
+            this.numberOfParameters = numberOfParameters;
         }
-            
+
+        // For defining operations that do nothing to the specific type
+        // (but are still supported), such as floor/ceil on int and float
+        // cast on float.
+        static object Identity<T>(T t) {
+            return t;
+        }
+
         static void GenerateNativeFunctionsIfNecessary()
         {
             if (_nativeFunctions == null) {
@@ -328,6 +341,13 @@ namespace Ink.Runtime
                 AddIntBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddIntBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
+                // Have to cast to float since you could do POW(2, -1)
+                AddIntBinaryOp (Pow,      (x, y) => (float) Math.Pow(x, y));
+                AddIntUnaryOp(Floor,      Identity);
+                AddIntUnaryOp(Ceiling,    Identity);
+                AddIntUnaryOp(Int,        Identity);
+                AddIntUnaryOp (Float,     x => (float)x);
+
                 // Float operations
                 AddFloatBinaryOp(Add,      (x, y) => x + y);
                 AddFloatBinaryOp(Subtract, (x, y) => x - y);
@@ -350,10 +370,18 @@ namespace Ink.Runtime
                 AddFloatBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
+                AddFloatBinaryOp (Pow,      (x, y) => (float)Math.Pow(x, y));
+                AddFloatUnaryOp(Floor,      x => (float)Math.Floor(x));
+                AddFloatUnaryOp(Ceiling,    x => (float)Math.Ceiling(x));
+                AddFloatUnaryOp(Int,        x => (int)x);
+                AddFloatUnaryOp(Float,      Identity);
+
                 // String operations
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
                 AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
                 AddStringBinaryOp (NotEquals, (x, y) => !x.Equals (y) ? (int)1 : (int)0);
+                AddStringBinaryOp (Has,    (x, y) => x.Contains(y) ? (int)1 : (int)0);
+                AddStringBinaryOp (Hasnt,   (x, y) => x.Contains(y) ? (int)0 : (int)1);
 
                 // List operations
                 AddListBinaryOp (Add, (x, y) => x.Union (y));
@@ -383,11 +411,15 @@ namespace Ink.Runtime
                 AddListUnaryOp (Count,  (x) => x.Count);
                 AddListUnaryOp (ValueOfList,  (x) => x.maxItem.Value);
 
-                // Special case: The only operation you can do on divert target values
+                // Special case: The only operations you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
                     return d1.Equals (d2) ? 1 : 0;
                 };
+                BinaryOp<Path> divertTargetsNotEqual = (Path d1, Path d2) => {
+                	return d1.Equals (d2) ? 0 : 1;
+                };
                 AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+                AddOpToNativeFunc (NotEquals, 2, ValueType.DivertTarget, divertTargetsNotEqual);
 
             }
         }

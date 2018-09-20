@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -32,6 +32,12 @@ namespace Ink.Runtime
             }
         }
 
+        internal Runtime.DebugMetadata ownDebugMetadata {
+            get {
+                return _debugMetadata;
+            }
+        }
+
         // TODO: Come up with some clever solution for not having
         // to have debug metadata on the object itself, perhaps
         // for serialisation purposes at least.
@@ -45,15 +51,7 @@ namespace Ink.Runtime
             // Try to get a line number from debug metadata
             var root = this.rootContentContainer;
             if (root) {
-                Runtime.Object targetContent = null;
-
-                // Sometimes paths can be "invalid" if they're externally defined
-                // in the game. TODO: Change ContentAtPath to return null, and
-                // only throw an exception in places that actually care!
-                try {
-                    targetContent = root.ContentAtPath (path);
-                } catch { }
-
+                Runtime.Object targetContent = root.ContentAtPath (path).obj;
                 if (targetContent) {
                     var dm = targetContent.debugMetadata;
                     if (dm != null) {
@@ -105,7 +103,7 @@ namespace Ink.Runtime
 		}
         Path _path;
 
-        internal Runtime.Object ResolvePath(Path path)
+        internal SearchResult ResolvePath(Path path)
         {
             if (path.isRelative) {
 
@@ -114,7 +112,7 @@ namespace Ink.Runtime
                     Debug.Assert (this.parent != null, "Can't resolve relative path because we don't have a parent");
                     nearestContainer = this.parent as Container;
                     Debug.Assert (nearestContainer != null, "Expected parent to be a container");
-                    Debug.Assert (path.components [0].isParent);
+                    Debug.Assert (path.GetComponent(0).isParent);
                     path = path.tail;
                 }
 
@@ -132,12 +130,12 @@ namespace Ink.Runtime
 
             var ownPath = this.path;
 
-            int minPathLength = Math.Min (globalPath.components.Count, ownPath.components.Count);
+			int minPathLength = Math.Min (globalPath.length, ownPath.length);
             int lastSharedPathCompIndex = -1;
 
             for (int i = 0; i < minPathLength; ++i) {
-                var ownComp = ownPath.components [i];
-                var otherComp = globalPath.components [i];
+                var ownComp = ownPath.GetComponent(i);
+                var otherComp = globalPath.GetComponent(i);
 
                 if (ownComp.Equals (otherComp)) {
                     lastSharedPathCompIndex = i;
@@ -150,15 +148,15 @@ namespace Ink.Runtime
             if (lastSharedPathCompIndex == -1)
                 return globalPath;
 
-            int numUpwardsMoves = (ownPath.components.Count-1) - lastSharedPathCompIndex;
+            int numUpwardsMoves = (ownPath.length-1) - lastSharedPathCompIndex;
 
             var newPathComps = new List<Path.Component> ();
 
             for(int up=0; up<numUpwardsMoves; ++up)
                 newPathComps.Add (Path.Component.ToParent ());
 
-            for (int down = lastSharedPathCompIndex + 1; down < globalPath.components.Count; ++down)
-                newPathComps.Add (globalPath.components [down]);
+			for (int down = lastSharedPathCompIndex + 1; down < globalPath.length; ++down)
+				newPathComps.Add (globalPath.GetComponent(down));
 
             var relativePath = new Path (newPathComps, relative:true);
             return relativePath;

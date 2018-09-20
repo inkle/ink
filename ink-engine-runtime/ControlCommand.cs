@@ -18,6 +18,7 @@ namespace Ink.Runtime
             EndString,
             NoOp,
             ChoiceCount,
+            Turns,
             TurnsSince,
             ReadCount,
             Random,
@@ -29,6 +30,7 @@ namespace Ink.Runtime
             End,
             ListFromInt,
             ListRange,
+            ListRandom,
             //----
             TOTAL_VALUES
         }
@@ -101,6 +103,11 @@ namespace Ink.Runtime
             return new ControlCommand(CommandType.ChoiceCount);
         }
 
+        public static ControlCommand Turns ()
+        {
+            return new ControlCommand (CommandType.Turns);
+        }
+
         public static ControlCommand TurnsSince() {
             return new ControlCommand(CommandType.TurnsSince);
         }
@@ -147,6 +154,11 @@ namespace Ink.Runtime
         public static ControlCommand ListRange ()
         {
             return new ControlCommand (CommandType.ListRange);
+        }
+
+        public static ControlCommand ListRandom ()
+        {
+            return new ControlCommand (CommandType.ListRandom);
         }
 
         public override string ToString ()

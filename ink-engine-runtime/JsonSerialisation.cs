@@ -142,12 +142,7 @@ namespace Ink.Runtime
                     return new StringValue ("\n");
 
                 // Glue
-                if (str == "<>")
-                    return new Runtime.Glue (GlueType.Bidirectional);
-                else if(str == "G<")
-                    return new Runtime.Glue (GlueType.Left);
-                else if(str == "G>")
-                    return new Runtime.Glue (GlueType.Right);
+                if (str == "<>") return new Runtime.Glue ();
 
                 // Control commands (would looking up in a hash set be faster?)
                 for (int i = 0; i < _controlCommandNames.Length; ++i) {
@@ -400,14 +395,7 @@ namespace Ink.Runtime
             }
 
             var glue = obj as Runtime.Glue;
-            if (glue) {
-                if (glue.isBi)
-                    return "<>";
-                else if (glue.isLeft)
-                    return "G<";
-                else
-                    return "G>";
-            }
+            if (glue) return "<>";
 
             var controlCmd = obj as ControlCommand;
             if (controlCmd) {
@@ -562,8 +550,9 @@ namespace Ink.Runtime
             var choice = new Choice();
             choice.text = jObj ["text"].ToString();
             choice.index = (int)jObj ["index"];
-            choice.originalChoicePath = jObj ["originalChoicePath"].ToString();
+            choice.sourcePath = jObj ["originalChoicePath"].ToString();
             choice.originalThreadIndex = (int)jObj ["originalThreadIndex"];
+            choice.pathStringOnChoice = jObj ["targetPath"].ToString();
             return choice;
         }
 
@@ -572,8 +561,9 @@ namespace Ink.Runtime
             var jObj = new Dictionary<string, object> ();
             jObj ["text"] = choice.text;
             jObj ["index"] = choice.index;
-            jObj ["originalChoicePath"] = choice.originalChoicePath;
+            jObj ["originalChoicePath"] = choice.sourcePath;
             jObj ["originalThreadIndex"] = choice.originalThreadIndex;
+            jObj ["targetPath"] = choice.pathStringOnChoice;
             return jObj;
         }
 
@@ -652,6 +642,7 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.EndString] = "/str";
             _controlCommandNames [(int)ControlCommand.CommandType.NoOp] = "nop";
             _controlCommandNames [(int)ControlCommand.CommandType.ChoiceCount] = "choiceCnt";
+            _controlCommandNames [(int)ControlCommand.CommandType.Turns] = "turn";
             _controlCommandNames [(int)ControlCommand.CommandType.TurnsSince] = "turns";
             _controlCommandNames [(int)ControlCommand.CommandType.ReadCount] = "readc";
             _controlCommandNames [(int)ControlCommand.CommandType.Random] = "rnd";
@@ -663,6 +654,7 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.End] = "end";
             _controlCommandNames [(int)ControlCommand.CommandType.ListFromInt] = "listInt";
             _controlCommandNames [(int)ControlCommand.CommandType.ListRange] = "range";
+            _controlCommandNames [(int)ControlCommand.CommandType.ListRandom] = "lrnd";
 
             for (int i = 0; i < (int)ControlCommand.CommandType.TOTAL_VALUES; ++i) {
                 if (_controlCommandNames [i] == null)

@@ -8,7 +8,7 @@ namespace Ink.Runtime
             get { 
                 // Resolve any relative paths to global ones as we come across them
                 if (_targetPath != null && _targetPath.isRelative) {
-                    var targetObj = targetContent;
+                    var targetObj = targetPointer.Resolve();
                     if (targetObj) {
                         _targetPath = targetObj.path;
                     }
@@ -17,21 +17,28 @@ namespace Ink.Runtime
             }
             set {
                 _targetPath = value;
-                _targetContent = null;
+                _targetPointer = Pointer.Null;
             } 
         }
         Path _targetPath;
 
-        public Runtime.Object targetContent {
+        public Pointer targetPointer {
             get {
-                if (_targetContent == null) {
-                    _targetContent = ResolvePath (_targetPath);
-                }
+                if (_targetPointer.isNull) {
+                    var targetObj = ResolvePath (_targetPath).obj;
 
-                return _targetContent;
+                    if (_targetPath.lastComponent.isIndex) {
+                        _targetPointer.container = targetObj.parent as Container;
+                        _targetPointer.index = _targetPath.lastComponent.index;
+                    } else {
+                        _targetPointer = Pointer.StartOf (targetObj as Container);
+                    }
+                }
+                return _targetPointer;
             }
         }
-        Runtime.Object _targetContent;
+        Pointer _targetPointer;
+        
 
         public string targetPathString {
             get {
@@ -115,6 +122,10 @@ namespace Ink.Runtime
                 }
 
                 sb.Append ("Divert");
+
+                if (isConditional)
+                    sb.Append ("?");
+
                 if (pushesToStack) {
                     if (stackPushType == PushPopType.Function) {
                         sb.Append (" function");
@@ -122,6 +133,9 @@ namespace Ink.Runtime
                         sb.Append (" tunnel");
                     }
                 }
+
+                sb.Append (" -> ");
+                sb.Append (targetPathString);
 
                 sb.Append (" (");
                 sb.Append (targetStr);

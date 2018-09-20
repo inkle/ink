@@ -17,8 +17,8 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 7;
-        const int kMinCompatibleLoadVersion = 6;
+        public const int kInkSaveStateVersion = 8;
+        const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
         /// Exports the current state to json format, in order to save the game.
@@ -84,10 +84,11 @@ namespace Ink.Runtime
 			}
 		}
         internal List<string> currentErrors { get; private set; }
+        internal List<string> currentWarnings { get; private set; }
         internal VariablesState variablesState { get; private set; }
         internal CallStack callStack { get; set; }
         internal List<Runtime.Object> evaluationStack { get; private set; }
-        internal Runtime.Object divertedTargetObject { get; set; }
+        internal Pointer divertedPointer { get; set; }
         internal Dictionary<string, int> visitCounts { get; private set; }
         internal Dictionary<string, int> turnIndices { get; private set; }
         internal int currentTurnIndex { get; private set; }
@@ -97,48 +98,40 @@ namespace Ink.Runtime
 
         internal Story story { get; set; }
 
-        internal Path currentPath { 
-            get { 
-                if (currentContentObject == null)
+        /// <summary>
+        /// String representation of the location where the story currently is.
+        /// </summary>
+        public string currentPathString {
+            get {
+                var pointer = currentPointer;
+                if (pointer.isNull)
                     return null;
-
-                return currentContentObject.path;
-            } 
-            set {
-                if (value != null)
-                    currentContentObject = story.ContentAtPath (value);
                 else
-                    currentContentObject = null;
+                    return pointer.path.ToString();
             }
         }
 
-        internal Runtime.Object currentContentObject {
+        internal Runtime.Pointer currentPointer {
             get {
-                return callStack.currentElement.currentObject;
+                return callStack.currentElement.currentPointer;
             }
             set {
-                callStack.currentElement.currentObject = value;
+                callStack.currentElement.currentPointer = value;
             }
         }
 
-        internal Container currentContainer {
+        internal Pointer previousPointer { 
             get {
-                return callStack.currentElement.currentContainer;
-            }
-        }
-
-        internal Runtime.Object previousContentObject { 
-            get {
-                return callStack.currentThread.previousContentObject;
+                return callStack.currentThread.previousPointer;
             }
             set {
-                callStack.currentThread.previousContentObject = value;
+                callStack.currentThread.previousPointer = value;
             }
         }
 
 		internal bool canContinue {
 			get {
-				return currentContentObject != null && !hasError;
+				return !currentPointer.isNull && !hasError;
 			}
 		}
             
@@ -146,6 +139,12 @@ namespace Ink.Runtime
         {
             get {
                 return currentErrors != null && currentErrors.Count > 0;
+            }
+        }
+
+        internal bool hasWarning {
+            get {
+                return currentWarnings != null && currentWarnings.Count > 0;
             }
         }
 
@@ -163,7 +162,7 @@ namespace Ink.Runtime
 						}
 					}
 
-					_currentText = sb.ToString ();
+                    _currentText = CleanOutputWhitespace (sb.ToString ());
 
 					_outputStreamTextDirty = false;
 				}
@@ -172,6 +171,41 @@ namespace Ink.Runtime
             }
         }
 		string _currentText;
+
+        // Cleans inline whitespace in the following way:
+        //  - Removes all whitespace from the start and end of line (including just before a \n)
+        //  - Turns all consecutive space and tab runs into single spaces (HTML style)
+        string CleanOutputWhitespace(string str)
+        {
+            var sb = new StringBuilder(str.Length);
+
+            int currentWhitespaceStart = -1;
+            int startOfLine = 0;
+
+            for (int i = 0; i < str.Length; i++) {
+                var c = str[i];
+
+                bool isInlineWhitespace = c == ' ' || c == '\t';
+
+                if (isInlineWhitespace && currentWhitespaceStart == -1)
+                    currentWhitespaceStart = i;
+
+                if (!isInlineWhitespace) {
+                    if (c != '\n' && currentWhitespaceStart > 0 && currentWhitespaceStart != startOfLine) {
+                        sb.Append(' ');
+                    }
+                    currentWhitespaceStart = -1;
+                }
+
+                if (c == '\n')
+                    startOfLine = i + 1;
+
+                if (!isInlineWhitespace)
+                    sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
 
         internal List<string> currentTags 
         {
@@ -232,14 +266,13 @@ namespace Ink.Runtime
 
         internal void GoToStart()
         {
-            callStack.currentElement.currentContainer = story.mainContentContainer;
-            callStack.currentElement.currentContentIndex = 0;
+            callStack.currentElement.currentPointer = Pointer.StartOf (story.mainContentContainer);
         }
 
         // Warning: Any Runtime.Object content referenced within the StoryState will
         // be re-referenced rather than cloned. This is generally okay though since
         // Runtime.Objects are treated as immutable after they've been set up.
-        // (e.g. we don't edit a Runtime.Text after it's been created an added.)
+        // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
         internal StoryState Copy()
         {
@@ -254,6 +287,10 @@ namespace Ink.Runtime
                 copy.currentErrors = new List<string> ();
                 copy.currentErrors.AddRange (currentErrors); 
             }
+            if (hasWarning) {
+                copy.currentWarnings = new List<string> ();
+                copy.currentWarnings.AddRange (currentWarnings); 
+            }
 
             copy.callStack = new CallStack (callStack);
 
@@ -262,10 +299,10 @@ namespace Ink.Runtime
 
             copy.evaluationStack.AddRange (evaluationStack);
 
-            if (divertedTargetObject != null)
-                copy.divertedTargetObject = divertedTargetObject;
+            if (!divertedPointer.isNull)
+                copy.divertedPointer = divertedPointer;
 
-            copy.previousContentObject = previousContentObject;
+            copy.previousPointer = previousPointer;
 
             copy.visitCounts = new Dictionary<string, int> (visitCounts);
             copy.turnIndices = new Dictionary<string, int> (turnIndices);
@@ -292,7 +329,6 @@ namespace Ink.Runtime
 
 				Dictionary<string, object> choiceThreads = null;
 				foreach (Choice c in _currentChoices) {
-                    c.originalChoicePath = c.choicePoint.path.componentsString;
                     c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
 					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
@@ -315,8 +351,8 @@ namespace Ink.Runtime
 
 				obj ["currentChoices"] = Json.ListToJArray (_currentChoices);
 
-                if( divertedTargetObject != null )
-                    obj ["currentDivertTarget"] = divertedTargetObject.path.componentsString;
+                if( !divertedPointer.isNull )
+                    obj ["currentDivertTarget"] = divertedPointer.path.componentsString;
 
                 obj ["visitCounts"] = Json.IntDictionaryToJObject (visitCounts);
                 obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
@@ -356,7 +392,7 @@ namespace Ink.Runtime
 				object currentDivertTargetPath;
 				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
                     var divertPath = new Path (currentDivertTargetPath.ToString ());
-                    divertedTargetObject = story.ContentAtPath (divertPath);
+                    divertedPointer = story.PointerAtPath (divertPath);
                 }
                     
                 visitCounts = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["visitCounts"]);
@@ -370,11 +406,9 @@ namespace Ink.Runtime
 				var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
 
 				foreach (var c in _currentChoices) {
-					c.choicePoint = (ChoicePoint) story.ContentAtPath (new Path (c.originalChoicePath));
-
 					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 					if( foundActiveThread != null ) {
-						c.threadAtGeneration = foundActiveThread;
+                        c.threadAtGeneration = foundActiveThread.Copy ();
 					} else {
 						var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
 						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
@@ -387,11 +421,13 @@ namespace Ink.Runtime
         internal void ResetErrors()
         {
             currentErrors = null;
+            currentWarnings = null;
         }
             
-        internal void ResetOutput()
+        internal void ResetOutput(List<Runtime.Object> objs = null)
         {
             _outputStream.Clear ();
+            if( objs != null ) _outputStream.AddRange (objs);
 			OutputStreamDirty();
         }
 
@@ -406,6 +442,7 @@ namespace Ink.Runtime
                     foreach (var textObj in listText) {
                         PushToOutputStreamIndividual (textObj);
                     }
+                    OutputStreamDirty();
                     return;
                 }
             }
@@ -413,6 +450,12 @@ namespace Ink.Runtime
             PushToOutputStreamIndividual (obj);
 
 			OutputStreamDirty();
+        }
+
+        internal void PopFromOutputStream (int count)
+        {
+            outputStream.RemoveRange (outputStream.Count - count, count);
+            OutputStreamDirty ();
         }
 
 
@@ -506,40 +549,94 @@ namespace Ink.Runtime
 
             bool includeInOutput = true;
 
+            // New glue, so chomp away any whitespace from the end of the stream
             if (glue) {
-
-                // Found matching left-glue for right-glue? Close it.
-                Glue matchingRightGlue = null;
-                if (glue.isLeft)
-                    matchingRightGlue = MatchRightGlueForLeftGlue (glue);
-
-                // Left/Right glue is auto-generated for inline expressions 
-                // where we want to absorb newlines but only in a certain direction.
-                // "Bi" glue is written by the user in their ink with <>
-                if (glue.isLeft || glue.isBi) {
-                    TrimNewlinesFromOutputStream(matchingRightGlue);
-                }
-
-                includeInOutput = glue.isBi || glue.isRight;
+                TrimNewlinesFromOutputStream();
+                includeInOutput = true;
             }
 
+            // New text: do we really want to append it, if it's whitespace?
+            // Two different reasons for whitespace to be thrown away:
+            //   - Function start/end trimming
+            //   - User defined glue: <>
+            // We also need to know when to stop trimming, when there's non-whitespace.
             else if( text ) {
 
-                if (currentGlueIndex != -1) {
+                // Where does the current function call begin?
+                var functionTrimIndex = -1;
+                var currEl = callStack.currentElement;
+                if (currEl.type == PushPopType.Function) {
+                    functionTrimIndex = currEl.functionStartInOuputStream;
+                }
 
-                    // Absorb any new newlines if there's existing glue
-                    // in the output stream.
-                    // Also trim any extra whitespace (spaces/tabs) if so.
+                // Do 2 things:
+                //  - Find latest glue
+                //  - Check whether we're in the middle of string evaluation
+                // If we're in string eval within the current function, we
+                // don't want to trim back further than the length of the current string.
+                int glueTrimIndex = -1;
+                for (int i = _outputStream.Count - 1; i >= 0; i--) {
+                    var o = _outputStream [i];
+                    var c = o as ControlCommand;
+                    var g = o as Glue;
+
+                    // Find latest glue
+                    if (g) {
+                        glueTrimIndex = i;
+                        break;
+                    } 
+
+                    // Don't function-trim past the start of a string evaluation section
+                    else if (c && c.commandType == ControlCommand.CommandType.BeginString) {
+                        if (i >= functionTrimIndex) {
+                            functionTrimIndex = -1;
+                        }
+                        break;
+                    }
+                }
+
+                // Where is the most agressive (earliest) trim point?
+                var trimIndex = -1;
+                if (glueTrimIndex != -1 && functionTrimIndex != -1)
+                    trimIndex = Math.Min (functionTrimIndex, glueTrimIndex);
+                else if (glueTrimIndex != -1)
+                    trimIndex = glueTrimIndex;
+                else
+                    trimIndex = functionTrimIndex;
+
+                // So, are we trimming then?
+                if (trimIndex != -1) {
+
+                    // While trimming, we want to throw all newlines away,
+                    // whether due to glue or the start of a function
                     if (text.isNewline) {
-                        TrimFromExistingGlue ();
                         includeInOutput = false;
                     } 
 
-                    // Able to completely reset when 
+                    // Able to completely reset when normal text is pushed
                     else if (text.isNonWhitespace) {
-                        RemoveExistingGlue ();
+
+                        if( glueTrimIndex > -1 )
+                            RemoveExistingGlue ();
+
+                        // Tell all functions in callstack that we have seen proper text,
+                        // so trimming whitespace at the start is done.
+                        if (functionTrimIndex > -1) {
+                            var callstackElements = callStack.elements;
+                            for (int i = callstackElements.Count - 1; i >= 0; i--) {
+                                var el = callstackElements [i];
+                                if (el.type == PushPopType.Function) {
+                                    el.functionStartInOuputStream = -1;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
                     }
-                } else if (text.isNewline) {
+                } 
+
+                // De-duplicate newlines, and don't ever lead with a newline
+                else if (text.isNewline) {
                     if (outputStreamEndsInNewline || !outputStreamContainsContent)
                         includeInOutput = false;
                 }
@@ -547,36 +644,30 @@ namespace Ink.Runtime
 
             if (includeInOutput) {
                 _outputStream.Add (obj);
+                OutputStreamDirty();
             }
-
-			OutputStreamDirty();
         }
 
-        void TrimNewlinesFromOutputStream(Glue rightGlueToStopAt)
+        void TrimNewlinesFromOutputStream()
         {
             int removeWhitespaceFrom = -1;
-            int rightGluePos = -1;
-            bool foundNonWhitespace = false;
 
             // Work back from the end, and try to find the point where
-            // we need to start removing content. There are two ways:
-            //  - Start from the matching right-glue (because we just saw a left-glue)
+            // we need to start removing content.
             //  - Simply work backwards to find the first newline in a string of whitespace
+            // e.g. This is the content   \n   \n\n
+            //                            ^---------^ whitespace to remove
+            //                        ^--- first while loop stops here
             int i = _outputStream.Count-1;
             while (i >= 0) {
                 var obj = _outputStream [i];
                 var cmd = obj as ControlCommand;
                 var txt = obj as StringValue;
-                var glue = obj as Glue;
 
                 if (cmd || (txt && txt.isNonWhitespace)) {
-                    foundNonWhitespace = true;
-                    if( rightGlueToStopAt == null )
-                        break;
-                } else if (rightGlueToStopAt && glue == rightGlueToStopAt) {
-                    rightGluePos = i;
                     break;
-                } else if (txt && txt.isNewline && !foundNonWhitespace) {
+                } 
+                else if (txt && txt.isNewline) {
                     removeWhitespaceFrom = i;
                 }
                 i--;
@@ -595,38 +686,8 @@ namespace Ink.Runtime
                 }
             }
 
-            // Remove the glue (it will come before the whitespace,
-            // so index is still valid)
-            // Also remove any other non-matching right glues that come after,
-            // since they'll have lost their matching glues already
-            if (rightGlueToStopAt && rightGluePos > -1) {
-                i = rightGluePos;
-                while(i < _outputStream.Count) {
-                    if (_outputStream [i] is Glue && ((Glue)_outputStream [i]).isRight) {
-                        _outputStream.RemoveAt (i);
-                    } else {
-                        i++;
-                    }
-                }
-            }
-
 			OutputStreamDirty();
         }
-
-        void TrimFromExistingGlue()
-        {
-            int i = currentGlueIndex;
-            while (i < _outputStream.Count) {
-                var txt = _outputStream [i] as StringValue;
-                if (txt && !txt.isNonWhitespace)
-                    _outputStream.RemoveAt (i);
-                else
-                    i++;
-            }
-
-			OutputStreamDirty();
-        }
-
 
         // Only called when non-whitespace is appended
         void RemoveExistingGlue()
@@ -643,36 +704,6 @@ namespace Ink.Runtime
 			OutputStreamDirty();
         }
 
-        int currentGlueIndex {
-            get {
-                for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                    var c = _outputStream [i];
-                    var glue = c as Glue;
-                    if (glue)
-                        return i;
-                    else if (c is ControlCommand) // e.g. BeginString
-                        break;
-                }
-                return -1;
-            }
-        }
-
-        Runtime.Glue MatchRightGlueForLeftGlue (Glue leftGlue)
-        {
-            if (!leftGlue.isLeft) return null;
-
-            for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                var c = _outputStream [i];
-                var g = c as Glue;
-                if (g && g.isRight && g.parent == leftGlue.parent) {
-                    return g;
-                } else if (c is ControlCommand) // e.g. BeginString
-                    break;
-            }
-
-            return null;
-        }
-            
         internal bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
@@ -729,17 +760,16 @@ namespace Ink.Runtime
                 
                 // Update origin when list is has something to indicate the list origin
                 var rawList = listValue.value;
-                var names = rawList.originNames;
-                if (names != null) {
-                    var origins = new List<ListDefinition> ();
-                    foreach (var n in names) {
+				if (rawList.originNames != null) {
+					if( rawList.origins == null ) rawList.origins = new List<ListDefinition>();
+					rawList.origins.Clear();
+
+					foreach (var n in rawList.originNames) {
                         ListDefinition def = null;
-                        story.listDefinitions.TryGetDefinition (n, out def);
-                        if( !origins.Contains(def) )
-                            origins.Add (def);
+                        story.listDefinitions.TryListGetDefinition (n, out def);
+						if( !rawList.origins.Contains(def) )
+							rawList.origins.Add (def);
                     }
-                        
-                    rawList.origins = origins;
                 }
             }
 
@@ -783,54 +813,84 @@ namespace Ink.Runtime
                 callStack.PopThread ();
 
             while (callStack.canPop)
-                callStack.Pop ();
+                PopCallstack ();
 
 			_currentChoices.Clear();
 
-            currentContentObject = null;
-            previousContentObject = null;
+            currentPointer = Pointer.Null;
+            previousPointer = Pointer.Null;
 
             didSafeExit = true;
         }
 
+        // Add the end of a function call, trim any whitespace from the end.
+        // We always trim the start and end of the text that a function produces.
+        // The start whitespace is discard as it is generated, and the end
+        // whitespace is trimmed in one go here when we pop the function.
+        void TrimWhitespaceFromFunctionEnd ()
+        {
+            Debug.Assert (callStack.currentElement.type == PushPopType.Function);
+
+            var functionStartPoint = callStack.currentElement.functionStartInOuputStream;
+
+            // If the start point has become -1, it means that some non-whitespace
+            // text has been pushed, so it's safe to go as far back as we're able.
+            if (functionStartPoint == -1) {
+                functionStartPoint = 0;
+            }
+
+            // Trim whitespace from END of function call
+            for (int i = _outputStream.Count - 1; i >= functionStartPoint; i--) {
+                var obj = _outputStream [i];
+                var txt = obj as StringValue;
+                var cmd = obj as ControlCommand;
+                if (!txt) continue;
+                if (cmd) break;
+
+                if (txt.isNewline || txt.isInlineWhitespace) {
+                    _outputStream.RemoveAt (i);
+                    OutputStreamDirty ();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        internal void PopCallstack (PushPopType? popType = null)
+        {
+            // Add the end of a function call, trim any whitespace from the end.
+            if (callStack.currentElement.type == PushPopType.Function)
+                TrimWhitespaceFromFunctionEnd ();
+
+            callStack.Pop (popType);
+        }
+
         // Don't make public since the method need to be wrapped in Story for visit counting
-        internal void SetChosenPath(Path path)
+        internal void SetChosenPath(Path path, bool incrementingTurnIndex)
         {
             // Changing direction, assume we need to clear current set of choices
 			_currentChoices.Clear ();
 
-            currentPath = path;
+            var newPointer = story.PointerAtPath (path);
+            if (!newPointer.isNull && newPointer.index == -1)
+                newPointer.index = 0;
 
-            currentTurnIndex++;
+            currentPointer = newPointer;
+
+            if( incrementingTurnIndex )
+                currentTurnIndex++;
         }
 
-        internal void StartExternalFunctionEvaluation (Container funcContainer, params object[] arguments)
+        internal void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
         {
-            // We'll start a new callstack, so keep hold of the original,
-            // as well as the evaluation stack so we know if the function 
-            // returned something
-            _originalCallstack = callStack;
-            _originalEvaluationStackHeight = evaluationStack.Count;
-
-            // Create a new base call stack element.
-            callStack = new CallStack (funcContainer);
-            callStack.currentElement.type = PushPopType.Function;
-
-            // Change the callstack the variableState is looking at to be
-            // this temporary function evaluation one. We'll restore it afterwards
-            variablesState.callStack = callStack;
-
-            // By setting ourselves in external function evaluation mode,
-            // we're saying it's okay to end the flow without a Done or End,
-            // but with a ~ return instead.
-            _isExternalFunctionEvaluation = true;
+            callStack.Push (PushPopType.FunctionEvaluationFromGame, evaluationStack.Count);
+            callStack.currentElement.currentPointer = Pointer.StartOf (funcContainer);
 
             PassArgumentsToEvaluationStack (arguments);
         }
 
         internal void PassArgumentsToEvaluationStack (params object [] arguments)
         {
-
             // Pass arguments onto the evaluation stack
             if (arguments != null) {
                 for (int i = 0; i < arguments.Length; i++) {
@@ -843,10 +903,10 @@ namespace Ink.Runtime
             }
         }
             
-        internal bool TryExitExternalFunctionEvaluation ()
+        internal bool TryExitFunctionEvaluationFromGame ()
         {
-            if (_isExternalFunctionEvaluation && callStack.elements.Count == 1 && callStack.currentElement.type == PushPopType.Function) {
-                currentContentObject = null;
+            if( callStack.currentElement.type == PushPopType.FunctionEvaluationFromGame ) {
+                currentPointer = Pointer.Null;
                 didSafeExit = true;
                 return true;
             }
@@ -854,27 +914,27 @@ namespace Ink.Runtime
             return false;
         }
 
-        internal object CompleteExternalFunctionEvaluation ()
+        internal object CompleteFunctionEvaluationFromGame ()
         {
+            if (callStack.currentElement.type != PushPopType.FunctionEvaluationFromGame) {
+                throw new StoryException ("Expected external function evaluation to be complete. Stack trace: "+callStack.callStackTrace);
+            }
+
+            int originalEvaluationStackHeight = callStack.currentElement.evaluationStackHeightWhenPushed;
             
             // Do we have a returned value?
             // Potentially pop multiple values off the stack, in case we need
             // to clean up after ourselves (e.g. caller of EvaluateFunction may 
             // have passed too many arguments, and we currently have no way to check for that)
             Runtime.Object returnedObj = null;
-            while (evaluationStack.Count > _originalEvaluationStackHeight) {
+            while (evaluationStack.Count > originalEvaluationStackHeight) {
                 var poppedObj = PopEvaluationStack ();
                 if (returnedObj == null)
                     returnedObj = poppedObj;
             }
 
-            // Restore our own state
-            callStack = _originalCallstack;
-            _originalCallstack = null;
-            _originalEvaluationStackHeight = 0;
-
-            // Restore the callstack that the variablesState uses
-            variablesState.callStack = callStack;
+            // Finally, pop the external function evaluation
+            PopCallstack (PushPopType.FunctionEvaluationFromGame);
 
             // What did we get back?
             if (returnedObj) {
@@ -898,14 +958,15 @@ namespace Ink.Runtime
             return null;
         }
 
-        internal void AddError(string message)
+        internal void AddError(string message, bool isWarning)
         {
-            // TODO: Could just add to output?
-            if (currentErrors == null) {
-                currentErrors = new List<string> ();
+            if (!isWarning) {
+                if (currentErrors == null) currentErrors = new List<string> ();
+                currentErrors.Add (message);
+            } else {
+                if (currentWarnings == null) currentWarnings = new List<string> ();
+                currentWarnings.Add (message);
             }
-
-            currentErrors.Add (message);
         }
 
 		void OutputStreamDirty()
@@ -923,11 +984,6 @@ namespace Ink.Runtime
 		bool _outputStreamTagsDirty = true;
 
 		List<Choice> _currentChoices;
-
-        // Temporary state only, during externally called function evaluation
-        bool _isExternalFunctionEvaluation;
-        CallStack _originalCallstack;
-        int _originalEvaluationStackHeight;
     }
 }
 

@@ -61,18 +61,22 @@ namespace Ink.Runtime
         {
             get {
                 Runtime.Object varContents;
-                if ( _globalVariables.TryGetValue (variableName, out varContents) )
+
+                // Search main dictionary first.
+                // If it's not found, it might be because the story content has changed,
+                // and the original default value hasn't be instantiated.
+                // Should really warn somehow, but it's difficult to see how...!
+                if ( _globalVariables.TryGetValue (variableName, out varContents) || 
+                     _defaultGlobalVariables.TryGetValue(variableName, out varContents) )
                     return (varContents as Runtime.Value).valueObject;
-                else
+                else {
                     return null;
+                }
             }
             set {
-
-                // This is the main 
-                if (!_globalVariables.ContainsKey (variableName)) {
-                    throw new StoryException ("Variable '" + variableName + "' doesn't exist, so can't be set.");
-                }
-
+                if (!_defaultGlobalVariables.ContainsKey (variableName))
+                    throw new StoryException ("Cannot assign to a variable ("+variableName+") that hasn't been declared in the story");
+                
                 var val = Runtime.Value.Create(value);
                 if (val == null) {
                     if (value == null) {
@@ -110,6 +114,9 @@ namespace Ink.Runtime
         {
             _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
 
+            // It's read-only, so no need to create a new copy
+            _defaultGlobalVariables = toCopy._defaultGlobalVariables;
+
             variableChangedEvent = toCopy.variableChangedEvent;
 
             if (toCopy.batchObservingVariableChanges != batchObservingVariableChanges) {
@@ -138,6 +145,18 @@ namespace Ink.Runtime
         {
             return GetVariableWithName (name, -1);
         }
+
+        internal Runtime.Object TryGetDefaultVariableValue (string name)
+        {
+            Runtime.Object val = null;
+            _defaultGlobalVariables.TryGetValue (name, out val);
+            return val;
+        }
+
+		internal bool GlobalVariableExistsWithName(string name)
+		{
+			return _globalVariables.ContainsKey(name);
+		}
 
         Runtime.Object GetVariableWithName(string name, int contextIndex)
         {
@@ -168,9 +187,6 @@ namespace Ink.Runtime
 
             // Temporary
             varValue = _callStack.GetTemporaryVariableWithName (name, contextIndex);
-
-            if (varValue == null)
-                throw new System.Exception ("RUNTIME ERROR: Variable '"+name+"' could not be found in context '"+contextIndex+"'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
 
             return varValue;
         }
@@ -227,6 +243,11 @@ namespace Ink.Runtime
             }
         }
 
+        internal void SnapshotDefaultGlobals ()
+        {
+            _defaultGlobalVariables = new Dictionary<string, Object> (_globalVariables);
+        }
+
         void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
         {
             var oldList = oldValue as ListValue;
@@ -235,7 +256,7 @@ namespace Ink.Runtime
                 newList.value.SetInitialOriginNames (oldList.value.originNames);
         }
 
-        void SetGlobal(string variableName, Runtime.Object value)
+        internal void SetGlobal(string variableName, Runtime.Object value)
         {
             Runtime.Object oldValue = null;
             _globalVariables.TryGetValue (variableName, out oldValue);
@@ -293,6 +314,8 @@ namespace Ink.Runtime
         }
 
         Dictionary<string, Runtime.Object> _globalVariables;
+
+        Dictionary<string, Runtime.Object> _defaultGlobalVariables;
 
         // Used for accessing temporary variables
         CallStack _callStack;

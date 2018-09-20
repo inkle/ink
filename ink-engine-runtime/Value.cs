@@ -67,6 +67,11 @@ namespace Ink.Runtime
         {
             return Create (valueObject);
         }
+
+        protected StoryException BadCastException (ValueType targetType)
+        {
+            return new StoryException ("Can't cast "+this.valueObject+" from " + this.valueType+" to "+targetType);
+        }
     }
 
     internal abstract class Value<T> : Value
@@ -115,7 +120,7 @@ namespace Ink.Runtime
                 return new StringValue("" + this.value);
             }
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
     }
 
@@ -144,7 +149,7 @@ namespace Ink.Runtime
                 return new StringValue("" + this.value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
     }
 
@@ -201,7 +206,7 @@ namespace Ink.Runtime
                 }
             }
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
     }
 
@@ -223,7 +228,7 @@ namespace Ink.Runtime
             if (newType == valueType)
                 return this;
             
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
 
         public override string ToString ()
@@ -260,7 +265,7 @@ namespace Ink.Runtime
             if (newType == valueType)
                 return this;
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
 
         public override string ToString ()
@@ -282,15 +287,10 @@ namespace Ink.Runtime
             }
         }
 
-        // Truthy if it contains any non-zero items
+        // Truthy if it is non-empty
         public override bool isTruthy {
             get {
-                foreach (var kv in value) {
-                    int listItemIntValue = kv.Value;
-                    if (listItemIntValue != 0)
-                        return true;
-                }
-                return false;
+                return value.Count > 0;
             }
         }
                 
@@ -324,7 +324,7 @@ namespace Ink.Runtime
             if (newType == valueType)
                 return this;
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
 
         public ListValue () : base(null) {

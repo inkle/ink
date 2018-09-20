@@ -126,7 +126,7 @@ namespace Ink.Runtime
             SetInitialOriginName (singleOriginListName);
 
             ListDefinition def;
-            if (originStory.listDefinitions.TryGetDefinition (singleOriginListName, out def))
+            if (originStory.listDefinitions.TryListGetDefinition (singleOriginListName, out def))
                 origins = new List<ListDefinition> { def };
             else
                 throw new System.Exception ("InkList origin could not be found in story when constructing new list: " + singleOriginListName);
@@ -448,6 +448,53 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Returns a sublist with the elements given the minimum and maxmimum bounds.
+        /// The bounds can either be ints which are indices into the entire (sorted) list,
+        /// or they can be InkLists themselves. These are intended to be single-item lists so
+        /// you can specify the upper and lower bounds. If you pass in multi-item lists, it'll
+        /// use the minimum and maximum items in those lists respectively.
+        /// WARNING: Calling this method requires a full sort of all the elements in the list.
+        /// </summary>
+        public InkList ListWithSubRange(object minBound, object maxBound) 
+        {
+            if (this.Count == 0) return new InkList();
+
+            var ordered = orderedItems;
+
+            int minValue = 0;
+            int maxValue = int.MaxValue;
+
+            if (minBound is int)
+            {
+                minValue = (int)minBound;
+            }
+
+            else
+            {
+                if( minBound is InkList && ((InkList)minBound).Count > 0 )
+                    minValue = ((InkList)minBound).minItem.Value;
+            }
+
+            if (maxBound is int)
+                maxValue = (int)maxBound;
+            else 
+            {
+                if (minBound is InkList && ((InkList)minBound).Count > 0)
+                    maxValue = ((InkList)maxBound).maxItem.Value;
+            }
+
+            var subList = new InkList();
+            subList.SetInitialOriginNames(originNames);
+            foreach(var item in ordered) {
+                if( item.Value >= minValue && item.Value <= maxValue ) {
+                    subList.Add(item.Key, item.Value);
+                }
+            }
+
+            return subList;
+        }
+
+        /// <summary>
         /// Returns true if the passed object is also an ink list that contains
         /// the same items as the current list, false otherwise.
         /// </summary>
@@ -476,15 +523,29 @@ namespace Ink.Runtime
             return ownHash;
         }
 
+        List<KeyValuePair<InkListItem, int>> orderedItems {
+            get {
+                var ordered = new List<KeyValuePair<InkListItem, int>>();
+                ordered.AddRange(this);
+                ordered.Sort((x, y) => {
+                    // Ensure consistent ordering of mixed lists.
+                    if( x.Value == y.Value ) {
+                        return x.Key.originName.CompareTo(y.Key.originName);
+                    } else {
+                        return x.Value.CompareTo(y.Value);
+                    }
+                });
+                return ordered;
+            }
+        }
+
         /// <summary>
         /// Returns a string in the form "a, b, c" with the names of the items in the list, without
         /// the origin list definition names. Equivalent to writing {list} in ink.
         /// </summary>
         public override string ToString ()
         {
-            var ordered = new List<KeyValuePair<InkListItem, int>> ();
-            ordered.AddRange (this);
-            ordered.Sort ((x, y) => x.Value.CompareTo (y.Value));
+            var ordered = orderedItems;
 
             var sb = new StringBuilder ();
             for (int i = 0; i < ordered.Count; i++) {

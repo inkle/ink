@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,22 +25,22 @@ namespace Ink.Runtime
 
         public Dictionary<string, Runtime.Object> namedOnlyContent { 
             get {
-                var namedOnlyContent = new Dictionary<string, Runtime.Object>();
+                var namedOnlyContentDict = new Dictionary<string, Runtime.Object>();
                 foreach (var kvPair in namedContent) {
-                    namedOnlyContent [kvPair.Key] = (Runtime.Object)kvPair.Value;
+                    namedOnlyContentDict [kvPair.Key] = (Runtime.Object)kvPair.Value;
                 }
 
                 foreach (var c in content) {
                     var named = c as INamedContent;
                     if (named != null && named.hasValidName) {
-                        namedOnlyContent.Remove (named.name);
+                        namedOnlyContentDict.Remove (named.name);
                     }
                 }
 
-                if (namedOnlyContent.Count == 0)
-                    namedOnlyContent = null;
+                if (namedOnlyContentDict.Count == 0)
+                    namedOnlyContentDict = null;
 
-                return namedOnlyContent;
+                return namedOnlyContentDict;
             } 
             set {
                 var existingNamedOnly = namedOnlyContent;
@@ -119,15 +119,15 @@ namespace Ink.Runtime
         Path internalPathToFirstLeafContent
         {
             get {
-                var path = new Path ();
+				var components = new List<Path.Component>();
                 var container = this;
                 while (container != null) {
                     if (container.content.Count > 0) {
-                        path.components.Add (new Path.Component (0));
+                        components.Add (new Path.Component (0));
                         container = container.content [0] as Container;
                     }
                 }
-                return path;
+				return new Path(components);
             }
         }
 
@@ -221,30 +221,48 @@ namespace Ink.Runtime
                 if (namedContent.TryGetValue (component.name, out foundContent)) {
                     return (Runtime.Object)foundContent;
                 } else {
-                    throw new StoryException ("Content '"+component.name+"' not found at path: '"+this.path+"'");
+                    return null;
                 }
 			}
 		}
 
-        public Runtime.Object ContentAtPath(Path path, int partialPathLength = -1)
+        public SearchResult ContentAtPath(Path path, int partialPathStart = 0, int partialPathLength = -1)
 		{
             if (partialPathLength == -1)
-                partialPathLength = path.components.Count;
-            
+                partialPathLength = path.length;
+
+            var result = new SearchResult ();
+            result.approximate = false;
+
             Container currentContainer = this;
             Runtime.Object currentObj = this;
 
-            for (int i = 0; i < partialPathLength; ++i) {
-                var comp = path.components [i];
-                if (currentContainer == null)
-                    throw new System.Exception ("Path continued, but previous object wasn't a container: " + currentObj);
-                currentObj = currentContainer.ContentWithPathComponent(comp);
-                currentContainer = currentObj as Container;
+            for (int i = partialPathStart; i < partialPathLength; ++i) {
+				var comp = path.GetComponent(i);
+
+                // Path component was wrong type
+                if (currentContainer == null) {
+                    result.approximate = true;
+                    break;
+                }
+
+                var foundObj = currentContainer.ContentWithPathComponent(comp);
+
+                // Couldn't resolve entire path?
+                if (foundObj == null) {
+                    result.approximate = true;
+                    break;
+                } 
+
+                currentObj = foundObj;
+                currentContainer = foundObj as Container;
             }
 
-            return currentObj;
+            result.obj = currentObj;
+
+            return result;
 		}
-            
+         
         public void BuildStringOfHierarchy(StringBuilder sb, int indentation, Runtime.Object pointedObj)
         {
             Action appendIndentation = () => { 
