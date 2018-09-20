@@ -463,9 +463,12 @@ A fallback choice is simply a "choice without choice text":
 
 	*	-> out_of_options
 
-We can use the square-bracket notation here as well:
+We can use weave notation to continue after a blank choice; the syntax for which is slightly curious:
 
-	* [] Mulder never could explain how he got out of that burning box car. -> season_2
+	* 	->
+		Mulder never could explain how he got out of that burning box car. -> season_2
+		
+... the "divert nowhere" syntax being intended to indicate "just keep going".
 
 #### Example of a fallback choice
 
@@ -476,7 +479,8 @@ Adding this into the previous example gives us:
 		You search desperately for a friendly face in the crowd. 
 		*	The woman in the hat[?] pushes you roughly aside. -> find_help
 		*	The man with the briefcase[?] looks disgusted as you stumble past him. -> find_help 
-		*	[] But it is too late: you collapse onto the station platform. This is the end.
+		*	->
+			But it is too late: you collapse onto the station platform. This is the end.
 			-> END
 	
 and produces:
