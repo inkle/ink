@@ -258,6 +258,60 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 ~ return 1 
 ```
 
+## Working with LISTs
+
+Ink lists are a more complex type used in the ink engine, so interacting with them is a bit more involved than with ints, floats and strings.
+
+Lists always need to know the origin of their items. For example, in ink you can do:
+
+    ~ myList = (Orange, House)
+    
+...even though `Orange` may have come from a list called `fruit` and `House` may have come from a list called `places`. In ink these *origin* lists are automatically resolved for you when writing. However when work in game code, you have to be more explicit, and tell the engine which origin lists your items belong to.
+
+To create a list with items from a single origin, and assign it to a variable in the game:
+
+	var newList = new Ink.Runtime.InkList("fruit", story);
+	newList.AddItem("Orange");
+	newList.AddItem("Apple");
+	story.variablesState["myList"] = newList;
+    
+	
+If you're modifying a list, and you know that it has/had elements from a particular origin already:
+
+	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	fruit.AddItem("Apple");
+	
+You can also create lists from items if you explicitly know all the metadata for the items - i.e. the origin name as as well as the int value assigned to it. This is useful if you're building a list out of existing lists. Note that InkLists actually derive from `Dictionary`, where the key is an `InkListItem` (which in turn has `originName` and `itemName` strings), and the value is the int value:
+
+	var newList = new Ink.Runtime.InkList();
+	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	var places = story.variablesState["places"] as Ink.Runtime.InkList;
+	foreach(var item in fruit) {
+	    newList.Add(item.Key, item.Value);
+	}
+	foreach (var item in places) {
+	    newList.Add(item.Key, item.Value);
+	}
+	story.variablesState["myList"] = newList;
+
+To test if your list contains a particular item:
+
+	fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+	if( fruit.ContainsItemNamed("Apple") ) {
+	    // We're eating apple's tonight!
+	}
+	
+Lists also expose many of the operations you can do in ink:
+
+	list.minItem 	// equivalent to calling LIST_MIN(list) in ink
+	list.maxItem 	// equivalent to calling LIST_MAX(list) in ink
+	list.inverse 	// equivalent to calling LIST_INVERT(list) in ink
+	list.all 	// equivalent to calling LIST_ALL(list) in ink
+	list.Union(otherList)      // equivalent to (list + otherList) in ink
+	list.Intersect(otherList)  // equivalent to (list ^ otherList) in ink
+	list.Without(otherList)    // equivalent to (list - otherList) in ink
+	list.Contains(otherList)   // equivalent to (list ? otherList) in ink
+
 ## Debugging ink engine issues
 
 The **ink** engine is still in a nascent stage (alpha!), and you may well encounter bugs, or unhelpful error messages and exceptions.
