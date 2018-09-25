@@ -2155,6 +2155,10 @@ namespace Ink.Runtime
 
             var choice = invisibleChoices [0];
 
+            // Invisible choice may have been generated on a different thread,
+            // in which case we need to restore it before we continue
+            state.callStack.currentThread = choice.threadAtGeneration;
+
             ChoosePath (choice.targetPath, incrementingTurnIndex: false);
 
             return true;

@@ -3627,6 +3627,25 @@ VAR gatherCount = 0
             Assert.IsFalse(story.hasWarning);
         }
 
+
+        [Test()]
+        public void TestFallbackChoiceOnThread()
+        {
+            var storyStr =
+        @"
+<- knot
+
+== knot
+   ~ temp x = 1
+   *   ->
+       Should be 1 not 0: {x}.
+       -> DONE
+";
+
+            var story = CompileString(storyStr);
+            Assert.AreEqual("Should be 1 not 0: 1.\n", story.Continue());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
