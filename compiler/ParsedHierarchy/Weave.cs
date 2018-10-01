@@ -349,73 +349,100 @@ namespace Ink.Parsed
 
         void PassLooseEndsToAncestors()
         {
-            if (looseEnds.Count > 0) {
+            if (looseEnds.Count == 0) return;
 
-                Weave closestInnerWeaveAncestor = null;
-                Weave closestOuterWeaveAncestor = null;
+            // Search for Weave ancestor to pass loose ends to for gathering.
+            // There are two types depending on whether the current weave
+            // is separated by a conditional or sequence.
+            //  - An "inner" weave is one that is directly connected to the current
+            //    weave - i.e. you don't have to pass through a conditional or
+            //    sequence to get to it. We're allowed to pass all loose ends to
+            //    one of these.
+            //  - An "outer" weave is one that is outside of a conditional/sequence
+            //    that the current weave is nested within. We're only allowed to
+            //    pass gathers (i.e. 'normal flow') loose ends up there, not normal
+            //    choices. The rule is that choices have to be diverted explicitly
+            //    by the author since it's ambiguous where flow should go otherwise.
+            //
+            // e.g.:
+            //
+            //   - top                       <- e.g. outer weave
+            //   {true:
+            //       * choice                <- e.g. inner weave
+            //         * * choice 2
+            //             more content      <- e.g. current weave
+            //       * choice 2
+            //   }
+            //   - more of outer weave
+            //
+            Weave closestInnerWeaveAncestor = null;
+            Weave closestOuterWeaveAncestor = null;
 
-                bool nested = false;
-                for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent)
+            // Find inner and outer ancestor weaves as defined above.
+            bool nested = false;
+            for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent)
+            {
+
+                // Found ancestor?
+                var weaveAncestor = ancestor as Weave;
+                if (weaveAncestor != null)
                 {
+                    if (!nested && closestInnerWeaveAncestor == null)
+                        closestInnerWeaveAncestor = weaveAncestor;
 
-                    // Found ancestor?
-                    var weaveAncestor = ancestor as Weave;
-                    if (weaveAncestor != null)
-                    {
-                        if (!nested && closestInnerWeaveAncestor == null)
-                            closestInnerWeaveAncestor = weaveAncestor;
-
-                        if (nested && closestOuterWeaveAncestor == null)
-                            closestOuterWeaveAncestor = weaveAncestor;
-                    }
-
-
-                    // Weaves nested within Sequences or Conditionals are
-                    // "sealed" - any loose ends require explicit diverts.
-                    if (ancestor is Sequence || ancestor is Conditional)
-                        nested = true;
+                    if (nested && closestOuterWeaveAncestor == null)
+                        closestOuterWeaveAncestor = weaveAncestor;
                 }
 
-                // No weave to pass loose ends to at all?
-                if (closestInnerWeaveAncestor == null && closestOuterWeaveAncestor == null)
-                    return;
 
-                for (int i = looseEnds.Count - 1; i >= 0; i--) {
-                    var looseEnd = looseEnds[i];
+                // Weaves nested within Sequences or Conditionals are
+                // "sealed" - any loose ends require explicit diverts.
+                if (ancestor is Sequence || ancestor is Conditional)
+                    nested = true;
+            }
 
-                    bool received = false;
+            // No weave to pass loose ends to at all?
+            if (closestInnerWeaveAncestor == null && closestOuterWeaveAncestor == null)
+                return;
 
-                    if(nested) {
-                        if( looseEnd is Choice && closestInnerWeaveAncestor != null) {
-                            closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
-                            received = true;
-                        }
+            // Follow loose end passing logic as defined above
+            for (int i = looseEnds.Count - 1; i >= 0; i--) {
+                var looseEnd = looseEnds[i];
 
-                        else if( !(looseEnd is Choice) ) {
-                            var receivingWeave = closestInnerWeaveAncestor ?? closestOuterWeaveAncestor;
-                            if(receivingWeave != null) {
-                                receivingWeave.ReceiveLooseEnd(looseEnd);
-                                received = true;
-                            }
-                        }
-                    } else {
+                bool received = false;
+
+                // This weave is nested within a conditional or sequence:
+                //  - choices can only be passed up to direct ancestor ("inner") weaves
+                //  - gathers can be passed up to either, but favour the closer (inner) weave
+                //    if there is one
+                if(nested) {
+                    if( looseEnd is Choice && closestInnerWeaveAncestor != null) {
                         closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
                         received = true;
                     }
 
-                    if(received) looseEnds.RemoveAt(i);
+                    else if( !(looseEnd is Choice) ) {
+                        var receivingWeave = closestInnerWeaveAncestor ?? closestOuterWeaveAncestor;
+                        if(receivingWeave != null) {
+                            receivingWeave.ReceiveLooseEnd(looseEnd);
+                            received = true;
+                        }
+                    }
                 }
+
+                // No nesting, all loose ends can be safely passed up
+                else {
+                    closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
+                    received = true;
+                }
+
+                if(received) looseEnds.RemoveAt(i);
             }
         }
 
         void ReceiveLooseEnd(IWeavePoint childWeaveLooseEnd)
         {
             looseEnds.Add(childWeaveLooseEnd);
-        }
-
-        void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
-        {
-            looseEnds.AddRange (childWeaveLooseEnds);
         }
 
         public override void ResolveReferences(Story context)
@@ -614,26 +641,6 @@ namespace Ink.Parsed
                 }
 
                 badTerminationHandler (terminatingObj);
-            }
-        }
-
-        Weave closestWeaveAncestor {
-            get {
-                for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent) {
-
-                    // Found ancestor?
-                    var weaveAncestor = ancestor as Weave;
-                    if (weaveAncestor != null)
-                        return weaveAncestor;
-
-
-                    // Weaves nested within Sequences or Conditionals are
-                    // "sealed" - any loose ends require explicit diverts.
-                    else if (ancestor is Sequence || ancestor is Conditional)
-                        return null;
-                }
-
-                return null;
             }
         }
             
