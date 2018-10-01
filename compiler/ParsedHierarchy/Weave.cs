@@ -197,14 +197,6 @@ namespace Ink.Parsed
                     else {
                         AddGeneralRuntimeContent (obj.runtimeObject);
                     }
-
-                    // Keep track of nested choices within this (possibly complex) object,
-                    // so that the next Gather knows whether to auto-enter
-                    // (it auto-enters when there are no choices)
-                    var innerChoices = obj.FindAll<Choice> ();
-                    if (innerChoices.Count > 0)
-                        hasSeenChoiceInSection = true;
-
                 }
             }
 
@@ -359,15 +351,69 @@ namespace Ink.Parsed
         {
             if (looseEnds.Count > 0) {
 
-                var weaveAncestor = closestWeaveAncestor;
-                if (weaveAncestor) {
-                    weaveAncestor.ReceiveLooseEnds (looseEnds);
-                    looseEnds = null;
+                Weave closestInnerWeaveAncestor = null;
+                Weave closestOuterWeaveAncestor = null;
+
+                bool nested = false;
+                for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent)
+                {
+
+                    // Found ancestor?
+                    var weaveAncestor = ancestor as Weave;
+                    if (weaveAncestor != null)
+                    {
+                        if (!nested && closestInnerWeaveAncestor == null)
+                            closestInnerWeaveAncestor = weaveAncestor;
+
+                        if (nested && closestOuterWeaveAncestor == null)
+                            closestOuterWeaveAncestor = weaveAncestor;
+                    }
+
+
+                    // Weaves nested within Sequences or Conditionals are
+                    // "sealed" - any loose ends require explicit diverts.
+                    if (ancestor is Sequence || ancestor is Conditional)
+                        nested = true;
+                }
+
+                // No weave to pass loose ends to at all?
+                if (closestInnerWeaveAncestor == null && closestOuterWeaveAncestor == null)
+                    return;
+
+                for (int i = looseEnds.Count - 1; i >= 0; i--) {
+                    var looseEnd = looseEnds[i];
+
+                    bool received = false;
+
+                    if(nested) {
+                        if( looseEnd is Choice && closestInnerWeaveAncestor != null) {
+                            closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
+                            received = true;
+                        }
+
+                        else if( !(looseEnd is Choice) ) {
+                            var receivingWeave = closestInnerWeaveAncestor ?? closestOuterWeaveAncestor;
+                            if(receivingWeave != null) {
+                                receivingWeave.ReceiveLooseEnd(looseEnd);
+                                received = true;
+                            }
+                        }
+                    } else {
+                        closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
+                        received = true;
+                    }
+
+                    if(received) looseEnds.RemoveAt(i);
                 }
             }
         }
 
-        public void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
+        void ReceiveLooseEnd(IWeavePoint childWeaveLooseEnd)
+        {
+            looseEnds.Add(childWeaveLooseEnd);
+        }
+
+        void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
         {
             looseEnds.AddRange (childWeaveLooseEnds);
         }
@@ -375,6 +421,23 @@ namespace Ink.Parsed
         public override void ResolveReferences(Story context)
         {
             base.ResolveReferences (context);
+
+            // Check that choices nested within conditionals and sequences are terminated
+            if( looseEnds != null && looseEnds.Count > 0 ) {
+                var isNestedWeave = false;
+                for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent)
+                {
+                    if (ancestor is Sequence || ancestor is Conditional)
+                    {
+                        isNestedWeave = true;
+                        break;
+                    }
+                }
+                if (isNestedWeave)
+                {
+                    ValidateTermination(BadNestedTerminationHandler);
+                }
+            }
 
             foreach(var gatherPoint in gatherPointsToResolve) {
                 gatherPoint.divert.targetPath = gatherPoint.targetRuntimeObj.path;
@@ -496,6 +559,32 @@ namespace Ink.Parsed
             }
         }
 
+        void BadNestedTerminationHandler(Parsed.Object terminatingObj)
+        {
+            Conditional conditional = null;
+            for (var ancestor = terminatingObj.parent; ancestor != null; ancestor = ancestor.parent) {
+                if( ancestor is Sequence || ancestor is Conditional ) {
+                    conditional = ancestor as Conditional;
+                    break;
+                }
+            }
+
+            var errorMsg = "Choices nested in conditionals or sequences need to explicitly divert afterwards.";
+
+            // Tutorialise proper choice syntax if this looks like a single choice within a condition, e.g.
+            // { condition:
+            //      * choice
+            // }
+            if (conditional != null) {
+                var numChoices = conditional.FindAll<Choice>().Count;
+                if( numChoices == 1 ) {
+                    errorMsg = "Choices with conditions should be written: '* {condition} choice'. Otherwise, "+ errorMsg.ToLower();
+                }
+            }
+
+            Error(errorMsg, terminatingObj);
+        }
+
         void ValidateFlowOfObjectsTerminates (IEnumerable<Parsed.Object> objFlow, Parsed.Object defaultObj, BadTerminationHandler badTerminationHandler)
         {
             bool terminated = false;
@@ -530,11 +619,21 @@ namespace Ink.Parsed
 
         Weave closestWeaveAncestor {
             get {
-                var ancestor = this.parent;
-                while (ancestor && !(ancestor is Weave)) {
-                    ancestor = ancestor.parent;
+                for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent) {
+
+                    // Found ancestor?
+                    var weaveAncestor = ancestor as Weave;
+                    if (weaveAncestor != null)
+                        return weaveAncestor;
+
+
+                    // Weaves nested within Sequences or Conditionals are
+                    // "sealed" - any loose ends require explicit diverts.
+                    else if (ancestor is Sequence || ancestor is Conditional)
+                        return null;
                 }
-                return (Weave)ancestor;
+
+                return null;
             }
         }
             
