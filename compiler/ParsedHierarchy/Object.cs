@@ -194,9 +194,15 @@ namespace Ink.Parsed
             if (content == null) {
                 content = new List<Parsed.Object> ();
             }
-
-            subContent.parent = this;
-            content.Add (subContent);
+               
+            // Make resilient to content not existing, which can happen
+            // in the case of parse errors where we've already reported
+            // an error but still want a valid structure so we can
+            // carry on parsing.
+            if( subContent ) {
+                subContent.parent = this;
+                content.Add(subContent);
+            }
 
             return subContent;
         }
