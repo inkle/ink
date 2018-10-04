@@ -1790,7 +1790,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	=== outside_honolulu ===
 	We arrived at the large island of Honolulu.
 	- (postscript) 
-		{crossing_the_date_line(-> done)} 
+		-> crossing_the_date_line(-> done)
 	- (done)
 		-> END 
 
@@ -1799,7 +1799,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	=== outside_pitcairn_island ===
 	The boat sailed along the water towards the tiny island.
 	- (postscript) 
-		{crossing_the_date_line(-> done)} 
+		-> crossing_the_date_line(-> done)
 	- (done)
 		-> END 
 	
