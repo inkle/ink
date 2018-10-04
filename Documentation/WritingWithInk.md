@@ -264,7 +264,7 @@ You can't use too much glue: multiple glues next to each other have no additiona
 
 Combining knots, options and diverts gives us the basic structure of a choose-your-own game.
 
-	== paragraph_1 === 
+	=== paragraph_1 === 
 	You stand by the wall of Analand, sword in hand.
 	* [Open the gate] -> paragraph_2 
 	* [Smash down the gate] -> paragraph_3
