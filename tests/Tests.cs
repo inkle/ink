@@ -356,8 +356,8 @@ two ({num})
  {
     - true: * [go to a stitch] -> a_stitch
  }
-- gather shouldn't be seen
--> END
+- gather should be seen
+-> DONE
 
 = a_stitch
     result
@@ -366,9 +366,7 @@ two ({num})
 
             Story story = CompileString(storyStr);
 
-            // Extra newline is because there's a choice object sandwiched there,
-            // so it can't be absorbed :-/
-            Assert.AreEqual("start\n", story.Continue());
+            Assert.AreEqual("start\ngather should be seen\n", story.ContinueMaximally());
             Assert.AreEqual(1, story.currentChoices.Count);
 
             story.ChooseChoiceIndex(0);
@@ -382,14 +380,13 @@ two ({num})
             var storyStr =
                 @"
 - first gather
-    * option 1
-    * option 2
+    * [option 1]
+    * [option 2]
 - the main gather
 {false:
-    * unreachable option
+    * unreachable option -> END
 }
-- unrechable gather
-                ";
+- bottom gather";
 
             Story story = CompileString(storyStr);
 
@@ -399,7 +396,7 @@ two ({num})
 
             story.ChooseChoiceIndex(0);
 
-            Assert.AreEqual("option 1\nthe main gather\n", story.ContinueMaximally());
+            Assert.AreEqual("the main gather\nbottom gather\n", story.ContinueMaximally());
             Assert.AreEqual(0, story.currentChoices.Count);
         }
 
@@ -2854,6 +2851,7 @@ TODO: b
 { shuffle:
 -   * choice
     nextline
+    -> END
 }
 ";
             var story = CompileString (storyStr);
@@ -2865,6 +2863,20 @@ TODO: b
             story.ChooseChoiceIndex (0);
 
             Assert.AreEqual ("choice\nnextline\n", story.ContinueMaximally ());
+        }
+
+
+        [Test()]
+        public void TestNestedChoiceError()
+        {
+            var storyStr =
+                @"
+{ true:
+    * choice
+}
+";
+            CompileString(storyStr, testingErrors:true);
+            Assert.IsTrue(HadError("need to explicitly divert"));
         }
 
 
@@ -3625,6 +3637,25 @@ VAR gatherCount = 0
             // Don't want this warning:
             // RUNTIME WARNING: '' line 7: Variable not found: 'x'
             Assert.IsFalse(story.hasWarning);
+        }
+
+
+        [Test()]
+        public void TestFallbackChoiceOnThread()
+        {
+            var storyStr =
+        @"
+<- knot
+
+== knot
+   ~ temp x = 1
+   *   ->
+       Should be 1 not 0: {x}.
+       -> DONE
+";
+
+            var story = CompileString(storyStr);
+            Assert.AreEqual("Should be 1 not 0: 1.\n", story.Continue());
         }
 
         // Helper compile function

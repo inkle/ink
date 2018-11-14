@@ -197,14 +197,6 @@ namespace Ink.Parsed
                     else {
                         AddGeneralRuntimeContent (obj.runtimeObject);
                     }
-
-                    // Keep track of nested choices within this (possibly complex) object,
-                    // so that the next Gather knows whether to auto-enter
-                    // (it auto-enters when there are no choices)
-                    var innerChoices = obj.FindAll<Choice> ();
-                    if (innerChoices.Count > 0)
-                        hasSeenChoiceInSection = true;
-
                 }
             }
 
@@ -357,24 +349,122 @@ namespace Ink.Parsed
 
         void PassLooseEndsToAncestors()
         {
-            if (looseEnds.Count > 0) {
+            if (looseEnds.Count == 0) return;
 
-                var weaveAncestor = closestWeaveAncestor;
-                if (weaveAncestor) {
-                    weaveAncestor.ReceiveLooseEnds (looseEnds);
-                    looseEnds = null;
+            // Search for Weave ancestor to pass loose ends to for gathering.
+            // There are two types depending on whether the current weave
+            // is separated by a conditional or sequence.
+            //  - An "inner" weave is one that is directly connected to the current
+            //    weave - i.e. you don't have to pass through a conditional or
+            //    sequence to get to it. We're allowed to pass all loose ends to
+            //    one of these.
+            //  - An "outer" weave is one that is outside of a conditional/sequence
+            //    that the current weave is nested within. We're only allowed to
+            //    pass gathers (i.e. 'normal flow') loose ends up there, not normal
+            //    choices. The rule is that choices have to be diverted explicitly
+            //    by the author since it's ambiguous where flow should go otherwise.
+            //
+            // e.g.:
+            //
+            //   - top                       <- e.g. outer weave
+            //   {true:
+            //       * choice                <- e.g. inner weave
+            //         * * choice 2
+            //             more content      <- e.g. current weave
+            //       * choice 2
+            //   }
+            //   - more of outer weave
+            //
+            Weave closestInnerWeaveAncestor = null;
+            Weave closestOuterWeaveAncestor = null;
+
+            // Find inner and outer ancestor weaves as defined above.
+            bool nested = false;
+            for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent)
+            {
+
+                // Found ancestor?
+                var weaveAncestor = ancestor as Weave;
+                if (weaveAncestor != null)
+                {
+                    if (!nested && closestInnerWeaveAncestor == null)
+                        closestInnerWeaveAncestor = weaveAncestor;
+
+                    if (nested && closestOuterWeaveAncestor == null)
+                        closestOuterWeaveAncestor = weaveAncestor;
                 }
+
+
+                // Weaves nested within Sequences or Conditionals are
+                // "sealed" - any loose ends require explicit diverts.
+                if (ancestor is Sequence || ancestor is Conditional)
+                    nested = true;
+            }
+
+            // No weave to pass loose ends to at all?
+            if (closestInnerWeaveAncestor == null && closestOuterWeaveAncestor == null)
+                return;
+
+            // Follow loose end passing logic as defined above
+            for (int i = looseEnds.Count - 1; i >= 0; i--) {
+                var looseEnd = looseEnds[i];
+
+                bool received = false;
+
+                // This weave is nested within a conditional or sequence:
+                //  - choices can only be passed up to direct ancestor ("inner") weaves
+                //  - gathers can be passed up to either, but favour the closer (inner) weave
+                //    if there is one
+                if(nested) {
+                    if( looseEnd is Choice && closestInnerWeaveAncestor != null) {
+                        closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
+                        received = true;
+                    }
+
+                    else if( !(looseEnd is Choice) ) {
+                        var receivingWeave = closestInnerWeaveAncestor ?? closestOuterWeaveAncestor;
+                        if(receivingWeave != null) {
+                            receivingWeave.ReceiveLooseEnd(looseEnd);
+                            received = true;
+                        }
+                    }
+                }
+
+                // No nesting, all loose ends can be safely passed up
+                else {
+                    closestInnerWeaveAncestor.ReceiveLooseEnd(looseEnd);
+                    received = true;
+                }
+
+                if(received) looseEnds.RemoveAt(i);
             }
         }
 
-        public void ReceiveLooseEnds(List<IWeavePoint> childWeaveLooseEnds)
+        void ReceiveLooseEnd(IWeavePoint childWeaveLooseEnd)
         {
-            looseEnds.AddRange (childWeaveLooseEnds);
+            looseEnds.Add(childWeaveLooseEnd);
         }
 
         public override void ResolveReferences(Story context)
         {
             base.ResolveReferences (context);
+
+            // Check that choices nested within conditionals and sequences are terminated
+            if( looseEnds != null && looseEnds.Count > 0 ) {
+                var isNestedWeave = false;
+                for (var ancestor = this.parent; ancestor != null; ancestor = ancestor.parent)
+                {
+                    if (ancestor is Sequence || ancestor is Conditional)
+                    {
+                        isNestedWeave = true;
+                        break;
+                    }
+                }
+                if (isNestedWeave)
+                {
+                    ValidateTermination(BadNestedTerminationHandler);
+                }
+            }
 
             foreach(var gatherPoint in gatherPointsToResolve) {
                 gatherPoint.divert.targetPath = gatherPoint.targetRuntimeObj.path;
@@ -496,6 +586,32 @@ namespace Ink.Parsed
             }
         }
 
+        void BadNestedTerminationHandler(Parsed.Object terminatingObj)
+        {
+            Conditional conditional = null;
+            for (var ancestor = terminatingObj.parent; ancestor != null; ancestor = ancestor.parent) {
+                if( ancestor is Sequence || ancestor is Conditional ) {
+                    conditional = ancestor as Conditional;
+                    break;
+                }
+            }
+
+            var errorMsg = "Choices nested in conditionals or sequences need to explicitly divert afterwards.";
+
+            // Tutorialise proper choice syntax if this looks like a single choice within a condition, e.g.
+            // { condition:
+            //      * choice
+            // }
+            if (conditional != null) {
+                var numChoices = conditional.FindAll<Choice>().Count;
+                if( numChoices == 1 ) {
+                    errorMsg = "Choices with conditions should be written: '* {condition} choice'. Otherwise, "+ errorMsg.ToLower();
+                }
+            }
+
+            Error(errorMsg, terminatingObj);
+        }
+
         void ValidateFlowOfObjectsTerminates (IEnumerable<Parsed.Object> objFlow, Parsed.Object defaultObj, BadTerminationHandler badTerminationHandler)
         {
             bool terminated = false;
@@ -525,16 +641,6 @@ namespace Ink.Parsed
                 }
 
                 badTerminationHandler (terminatingObj);
-            }
-        }
-
-        Weave closestWeaveAncestor {
-            get {
-                var ancestor = this.parent;
-                while (ancestor && !(ancestor is Weave)) {
-                    ancestor = ancestor.parent;
-                }
-                return (Weave)ancestor;
             }
         }
             

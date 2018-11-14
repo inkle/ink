@@ -29,6 +29,9 @@ namespace Ink
 
             var result = Expect(afterTilda, "expression after '~'", recoveryRule: SkipToNextLine) as Parsed.Object;
 
+            // Prevent further errors, already reported expected expression and have skipped to next line.
+            if (result == null) return new ContentList();
+
             // Parse all expressions, but tell the writer off if they did something useless like:
             //  ~ 5 + 4
             // And even:
