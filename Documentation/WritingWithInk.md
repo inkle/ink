@@ -1983,11 +1983,21 @@ If we didn't, the end of content might be a story-bug or a hanging story thread,
 
 ### Using `-> DONE`
 
-So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here".
+In cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here". If we don't, we might end up with a warning message - we can still play the game, but it's a reminder that we have unfinished business. 
+
+The example at the start of this section will generate a warning; it can be fixed as follows:
+
+    == thread_example ==
+    I had a headache; threading is hard to get your head around.
+    <- conversation
+    <- walking
+    -> DONE 
+
+The extra DONE tells ink that the flow here has ended and it should rely on the threads for the next part of the story. 
 
 Note that we don't need a `-> DONE` if the flow ends with options that fail their conditions. The engine treats this as a valid, intentional, end of flow state.
 
-**You do not need a `-> DONE` in a thread after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
+**You do not need a `-> DONE` after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
 
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
 
