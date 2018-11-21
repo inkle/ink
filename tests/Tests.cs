@@ -3658,6 +3658,37 @@ VAR gatherCount = 0
             Assert.AreEqual("Should be 1 not 0: 1.\n", story.Continue());
         }
 
+        // Test for bug where after a call to ChoosePathString,
+        // the callstack is not fully/cleanly reset, e.g. leaving
+        // "inExpressionEvaluation" variable left to true, as set during
+        // the call to {RunAThing()}.
+        // This was when we unwound the callstack, but we didn't reset
+        // the base element.
+        [Test()]
+        public void TestCleanCallstackResetOnPathChoice()
+        {
+            var storyStr =
+        @"
+{RunAThing()}
+
+== function RunAThing ==
+The first line.
+The second line.
+
+== SomewhereElse ==
+{""somewhere else""}
+->END
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual("The first line.\n", story.Continue());
+
+            story.ChoosePathString("SomewhereElse");
+
+            Assert.AreEqual("somewhere else\n", story.ContinueMaximally());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

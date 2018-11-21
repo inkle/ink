@@ -176,13 +176,12 @@ namespace Ink.Runtime
             }
         }
 
-        public CallStack (Container rootContentContainer)
+        public CallStack (Story storyContext)
         {
-            _threads = new List<Thread> ();
-            _threads.Add (new Thread ());
-
-            _threads [0].callstack.Add (new Element (PushPopType.Tunnel, Pointer.StartOf(rootContentContainer)));
+            _startOfRoot = Pointer.StartOf(storyContext.rootContentContainer);
+            Reset();
         }
+
 
         public CallStack(CallStack toCopy)
         {
@@ -190,8 +189,18 @@ namespace Ink.Runtime
             foreach (var otherThread in toCopy._threads) {
                 _threads.Add (otherThread.Copy ());
             }
+            _startOfRoot = toCopy._startOfRoot;
         }
-            
+
+        public void Reset() 
+        {
+            _threads = new List<Thread>();
+            _threads.Add(new Thread());
+
+            _threads[0].callstack.Add(new Element(PushPopType.Tunnel, _startOfRoot));
+        }
+
+
         // Unfortunately it's not possible to implement jsonToken since
         // the setter needs to take a Story as a context in order to
         // look up objects from paths for currentContainer within elements.
@@ -208,6 +217,7 @@ namespace Ink.Runtime
             }
 
             _threadCounter = (int)jObject ["threadCounter"];
+            _startOfRoot = Pointer.StartOf(storyContext.rootContentContainer);
         }
             
         // See above for why we can't implement jsonToken
@@ -399,6 +409,7 @@ namespace Ink.Runtime
 
         List<Thread> _threads;
         int _threadCounter;
+        Pointer _startOfRoot;
     }
 }
 

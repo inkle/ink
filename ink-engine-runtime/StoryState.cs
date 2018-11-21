@@ -247,7 +247,7 @@ namespace Ink.Runtime
 
             evaluationStack = new List<Runtime.Object> ();
 
-            callStack = new CallStack (story.rootContentContainer);
+            callStack = new CallStack (story);
             variablesState = new VariablesState (callStack, story.listDefinitions);
 
             visitCounts = new Dictionary<string, int> ();
@@ -809,11 +809,7 @@ namespace Ink.Runtime
         /// </summary>
         public void ForceEnd()
         {
-            while (callStack.canPopThread)
-                callStack.PopThread ();
-
-            while (callStack.canPop)
-                PopCallstack ();
+            callStack.Reset();
 
 			_currentChoices.Clear();
 
