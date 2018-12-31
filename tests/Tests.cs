@@ -3708,7 +3708,7 @@ The second line.
             // Convert to json and back again
             if (_mode == TestMode.JsonRoundTrip && story != null)
             {
-                var jsonStr = story.ToJsonString();
+                var jsonStr = story.ToJson();
                 story = new Story(jsonStr);
             }
 

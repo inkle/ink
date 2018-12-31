@@ -11,9 +11,9 @@ namespace Ink.Runtime
     /// </summary>
     internal static class SimpleJson
     {
-        public static string DictionaryToText (Dictionary<string, object> rootObject)
+        public static string DictionaryToTextOld (Dictionary<string, object> rootObject)
         {
-            return new Writer (rootObject).ToString ();
+            return new WriterOld (rootObject).ToString ();
         }
 
         public static Dictionary<string, object> TextToDictionary (string text)
@@ -291,15 +291,137 @@ namespace Ink.Runtime
             object _rootObject;
         }
 
-        public class Writer
+        public class WriterOld
         {
-            public Writer (object rootObject)
+            public WriterOld(object rootObject)
             {
-                _sb = new StringBuilder ();
+                _sb = new StringBuilder();
 
-                WriteObject (rootObject);
+                WriteObject(rootObject);
             }
 
+            void WriteObject(object obj)
+            {
+                if (obj is int)
+                {
+                    _sb.Append((int)obj);
+                }
+                else if (obj is float)
+                {
+                    string floatStr = ((float)obj).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    _sb.Append(floatStr);
+                    if (!floatStr.Contains(".")) _sb.Append(".0");
+                }
+                else if (obj is bool)
+                {
+                    _sb.Append((bool)obj == true ? "true" : "false");
+                }
+                else if (obj == null)
+                {
+                    _sb.Append("null");
+                }
+                else if (obj is string)
+                {
+                    string str = (string)obj;
+                    _sb.EnsureCapacity(_sb.Length + str.Length + 2);
+                    _sb.Append('"');
+
+                    foreach (var c in str)
+                    {
+                        if (c < ' ')
+                        {
+                            // Don't write any control characters except \n and \t
+                            switch (c)
+                            {
+                                case '\n':
+                                    _sb.Append("\\n");
+                                    break;
+                                case '\t':
+                                    _sb.Append("\\t");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (c)
+                            {
+                                case '\\':
+                                case '"':
+                                    _sb.Append('\\').Append(c);
+                                    break;
+                                default:
+                                    _sb.Append(c);
+                                    break;
+                            }
+                        }
+                    }
+
+                    _sb.Append('"');
+                }
+                else if (obj is Dictionary<string, object>)
+                {
+                    WriteDictionary((Dictionary<string, object>)obj);
+                }
+                else if (obj is List<object>)
+                {
+                    WriteList((List<object>)obj);
+                }
+                else
+                {
+                    throw new System.Exception("ink's SimpleJson writer doesn't currently support this object: " + obj);
+                }
+            }
+
+            void WriteDictionary(Dictionary<string, object> dict)
+            {
+                _sb.Append("{");
+
+                bool isFirst = true;
+                foreach (var keyValue in dict)
+                {
+
+                    if (!isFirst) _sb.Append(",");
+
+                    _sb.Append("\"");
+                    _sb.Append(keyValue.Key);
+                    _sb.Append("\":");
+
+                    WriteObject(keyValue.Value);
+
+                    isFirst = false;
+                }
+
+                _sb.Append("}");
+            }
+
+            void WriteList(List<object> list)
+            {
+                _sb.Append("[");
+
+                bool isFirst = true;
+                foreach (var obj in list)
+                {
+                    if (!isFirst) _sb.Append(",");
+
+                    WriteObject(obj);
+
+                    isFirst = false;
+                }
+
+                _sb.Append("]");
+            }
+
+            public override string ToString()
+            {
+                return _sb.ToString();
+            }
+
+
+            StringBuilder _sb;
+        }
+
+        public class Writer
+        {
             public Writer()
             {
                 _writer = new StringWriter();
@@ -307,7 +429,7 @@ namespace Ink.Runtime
 
             public Writer(Stream stream)
             {
-                _writer = new StreamWriter(stream, Encoding.UTF8);
+                _writer = new System.IO.StreamWriter(stream, Encoding.UTF8);
             }
 
             public void WriteObject(Action<Writer> inner)
@@ -319,7 +441,7 @@ namespace Ink.Runtime
 
             public void WriteObjectStart()
             {
-                StartNewObject(container:true);
+                StartNewObject(container: true);
                 _stateStack.Push(new StateElement { type = State.Object });
                 _writer.Write("{");
             }
@@ -379,7 +501,8 @@ namespace Ink.Runtime
                 _stateStack.Pop();
             }
 
-            public void WritePropertyNameStart() {
+            public void WritePropertyNameStart()
+            {
                 Assert(state == State.Object);
 
                 if (childCount > 0)
@@ -398,7 +521,7 @@ namespace Ink.Runtime
                 Assert(state == State.PropertyName);
 
                 _writer.Write("\":");
-                  
+
                 // Pop PropertyName, leaving Property state
                 _stateStack.Pop();
             }
@@ -436,8 +559,9 @@ namespace Ink.Runtime
                 WritePropertyEnd();
             }
 
-            public void WriteArrayStart() {
-                StartNewObject(container:true);
+            public void WriteArrayStart()
+            {
+                StartNewObject(container: true);
                 _stateStack.Push(new StateElement { type = State.Array });
                 _writer.Write("[");
             }
@@ -467,7 +591,7 @@ namespace Ink.Runtime
                 if (!floatStr.Contains(".")) _writer.Write(".0");
             }
 
-            public void Write(string str, bool escape=true)
+            public void Write(string str, bool escape = true)
             {
                 StartNewObject(container: false);
 
@@ -487,7 +611,7 @@ namespace Ink.Runtime
 
             public void WriteNull()
             {
-                StartNewObject(container:false);
+                StartNewObject(container: false);
                 _writer.Write("null");
             }
 
@@ -505,7 +629,7 @@ namespace Ink.Runtime
                 _stateStack.Pop();
             }
 
-            public void WriteStringInner(string str, bool escape=true)
+            public void WriteStringInner(string str, bool escape = true)
             {
                 Assert(state == State.String);
                 if (escape)
@@ -516,13 +640,42 @@ namespace Ink.Runtime
 
             void WriteEscapedString(string str)
             {
-                // TODO: Escape the string
-                _writer.Write(str);
+                foreach (var c in str)
+                {
+                    if (c < ' ')
+                    {
+                        // Don't write any control characters except \n and \t
+                        switch (c)
+                        {
+                            case '\n':
+                                _writer.Write("\\n");
+                                break;
+                            case '\t':
+                                _writer.Write("\\t");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (c)
+                        {
+                            case '\\':
+                            case '"':
+                                _writer.Write("\\");
+                                _writer.Write(c);
+                                break;
+                            default:
+                                _writer.Write(c);
+                                break;
+                        }
+                    }
+                }
             }
 
-            void StartNewObject(bool container) {
+            void StartNewObject(bool container)
+            {
 
-                if(container)
+                if (container)
                     Assert(state == State.None || state == State.Property || state == State.Array);
                 else
                     Assert(state == State.Property || state == State.Array);
@@ -534,15 +687,19 @@ namespace Ink.Runtime
                     IncrementChildCount();
             }
 
-            State state {
-                get {
+            State state
+            {
+                get
+                {
                     if (_stateStack.Count > 0) return _stateStack.Peek().type;
                     else return State.None;
                 }
             }
 
-            int childCount {
-                get {
+            int childCount
+            {
+                get
+                {
                     if (_stateStack.Count > 0) return _stateStack.Peek().childCount;
                     else return 0;
                 }
@@ -562,6 +719,11 @@ namespace Ink.Runtime
                     throw new System.Exception("Assert failed while writing JSON");
             }
 
+            public override string ToString()
+            {
+                return _writer.ToString();
+            }
+
             enum State
             {
                 None,
@@ -572,122 +734,17 @@ namespace Ink.Runtime
                 String
             };
 
-            struct StateElement {
+            struct StateElement
+            {
                 public State type;
                 public int childCount;
             }
 
             Stack<StateElement> _stateStack = new Stack<StateElement>();
-
-
-
-
-            void WriteObject (object obj)
-            {
-                if (obj is int) {
-                    _sb.Append ((int)obj);
-                } else if (obj is float) {
-                    string floatStr = ((float)obj).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    _sb.Append (floatStr);
-                    if (!floatStr.Contains (".")) _sb.Append (".0");
-                } else if( obj is bool) {
-                    _sb.Append ((bool)obj == true ? "true" : "false");
-                } else if (obj == null) {
-                    _sb.Append ("null");
-                } else if (obj is string) {
-                    string str = (string)obj;
-                    _sb.EnsureCapacity(_sb.Length + str.Length + 2);
-                    _sb.Append('"');
-
-                    foreach (var c in str)
-                    {
-                        if (c < ' ')
-                        {
-                            // Don't write any control characters except \n and \t
-                            switch (c)
-                            {
-                                case '\n':
-                                    _sb.Append("\\n");
-                                    break;
-                                case '\t':
-                                    _sb.Append("\\t");
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            switch (c)
-                            {
-                                case '\\':
-                                case '"':
-                                    _sb.Append('\\').Append(c);
-                                    break;
-                                default:
-                                    _sb.Append(c);
-                                    break;
-                            }
-                        }
-                    }
-
-                    _sb.Append('"');
-                } else if (obj is Dictionary<string, object>) {
-                    WriteDictionary ((Dictionary<string, object>)obj);
-                } else if (obj is List<object>) {
-                    WriteList ((List<object>)obj);
-                }else {
-                    throw new System.Exception ("ink's SimpleJson writer doesn't currently support this object: " + obj);
-                }
-            }
-
-            void WriteDictionary (Dictionary<string, object> dict)
-            {
-                _sb.Append ("{");
-
-                bool isFirst = true;
-                foreach (var keyValue in dict) {
-
-                    if (!isFirst) _sb.Append (",");
-
-                    _sb.Append ("\"");
-                    _sb.Append (keyValue.Key);
-                    _sb.Append ("\":");
-
-                    WriteObject (keyValue.Value);
-
-                    isFirst = false;
-                }
-
-                _sb.Append ("}");
-            }
-
-            void WriteList (List<object> list)
-            {
-                _sb.Append ("[");
-
-                bool isFirst = true;
-                foreach (var obj in list) {
-                    if (!isFirst) _sb.Append (",");
-
-                    WriteObject (obj);
-
-                    isFirst = false;
-                }
-
-                _sb.Append ("]");
-            }
-
-            public override string ToString ()
-            {
-                if (_writer != null)
-                    return _writer.ToString();
-                else
-                    return _sb.ToString ();
-            }
-
-
-            StringBuilder _sb;
             TextWriter _writer;
         }
+
+
     }
 }
 

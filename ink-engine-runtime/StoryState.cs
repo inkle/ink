@@ -21,16 +21,7 @@ namespace Ink.Runtime
         public const int kInkSaveStateVersion = 8;
         const int kMinCompatibleLoadVersion = 8;
 
-        /// <summary>
-        /// Exports the current state to json format, in order to save the game.
-        /// </summary>
-        /// <returns>The save state in json format.</returns>
         public string ToJson() {
-            return SimpleJson.DictionaryToText (jsonToken);
-
-        }
-
-        public string ToNewJson() {
             var writer = new SimpleJson.Writer();
             WriteJson(writer);
             return writer.ToString();
@@ -41,77 +32,14 @@ namespace Ink.Runtime
             WriteJson(writer);
         }
 
-        void WriteJson(SimpleJson.Writer writer)
-        {
-            writer.WriteObjectStart();
-
-
-            bool hasChoiceThreads = false;
-            foreach (Choice c in _currentChoices)
-            {
-                c.originalThreadIndex = c.threadAtGeneration.threadIndex;
-
-                if (callStack.ThreadWithIndex(c.originalThreadIndex) == null)
-                {
-                    if (!hasChoiceThreads)
-                    {
-                        hasChoiceThreads = true;
-                        writer.WritePropertyStart("choiceThreads");
-                        writer.WriteObjectStart();
-                    }
-
-                    writer.WritePropertyStart(c.originalThreadIndex);
-                    c.threadAtGeneration.WriteJson(writer);
-                    writer.WritePropertyEnd();
-                }
-            }
-
-            if (hasChoiceThreads)
-            {
-                writer.WriteObjectEnd();
-                writer.WritePropertyEnd();
-            }
-
-            writer.WriteProperty("callstackThreads", callStack.WriteJson);
-
-            writer.WriteProperty("variablesState", variablesState.WriteJson);
-
-            writer.WriteProperty("evalStack", w => Json.WriteListRuntimeObjs(w, evaluationStack));
-
-            writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, _outputStream));
-
-            writer.WriteProperty("currentChoices", w => {
-                w.WriteArrayStart();
-                foreach (var c in _currentChoices)
-                    Json.WriteChoice(w, c);
-                w.WriteArrayEnd();
-            });
-
-            if (!divertedPointer.isNull)
-                writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
-
-            writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, visitCounts));
-            writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, turnIndices));
-
-            writer.WriteProperty("turnIdx", currentTurnIndex);
-            writer.WriteProperty("storySeed", storySeed);
-            writer.WriteProperty("previousRandom", previousRandom);
-
-            writer.WriteProperty("inkSaveVersion", kInkSaveStateVersion);
-
-            // Not using this right now, but could do in future.
-            writer.WriteProperty("inkFormatVersion", Story.inkVersionCurrent);
-
-            writer.WriteObjectEnd();
-        }
-
         /// <summary>
         /// Loads a previously saved state in JSON format.
         /// </summary>
         /// <param name="json">The JSON string to load.</param>
         public void LoadJson(string json)
         {
-            jsonToken = SimpleJson.TextToDictionary (json);
+            var jObject = SimpleJson.TextToDictionary (json);
+            LoadJsonObj(jObject);
         }
 
         /// <summary>
@@ -391,108 +319,116 @@ namespace Ink.Runtime
 
             return copy;
         }
-            
-        /// <summary>
-        /// Object representation of full JSON state. Usually you should use
-        /// LoadJson and ToJson since they serialise directly to string for you.
-        /// But it may be useful to get the object representation so that you
-        /// can integrate it into your own serialisation system.
-        /// </summary>
-        public Dictionary<string, object> jsonToken
+
+        void WriteJson(SimpleJson.Writer writer)
         {
-            get {
-				
-				var obj = new Dictionary<string, object> ();
+            writer.WriteObjectStart();
 
-				Dictionary<string, object> choiceThreads = null;
-				foreach (Choice c in _currentChoices) {
-                    c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
-					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
-						if( choiceThreads == null )
-							choiceThreads = new Dictionary<string, object> ();
+            bool hasChoiceThreads = false;
+            foreach (Choice c in _currentChoices)
+            {
+                c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
-						choiceThreads[c.originalThreadIndex.ToString()] = c.threadAtGeneration.jsonToken;
-					}
+                if (callStack.ThreadWithIndex(c.originalThreadIndex) == null)
+                {
+                    if (!hasChoiceThreads)
+                    {
+                        hasChoiceThreads = true;
+                        writer.WritePropertyStart("choiceThreads");
+                        writer.WriteObjectStart();
+                    }
+
+                    writer.WritePropertyStart(c.originalThreadIndex);
+                    c.threadAtGeneration.WriteJson(writer);
+                    writer.WritePropertyEnd();
                 }
-				if( choiceThreads != null )
-					obj["choiceThreads"] = choiceThreads;
+            }
 
+            if (hasChoiceThreads)
+            {
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteProperty("callstackThreads", callStack.WriteJson);
+
+            writer.WriteProperty("variablesState", variablesState.WriteJson);
+
+            writer.WriteProperty("evalStack", w => Json.WriteListRuntimeObjs(w, evaluationStack));
+
+            writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, _outputStream));
+
+            writer.WriteProperty("currentChoices", w => {
+                w.WriteArrayStart();
+                foreach (var c in _currentChoices)
+                    Json.WriteChoice(w, c);
+                w.WriteArrayEnd();
+            });
+
+            if (!divertedPointer.isNull)
+                writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
+
+            writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, visitCounts));
+            writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, turnIndices));
+
+            writer.WriteProperty("turnIdx", currentTurnIndex);
+            writer.WriteProperty("storySeed", storySeed);
+            writer.WriteProperty("previousRandom", previousRandom);
+
+            writer.WriteProperty("inkSaveVersion", kInkSaveStateVersion);
+
+            // Not using this right now, but could do in future.
+            writer.WriteProperty("inkFormatVersion", Story.inkVersionCurrent);
+
+            writer.WriteObjectEnd();
+        }
+
+        void LoadJsonObj(Dictionary<string, object> jObject)
+        {
+			object jSaveVersion = null;
+			if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
+                throw new StoryException ("ink save format incorrect, can't load.");
+            }
+            else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
+                throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
+            }
+
+            callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+            variablesState.jsonToken = (Dictionary < string, object> )jObject["variablesState"];
+
+            evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
+
+            _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
+			OutputStreamDirty();
+
+			_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+
+			object currentDivertTargetPath;
+			if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
+                var divertPath = new Path (currentDivertTargetPath.ToString ());
+                divertedPointer = story.PointerAtPath (divertPath);
+            }
                 
-                obj ["callstackThreads"] = callStack.GetJsonToken();
-                obj ["variablesState"] = variablesState.jsonToken;
+            visitCounts = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["visitCounts"]);
+            turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
+            currentTurnIndex = (int)jObject ["turnIdx"];
+            storySeed = (int)jObject ["storySeed"];
+            previousRandom = (int)jObject ["previousRandom"];
 
-                obj ["evalStack"] = Json.ListToJArray (evaluationStack);
+			object jChoiceThreadsObj = null;
+			jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
+			var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
 
-                obj ["outputStream"] = Json.ListToJArray (_outputStream);
-
-				obj ["currentChoices"] = Json.ListToJArray (_currentChoices);
-
-                if( !divertedPointer.isNull )
-                    obj ["currentDivertTarget"] = divertedPointer.path.componentsString;
-
-                obj ["visitCounts"] = Json.IntDictionaryToJObject (visitCounts);
-                obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
-                obj ["turnIdx"] = currentTurnIndex;
-                obj ["storySeed"] = storySeed;
-                obj ["previousRandom"] = previousRandom;
-
-                obj ["inkSaveVersion"] = kInkSaveStateVersion;
-
-                // Not using this right now, but could do in future.
-                obj ["inkFormatVersion"] = Story.inkVersionCurrent;
-
-                return obj;
-            }
-            set {
-
-                var jObject = value;
-
-				object jSaveVersion = null;
-				if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
-                    throw new StoryException ("ink save format incorrect, can't load.");
-                }
-                else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
-                    throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
-                }
-
-                callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
-                variablesState.jsonToken = (Dictionary < string, object> )jObject["variablesState"];
-
-                evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
-
-                _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
-				OutputStreamDirty();
-
-				_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
-
-				object currentDivertTargetPath;
-				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
-                    var divertPath = new Path (currentDivertTargetPath.ToString ());
-                    divertedPointer = story.PointerAtPath (divertPath);
-                }
-                    
-                visitCounts = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["visitCounts"]);
-                turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
-                currentTurnIndex = (int)jObject ["turnIdx"];
-                storySeed = (int)jObject ["storySeed"];
-                previousRandom = (int)jObject ["previousRandom"];
-
-				object jChoiceThreadsObj = null;
-				jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
-				var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
-
-				foreach (var c in _currentChoices) {
-					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
-					if( foundActiveThread != null ) {
-                        c.threadAtGeneration = foundActiveThread.Copy ();
-					} else {
-						var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
-						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
-					}
+			foreach (var c in _currentChoices) {
+				var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
+				if( foundActiveThread != null ) {
+                    c.threadAtGeneration = foundActiveThread.Copy ();
+				} else {
+					var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
+					c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
 				}
-
-            }
+			}
         }
             
         internal void ResetErrors()

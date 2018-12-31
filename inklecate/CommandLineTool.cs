@@ -149,7 +149,7 @@ namespace Ink
             // Compile mode
             else {
                 
-                var jsonStr = story.ToJsonString ();
+                var jsonStr = story.ToJson ();
 
                 try {
                     File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);

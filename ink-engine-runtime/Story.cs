@@ -192,7 +192,24 @@ namespace Ink.Runtime
         /// <summary>
         /// The Story itself in JSON representation.
         /// </summary>
-        public string ToJsonString()
+        public string ToJson()
+        {
+            //return ToJsonOld();
+            var writer = new SimpleJson.Writer();
+            ToJson(writer);
+            return writer.ToString();
+        }
+
+        /// <summary>
+        /// The Story itself in JSON representation.
+        /// </summary>
+        public void ToJson(Stream stream)
+        {
+            var writer = new SimpleJson.Writer(stream);
+            ToJson(writer);
+        }
+
+        string ToJsonOld()
         {
             var rootContainerJsonList = (List<object>) Json.RuntimeObjectToJToken (_mainContentContainer);
 
@@ -203,7 +220,45 @@ namespace Ink.Runtime
             if (_listDefinitions != null)
                 rootObject ["listDefs"] = Json.ListDefinitionsToJToken (_listDefinitions);
 
-            return SimpleJson.DictionaryToText (rootObject);
+            return SimpleJson.DictionaryToTextOld (rootObject);
+        }
+
+        void ToJson(SimpleJson.Writer writer)
+        {
+            writer.WriteObjectStart();
+
+            writer.WriteProperty("inkVersion", inkVersionCurrent);
+
+            // Main container content
+            writer.WriteProperty("root", w => Json.WriteRuntimeContainer(w, _mainContentContainer));
+
+            // List definitions
+            if (_listDefinitions != null) {
+
+                writer.WritePropertyStart("listDefs");
+                writer.WriteObjectStart();
+
+                foreach (ListDefinition def in _listDefinitions.lists)
+                {
+                    writer.WritePropertyStart(def.name);
+                    writer.WriteObjectStart();
+
+                    foreach (var itemToVal in def.items)
+                    {
+                        InkListItem item = itemToVal.Key;
+                        int val = itemToVal.Value;
+                        writer.WriteProperty(item.itemName, val);
+                    }
+
+                    writer.WriteObjectEnd();
+                    writer.WritePropertyEnd();
+                }
+
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteObjectEnd();
         }
             
         /// <summary>

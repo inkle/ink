@@ -689,7 +689,7 @@ namespace Ink.Runtime
             throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
         }
 
-        static void WriteRuntimeContainer(SimpleJson.Writer writer, Container container, bool withoutName = false)
+        public static void WriteRuntimeContainer(SimpleJson.Writer writer, Container container, bool withoutName = false)
         {
             writer.WriteArrayStart();
 
@@ -917,6 +917,7 @@ namespace Ink.Runtime
             return dict;
         }
 
+#warning Remove me!
         public static Dictionary<string, object> ListDefinitionsToJToken (ListDefinitionsOrigin origin)
         {
             var result = new Dictionary<string, object> ();
