@@ -209,20 +209,6 @@ namespace Ink.Runtime
             ToJson(writer);
         }
 
-        string ToJsonOld()
-        {
-            var rootContainerJsonList = (List<object>) Json.RuntimeObjectToJToken (_mainContentContainer);
-
-            var rootObject = new Dictionary<string, object> ();
-            rootObject ["inkVersion"] = inkVersionCurrent;
-            rootObject ["root"] = rootContainerJsonList;
-
-            if (_listDefinitions != null)
-                rootObject ["listDefs"] = Json.ListDefinitionsToJToken (_listDefinitions);
-
-            return SimpleJson.DictionaryToTextOld (rootObject);
-        }
-
         void ToJson(SimpleJson.Writer writer)
         {
             writer.WriteObjectStart();

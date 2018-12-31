@@ -21,12 +21,20 @@ namespace Ink.Runtime
         public const int kInkSaveStateVersion = 8;
         const int kMinCompatibleLoadVersion = 8;
 
+        /// <summary>
+        /// Exports the current state to json format, in order to save the game.
+        /// </summary>
+        /// <returns>The save state in json format.</returns>
         public string ToJson() {
             var writer = new SimpleJson.Writer();
             WriteJson(writer);
             return writer.ToString();
         }
 
+        /// <summary>
+        /// Exports the current state to json format, in order to save the game.
+        /// For this overload you can pass in a custom stream, such as a FileStream.
+        /// </summary>
         public void ToJson(Stream stream) {
             var writer = new SimpleJson.Writer(stream);
             WriteJson(writer);
@@ -395,7 +403,7 @@ namespace Ink.Runtime
             }
 
             callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
-            variablesState.jsonToken = (Dictionary < string, object> )jObject["variablesState"];
+            variablesState.SetJsonToken((Dictionary < string, object> )jObject["variablesState"]);
 
             evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 

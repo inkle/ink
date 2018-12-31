@@ -131,14 +131,9 @@ namespace Ink.Runtime
             }
         }
             
-        internal Dictionary<string, object> jsonToken
+        internal void SetJsonToken(Dictionary<string, object> jToken)
         {
-            get {
-                return Json.DictionaryRuntimeObjsToJObject(_globalVariables);
-            }
-            set {
-                _globalVariables = Json.JObjectToDictionaryRuntimeObjs (value);
-            }
+            _globalVariables = Json.JObjectToDictionaryRuntimeObjs (jToken);
         }
 
         internal void WriteJson(SimpleJson.Writer writer)

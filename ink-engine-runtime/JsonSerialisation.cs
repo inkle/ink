@@ -6,15 +6,6 @@ namespace Ink.Runtime
 {
     internal static class Json
     {
-        public static List<object> ListToJArray<T>(List<T> serialisables) where T : Runtime.Object
-        {
-            var jArray = new List<object> ();
-            foreach (var s in serialisables) {
-                jArray.Add (RuntimeObjectToJToken(s));
-            }
-            return jArray;
-        }
-
         public static List<T> JArrayToRuntimeObjList<T>(List<object> jArray, bool skipLast=false) where T : Runtime.Object
         {
             int count = jArray.Count;
@@ -35,19 +26,6 @@ namespace Ink.Runtime
         public static List<Runtime.Object> JArrayToRuntimeObjList(List<object> jArray, bool skipLast=false)
         {
             return JArrayToRuntimeObjList<Runtime.Object> (jArray, skipLast);
-        }
-
-        public static Dictionary<string, object> DictionaryRuntimeObjsToJObject(Dictionary<string, Runtime.Object> dictionary)
-        {
-            var jsonObj = new Dictionary<string, object> ();
-
-            foreach (var keyVal in dictionary) {
-                var runtimeObj = keyVal.Value as Runtime.Object;
-                if (runtimeObj != null)
-                    jsonObj [keyVal.Key] = RuntimeObjectToJToken(runtimeObj);
-            }
-
-            return jsonObj;
         }
 
         public static void WriteDictionaryRuntimeObjs(SimpleJson.Writer writer, Dictionary<string, Runtime.Object> dictionary) 
@@ -298,15 +276,6 @@ namespace Ink.Runtime
             return dict;
         }
 
-        public static Dictionary<string, object> IntDictionaryToJObject(Dictionary<string, int> dict)
-        {
-            var jObj = new Dictionary<string, object> ();
-            foreach (var keyVal in dict) {
-                jObj [keyVal.Key] = keyVal.Value;
-            }
-            return jObj;
-        }
-
         // ----------------------
         // JSON ENCODING SCHEME
         // ----------------------
@@ -538,157 +507,6 @@ namespace Ink.Runtime
             throw new System.Exception ("Failed to convert token to runtime object: " + token);
         }
 
-        public static object RuntimeObjectToJToken(Runtime.Object obj)
-        {
-            var container = obj as Container;
-            if (container) {
-                return ContainerToJArray (container);
-            }
-
-            var divert = obj as Divert;
-            if (divert) {
-                string divTypeKey = "->";
-                if (divert.isExternal)
-                    divTypeKey = "x()";
-                else if (divert.pushesToStack) {
-                    if (divert.stackPushType == PushPopType.Function)
-                        divTypeKey = "f()";
-                    else if (divert.stackPushType == PushPopType.Tunnel)
-                        divTypeKey = "->t->";
-                }
-
-                string targetStr;
-                if (divert.hasVariableTarget)
-                    targetStr = divert.variableDivertName;
-                else
-                    targetStr = divert.targetPathString;
-
-                var jObj = new Dictionary<string, object> ();
-                jObj[divTypeKey] = targetStr;
-
-                if (divert.hasVariableTarget)
-                    jObj ["var"] = true;
-
-                if (divert.isConditional)
-                    jObj ["c"] = true;
-
-                if (divert.externalArgs > 0)
-                    jObj ["exArgs"] = divert.externalArgs;
-
-                return jObj;
-            }
-
-            var choicePoint = obj as ChoicePoint;
-            if (choicePoint) {
-                var jObj = new Dictionary<string, object> ();
-                jObj ["*"] = choicePoint.pathStringOnChoice;
-                jObj ["flg"] = choicePoint.flags;
-                return jObj;
-            }
-
-            var intVal = obj as IntValue;
-            if (intVal)
-                return intVal.value;
-
-            var floatVal = obj as FloatValue;
-            if (floatVal)
-                return floatVal.value;
-            
-            var strVal = obj as StringValue;
-            if (strVal) {
-                if (strVal.isNewline)
-                    return "\n";
-                else
-                    return "^" + strVal.value;
-            }
-
-            var listVal = obj as ListValue;
-            if (listVal) {
-                return InkListToJObject (listVal);
-            }
-
-            var divTargetVal = obj as DivertTargetValue;
-            if (divTargetVal) {
-                var divTargetJsonObj = new Dictionary<string, object> ();
-                divTargetJsonObj ["^->"] = divTargetVal.value.componentsString;
-                return divTargetJsonObj;
-            }
-
-            var varPtrVal = obj as VariablePointerValue;
-            if (varPtrVal) {
-                var varPtrJsonObj = new Dictionary<string, object> ();
-                varPtrJsonObj ["^var"] = varPtrVal.value;
-                varPtrJsonObj ["ci"] = varPtrVal.contextIndex;
-                return varPtrJsonObj;
-            }
-
-            var glue = obj as Runtime.Glue;
-            if (glue) return "<>";
-
-            var controlCmd = obj as ControlCommand;
-            if (controlCmd) {
-                return _controlCommandNames [(int)controlCmd.commandType];
-            }
-
-            var nativeFunc = obj as Runtime.NativeFunctionCall;
-            if (nativeFunc) {
-                var name = nativeFunc.name;
-
-                // Avoid collision with ^ used to indicate a string
-                if (name == "^") name = "L^";
-                return name;
-            }
-
-
-            // Variable reference
-            var varRef = obj as VariableReference;
-            if (varRef) {
-                var jObj = new Dictionary<string, object> ();
-                string readCountPath = varRef.pathStringForCount;
-                if (readCountPath != null) {
-                    jObj ["CNT?"] = readCountPath;
-                } else {
-                    jObj ["VAR?"] = varRef.name;
-                }
-
-                return jObj;
-            }
-
-            // Variable assignment
-            var varAss = obj as VariableAssignment;
-            if (varAss) {
-                string key = varAss.isGlobal ? "VAR=" : "temp=";
-                var jObj = new Dictionary<string, object> ();
-                jObj [key] = varAss.variableName;
-
-                // Reassignment?
-                if (!varAss.isNewDeclaration)
-                    jObj ["re"] = true;
-
-                return jObj;
-            }
-                
-            // Void
-            var voidObj = obj as Void;
-            if (voidObj)
-                return "void";
-
-            // Tag
-            var tag = obj as Tag;
-            if (tag) {
-                var jObj = new Dictionary<string, object> ();
-                jObj ["#"] = tag.text;
-                return jObj;
-            }
-
-            // Used when serialising save state only
-            var choice = obj as Choice;
-            if (choice)
-                return ChoiceToJObject (choice);
-
-            throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
-        }
-
         public static void WriteRuntimeContainer(SimpleJson.Writer writer, Container container, bool withoutName = false)
         {
             writer.WriteArrayStart();
@@ -732,56 +550,6 @@ namespace Ink.Runtime
                 writer.WriteNull();
 
             writer.WriteArrayEnd();
-        }
-
-        static List<object> ContainerToJArray(Container container)
-        {
-            var jArray = ListToJArray (container.content);
-
-            // Container is always an array [...]
-            // But the final element is always either:
-            //  - a dictionary containing the named content, as well as possibly
-            //    the key "#" with the count flags
-            //  - null, if neither of the above
-            var namedOnlyContent = container.namedOnlyContent;
-            var countFlags = container.countFlags;
-            if (namedOnlyContent != null && namedOnlyContent.Count > 0 || countFlags > 0 || container.name != null) {
-
-                Dictionary<string, object> terminatingObj;
-                if (namedOnlyContent != null) {
-                    terminatingObj = DictionaryRuntimeObjsToJObject (namedOnlyContent);
-
-                    // Strip redundant names from containers if necessary
-                    foreach (var namedContentObj in terminatingObj) {
-                        var subContainerJArray = namedContentObj.Value as List<object>;
-                        if (subContainerJArray != null) {
-                            var attrJObj = subContainerJArray [subContainerJArray.Count - 1] as Dictionary<string, object>;
-                            if (attrJObj != null) {
-                                attrJObj.Remove ("#n");
-                                if (attrJObj.Count == 0)
-                                    subContainerJArray [subContainerJArray.Count - 1] = null;
-                            }
-                        }
-                    }
-
-                } else
-                    terminatingObj = new Dictionary<string, object> ();
-
-                if( countFlags > 0 )
-                    terminatingObj ["#f"] = countFlags;
-
-                if( container.name != null )
-                    terminatingObj ["#n"] = container.name;
-
-                jArray.Add (terminatingObj);
-            } 
-
-            // Add null terminator to indicate that there's no dictionary
-            else {
-                jArray.Add (null);
-            }
-
-            return jArray;
         }
 
         static Container JArrayToContainer(List<object> jArray)
@@ -828,18 +596,6 @@ namespace Ink.Runtime
             choice.pathStringOnChoice = jObj ["targetPath"].ToString();
             return choice;
         }
-
-        static Dictionary<string, object> ChoiceToJObject(Choice choice)
-        {
-            var jObj = new Dictionary<string, object> ();
-            jObj ["text"] = choice.text;
-            jObj ["index"] = choice.index;
-            jObj ["originalChoicePath"] = choice.sourcePath;
-            jObj ["originalThreadIndex"] = choice.originalThreadIndex;
-            jObj ["targetPath"] = choice.pathStringOnChoice;
-            return jObj;
-        }
-
         public static void WriteChoice(SimpleJson.Writer writer, Choice choice)
         {
             writer.WriteObjectStart();
@@ -892,45 +648,6 @@ namespace Ink.Runtime
             }
 
             writer.WriteObjectEnd();
-        }
-
-        static Dictionary<string, object> InkListToJObject (ListValue listVal)
-        {
-            var rawList = listVal.value;
-
-            var dict = new Dictionary<string, object> ();
-
-            var content = new Dictionary<string, object> ();
-
-            foreach (var itemAndValue in rawList) {
-                var item = itemAndValue.Key;
-                int val = itemAndValue.Value;
-                content [item.ToString ()] = val;
-            }
-
-            dict ["list"] = content;
-
-            if (rawList.Count == 0 && rawList.originNames != null && rawList.originNames.Count > 0) {
-                dict ["origins"] = rawList.originNames.Cast<object> ().ToList ();
-            }
-
-            return dict;
-        }
-
-#warning Remove me!
-        public static Dictionary<string, object> ListDefinitionsToJToken (ListDefinitionsOrigin origin)
-        {
-            var result = new Dictionary<string, object> ();
-            foreach (ListDefinition def in origin.lists) {
-                var listDefJson = new Dictionary<string, object> ();
-                foreach (var itemToVal in def.items) {
-                    InkListItem item = itemToVal.Key;
-                    int val = itemToVal.Value;
-                    listDefJson [item.itemName] = (object)val;
-                }
-                result [def.name] = listDefJson;
-            }
-            return result;
         }
 
         public static ListDefinitionsOrigin JTokenToListDefinitions (object obj)

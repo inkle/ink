@@ -108,34 +108,6 @@ namespace Ink.Runtime
                 return copy;
             }
 
-			public Dictionary<string, object> jsonToken {
-				get {
-					var threadJObj = new Dictionary<string, object> ();
-
-					var jThreadCallstack = new List<object> ();
-					foreach (CallStack.Element el in callstack) {
-						var jObj = new Dictionary<string, object> ();
-						if (!el.currentPointer.isNull) {
-							jObj ["cPath"] = el.currentPointer.container.path.componentsString;
-							jObj ["idx"] = el.currentPointer.index;
-						}
-						jObj ["exp"] = el.inExpressionEvaluation;
-						jObj ["type"] = (int) el.type;
-                        if(el.temporaryVariables.Count > 0 )
-						    jObj ["temp"] = Json.DictionaryRuntimeObjsToJObject (el.temporaryVariables);
-						jThreadCallstack.Add (jObj);
-					}
-
-					threadJObj ["callstack"] = jThreadCallstack;
-					threadJObj ["threadIndex"] = threadIndex;
-
-                    if (!previousPointer.isNull)
-                        threadJObj ["previousContentObject"] = previousPointer.Resolve().path.ToString();
-
-					return threadJObj;
-				}
-			}
-
             public void WriteJson(SimpleJson.Writer writer)
             {
                 writer.WriteObjectStart();
@@ -263,22 +235,6 @@ namespace Ink.Runtime
 
             _threadCounter = (int)jObject ["threadCounter"];
             _startOfRoot = Pointer.StartOf(storyContext.rootContentContainer);
-        }
-            
-        // See above for why we can't implement jsonToken
-        public Dictionary<string, object> GetJsonToken() {
-
-            var jObject = new Dictionary<string, object> ();
-
-            var jThreads = new List<object> ();
-            foreach (CallStack.Thread thread in _threads) {
-				jThreads.Add (thread.jsonToken);
-            }
-
-            jObject ["threads"] = jThreads;
-            jObject ["threadCounter"] = _threadCounter;
-
-            return jObject;
         }
 
         public void WriteJson(SimpleJson.Writer w)
