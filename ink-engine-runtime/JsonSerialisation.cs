@@ -50,6 +50,234 @@ namespace Ink.Runtime
             return jsonObj;
         }
 
+        public static void WriteDictionaryRuntimeObjs(SimpleJson.Writer writer, Dictionary<string, Runtime.Object> dictionary) 
+        {
+            writer.WriteObjectStart();
+            foreach(var keyVal in dictionary) {
+                writer.WritePropertyStart(keyVal.Key);
+                WriteRuntimeObject(writer, keyVal.Value);
+                writer.WritePropertyEnd();
+            }
+            writer.WriteObjectEnd();
+        }
+
+
+        public static void WriteListRuntimeObjs(SimpleJson.Writer writer, List<Runtime.Object> list)
+        {
+            writer.WriteArrayStart();
+            foreach (var val in list)
+            {
+                WriteRuntimeObject(writer, val);
+            }
+            writer.WriteArrayEnd();
+        }
+
+        public static void WriteIntDictionary(SimpleJson.Writer writer, Dictionary<string, int> dict)
+        {
+            writer.WriteObjectStart();
+            foreach (var keyVal in dict)
+                writer.WriteProperty(keyVal.Key, keyVal.Value);
+            writer.WriteObjectEnd();
+        }
+
+        static void WriteRuntimeObject(SimpleJson.Writer writer, Runtime.Object obj)
+        {
+            var container = obj as Container;
+            if (container) {
+                WriteRuntimeContainer(writer, container);
+                return;
+            }
+
+            var divert = obj as Divert;
+            if (divert)
+            {
+                string divTypeKey = "->";
+                if (divert.isExternal)
+                    divTypeKey = "x()";
+                else if (divert.pushesToStack)
+                {
+                    if (divert.stackPushType == PushPopType.Function)
+                        divTypeKey = "f()";
+                    else if (divert.stackPushType == PushPopType.Tunnel)
+                        divTypeKey = "->t->";
+                }
+
+                string targetStr;
+                if (divert.hasVariableTarget)
+                    targetStr = divert.variableDivertName;
+                else
+                    targetStr = divert.targetPathString;
+
+                writer.WriteObjectStart();
+
+                writer.WriteProperty(divTypeKey, targetStr);
+
+                if (divert.hasVariableTarget)
+                    writer.WriteProperty("var", true);
+
+                if (divert.isConditional)
+                    writer.WriteProperty("c", true);
+
+                if (divert.externalArgs > 0)
+                    writer.WriteProperty("exArgs", divert.externalArgs);
+
+                writer.WriteObjectEnd();
+                return;
+            }
+
+            var choicePoint = obj as ChoicePoint;
+            if (choicePoint)
+            {
+                writer.WriteObjectStart();
+                writer.WriteProperty("*", choicePoint.pathStringOnChoice);
+                writer.WriteProperty("flg", choicePoint.flags);
+                writer.WriteObjectEnd();
+                return;
+            }
+
+            var intVal = obj as IntValue;
+            if (intVal) {
+                writer.Write(intVal.value);
+                return;
+            }
+
+            var floatVal = obj as FloatValue;
+            if (floatVal) {
+                writer.Write(floatVal.value);
+                return;
+            }
+
+            var strVal = obj as StringValue;
+            if (strVal)
+            {
+                if (strVal.isNewline)
+                    writer.Write("\\n", escape:false);
+                else {
+                    writer.WriteStringStart();
+                    writer.WriteStringInner("^");
+                    writer.WriteStringInner(strVal.value);
+                    writer.WriteStringEnd();
+                }
+                return;
+            }
+
+            var listVal = obj as ListValue;
+            if (listVal)
+            {
+                WriteInkList(writer, listVal);
+                return;
+            }
+
+            var divTargetVal = obj as DivertTargetValue;
+            if (divTargetVal)
+            {
+                writer.WriteObjectStart();
+                writer.WriteProperty("^->", divTargetVal.value.componentsString);
+                writer.WriteObjectEnd();
+                return;
+            }
+
+            var varPtrVal = obj as VariablePointerValue;
+            if (varPtrVal)
+            {
+                writer.WriteObjectStart();
+                writer.WriteProperty("^var", varPtrVal.value);
+                writer.WriteProperty("ci", varPtrVal.contextIndex);
+                writer.WriteObjectEnd();
+                return;
+            }
+
+            var glue = obj as Runtime.Glue;
+            if (glue) {
+                writer.Write("<>");
+                return;
+            }
+
+            var controlCmd = obj as ControlCommand;
+            if (controlCmd)
+            {
+                writer.Write(_controlCommandNames[(int)controlCmd.commandType]);
+                return;
+            }
+
+            var nativeFunc = obj as Runtime.NativeFunctionCall;
+            if (nativeFunc)
+            {
+                var name = nativeFunc.name;
+
+                // Avoid collision with ^ used to indicate a string
+                if (name == "^") name = "L^";
+
+                writer.Write(name);
+                return;
+            }
+
+
+            // Variable reference
+            var varRef = obj as VariableReference;
+            if (varRef)
+            {
+                writer.WriteObjectStart();
+
+                string readCountPath = varRef.pathStringForCount;
+                if (readCountPath != null)
+                {
+                    writer.WriteProperty("CNT?", readCountPath);
+                }
+                else
+                {
+                    writer.WriteProperty("VAR?", varRef.name);
+                }
+
+                writer.WriteObjectEnd();
+                return;
+            }
+
+            // Variable assignment
+            var varAss = obj as VariableAssignment;
+            if (varAss)
+            {
+                writer.WriteObjectStart();
+
+                string key = varAss.isGlobal ? "VAR=" : "temp=";
+                writer.WriteProperty(key, varAss.variableName);
+
+                // Reassignment?
+                if (!varAss.isNewDeclaration)
+                    writer.WriteProperty("re", true);
+
+                writer.WriteObjectEnd();
+
+                return;
+            }
+
+            // Void
+            var voidObj = obj as Void;
+            if (voidObj) {
+                writer.Write("void");
+                return;
+            }
+
+            // Tag
+            var tag = obj as Tag;
+            if (tag)
+            {
+                writer.WriteObjectStart();
+                writer.WriteProperty("#", tag.text);
+                writer.WriteObjectEnd();
+                return;
+            }
+
+            // Used when serialising save state only
+            var choice = obj as Choice;
+            if (choice) {
+                WriteChoice(writer, choice);
+                return;
+            }
+
+            throw new System.Exception("Failed to write runtime object to JSON: " + obj);
+        }
+
         public static Dictionary<string, Runtime.Object> JObjectToDictionaryRuntimeObjs(Dictionary<string, object> jObject)
         {
             var dict = new Dictionary<string, Runtime.Object> (jObject.Count);
@@ -461,6 +689,51 @@ namespace Ink.Runtime
             throw new System.Exception ("Failed to convert runtime object to Json token: " + obj);
         }
 
+        static void WriteRuntimeContainer(SimpleJson.Writer writer, Container container, bool withoutName = false)
+        {
+            writer.WriteArrayStart();
+
+            foreach (var c in container.content)
+                WriteRuntimeObject(writer, c);
+
+            // Container is always an array [...]
+            // But the final element is always either:
+            //  - a dictionary containing the named content, as well as possibly
+            //    the key "#" with the count flags
+            //  - null, if neither of the above
+            var namedOnlyContent = container.namedOnlyContent;
+            var countFlags = container.countFlags;
+            var hasNameProperty = container.name != null && !withoutName;
+
+            bool hasTerminator = namedOnlyContent != null || countFlags > 0 || hasNameProperty;
+
+            if( hasTerminator )
+                writer.WriteObjectStart();
+
+            if ( namedOnlyContent != null ) {
+                foreach(var namedContent in namedOnlyContent) {
+                    var name = namedContent.Key;
+                    var namedContainer = namedContent.Value as Container;
+                    writer.WritePropertyStart(name);
+                    WriteRuntimeContainer(writer, namedContainer, withoutName:true);
+                    writer.WritePropertyEnd();
+                }
+            }
+
+            if (countFlags > 0)
+                writer.WriteProperty("#f", countFlags);
+
+            if (hasNameProperty)
+                writer.WriteProperty("#n", container.name);
+
+            if (hasTerminator)
+                writer.WriteObjectEnd();
+            else
+                writer.WriteNull();
+
+            writer.WriteArrayEnd();
+        }
+
         static List<object> ContainerToJArray(Container container)
         {
             var jArray = ListToJArray (container.content);
@@ -565,6 +838,60 @@ namespace Ink.Runtime
             jObj ["originalThreadIndex"] = choice.originalThreadIndex;
             jObj ["targetPath"] = choice.pathStringOnChoice;
             return jObj;
+        }
+
+        public static void WriteChoice(SimpleJson.Writer writer, Choice choice)
+        {
+            writer.WriteObjectStart();
+            writer.WriteProperty("text", choice.text);
+            writer.WriteProperty("index", choice.index);
+            writer.WriteProperty("originalChoicePath", choice.sourcePath);
+            writer.WriteProperty("originalThreadIndex", choice.originalThreadIndex);
+            writer.WriteProperty("targetPath", choice.pathStringOnChoice);
+            writer.WriteObjectEnd();
+        }
+
+        static void WriteInkList(SimpleJson.Writer writer, ListValue listVal)
+        {
+            var rawList = listVal.value;
+
+            writer.WriteObjectStart();
+
+            writer.WritePropertyStart("list");
+
+            writer.WriteObjectStart();
+
+            foreach (var itemAndValue in rawList)
+            {
+                var item = itemAndValue.Key;
+                int itemVal = itemAndValue.Value;
+
+                writer.WritePropertyNameStart();
+                writer.WritePropertyNameInner(item.originName ?? "?");
+                writer.WritePropertyNameInner(".");
+                writer.WritePropertyNameInner(item.itemName);
+                writer.WritePropertyNameEnd();
+
+                writer.Write(itemVal);
+
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteObjectEnd();
+
+            writer.WritePropertyEnd();
+
+            if (rawList.Count == 0 && rawList.originNames != null && rawList.originNames.Count > 0)
+            {
+                writer.WritePropertyStart("origins");
+                writer.WriteArrayStart();
+                foreach (var name in rawList.originNames)
+                    writer.Write(name);
+                writer.WriteArrayEnd();
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteObjectEnd();
         }
 
         static Dictionary<string, object> InkListToJObject (ListValue listVal)

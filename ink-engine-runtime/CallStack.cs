@@ -81,8 +81,12 @@ namespace Ink.Runtime
 
 					var el = new Element (pushPopType, pointer, inExpressionEvaluation);
 
-					var jObjTemps = (Dictionary<string, object>) jElementObj ["temp"];
-					el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs (jObjTemps);
+                    object temps;
+                    if ( jElementObj.TryGetValue("temps", out temps) ) {
+                        el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs((Dictionary<string, object>)temps);
+                    } else {
+                        el.temporaryVariables.Clear();
+                    }					
 
 					callstack.Add (el);
 				}
@@ -117,7 +121,8 @@ namespace Ink.Runtime
 						}
 						jObj ["exp"] = el.inExpressionEvaluation;
 						jObj ["type"] = (int) el.type;
-						jObj ["temp"] = Json.DictionaryRuntimeObjsToJObject (el.temporaryVariables);
+                        if(el.temporaryVariables.Count > 0 )
+						    jObj ["temp"] = Json.DictionaryRuntimeObjsToJObject (el.temporaryVariables);
 						jThreadCallstack.Add (jObj);
 					}
 
@@ -130,6 +135,46 @@ namespace Ink.Runtime
 					return threadJObj;
 				}
 			}
+
+            public void WriteJson(SimpleJson.Writer writer)
+            {
+                writer.WriteObjectStart();
+
+                // callstack
+                writer.WritePropertyStart("callstack");
+                writer.WriteArrayStart();
+                foreach (CallStack.Element el in callstack)
+                {
+                    writer.WriteObjectStart();
+                    if(!el.currentPointer.isNull) {
+                        writer.WriteProperty("cPath", el.currentPointer.container.path.componentsString);
+                        writer.WriteProperty("idx", el.currentPointer.index);
+                    }
+
+                    writer.WriteProperty("exp", el.inExpressionEvaluation);
+                    writer.WriteProperty("type", (int)el.type);
+
+                    if(el.temporaryVariables.Count > 0) {
+                        writer.WritePropertyStart("temp");
+                        Json.WriteDictionaryRuntimeObjs(writer, el.temporaryVariables);
+                        writer.WritePropertyEnd();
+                    }
+
+                    writer.WriteObjectEnd();
+                }
+                writer.WriteArrayEnd();
+                writer.WritePropertyEnd();
+
+                // threadIndex
+                writer.WriteProperty("threadIndex", threadIndex);
+
+                if (!previousPointer.isNull)
+                {
+                    writer.WriteProperty("previousContentObject", previousPointer.Resolve().path.ToString());
+                }
+
+                writer.WriteObjectEnd();
+            }
         }
 
         public List<Element> elements {
@@ -234,6 +279,32 @@ namespace Ink.Runtime
             jObject ["threadCounter"] = _threadCounter;
 
             return jObject;
+        }
+
+        public void WriteJson(SimpleJson.Writer w)
+        {
+            w.WriteObject(writer =>
+            {
+                writer.WritePropertyStart("threads");
+                {
+                    writer.WriteArrayStart();
+
+                    foreach (CallStack.Thread thread in _threads)
+                    {
+                        thread.WriteJson(writer);
+                    }
+
+                    writer.WriteArrayEnd();
+                }
+                writer.WritePropertyEnd();
+
+                writer.WritePropertyStart("threadCounter");
+                {
+                    writer.Write(_threadCounter);
+                }
+                writer.WritePropertyEnd();
+            });
+        
         }
 
         public void PushThread()

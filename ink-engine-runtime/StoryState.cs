@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.IO;
 
 namespace Ink.Runtime
 {
@@ -26,6 +27,82 @@ namespace Ink.Runtime
         /// <returns>The save state in json format.</returns>
         public string ToJson() {
             return SimpleJson.DictionaryToText (jsonToken);
+
+        }
+
+        public string ToNewJson() {
+            var writer = new SimpleJson.Writer();
+            WriteJson(writer);
+            return writer.ToString();
+        }
+
+        public void ToJson(Stream stream) {
+            var writer = new SimpleJson.Writer(stream);
+            WriteJson(writer);
+        }
+
+        void WriteJson(SimpleJson.Writer writer)
+        {
+            writer.WriteObjectStart();
+
+
+            bool hasChoiceThreads = false;
+            foreach (Choice c in _currentChoices)
+            {
+                c.originalThreadIndex = c.threadAtGeneration.threadIndex;
+
+                if (callStack.ThreadWithIndex(c.originalThreadIndex) == null)
+                {
+                    if (!hasChoiceThreads)
+                    {
+                        hasChoiceThreads = true;
+                        writer.WritePropertyStart("choiceThreads");
+                        writer.WriteObjectStart();
+                    }
+
+                    writer.WritePropertyStart(c.originalThreadIndex);
+                    c.threadAtGeneration.WriteJson(writer);
+                    writer.WritePropertyEnd();
+                }
+            }
+
+            if (hasChoiceThreads)
+            {
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteProperty("callstackThreads", callStack.WriteJson);
+
+            writer.WriteProperty("variablesState", variablesState.WriteJson);
+
+            writer.WriteProperty("evalStack", w => Json.WriteListRuntimeObjs(w, evaluationStack));
+
+            writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, _outputStream));
+
+            writer.WriteProperty("currentChoices", w => {
+                w.WriteArrayStart();
+                foreach (var c in _currentChoices)
+                    Json.WriteChoice(w, c);
+                w.WriteArrayEnd();
+            });
+
+            if (!divertedPointer.isNull)
+                writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
+
+            writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, visitCounts));
+            writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, turnIndices));
+
+            writer.WriteProperty("turnIdx", currentTurnIndex);
+            writer.WriteProperty("storySeed", storySeed);
+            writer.WriteProperty("previousRandom", previousRandom);
+
+            writer.WriteProperty("inkSaveVersion", kInkSaveStateVersion);
+
+            // Not using this right now, but could do in future.
+            writer.WriteProperty("inkFormatVersion", Story.inkVersionCurrent);
+
+            writer.WriteObjectEnd();
         }
 
         /// <summary>

@@ -141,6 +141,11 @@ namespace Ink.Runtime
             }
         }
 
+        internal void WriteJson(SimpleJson.Writer writer)
+        {
+            Json.WriteDictionaryRuntimeObjs(writer, _globalVariables);
+        }
+
         internal Runtime.Object GetVariableWithName(string name)
         {
             return GetVariableWithName (name, -1);
