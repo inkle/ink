@@ -82,7 +82,7 @@ namespace Ink.Runtime
 					var el = new Element (pushPopType, pointer, inExpressionEvaluation);
 
                     object temps;
-                    if ( jElementObj.TryGetValue("temps", out temps) ) {
+                    if ( jElementObj.TryGetValue("temp", out temps) ) {
                         el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs((Dictionary<string, object>)temps);
                     } else {
                         el.temporaryVariables.Clear();
