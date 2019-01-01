@@ -550,6 +550,9 @@ namespace Ink.Runtime
                 if (state == State.Array && childCount > 0)
                     _writer.Write(",");
 
+                if (state == State.Property)
+                    Assert(childCount == 0);
+
                 if (state == State.Array || state == State.Property)
                     IncrementChildCount();
             }
