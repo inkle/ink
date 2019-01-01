@@ -583,6 +583,9 @@ namespace Ink.Runtime
                 _stateStack.Push(currEl);
             }
 
+            // Shouldn't hit this assert outside of initial JSON development,
+            // so it's save to make it debug-only.
+            [System.Diagnostics.Conditional("DEBUG")]
             void Assert(bool condition)
             {
                 if (!condition)
