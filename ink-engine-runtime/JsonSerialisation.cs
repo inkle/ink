@@ -58,7 +58,7 @@ namespace Ink.Runtime
             writer.WriteObjectEnd();
         }
 
-        static void WriteRuntimeObject(SimpleJson.Writer writer, Runtime.Object obj)
+        public static void WriteRuntimeObject(SimpleJson.Writer writer, Runtime.Object obj)
         {
             var container = obj as Container;
             if (container) {

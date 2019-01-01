@@ -133,12 +133,80 @@ namespace Ink.Runtime
             
         internal void SetJsonToken(Dictionary<string, object> jToken)
         {
-            _globalVariables = Json.JObjectToDictionaryRuntimeObjs (jToken);
+            _globalVariables.Clear();
+
+            foreach (var varVal in _defaultGlobalVariables) {
+                object loadedToken;
+                if( jToken.TryGetValue(varVal.Key, out loadedToken) ) {
+                    _globalVariables[varVal.Key] = Json.JTokenToRuntimeObject(loadedToken);
+                } else {
+                    _globalVariables[varVal.Key] = varVal.Value;
+                }
+            }
         }
+
+        /// <summary>
+        /// When saving out JSON state, we can skip saving global values that
+        /// remain equal to the initial values that were declared in ink.
+        /// This makes the save file (potentially) much smaller assuming that
+        /// at least a portion of the globals haven't changed. However, it
+        /// can also take marginally longer to save in the case that the 
+        /// majority HAVE changed, since it has to compare all globals.
+        /// It may also be useful to turn this off for testing worst case
+        /// save timing.
+        /// </summary>
+        public static bool dontSaveDefaultValues = true;
 
         internal void WriteJson(SimpleJson.Writer writer)
         {
-            Json.WriteDictionaryRuntimeObjs(writer, _globalVariables);
+            writer.WriteObjectStart();
+            foreach (var keyVal in _globalVariables)
+            {
+                var name = keyVal.Key;
+                var val = keyVal.Value;
+
+                if(dontSaveDefaultValues) {
+                    // Don't write out values that are the same as the default global values
+                    Runtime.Object defaultVal;
+                    if (_defaultGlobalVariables.TryGetValue(name, out defaultVal))
+                    {
+                        if (RuntimeObjectsEqual(val, defaultVal))
+                            continue;
+                    }
+                }
+
+
+                writer.WritePropertyStart(name);
+                Json.WriteRuntimeObject(writer, val);
+                writer.WritePropertyEnd();
+            }
+            writer.WriteObjectEnd();
+        }
+
+        internal bool RuntimeObjectsEqual(Runtime.Object obj1, Runtime.Object obj2)
+        {
+            if (obj1.GetType() != obj2.GetType()) return false;
+
+            // Perform equality on int/float manually to avoid boxing
+            var intVal = obj1 as IntValue;
+            if( intVal != null ) {
+                return intVal.value == ((IntValue)obj2).value;
+            }
+
+            var floatVal = obj1 as FloatValue;
+            if (floatVal != null)
+            {
+                return floatVal.value == ((FloatValue)obj2).value;
+            }
+
+            // Other Value type (using proper Equals: list, string, divert path)
+            var val1 = obj1 as Value;
+            var val2 = obj2 as Value;
+            if( val1 != null ) {
+                return val1.valueObject.Equals(val2.valueObject);
+            }
+
+            throw new System.Exception("FastRoughDefinitelyEquals: Unsupported runtime object type: "+obj1.GetType());
         }
 
         internal Runtime.Object GetVariableWithName(string name)

@@ -1355,18 +1355,8 @@ namespace Ink.Runtime
                     foundValue = state.variablesState.GetVariableWithName (varRef.name);
 
                     if (foundValue == null) {
-                        var defaultVal = state.variablesState.TryGetDefaultVariableValue (varRef.name);
-                        if (defaultVal != null) {
-                            Warning ("Variable not found in save state: '" + varRef.name + "', but seems to have been newly created. Assigning value from latest ink's declaration: " + defaultVal);
-                            foundValue = defaultVal;
-
-                            // Save for future usage, preventing future errors
-                            // Only do this for variables that are known to be globals, not those that may be missing temps.
-                            state.variablesState.SetGlobal(varRef.name, foundValue);
-                        } else {
-                            Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit.");
-                            foundValue = new IntValue (0);
-                        }
+                        Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit. Globals are always given a default value on load if a value doesn't exist in the save state.");
+                        foundValue = new IntValue (0);
                     }
                 }
 
