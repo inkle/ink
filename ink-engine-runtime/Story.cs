@@ -2198,7 +2198,7 @@ namespace Ink.Runtime
         int VisitCountForContainer(Container container)
         {
             if( !container.visitsShouldBeCounted ) {
-                Error ("Read count for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+                Error ("Read count for target ("+container.name+" - on "+container.debugMetadata+") unknown.");
                 return 0;
             }
 
@@ -2226,7 +2226,7 @@ namespace Ink.Runtime
         int TurnsSinceForContainer(Container container)
         {
             if( !container.turnIndexShouldBeCounted ) {
-                Error ("TURNS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
+                Error ("TURNS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown.");
             }
 
             int index = 0;

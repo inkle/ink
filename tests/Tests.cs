@@ -2314,7 +2314,7 @@ this is the end
 -> END
 ";
 
-            Story story = CompileString(storyStr);
+            Story story = CompileString(storyStr, countAllVisits:true);
 
             Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot"));
             Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));

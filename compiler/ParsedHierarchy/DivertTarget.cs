@@ -80,7 +80,7 @@ namespace Ink.Parsed
                 usageContext = usageParent;
             }
 
-            // Example ink for this class:
+            // Example ink for this case:
             //
             //     VAR x = -> blah
             //
@@ -91,7 +91,31 @@ namespace Ink.Parsed
             if (_runtimeDivert.hasVariableTarget)
                 Error ("Since '"+divert.target.dotSeparatedComponents+"' is a variable, it shouldn't be preceded by '->' here.");
 
+            // Main resolve
             _runtimeDivertTargetValue.targetPath = _runtimeDivert.targetPath;
+
+            // Tell hard coded (yet variable) divert targets that they also need to be counted
+            // TODO: Only detect DivertTargets that are values rather than being used directly for
+            // read or turn counts. Should be able to detect this by looking for other uses of containerForCounting
+            var targetContent = this.divert.targetContent;
+            if (targetContent != null ) {
+                var target = targetContent.containerForCounting;
+                if (target != null)
+                {
+                    // Purpose is known: used directly in TURNS_SINCE(-> divTarg)
+                    var parentFunc = this.parent as FunctionCall;
+                    if( parentFunc && parentFunc.isTurnsSince ) {
+                        target.turnIndexShouldBeCounted = true;
+                    }
+
+                    // Unknown purpose, count everything
+                    else {
+                        target.visitsShouldBeCounted = true;
+                        target.turnIndexShouldBeCounted = true;
+                    }
+
+                }
+            }
         }
 
         // Equals override necessary in order to check for CONST multiple definition equality

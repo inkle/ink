@@ -422,7 +422,14 @@ namespace Ink.Runtime
             turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
             currentTurnIndex = (int)jObject ["turnIdx"];
             storySeed = (int)jObject ["storySeed"];
-            previousRandom = (int)jObject ["previousRandom"];
+
+            // Not optional, but bug in inkjs means it's actually missing in inkjs saves
+            object previousRandomObj = null;
+            if( jObject.TryGetValue("previousRandom", out previousRandomObj) ) {
+                previousRandom = (int)previousRandomObj;
+            } else {
+                previousRandom = 0;
+            }
 
 			object jChoiceThreadsObj = null;
 			jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);

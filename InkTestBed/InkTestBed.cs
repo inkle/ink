@@ -91,7 +91,6 @@ class InkTestBed : IFileHandler
     Ink.Runtime.Story Compile (string inkSource)
     {
     	compiler = new Compiler (inkSource, new Compiler.Options {
-    		countAllVisits = true,
     		errorHandler = OnError,
     		fileHandler = this
     	});
@@ -102,7 +101,6 @@ class InkTestBed : IFileHandler
 
         return story;
     }
-
 
     Ink.Runtime.Story CompileFile (string filename = null)
     {
@@ -117,7 +115,6 @@ class InkTestBed : IFileHandler
 
         compiler = new Compiler (inkSource, new Compiler.Options {
 			sourceFilename = filename,
-			countAllVisits = true,
 			errorHandler = OnError,
 			fileHandler = this
         });
