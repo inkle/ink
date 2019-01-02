@@ -766,10 +766,10 @@ namespace Ink.Runtime
         {
             if ( !container.countingAtStartOnly || atStart ) {
                 if( container.visitsShouldBeCounted )
-                    IncrementVisitCountForContainer (container);
+                    state.IncrementVisitCountForContainer (container);
 
                 if (container.turnIndexShouldBeCounted)
-                    RecordTurnIndexVisitToContainer (container);
+                    state.RecordTurnIndexVisitToContainer (container);
             }
         }
 
@@ -845,7 +845,7 @@ namespace Ink.Runtime
 
             // Don't create choice if player has already read this content
             if (choicePoint.onceOnly) {
-                var visitCount = VisitCountForContainer (choicePoint.choiceTarget);
+                var visitCount = state.VisitCountForContainer (choicePoint.choiceTarget);
                 if (visitCount > 0) {
                     showChoice = false;
                 }
@@ -1136,9 +1136,9 @@ namespace Ink.Runtime
                     int eitherCount;
                     if (container != null) {
                         if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
-                            eitherCount = TurnsSinceForContainer (container);
+                            eitherCount = state.TurnsSinceForContainer (container);
                         else
-                            eitherCount = VisitCountForContainer (container);
+                            eitherCount = state.VisitCountForContainer (container);
                     } else {
                         if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
                             eitherCount = -1; // turn count, default to never/unknown
@@ -1193,7 +1193,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var count = VisitCountForContainer(state.currentPointer.container) - 1; // index not count
+                    var count = state.VisitCountForContainer(state.currentPointer.container) - 1; // index not count
                     state.PushEvaluationStack (new IntValue (count));
                     break;
 
@@ -1345,7 +1345,7 @@ namespace Ink.Runtime
                 if (varRef.pathForCount != null) {
 
                     var container = varRef.containerForCount;
-                    int count = VisitCountForContainer (container);
+                    int count = state.VisitCountForContainer (container);
                     foundValue = new IntValue (count);
                 }
 
@@ -2053,6 +2053,73 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// ADVANCED!
+        /// When a story gets very large, the state becomes bigger and bigger
+        /// as it has to store information about how many times knots, stitches,
+        /// choices and gathers have been seen.
+        /// Lookups help to solve this problem and make the save data smaller
+        /// to help with performance issues. When enabling lookups, a piece of
+        /// json is returned which is the lookup table that's specific to this
+        /// version of the story, and any state that's saved for this version of
+        /// the story relies on it. Any time you perform state.LoadJson() you
+        /// then need to pass in this chunk of json as the second parameter.
+        /// The lookup table will be large, but only need to be saved once,
+        /// and allows the individual save states to be optimised, storing a
+        /// large array of numbers for all the read counts and turn indices,
+        /// rather than a dictionary with all the knot/stitch names included.
+        /// </summary>
+        public string EnableLookups()
+        {
+            if (state.lookups == null) {
+                var lookups = new StoryLookups();
+                GenerateLookups(mainContentContainer, lookups);
+                state.lookups = lookups;
+            }
+
+            var writer = new SimpleJson.Writer();
+            writer.WriteArrayStart();
+            writer.WriteArrayStart();
+            foreach (var name in state.lookups.visitCountNames) writer.Write(name);
+            writer.WriteArrayEnd();
+            writer.WriteArrayStart();
+            foreach (var name in state.lookups.turnIndexNames) writer.Write(name);
+            writer.WriteArrayEnd();
+            writer.WriteArrayEnd();
+            var str = writer.ToString();
+
+            return str;
+        }
+        
+        void GenerateLookups(Container container, StoryLookups lookups)
+        {
+            if (container.visitsShouldBeCounted)
+            {
+                container.visitLookupIdx = lookups.visitCountNames.Count;
+                lookups.visitCountNames.Add(container.path.componentsString);
+            }
+
+            if (container.turnIndexShouldBeCounted)
+            {
+                container.turnLookupIdx = lookups.turnIndexNames.Count;
+                lookups.turnIndexNames.Add(container.path.componentsString);
+            }
+
+            foreach(var obj in container.content) {
+                var subContainer = obj as Container;
+                if (subContainer)
+                    GenerateLookups(subContainer, lookups);
+            }
+
+            if(container.namedOnlyContent != null) {
+                foreach (var obj in container.namedOnlyContent.Values)
+                {
+                    var subContainer = obj as Container;
+                    GenerateLookups(subContainer, lookups);
+                }
+            }
+        }
+
+        /// <summary>
         /// Useful when debugging a (very short) story, to visualise the state of the
         /// story. Add this call as a watch and open the extended text. A left-arrow mark
         /// will denote the current point of the story.
@@ -2195,48 +2262,6 @@ namespace Ink.Runtime
             return true;
         }
             
-        int VisitCountForContainer(Container container)
-        {
-            if( !container.visitsShouldBeCounted ) {
-                Error ("Read count for target ("+container.name+" - on "+container.debugMetadata+") unknown.");
-                return 0;
-            }
-
-            int count = 0;
-            var containerPathStr = container.path.ToString();
-            state.visitCounts.TryGetValue (containerPathStr, out count);
-            return count;
-        }
-
-        void IncrementVisitCountForContainer(Container container)
-        {
-            int count = 0;
-            var containerPathStr = container.path.ToString();
-            state.visitCounts.TryGetValue (containerPathStr, out count);
-            count++;
-            state.visitCounts [containerPathStr] = count;
-        }
-
-        void RecordTurnIndexVisitToContainer(Container container)
-        {
-            var containerPathStr = container.path.ToString();
-            state.turnIndices [containerPathStr] = state.currentTurnIndex;
-        }
-
-        int TurnsSinceForContainer(Container container)
-        {
-            if( !container.turnIndexShouldBeCounted ) {
-                Error ("TURNS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown.");
-            }
-
-            int index = 0;
-            var containerPathStr = container.path.ToString();
-            if (state.turnIndices.TryGetValue (containerPathStr, out index)) {
-                return state.currentTurnIndex - index;
-            } else {
-                return -1;
-            }
-        }
 
         // Note that this is O(n), since it re-evaluates the shuffle indices
         // from a consistent seed each time.

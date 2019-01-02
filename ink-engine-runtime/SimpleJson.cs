@@ -16,6 +16,11 @@ namespace Ink.Runtime
             return new Reader (text).ToDictionary ();
         }
 
+        public static List<object> TextToArray(string text)
+        {
+            return new Reader(text).ToArray();
+        }
+
         class Reader
         {
             public Reader (string text)
@@ -31,6 +36,11 @@ namespace Ink.Runtime
             public Dictionary<string, object> ToDictionary ()
             {
                 return (Dictionary<string, object>)_rootObject;
+            }
+
+            public List<object> ToArray()
+            {
+                return (List<object>)_rootObject;
             }
 
             bool IsNumberChar (char c)

@@ -60,6 +60,7 @@
     <Compile Include="Profiler.cs" />
     <Compile Include="Pointer.cs" />
     <Compile Include="SearchResult.cs" />
+    <Compile Include="StoryLookups.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

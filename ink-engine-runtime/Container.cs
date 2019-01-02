@@ -65,6 +65,9 @@ namespace Ink.Runtime
         public bool turnIndexShouldBeCounted { get; set; }
         public bool countingAtStartOnly { get; set; }
 
+        public int visitLookupIdx;
+        public int turnLookupIdx;
+
         [Flags]
         public enum CountFlags
         {
