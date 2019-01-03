@@ -64,6 +64,9 @@ namespace Ink.Runtime
             get {
                 Runtime.Object varContents;
 
+                if (patch != null && patch.TryGetGlobal(variableName, out varContents))
+                    return (varContents as Runtime.Value).valueObject;
+
                 // Search main dictionary first.
                 // If it's not found, it might be because the story content has changed,
                 // and the original default value hasn't be instantiated.
