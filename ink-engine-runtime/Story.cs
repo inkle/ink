@@ -421,9 +421,8 @@ namespace Ink.Runtime
             if (outputStreamEndsInNewline || !canContinue) {
 
                 // Need to rewind, due to evaluating further than we should?
-                if( _stateAtLastNewline != null ) {
-    				RestoreStateSnapshot (_stateAtLastNewline);
-                    _stateAtLastNewline = null;
+                if( _stateSnapshotAtLastNewline != null ) {
+    				RestoreStateSnapshot ();
                 }
 
                 // Finished a section of content / reached a choice point?
@@ -481,19 +480,19 @@ namespace Ink.Runtime
 
                 // We previously found a newline, but were we just double checking that
                 // it wouldn't immediately be removed by glue?
-                if (_stateAtLastNewline != null) {
+                if (_stateSnapshotAtLastNewline != null) {
 
                     // Has proper text or a tag been added? Then we know that the newline
                     // that was previously added is definitely the end of the line.
                     var change = CalculateNewlineOutputStateChange (
-                        _stateAtLastNewline.currentText,       state.currentText, 
-                        _stateAtLastNewline.currentTags.Count, state.currentTags.Count
+                        _stateSnapshotAtLastNewline.currentText,       state.currentText, 
+                        _stateSnapshotAtLastNewline.currentTags.Count, state.currentTags.Count
                     );
 
                     // The last time we saw a newline, it was definitely the end of the line, so we
                     // want to rewind to that point.
                     if (change == OutputStateChange.ExtendedBeyondNewline) {
-                        RestoreStateSnapshot (_stateAtLastNewline);
+                        RestoreStateSnapshot ();
 
                         // Hit a newline for sure, we're done
                         return true;
@@ -502,8 +501,7 @@ namespace Ink.Runtime
                     // Newline that previously existed is no longer valid - e.g.
                     // glue was encounted that caused it to be removed.
                     else if (change == OutputStateChange.NewlineRemoved) {
-                        _state.ApplyAnyPatch();
-                        _stateAtLastNewline = null;
+                        DiscardSnapshot();
                     }
                 }
 
@@ -520,15 +518,14 @@ namespace Ink.Runtime
                         // e.g.:
                         // Hello world\n            // record state at the end of here
                         // ~ complexCalculation()   // don't actually need this unless it generates text
-                        if (_stateAtLastNewline == null)
-                            _stateAtLastNewline = StateSnapshot ();
+                        if (_stateSnapshotAtLastNewline == null)
+                            StateSnapshot ();
                     }
 
                     // Can't continue, so we're about to exit - make sure we
                     // don't have an old state hanging around.
                     else {
-                        _state.ApplyAnyPatch();
-                        _stateAtLastNewline = null;
+                        DiscardSnapshot();
                     }
 
                 }
@@ -652,23 +649,30 @@ namespace Ink.Runtime
             return p;
         }
 
-        StoryState StateSnapshot()
+        void StateSnapshot()
         {
-            var snapshot = state;
-            _state = snapshot.CopyAndStartPatching();
-            return snapshot;
+            _stateSnapshotAtLastNewline = _state;
+            _state = _state.CopyAndStartPatching();
         }
 
-        void RestoreStateSnapshot(StoryState s)
+        void RestoreStateSnapshot()
         {
-            _state = s;
-
             // Patched state had temporarily hijacked our
             // VariableState and set its own callstack on it,
             // so we need to restore that.
-            _state.ReclaimAfterPatch();
+            _stateSnapshotAtLastNewline.ReclaimAfterPatch();
+
+            _state = _stateSnapshotAtLastNewline;
+            _stateSnapshotAtLastNewline = null;
         }
-            
+
+        void DiscardSnapshot()
+        {
+            _state.ApplyAnyPatch();
+            _stateSnapshotAtLastNewline = null;
+        }
+
+
         void Step ()
         {
             bool shouldAddToStream = true;
@@ -2445,7 +2449,7 @@ namespace Ink.Runtime
         StoryState _state;
 
         bool _asyncContinueActive;
-        StoryState _stateAtLastNewline = null;
+        StoryState _stateSnapshotAtLastNewline = null;
 
         int _recursiveContinueCount = 0;
 
