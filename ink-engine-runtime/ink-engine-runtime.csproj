@@ -61,6 +61,7 @@
     <Compile Include="Pointer.cs" />
     <Compile Include="SearchResult.cs" />
     <Compile Include="StoryLookups.cs" />
+    <Compile Include="StatePatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -74,6 +74,17 @@ namespace Ink.Runtime
         /// the specific knot or stitch.</param>
         public int VisitCountAtPathString(string pathString)
         {
+            int visitCountOut;
+
+            if ( _patch != null ) {
+                var container = story.ContentAtPath(new Path(pathString)).container;
+                if (container == null)
+                    throw new Exception("Content at path not found: " + pathString);
+
+                if( _patch.TryGetVisitCount(container, out visitCountOut) )
+                    return visitCountOut;
+            }
+
             if( lookups != null ) {
                 var container = story.ContentAtPath(new Path(pathString)).container;
                 if( container != null && container.visitLookupIdx >= 0 && container.visitLookupIdx < _visitCountsByLookupIndex.Count) {
@@ -82,7 +93,6 @@ namespace Ink.Runtime
             }
 
             else {
-                int visitCountOut;
                 if (visitCounts.TryGetValue(pathString, out visitCountOut))
                     return visitCountOut;
             }
@@ -98,6 +108,10 @@ namespace Ink.Runtime
                 return 0;
             }
 
+            int count = 0;
+            if (_patch != null && _patch.TryGetVisitCount(container, out count))
+                return count;
+
             if( lookups != null ) {
                 if (container.visitLookupIdx >= 0 && container.visitLookupIdx < _visitCountsByLookupIndex.Count) {
                     return _visitCountsByLookupIndex[container.visitLookupIdx];
@@ -105,7 +119,6 @@ namespace Ink.Runtime
                 throw new System.Exception("Tried to look up visit count for container " + container.path.componentsString + " but its lookup index was out of range: " + container.visitLookupIdx);
             }
 
-            int count = 0;
             var containerPathStr = container.path.ToString();
             visitCounts.TryGetValue(containerPathStr, out count);
             return count;
@@ -113,6 +126,13 @@ namespace Ink.Runtime
 
         internal void IncrementVisitCountForContainer(Container container)
         {
+            if( _patch != null ) {
+                var currCount = VisitCountForContainer(container);
+                currCount++;
+                _patch.SetVisitCount(container, currCount);
+                return;
+            }
+
             if (lookups != null)
             {
                 if (container.visitLookupIdx >= 0 && container.visitLookupIdx < _visitCountsByLookupIndex.Count)
@@ -132,6 +152,11 @@ namespace Ink.Runtime
 
         internal void RecordTurnIndexVisitToContainer(Container container)
         {
+            if( _patch != null ) {
+                _patch.SetTurnIndex(container, currentTurnIndex);
+                return;
+            }
+
             if (lookups != null)
             {
                 if (container.turnLookupIdx >= 0 && container.turnLookupIdx < _turnIndicesByLookupIndex.Count)
@@ -153,6 +178,12 @@ namespace Ink.Runtime
                 story.Error("TURNS_SINCE() for target (" + container.name + " - on " + container.debugMetadata + ") unknown.");
             }
 
+            int index = 0;
+
+            if ( _patch != null && _patch.TryGetTurnIndex(container, out index) ) {
+                return currentTurnIndex - index;
+            }
+
             if (lookups != null)
             {
                 if (container.turnLookupIdx >= 0 && container.turnLookupIdx < _turnIndicesByLookupIndex.Count)
@@ -164,7 +195,7 @@ namespace Ink.Runtime
                 throw new System.Exception("Tried to look up turn index for container " + container.path.componentsString + " but its lookup index was out of range: " + container.turnLookupIdx + " (lookups length = " + _turnIndicesByLookupIndex.Count + ")");
             }
 
-            int index = 0;
+
             var containerPathStr = container.path.ToString();
             if (turnIndices.TryGetValue(containerPathStr, out index))
             {
@@ -447,9 +478,11 @@ namespace Ink.Runtime
         // Runtime.Objects are treated as immutable after they've been set up.
         // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
-        internal StoryState Copy()
+        internal StoryState CopyAndStartPatching()
         {
             var copy = new StoryState(story);
+
+            copy._patch = new StatePatch();
 
             copy.outputStream.AddRange(_outputStream);
 			OutputStreamDirty();
@@ -467,8 +500,15 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
-            copy.variablesState.CopyFrom (variablesState);
+            // ref copy - exactly the same variables state!
+            // we're expecting not to read it only while in patch mode
+            // (though the callstack will be modified)
+            copy.variablesState = variablesState;
+            copy.variablesState.callStack = copy.callStack;
+            copy.variablesState.patch = copy._patch;
+
+            //copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
+            //copy.variablesState.CopyFrom (variablesState);
 
             copy.evaluationStack.AddRange (evaluationStack);
 
@@ -477,16 +517,24 @@ namespace Ink.Runtime
 
             copy.previousPointer = previousPointer;
 
-            if( visitCounts != null )
-                copy.visitCounts = new Dictionary<string, int> (visitCounts);
-            if( turnIndices != null )
-                copy.turnIndices = new Dictionary<string, int> (turnIndices);
+            // visit counts and turn indicies will be read only, not modified
+            // while in patch mode
+            copy.visitCounts = visitCounts;
+            copy.turnIndices = turnIndices;
+            copy.lookups = lookups;
+            copy._visitCountsByLookupIndex = _visitCountsByLookupIndex;
+            copy._turnIndicesByLookupIndex = _turnIndicesByLookupIndex;
+
+            //if( visitCounts != null )
+            //    copy.visitCounts = new Dictionary<string, int> (visitCounts);
+            //if( turnIndices != null )
+            //    copy.turnIndices = new Dictionary<string, int> (turnIndices);
                 
-            if( lookups != null ) {
-                copy.lookups = lookups;
-                copy._visitCountsByLookupIndex = new List<int>(_visitCountsByLookupIndex);
-                copy._turnIndicesByLookupIndex = new List<int>(_turnIndicesByLookupIndex);
-            }
+            //if( lookups != null ) {
+            //    copy.lookups = lookups;
+            //    copy._visitCountsByLookupIndex = new List<int>(_visitCountsByLookupIndex);
+            //    copy._turnIndicesByLookupIndex = new List<int>(_turnIndicesByLookupIndex);
+            //}
 
             copy.currentTurnIndex = currentTurnIndex;
             copy.storySeed = storySeed;
@@ -495,6 +543,46 @@ namespace Ink.Runtime
             copy.didSafeExit = didSafeExit;
 
             return copy;
+        }
+
+        internal void ReclaimAfterPatch()
+        {
+            // VariablesState was being borrowed by the patched
+            //state, so relaim it
+            variablesState.callStack = callStack;
+        }
+
+        internal void ApplyAnyPatch()
+        {
+            if (_patch == null) return;
+
+            variablesState.ApplyPatch();
+
+            foreach(var pathToCount in _patch.visitCounts)
+                ApplyCountChanges(pathToCount.Key, pathToCount.Value, isVisit:true);
+
+            foreach (var pathToIndex in _patch.turnIndices)
+                ApplyCountChanges(pathToIndex.Key, pathToIndex.Value, isVisit:false);
+
+            _patch = null;
+        }
+
+        void ApplyCountChanges(Container container, int newCount, bool isVisit)
+        {
+            if (lookups != null)
+            {
+                var lookupIdx = isVisit ? container.visitLookupIdx : container.turnLookupIdx;
+                var lookupCounts = isVisit ? _visitCountsByLookupIndex : _turnIndicesByLookupIndex;
+                if (lookupIdx  >= 0 && lookupIdx < lookupCounts.Count)
+                {
+                    lookupCounts[lookupIdx] = newCount;
+                    return;
+                }
+                throw new System.Exception("Tried to patch count for container " + container.path.componentsString + " but its lookup index was out of range: " + container.visitLookupIdx + " (lookups length = " + _visitCountsByLookupIndex.Count + ")");
+            }
+
+            var counts = isVisit ? visitCounts : turnIndices;
+            counts[container.path.ToString()] = newCount;
         }
 
         // Writes out all read counts or turn indices in a big long array rather than a dictionary.
@@ -1276,6 +1364,8 @@ namespace Ink.Runtime
 		bool _outputStreamTagsDirty = true;
 
 		List<Choice> _currentChoices;
+
+        StatePatch _patch;
     }
 }
 

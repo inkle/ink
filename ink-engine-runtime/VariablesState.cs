@@ -12,6 +12,8 @@ namespace Ink.Runtime
         internal delegate void VariableChanged(string variableName, Runtime.Object newValue);
         internal event VariableChanged variableChangedEvent;
 
+        internal StatePatch patch;
+
         internal bool batchObservingVariableChanges 
         { 
             get {
@@ -110,27 +112,39 @@ namespace Ink.Runtime
             _listDefsOrigin = listDefsOrigin;
         }
 
-        internal void CopyFrom (VariablesState toCopy)
+        //internal void CopyFrom (VariablesState toCopy)
+        //{
+        //    _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
+
+        //    // It's read-only, so no need to create a new copy
+        //    _defaultGlobalVariables = toCopy._defaultGlobalVariables;
+
+        //    variableChangedEvent = toCopy.variableChangedEvent;
+
+        //    if (toCopy.batchObservingVariableChanges != batchObservingVariableChanges) {
+
+        //        if (toCopy.batchObservingVariableChanges) {
+        //            _batchObservingVariableChanges = true;
+        //            _changedVariables = new HashSet<string> (toCopy._changedVariables);
+        //        } else {
+        //            _batchObservingVariableChanges = false;
+        //            _changedVariables = null;
+        //        }
+        //    }
+        //}
+
+        public void ApplyPatch()
         {
-            _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
-
-            // It's read-only, so no need to create a new copy
-            _defaultGlobalVariables = toCopy._defaultGlobalVariables;
-
-            variableChangedEvent = toCopy.variableChangedEvent;
-
-            if (toCopy.batchObservingVariableChanges != batchObservingVariableChanges) {
-
-                if (toCopy.batchObservingVariableChanges) {
-                    _batchObservingVariableChanges = true;
-                    _changedVariables = new HashSet<string> (toCopy._changedVariables);
-                } else {
-                    _batchObservingVariableChanges = false;
-                    _changedVariables = null;
-                }
+            foreach(var namedVar in patch.globals) {
+                _globalVariables[namedVar.Key] = namedVar.Value;
             }
+
+            foreach (var name in patch.changedVariables)
+                _changedVariables.Add(name);
+
+            patch = null;
         }
-            
+
         internal void SetJsonToken(Dictionary<string, object> jToken)
         {
             _globalVariables.Clear();
@@ -245,6 +259,9 @@ namespace Ink.Runtime
 
             // 0 context = global
             if (contextIndex == 0 || contextIndex == -1) {
+                if (patch != null && patch.TryGetGlobal(name, out varValue))
+                    return varValue;
+
                 if ( _globalVariables.TryGetValue (name, out varValue) )
                     return varValue;
 
@@ -327,16 +344,23 @@ namespace Ink.Runtime
         internal void SetGlobal(string variableName, Runtime.Object value)
         {
             Runtime.Object oldValue = null;
-            _globalVariables.TryGetValue (variableName, out oldValue);
+            if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )
+                _globalVariables.TryGetValue (variableName, out oldValue);
 
             ListValue.RetainListOriginsForAssignment (oldValue, value);
 
-            _globalVariables [variableName] = value;
+            if (patch != null)
+                patch.SetGlobal(variableName, value);
+            else
+                _globalVariables [variableName] = value;
 
             if (variableChangedEvent != null && !value.Equals (oldValue)) {
 
                 if (batchObservingVariableChanges) {
-                    _changedVariables.Add (variableName);
+                    if (patch != null)
+                        patch.AddChangedVariable(variableName);
+                    else
+                        _changedVariables.Add (variableName);
                 } else {
                     variableChangedEvent (variableName, value);
                 }

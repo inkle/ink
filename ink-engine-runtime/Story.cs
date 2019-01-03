@@ -502,6 +502,7 @@ namespace Ink.Runtime
                     // Newline that previously existed is no longer valid - e.g.
                     // glue was encounted that caused it to be removed.
                     else if (change == OutputStateChange.NewlineRemoved) {
+                        _state.ApplyAnyPatch();
                         _stateAtLastNewline = null;
                     }
                 }
@@ -526,6 +527,7 @@ namespace Ink.Runtime
                     // Can't continue, so we're about to exit - make sure we
                     // don't have an old state hanging around.
                     else {
+                        _state.ApplyAnyPatch();
                         _stateAtLastNewline = null;
                     }
 
@@ -652,12 +654,19 @@ namespace Ink.Runtime
 
         StoryState StateSnapshot()
         {
-            return state.Copy ();
+            var snapshot = state;
+            _state = snapshot.CopyAndStartPatching();
+            return snapshot;
         }
 
-        void RestoreStateSnapshot(StoryState state)
+        void RestoreStateSnapshot(StoryState s)
         {
-            _state = state;
+            _state = s;
+
+            // Patched state had temporarily hijacked our
+            // VariableState and set its own callstack on it,
+            // so we need to restore that.
+            _state.ReclaimAfterPatch();
         }
             
         void Step ()
