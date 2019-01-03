@@ -550,6 +550,7 @@ namespace Ink.Runtime
             // VariablesState was being borrowed by the patched
             //state, so relaim it
             variablesState.callStack = callStack;
+            variablesState.patch = null;
         }
 
         internal void ApplyAnyPatch()
