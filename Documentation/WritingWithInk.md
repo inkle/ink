@@ -1,5 +1,46 @@
 # Writing with ink
 
+<details>
+  <summary>Table of Contents</summary>
+
+  * [Introduction](#introduction)
+  * [Part One: The Basics](#part-one-the-basics)
+    * [1) Content](#1-content)
+    * [2) Choices](#2-choices)
+    * [3) Knots](#3-knots)
+    * [4) Diverts](#4-diverts)
+    * [5) Branching The Flow](#5-branching-the-flow)
+    * [6) Includes and Stitches](#6-includes-and-stitches)
+    * [7) Varying Choices](#7-varying-choices)
+    * [8) Variable Text](#8-variable-text)
+    * [9) Game Queries and Functions](#9-game-queries-and-functions)
+  * [Part 2: Weave](#part-2-weave)
+    * [1) Gathers](#1-gathers)
+    * [2) Nested Flow](#2-nested-flow)
+    * [3) Tracking a Weave](#3-tracking-a-weave)
+  * [Part 3: Variables and Logic](#part-3-variables-and-logic)
+    * [1) Global Variables](#1-global-variables)
+    * [2) Logic](#2-logic)
+    * [3) Conditional blocks (if/else)](#3-conditional-blocks-ifelse)
+    * [4) Temporary Variables](#4-temporary-variables)
+    * [5) Functions](#5-functions)
+    * [6) Constants](#6-constants)
+    * [7) Advanced: Game-side logic](#7-advanced-game-side-logic)
+   * [Part 4: Advanced Flow Control](#part-4-advanced-flow-control)
+     * [1) Tunnels](#1-tunnels)
+     * [2) Threads](#2-threads)
+   * [Part 5: Advanced State Tracking](#part-5-advanced-state-tracking)
+     * [1) Basic Lists](#1-basic-lists)
+	 * [2) Reusing Lists](#2-reusing-lists)
+	 * [3) List Values](#3-list-values)
+	 * [4) Multivalued Lists](#4-multivalued-lists)
+	 * [5) Advanced List Operations](#5-advanced-list-operations)
+	 * [6) Multi-list Lists](#6-multi-list-lists)
+	 * [7) Long example: crime scene](#7-long-example-crime-scene)
+	 * [8) Summary](#8-summary)
+   * [Part 6: International character support in identifiers](#part-6-international-character-support-in-identifiers)
+</details>
+
 ## Introduction
 
 **ink** is a scripting language built around the idea of marking up pure-text with flow in order to produce interactive scripts. 
