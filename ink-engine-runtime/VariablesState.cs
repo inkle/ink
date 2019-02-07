@@ -155,7 +155,7 @@ namespace Ink.Runtime
 
 		internal bool GlobalVariableExistsWithName(string name)
 		{
-			return _globalVariables.ContainsKey(name);
+			return _globalVariables.ContainsKey(name) || _defaultGlobalVariables.ContainsKey(name);
 		}
 
         Runtime.Object GetVariableWithName(string name, int contextIndex)
@@ -177,7 +177,7 @@ namespace Ink.Runtime
 
             // 0 context = global
             if (contextIndex == 0 || contextIndex == -1) {
-                if ( _globalVariables.TryGetValue (name, out varValue) )
+                if ( _globalVariables.TryGetValue (name, out varValue) || _defaultGlobalVariables.TryGetValue(name, out varValue) )
                     return varValue;
 
                 var listItemValue = _listDefsOrigin.FindSingleItemListWithName (name);
@@ -206,7 +206,7 @@ namespace Ink.Runtime
             if (varAss.isNewDeclaration) {
                 setGlobal = varAss.isGlobal;
             } else {
-                setGlobal = _globalVariables.ContainsKey (name);
+                setGlobal = GlobalVariableExistsWithName (name);
             }
 
             // Constructing new variable pointer reference
@@ -307,7 +307,7 @@ namespace Ink.Runtime
         // 1+ if named variable is a temporary in a particular call stack element
         int GetContextIndexOfVariableNamed(string varName)
         {
-            if (_globalVariables.ContainsKey (varName))
+            if (GlobalVariableExistsWithName(varName))
                 return 0;
 
             return _callStack.currentElementIndex;
