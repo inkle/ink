@@ -478,7 +478,7 @@ namespace Ink.Runtime
         {
             var copy = new StoryState(story);
 
-            copy._patch = new StatePatch();
+            copy._patch = new StatePatch(_patch);
 
             copy.outputStream.AddRange(_outputStream);
             copy.OutputStreamDirty();
@@ -503,9 +503,6 @@ namespace Ink.Runtime
             copy.variablesState.callStack = copy.callStack;
             copy.variablesState.patch = copy._patch;
 
-            //copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
-            //copy.variablesState.CopyFrom (variablesState);
-
             copy.evaluationStack.AddRange (evaluationStack);
 
             if (!divertedPointer.isNull)
@@ -521,17 +518,6 @@ namespace Ink.Runtime
             copy._visitCountsByLookupIndex = _visitCountsByLookupIndex;
             copy._turnIndicesByLookupIndex = _turnIndicesByLookupIndex;
 
-            //if( visitCounts != null )
-            //    copy.visitCounts = new Dictionary<string, int> (visitCounts);
-            //if( turnIndices != null )
-            //    copy.turnIndices = new Dictionary<string, int> (turnIndices);
-                
-            //if( lookups != null ) {
-            //    copy.lookups = lookups;
-            //    copy._visitCountsByLookupIndex = new List<int>(_visitCountsByLookupIndex);
-            //    copy._turnIndicesByLookupIndex = new List<int>(_turnIndicesByLookupIndex);
-            //}
-
             copy.currentTurnIndex = currentTurnIndex;
             copy.storySeed = storySeed;
             copy.previousRandom = previousRandom;
@@ -544,9 +530,11 @@ namespace Ink.Runtime
         internal void ReclaimAfterPatch()
         {
             // VariablesState was being borrowed by the patched
-            //state, so relaim it
+            // state, so relaim it
+            // _patch will be null normally, but if you're in the
+            // middle of a save, it may contain a _patch for save purpsoes.
             variablesState.callStack = callStack;
-            variablesState.patch = null;
+            variablesState.patch = _patch;
         }
 
         internal void ApplyAnyPatch()

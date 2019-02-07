@@ -22,20 +22,20 @@ namespace Ink.Runtime
             set { 
                 _batchObservingVariableChanges = value;
                 if (value) {
-                    _changedVariables = new HashSet<string> ();
+                    _changedVariablesForBatchObs = new HashSet<string> ();
                 } 
 
                 // Finished observing variables in a batch - now send 
                 // notifications for changed variables all in one go.
                 else {
-                    if (_changedVariables != null) {
-                        foreach (var variableName in _changedVariables) {
+                    if (_changedVariablesForBatchObs != null) {
+                        foreach (var variableName in _changedVariablesForBatchObs) {
                             var currentValue = _globalVariables [variableName];
                             variableChangedEvent (variableName, currentValue);
                         }
                     }
 
-                    _changedVariables = null;
+                    _changedVariablesForBatchObs = null;
                 }
             }
         }
@@ -115,35 +115,16 @@ namespace Ink.Runtime
             _listDefsOrigin = listDefsOrigin;
         }
 
-        //internal void CopyFrom (VariablesState toCopy)
-        //{
-        //    _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
-
-        //    // It's read-only, so no need to create a new copy
-        //    _defaultGlobalVariables = toCopy._defaultGlobalVariables;
-
-        //    variableChangedEvent = toCopy.variableChangedEvent;
-
-        //    if (toCopy.batchObservingVariableChanges != batchObservingVariableChanges) {
-
-        //        if (toCopy.batchObservingVariableChanges) {
-        //            _batchObservingVariableChanges = true;
-        //            _changedVariables = new HashSet<string> (toCopy._changedVariables);
-        //        } else {
-        //            _batchObservingVariableChanges = false;
-        //            _changedVariables = null;
-        //        }
-        //    }
-        //}
-
-        public void ApplyPatch()
+        internal void ApplyPatch()
         {
             foreach(var namedVar in patch.globals) {
                 _globalVariables[namedVar.Key] = namedVar.Value;
             }
 
-            foreach (var name in patch.changedVariables)
-                _changedVariables.Add(name);
+            if(_changedVariablesForBatchObs != null ) {
+                foreach (var name in patch.changedVariables)
+                    _changedVariablesForBatchObs.Add(name);
+            }
 
             patch = null;
         }
@@ -362,8 +343,8 @@ namespace Ink.Runtime
                 if (batchObservingVariableChanges) {
                     if (patch != null)
                         patch.AddChangedVariable(variableName);
-                    else
-                        _changedVariables.Add (variableName);
+                    else if(_changedVariablesForBatchObs != null)
+                        _changedVariablesForBatchObs.Add (variableName);
                 } else {
                     variableChangedEvent (variableName, value);
                 }
@@ -414,7 +395,7 @@ namespace Ink.Runtime
 
         // Used for accessing temporary variables
         CallStack _callStack;
-        HashSet<string> _changedVariables;
+        HashSet<string> _changedVariablesForBatchObs;
         ListDefinitionsOrigin _listDefsOrigin;
     }
 }

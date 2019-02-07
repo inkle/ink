@@ -649,6 +649,11 @@ namespace Ink.Runtime
             return p;
         }
 
+        // Maximum snapshot stack:
+        //  - stateSnapshotDuringSave -- not retained, but returned to game code
+        //  - _stateSnapshotAtLastNewline (has older patch)
+        //  - _state (current, being patched)
+
         void StateSnapshot()
         {
             _stateSnapshotAtLastNewline = _state;
@@ -658,8 +663,10 @@ namespace Ink.Runtime
         void RestoreStateSnapshot()
         {
             // Patched state had temporarily hijacked our
-            // VariableState and set its own callstack on it,
+            // VariablesState and set its own callstack on it,
             // so we need to restore that.
+            // If we're in the middle of saving, we may also
+            // need to give the VariablesState the old patch.
             _stateSnapshotAtLastNewline.ReclaimAfterPatch();
 
             _state = _stateSnapshotAtLastNewline;
@@ -668,9 +675,46 @@ namespace Ink.Runtime
 
         void DiscardSnapshot()
         {
-            _state.ApplyAnyPatch();
+            // Normally we want to integrate the patch
+            // into the main global/counts dictionaries.
+            // However, if we're in the middle of async
+            // saving, we simply stay in a "patching" state,
+            // albeit with the newer cloned patch.
+            if( !_asyncSaving )
+                _state.ApplyAnyPatch();
+
             _stateSnapshotAtLastNewline = null;
         }
+
+        /// <summary>
+        /// Advanced usage!
+        /// If you have a large story, and saving state to JSON takes too long for your
+        /// framerate, you can temporarily freeze a copy of the state for saving on 
+        /// a separate thread. Internally, the engine maintains a "diff patch".
+        /// When you've finished saving your state, call BackgroundSaveComplete()
+        /// and that diff patch will be applied, allowing the story to continue
+        /// in its usual mode.
+        /// </summary>
+        /// <returns>The state for background thread save.</returns>
+        public StoryState CopyStateForBackgroundThreadSave()
+        {
+            if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
+            var stateToSave = _state;
+            _state = _state.CopyAndStartPatching();
+            _asyncSaving = true;
+            return stateToSave;
+        }
+
+        /// <summary>
+        /// See CopyStateForBackgroundThreadSave. This method releases the
+        /// "frozen" save state, applying its patch that it was using internally.
+        /// </summary>
+        public void BackgroundSaveComplete()
+        {
+            _state.ApplyAnyPatch();
+            _asyncSaving = false;
+        }
+
 
 
         void Step ()
@@ -2453,7 +2497,9 @@ namespace Ink.Runtime
 
         int _recursiveContinueCount = 0;
 
-		Profiler _profiler;
+        bool _asyncSaving;
+
+        Profiler _profiler;
 	}
 }
 
