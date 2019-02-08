@@ -155,7 +155,7 @@ namespace Ink.Runtime
 
 		internal bool GlobalVariableExistsWithName(string name)
 		{
-			return _globalVariables.ContainsKey(name) || _defaultGlobalVariables.ContainsKey(name);
+			return _globalVariables.ContainsKey(name) || _defaultGlobalVariables != null && _defaultGlobalVariables.ContainsKey(name);
 		}
 
         Runtime.Object GetVariableWithName(string name, int contextIndex)
@@ -177,8 +177,18 @@ namespace Ink.Runtime
 
             // 0 context = global
             if (contextIndex == 0 || contextIndex == -1) {
-                if ( _globalVariables.TryGetValue (name, out varValue) || _defaultGlobalVariables.TryGetValue(name, out varValue) )
+                
+                if ( _globalVariables.TryGetValue (name, out varValue) )
                     return varValue;
+
+                // Getting variables can actually happen during globals set up since you can do
+                //  VAR x = A_LIST_ITEM
+                // So _defaultGlobalVariables may be null.
+                // We need to do this check though in case a new global is added, so we need to
+                // revert to the default globals dictionary since an initial value hasn't yet been set.
+                if( _defaultGlobalVariables != null && _defaultGlobalVariables.TryGetValue(name, out varValue) ) {
+                    return varValue;
+                }
 
                 var listItemValue = _listDefsOrigin.FindSingleItemListWithName (name);
                 if (listItemValue)
