@@ -39,7 +39,12 @@ namespace Ink.Runtime
 
             bool IsNumberChar (char c)
             {
-                return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+';
+                return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+' || c == 'E' || c == 'e';
+            }
+
+            bool IsFirstNumberChar(char c)
+            {
+                return c >= '0' && c <= '9' || c == '-' || c == '+';
             }
 
             object ReadObject ()
@@ -55,7 +60,7 @@ namespace Ink.Runtime
                 else if (currentChar == '"')
                     return ReadString ();
 
-                else if (IsNumberChar(currentChar))
+                else if (IsFirstNumberChar(currentChar))
                     return ReadNumber ();
 
                 else if (TryRead ("true"))
@@ -214,7 +219,7 @@ namespace Ink.Runtime
                 bool isFloat = false;
                 for (; _offset < _text.Length; _offset++) {
                     var c = _text [_offset];
-                    if (c == '.') isFloat = true;
+                    if (c == '.' || c == 'e' || c == 'E') isFloat = true;
                     if (IsNumberChar (c))
                         continue;
                     else
@@ -235,7 +240,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                throw new System.Exception ("Failed to parse number value");
+                throw new System.Exception ("Failed to parse number value: "+numStr);
             }
 
             bool TryRead (string textToRead)
@@ -305,8 +310,17 @@ namespace Ink.Runtime
                     _sb.Append ((int)obj);
                 } else if (obj is float) {
                     string floatStr = ((float)obj).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    _sb.Append (floatStr);
-                    if (!floatStr.Contains (".")) _sb.Append (".0");
+                    if( floatStr == "Infinity" ) {
+                        _sb.Append("3.4E+38"); // JSON doesn't support, do our best alternative
+                    } else if (floatStr == "-Infinity") {
+                        _sb.Append("-3.4E+38");
+                    } else if ( floatStr == "NaN" ) {
+                        _sb.Append("0.0"); // JSON doesn't support, not much we can do
+                    } else {
+                        _sb.Append(floatStr);
+                        if (!floatStr.Contains(".") && !floatStr.Contains("E")) 
+                            _sb.Append(".0"); // ensure it gets read back in as a floating point value
+                    }
                 } else if( obj is bool) {
                     _sb.Append ((bool)obj == true ? "true" : "false");
                 } else if (obj == null) {
