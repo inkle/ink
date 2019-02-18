@@ -45,7 +45,12 @@ namespace Ink.Runtime
 
             bool IsNumberChar (char c)
             {
-                return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+';
+                return c >= '0' && c <= '9' || c == '.' || c == '-' || c == '+' || c == 'E' || c == 'e';
+            }
+
+            bool IsFirstNumberChar(char c)
+            {
+                return c >= '0' && c <= '9' || c == '-' || c == '+';
             }
 
             object ReadObject ()
@@ -61,7 +66,7 @@ namespace Ink.Runtime
                 else if (currentChar == '"')
                     return ReadString ();
 
-                else if (IsNumberChar(currentChar))
+                else if (IsFirstNumberChar(currentChar))
                     return ReadNumber ();
 
                 else if (TryRead ("true"))
@@ -220,7 +225,7 @@ namespace Ink.Runtime
                 bool isFloat = false;
                 for (; _offset < _text.Length; _offset++) {
                     var c = _text [_offset];
-                    if (c == '.') isFloat = true;
+                    if (c == '.' || c == 'e' || c == 'E') isFloat = true;
                     if (IsNumberChar (c))
                         continue;
                     else
@@ -241,7 +246,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                throw new System.Exception ("Failed to parse number value");
+                throw new System.Exception ("Failed to parse number value: "+numStr);
             }
 
             bool TryRead (string textToRead)
@@ -463,9 +468,18 @@ namespace Ink.Runtime
                 // TODO: Find an heap-allocation-free way to do this please!
                 // _writer.Write(formatStr, obj (the float)) requires boxing
                 // Following implementation seems to work ok but requires creating temporary garbage string.
-                string floatStr = (f).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                _writer.Write(floatStr);
-                if (!floatStr.Contains(".")) _writer.Write(".0");
+                string floatStr = ((float)obj).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if( floatStr == "Infinity" ) {
+                    _writer.Write("3.4E+38"); // JSON doesn't support, do our best alternative
+                } else if (floatStr == "-Infinity") {
+                    _writer.Write("-3.4E+38"); // JSON doesn't support, do our best alternative
+                } else if ( floatStr == "NaN" ) {
+                    _writer.Write("0.0"); // JSON doesn't support, not much we can do
+                } else {
+                    _writer.Write(floatStr);
+                    if (!floatStr.Contains(".") && !floatStr.Contains("E")) 
+                        _writer.Write(".0"); // ensure it gets read back in as a floating point value
+                }
             }
 
             public void Write(string str, bool escape = true)
