@@ -468,7 +468,7 @@ namespace Ink.Runtime
                 // TODO: Find an heap-allocation-free way to do this please!
                 // _writer.Write(formatStr, obj (the float)) requires boxing
                 // Following implementation seems to work ok but requires creating temporary garbage string.
-                string floatStr = ((float)obj).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                string floatStr = f.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 if( floatStr == "Infinity" ) {
                     _writer.Write("3.4E+38"); // JSON doesn't support, do our best alternative
                 } else if (floatStr == "-Infinity") {
