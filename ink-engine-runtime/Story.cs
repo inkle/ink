@@ -2124,6 +2124,10 @@ namespace Ink.Runtime
         /// and allows the individual save states to be optimised, storing a
         /// large array of numbers for all the read counts and turn indices,
         /// rather than a dictionary with all the knot/stitch names included.
+        /// Each lookup table is specific to a version of the story, so you
+        /// should call this right after loading the story, and keep it around
+        /// while the game/story is loaded so that you can save it out whenever
+        /// a state is saved.
         /// </summary>
         public string EnableLookups()
         {
