@@ -711,7 +711,20 @@ namespace Ink.Runtime
         /// </summary>
         public void BackgroundSaveComplete()
         {
-            _state.ApplyAnyPatch();
+            // CopyStateForBackgroundThreadSave must be called outside
+            // of any async ink evaluation, since otherwise you'd be saving
+            // during an intermediate state.
+            // Therefore, when CopyStateForBackgroundThreadSave was called,
+            // it would've been the earliest version of the state that we
+            // have available. If we took a snapshot during async evaluation
+            // then it'll be this snapshot where the save patch needs
+            // to be applied, not _state.
+            // Any further patch on the current _state will 
+            if ( _stateSnapshotAtLastNewline != null )
+                _stateSnapshotAtLastNewline.ApplyAnyPatch();
+            else
+                _state.ApplyAnyPatch();
+
             _asyncSaving = false;
         }
 
