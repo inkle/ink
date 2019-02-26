@@ -527,14 +527,14 @@ namespace Ink.Runtime
             return copy;
         }
 
-        internal void ReclaimAfterPatch()
+        internal void RestoreAfterPatch()
         {
             // VariablesState was being borrowed by the patched
-            // state, so relaim it
+            // state, so restore it with our own callstack.
             // _patch will be null normally, but if you're in the
             // middle of a save, it may contain a _patch for save purpsoes.
             variablesState.callStack = callStack;
-            variablesState.patch = _patch;
+            variablesState.patch = _patch; // usually null
         }
 
         internal void ApplyAnyPatch()

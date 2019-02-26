@@ -668,10 +668,17 @@ namespace Ink.Runtime
             // so we need to restore that.
             // If we're in the middle of saving, we may also
             // need to give the VariablesState the old patch.
-            _stateSnapshotAtLastNewline.ReclaimAfterPatch();
+            _stateSnapshotAtLastNewline.RestoreAfterPatch();
 
             _state = _stateSnapshotAtLastNewline;
             _stateSnapshotAtLastNewline = null;
+
+            // If save completed while the above snapshot was
+            // active, we need to apply any changes made since
+            // the save was started but before the snapshot was made.
+            if( !_asyncSaving ) {
+                _state.ApplyAnyPatch();
+            }
         }
 
         void DiscardSnapshot()
@@ -684,6 +691,7 @@ namespace Ink.Runtime
             if( !_asyncSaving )
                 _state.ApplyAnyPatch();
 
+            // No longer need the snapshot.
             _stateSnapshotAtLastNewline = null;
         }
 
@@ -716,16 +724,16 @@ namespace Ink.Runtime
             // CopyStateForBackgroundThreadSave must be called outside
             // of any async ink evaluation, since otherwise you'd be saving
             // during an intermediate state.
-            // Therefore, when CopyStateForBackgroundThreadSave was called,
-            // it would've been the earliest version of the state that we
-            // have available. If we took a snapshot during async evaluation
-            // then it'll be this snapshot where the save patch needs
-            // to be applied, not _state.
-            // Any further patch on the current _state will 
-            if ( _stateSnapshotAtLastNewline != null )
-                _stateSnapshotAtLastNewline.ApplyAnyPatch();
-            else
+            // However, it's possible to *complete* the save in the middle of
+            // a glue-lookahead when there's a state stored in _stateSnapshotAtLastNewline.
+            // This state will have its own patch that is newer than the save patch.
+            // We hold off on the final apply until the glue-lookahead is finished.
+            // In that case, the apply is always done, it's just that it may
+            // apply the looked-ahead changes OR it may simply apply the changes
+            // made during the save process to the old _stateSnapshotAtLastNewline state.
+            if ( _stateSnapshotAtLastNewline == null ) {
                 _state.ApplyAnyPatch();
+            }
 
             _asyncSaving = false;
         }
