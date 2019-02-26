@@ -1,5 +1,5 @@
 cd "`dirname "$0"`"
-mono --profile=log:output=output.mlpd inklecate/bin/Release/inklecate.exe -s > report-in-progress.txt
+mono --profile=log:output=output.mlpd inklecate/bin/Release/netcoreapp2.2/inklecate.exe -s > report-in-progress.txt
 echo "----------------------------" >> report-in-progress.txt
 mprof-report --verbose output.mlpd >> report-in-progress.txt  # use --time=10.0-20.0 to select a particular time period
 rm output.mlpd

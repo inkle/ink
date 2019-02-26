@@ -1,10 +1,28 @@
+dist: xenial
+addons:
+  apt:
+    sources:
+      - sourceline: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/16.04/prod xenial main"
+        key_url: "https://packages.microsoft.com/keys/microsoft.asc"
+    packages:
+      - powershell
 language: csharp
 solution: ink.sln
-install:
-  - sudo apt-get install nunit-console
-  
-before_script:
-  - nuget restore ink.sln
+mono: none
+dotnet: 2.2
+cache:
+  directories:
+    - /home/travis/.nuget/packages/
 script:
-  - xbuild ink.sln
-  - nunit-console tests/bin/Debug/ink-tests.dll
+  - dotnet test tests/tests.csproj
+  - pwsh -File ./publish-nuget.ps1
+
+# you can define following variables in the web interface, NOT in this file:
+#   RELEASE_BRANCH to specify what branch should be considered a release branch (optional, default is master)
+#   for nightly builds:
+#     NIGHTLY_FEED_SOURCE_URL and NIGHTLY_FEED_APIKEY (e.g. https://www.myget.org/F/13xforever-inkle-ink-engine/)
+#     PUBLISH_MASTER_BUILDS = true (to also build and push every new commit in master branch)
+#   for release builds:
+#     RELEASE_FEED_SOURCE_URL and RELEASE_FEED_APIKEY (e.g. https://www.nuget.org/)
+# release will be build if commit has version tag, using that version tag
+# see .travis.build_nuget.sh for details

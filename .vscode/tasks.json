@@ -1,26 +1,114 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "Create inklecate build for Windows",
+            "command": "dotnet",
             "type": "shell",
-            "command": "xbuild", // marginally faster than msbuild?
             "args": [
-                "/p:Configuration=Debug",
-                "ink.sln"
+                "publish",
+                "--configuration", "Release",
+                "--runtime", "win-x86",
+                "--self-contained", "false",
+                "${workspaceFolder}/inklecate/inklecate.csproj"
             ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        {
+            "label": "Create inklecate build for Linux",
+            "dependsOn": [ "Create inklecate build for Windows" ],
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--configuration", "Release",
+                "--runtime", "linux-x64",
+                "--self-contained", "false",
+                "${workspaceFolder}/inklecate/inklecate.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        {
+            "label": "Create inklecate build for OSX",
+            "dependsOn": [ "Create inklecate build for Linux" ],
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--configuration", "Release",
+                "--runtime", "osx-x64",
+                "--self-contained", "false",
+                "${workspaceFolder}/inklecate/inklecate.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        {
+            "label": "Create inklecate release",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
             "group": "build",
-            "presentation": {
-                // Reveal the output only if unrecognized errors occur.
-                "reveal": "silent"
+            // build executables for every platform
+            "dependsOn": [ "Create inklecate build for OSX" ],
+            // rebuild project for current platform so that intellisense won't complain
+            "windows": {
+                "command": "dotnet",
+                "args": [
+                    "publish",
+                    "--configuration", "Release",
+                    "--runtime", "win-x64",
+                    "--self-contained", "false",
+                    "${workspaceFolder}/inklecate/inklecate.csproj"
+                ]
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
-            "problemMatcher": "$msCompile"
+            "linux": {
+                "command": "dotnet",
+                "args": [
+                    "publish",
+                    "--configuration", "Release",
+                    "--runtime", "linux-x64",
+                    "--self-contained", "false",
+                    "${workspaceFolder}/inklecate/inklecate.csproj"
+                ]
+            },
+            "osx": {
+                "command": "dotnet",
+                "args": [
+                    "publish",
+                    "--configuration", "Release",
+                    "--runtime", "osx-x64",
+                    "--self-contained", "false",
+                    "${workspaceFolder}/inklecate/inklecate.csproj"
+                ]
+            }
+        },
+        {
+            "label": "Create ink-engine-runtime NuGet package",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "group": "build",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration", "Release",
+                "${workspaceFolder}/ink-engine-runtime/ink-engine-runtime.csproj"
+            ]
+        },
+        {
+            "label": "run tests",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/tests.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
         }
     ]
 }
