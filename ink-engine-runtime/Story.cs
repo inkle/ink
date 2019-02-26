@@ -698,6 +698,7 @@ namespace Ink.Runtime
         /// <returns>The state for background thread save.</returns>
         public StoryState CopyStateForBackgroundThreadSave()
         {
+            IfAsyncWeCant("start saving on a background thread");
             if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
             var stateToSave = _state;
             _state = _state.CopyAndStartPatching();
