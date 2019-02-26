@@ -512,7 +512,7 @@ namespace Ink.Runtime
 
             // visit counts and turn indicies will be read only, not modified
             // while in patch mode
-            copy.lookups = lookups;
+            copy._lookups = lookups;
             copy._visitCounts = _visitCounts;
             copy._turnIndices = _turnIndices;
             copy._visitCountsByLookupIndex = _visitCountsByLookupIndex;

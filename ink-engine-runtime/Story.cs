@@ -258,6 +258,7 @@ namespace Ink.Runtime
 
             _state = new StoryState (this);
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
+            _state.lookups = _lookups;
 
             ResetGlobals ();
         }
@@ -2138,17 +2139,14 @@ namespace Ink.Runtime
         /// and allows the individual save states to be optimised, storing a
         /// large array of numbers for all the read counts and turn indices,
         /// rather than a dictionary with all the knot/stitch names included.
-        /// Each lookup table is specific to a version of the story, so you
-        /// should call this right after loading the story, and keep it around
-        /// while the game/story is loaded so that you can save it out whenever
-        /// a state is saved.
         /// </summary>
+        
         public string EnableLookups()
         {
-            if (state.lookups == null) {
-                var lookups = new StoryLookups();
-                GenerateLookups(mainContentContainer, lookups);
-                state.lookups = lookups;
+            if (_lookups == null) {
+                _lookups = new StoryLookups();
+                GenerateLookups(mainContentContainer);
+                state.lookups = _lookups;
             }
 
             var writer = new SimpleJson.Writer();
@@ -2165,31 +2163,31 @@ namespace Ink.Runtime
             return str;
         }
         
-        void GenerateLookups(Container container, StoryLookups lookups)
+        void GenerateLookups(Container container)
         {
             if (container.visitsShouldBeCounted)
             {
-                container.visitLookupIdx = lookups.visitCountNames.Count;
-                lookups.visitCountNames.Add(container.path.componentsString);
+                container.visitLookupIdx = _lookups.visitCountNames.Count;
+                _lookups.visitCountNames.Add(container.path.componentsString);
             }
 
             if (container.turnIndexShouldBeCounted)
             {
-                container.turnLookupIdx = lookups.turnIndexNames.Count;
-                lookups.turnIndexNames.Add(container.path.componentsString);
+                container.turnLookupIdx = _lookups.turnIndexNames.Count;
+                _lookups.turnIndexNames.Add(container.path.componentsString);
             }
 
             foreach(var obj in container.content) {
                 var subContainer = obj as Container;
                 if (subContainer)
-                    GenerateLookups(subContainer, lookups);
+                    GenerateLookups(subContainer);
             }
 
             if(container.namedOnlyContent != null) {
                 foreach (var obj in container.namedOnlyContent.Values)
                 {
                     var subContainer = obj as Container;
-                    GenerateLookups(subContainer, lookups);
+                    GenerateLookups(subContainer);
                 }
             }
         }
@@ -2516,6 +2514,8 @@ namespace Ink.Runtime
         int _recursiveContinueCount = 0;
 
         bool _asyncSaving;
+
+        StoryLookups _lookups;
 
         Profiler _profiler;
 	}
