@@ -1,70 +1,31 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard1.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>Ink.Runtime</RootNamespace>
     <AssemblyName>ink-engine-runtime</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\ink-engine-runtime.xml</DocumentationFile>
+
+  <PropertyGroup>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\ink-engine-runtime.xml</DocumentationFile>
+    <Company>inkle Ltd</Company>
+    <Authors>InkleStudios</Authors>
+    <Copyright>inkle Ltd</Copyright>
+    <RepositoryUrl>https://github.com/inkle/ink</RepositoryUrl>
+    <PackageProjectUrl>https://www.inklestudios.com/ink/</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/inkle/ink/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <ProjectLicenseFile>../LICENSE.txt</ProjectLicenseFile>
+    <VersionPrefix>0.8.4</VersionPrefix>
+    <PackageIconUrl>https://avatars2.githubusercontent.com/u/1987090</PackageIconUrl>
+    <Description>Runtime engine for the ink scripting language</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageId>Ink.Engine.Runtime</PackageId>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\ink-engine-runtime.xml</DocumentationFile>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="CallStack.cs" />
-    <Compile Include="Container.cs" />
-    <Compile Include="ControlCommand.cs" />
-    <Compile Include="DebugMetadata.cs" />
-    <Compile Include="Divert.cs" />
-    <Compile Include="Glue.cs" />
-    <Compile Include="INamedContent.cs" />
-    <Compile Include="NativeFunctionCall.cs" />
-    <Compile Include="Object.cs" />
-    <Compile Include="Path.cs" />
-    <Compile Include="Story.cs" />
-    <Compile Include="StoryException.cs" />
-    <Compile Include="StringJoinExtension.cs" />
-    <Compile Include="VariableAssignment.cs" />
-    <Compile Include="VariableReference.cs" />
-    <Compile Include="Void.cs" />
-    <Compile Include="VariablesState.cs" />
-    <Compile Include="PushPop.cs" />
-    <Compile Include="StoryState.cs" />
-    <Compile Include="JsonSerialisation.cs" />
-    <Compile Include="Value.cs" />
-    <Compile Include="ChoicePoint.cs" />
-    <Compile Include="Choice.cs" />
-    <Compile Include="SimpleJson.cs" />
-    <Compile Include="Tag.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ListDefinition.cs" />
-    <Compile Include="InkList.cs" />
-    <Compile Include="ListDefinitionsOrigin.cs" />
-    <Compile Include="Profiler.cs" />
-    <Compile Include="Pointer.cs" />
-    <Compile Include="SearchResult.cs" />
-    <Compile Include="StatePatch.cs" />
-    <Compile Include="Error.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

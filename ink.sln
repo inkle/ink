@@ -1,87 +1,122 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28606.126
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inklecate", "inklecate\inklecate.csproj", "{D10ED1A8-CF83-4E58-B505-3714B3A16215}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{C48016BB-CF8B-4357-B052-E4DC63AED06B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj", "{C48016BB-CF8B-4357-B052-E4DC63AED06B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E} = {F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ink-engine-runtime", "ink-engine-runtime\ink-engine-runtime.csproj", "{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ink-engine-runtime", "ink-engine-runtime\ink-engine-runtime.csproj", "{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ink_compiler", "compiler\ink_compiler.csproj", "{52E3F3D0-2702-44E5-82F5-783B82647CA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ink_compiler", "compiler\ink_compiler.csproj", "{52E3F3D0-2702-44E5-82F5-783B82647CA5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E} = {F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InkTestBed", "InkTestBed\InkTestBed.csproj", "{714B52DE-576A-4760-BA2E-F8483DD2CAAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InkTestBed", "InkTestBed\InkTestBed.csproj", "{714B52DE-576A-4760-BA2E-F8483DD2CAAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
+		InkTestBed|Any CPU = InkTestBed|Any CPU
+		InkTestBed|x86 = InkTestBed|x86
 		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 		Test|Any CPU = Test|Any CPU
 		Test|x86 = Test|x86
-		InkTestBed|Any CPU = InkTestBed|Any CPU
-		InkTestBed|x86 = InkTestBed|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.Build.0 = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.ActiveCfg = Release|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.Build.0 = Release|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|x86.ActiveCfg = Debug|Any CPU
+		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Test|x86.Build.0 = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Debug|x86.Build.0 = Debug|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.ActiveCfg = Release|Any CPU
-		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.Build.0 = Release|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|Any CPU.ActiveCfg = Release|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|Any CPU.Build.0 = Release|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|x86.ActiveCfg = Release|Any CPU
 		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.InkTestBed|x86.Build.0 = Release|Any CPU
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|Any CPU.Build.0 = Debug|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.ActiveCfg = Debug|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Debug|x86.Build.0 = Debug|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|Any CPU.ActiveCfg = Release|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|Any CPU.Build.0 = Release|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.ActiveCfg = Release|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.Release|x86.Build.0 = Release|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|Any CPU.ActiveCfg = InkTestBed|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|Any CPU.Build.0 = InkTestBed|x86
-		{D10ED1A8-CF83-4E58-B505-3714B3A16215}.InkTestBed|x86.ActiveCfg = InkTestBed|x86
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.ActiveCfg = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Release|x86.Build.0 = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|Any CPU.Build.0 = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|x86.ActiveCfg = Release|Any CPU
+		{C48016BB-CF8B-4357-B052-E4DC63AED06B}.Test|x86.Build.0 = Release|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Debug|x86.Build.0 = Debug|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|x86.ActiveCfg = Release|Any CPU
-		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|x86.Build.0 = Release|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
 		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|x86.ActiveCfg = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Release|x86.Build.0 = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|Any CPU.Build.0 = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|x86.ActiveCfg = Release|Any CPU
+		{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}.Test|x86.Build.0 = Release|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Debug|x86.Build.0 = Debug|Any CPU
-		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|x86.ActiveCfg = Release|Any CPU
-		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|x86.Build.0 = Release|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
 		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|x86.ActiveCfg = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Release|x86.Build.0 = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Test|Any CPU.Build.0 = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Test|x86.ActiveCfg = Release|Any CPU
+		{52E3F3D0-2702-44E5-82F5-783B82647CA5}.Test|x86.Build.0 = Release|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Debug|x86.Build.0 = Debug|Any CPU
-		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|x86.ActiveCfg = Release|Any CPU
-		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|x86.Build.0 = Release|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|x86.ActiveCfg = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Release|x86.Build.0 = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|Any CPU.Build.0 = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|x86.ActiveCfg = Release|Any CPU
+		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E8066D74-DC23-4577-8A19-C5FC1AEC1E64}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
@@ -94,13 +129,5 @@ Global
 		$2.inheritsSet = VisualStudio
 		$2.inheritsScope = text/plain
 		StartupItem = inklecate\inklecate.csproj
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		ink-engine-runtime\ink-engine-runtime.projitems*{f68d0ee2-1831-4a06-8ffa-cbd0315efd0e}*SharedItemsImports = 4
-		ink-engine-runtime\ink-engine-runtime.projitems*{d10ed1a8-cf83-4e58-b505-3714b3a16215}*SharedItemsImports = 4
-		ink-engine-runtime\ink-engine-runtime.projitems*{df1ca307-a546-48df-8bdd-0ba6d8f38645}*SharedItemsImports = 13
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
