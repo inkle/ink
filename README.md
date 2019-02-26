@@ -103,25 +103,37 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
 
 ## Build Requirements
 
-**Windows:**
+**All Environments:**
+ * [.NET Core SDK 2.2](https://dotnet.microsoft.com/download) or newer
+ * Optionally [Visual Studio Code](https://code.visualstudio.com/)
+
+
+**Windows (Optional):**
     
- * [Visual Studio](https://www.visualstudio.com/) (e.g. Community edition), [Xamarin](https://xamarin.com/download), or Unity's own version of MonoDevelop.
+ * [Visual Studio](https://www.visualstudio.com/) (e.g. Community edition); required to build nuget package with multi-targeting of .NET Framework 3.5
+ * [Xamarin](https://xamarin.com/download), or Unity's own version of MonoDevelop
     
-**Mac:**
+**Mac (Optional):**
     
+ * [Visual Studio for Mac](https://www.visualstudio.com/)
  * [Xamarin](https://xamarin.com/download), or Unity's own version of MonoDevelop
 
-**Linux:**
-
-  * [Mono](http://www.mono-project.com/). For detailed installation instructions, see [Installing Mono on Linux](http://www.mono-project.com/docs/getting-started/install/linux/).
-
-## Build
+### Building with Visual Studio
 
 1. Load up the solution file - `ink.sln`.
 2. Select the *Release* configuration and choose *Build -> Build All* (or *Build Solution* in Visual Studio).
 3. The compiler binary should be built in `inklecate/bin/Release` (or `x86`), while the runtime engine DLL will be built in `ink-engine-dll/bin/Release/ink-engine.dll`
 
-Note that the executable requires Mono on Mac or .NET on Windows. On Windows this isn't a problem since it ships with .NET, but on Mac you need Xamarin for Mono. The `build_release.command` file in the repo is a Mac script that will bundle up both Mac and Windows versions, and the Mac version will be bundled with the Mono runtime so that the end user doesn't need Xamarin/Mono installed.
+### Building with command-line
+
+1. `cd` to the project you want to build (e.g., `cd inklecate`)
+2. Build using dotnet: `dotnet build -c Release`
+3. To run console apps: `dotnet run -c Release`
+    * To produce self-contained executable: `dotnet publish -r win-x64 -c Release --self-contained false`
+    * [Recommended RIDs](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog) for the platform (`-r`) are: `win-x64`, `linux-x64`, and `osx-x64`
+
+
+To run the binaries, you need to install [.NET Core Runtime 2.2]((https://dotnet.microsoft.com/download)) or newer (included in SDK).
 
 ## How to contribute
 
