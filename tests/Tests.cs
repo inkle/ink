@@ -4,7 +4,6 @@ using Ink.Runtime;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using Path = Ink.Runtime.Path;
 
@@ -32,11 +31,6 @@ namespace Tests
         public Tests (TestMode mode)
         {
             _mode = mode;
-            var codeBase = Assembly.GetExecutingAssembly ().Location;
-            var uri = new UriBuilder (codeBase);
-            var path = Uri.UnescapeDataString (uri.Path);
-            path = System.IO.Path.GetDirectoryName (path);
-            Directory.SetCurrentDirectory (path);
         }
 
         [Test()]
@@ -3584,7 +3578,7 @@ VAR all = ()
 Euro, Pasta, Dollar, Curry
 Two, Three, Four, Five, Six
 Pizza, Pasta
-", story.ContinueMaximally());
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
         }
            
         // Fix for rogue "can't use as sub-expression" bug
@@ -3671,7 +3665,7 @@ VAR gatherCount = 0
 1 2
 2 2
 3 2
-", story.ContinueMaximally());
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
         }
 
         // Fix for threads being incorrectly reused between choices
