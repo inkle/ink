@@ -20,7 +20,7 @@
     <Description>Runtime engine for the ink scripting language</Description>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>Ink.Engine.Runtime</PackageId>
+    <PackageId>Inkle.Ink.Engine</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
