@@ -3,7 +3,7 @@
 # do not bother with pull requests
 if ($env:TRAVIS_PULL_REQUEST -ne "false") {
     Write-Host "Skipping NuGet publish on pull request"
-    return 0 
+    exit 0 
 }
 
 # set release branch to master by default
@@ -16,7 +16,7 @@ if ("$releaseBranch" -eq "") {
 $tag = "$($env:TRAVIS_TAG)"
 if (("$($env:TRAVIS_BRANCH)" -ne $tag) -and ("$($env:TRAVIS_BRANCH)" -ne $releaseBranch)) {
     Write-Host "Skipping NuGet publish for the branch $($env:TRAVIS_BRANCH)"
-    return 0
+    exit 0
 }
 
 # extract version number in case it has prefix (like v1.2.3)
@@ -35,7 +35,7 @@ if ($tag -eq "") {
     $apiKey = "$($env:NIGHTLY_FEED_APIKEY)"
     if (($feedUrl -eq "") -or ($apiKey -eq "")) {
         Write-Host "Nightly feed is not set up, skipping pre-release build"
-        return 0
+        exit 0
     }
 
     # check if it's a scheduled nightly build
@@ -53,15 +53,15 @@ if ($tag -eq "") {
         $timestamp = [DateTime]::UtcNow.ToString("yyMMddHHmmss")
         $suffix = "master-$timestamp"
     }
-    if ($suffix -eq "") {
+    if ("$suffix" -eq "") {
         Write-Host "Skipping publishing the pre-release build"
-        return 0
+        exit 0
     }
 
-    Write-Host "Building a pre-release build..."
-    dotnet pack -c Release --version-suffix $suffix ink-engine-runtime/ink-engine-runtime.csproj
+    Write-Host "Building a pre-release build $suffix..."
+    dotnet pack -c Release --version-suffix "$suffix" ink-engine-runtime/ink-engine-runtime.csproj
     if ($LASTEXITCODE -ne 0) {
-        return $LASTEXITCODE
+        exit $LASTEXITCODE
     }
 
     Write-Host "Publishing pre-release build..."
@@ -73,13 +73,13 @@ else {
     $apiKey = "$($env:RELEASE_FEED_APIKEY)"
     if (($feedUrl -eq "") -or ($apiKey -eq "")) {
         Write-Host "Release feed is not set up, skipping release build"
-        return 0
+        exit 0
     }
 
     Write-Host "Building a release build..."
     dotnet pack -c Release /p:VersionPrefix=$tag ink-engine-runtime/ink-engine-runtime.csproj
     if ($LASTEXITCODE -ne 0) {
-        return $LASTEXITCODE
+        exit $LASTEXITCODE
     }
 
     Write-Host "Publishing release build..."
@@ -87,4 +87,4 @@ else {
 }
 Write-Host "Pushing package $($packageName.FullName)..."
 dotnet nuget push $packageName.FullName --api-key $apiKey --source $feedUrl
-return $LASTEXITCODE
+exit $LASTEXITCODE
