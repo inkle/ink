@@ -13,19 +13,25 @@
     <Copyright>inkle Ltd</Copyright>
     <RepositoryUrl>https://github.com/inkle/ink</RepositoryUrl>
     <PackageProjectUrl>https://www.inklestudios.com/ink/</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/inkle/ink/blob/master/LICENSE.txt</PackageLicenseUrl>
-    <ProjectLicenseFile>../LICENSE.txt</ProjectLicenseFile>
     <VersionPrefix>0.8.4</VersionPrefix>
     <PackageIconUrl>https://avatars2.githubusercontent.com/u/1987090</PackageIconUrl>
     <Description>Runtime engine for the ink scripting language</Description>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>Inkle.Ink.Engine</PackageId>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
