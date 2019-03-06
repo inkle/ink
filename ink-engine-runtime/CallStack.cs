@@ -206,6 +206,7 @@ namespace Ink.Runtime
             foreach (var otherThread in toCopy._threads) {
                 _threads.Add (otherThread.Copy ());
             }
+            _threadCounter = toCopy._threadCounter;
             _startOfRoot = toCopy._startOfRoot;
         }
 
