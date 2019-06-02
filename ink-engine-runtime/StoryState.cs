@@ -778,14 +778,24 @@ namespace Ink.Runtime
 
         internal Runtime.Object PopEvaluationStack()
         {
-            var obj = evaluationStack [evaluationStack.Count - 1];
-            evaluationStack.RemoveAt (evaluationStack.Count - 1);
-            return obj;
+            if (evaluationStack.Count > 0) {
+              var obj = evaluationStack [evaluationStack.Count - 1];
+              evaluationStack.RemoveAt (evaluationStack.Count - 1);
+              return obj;
+            } else {
+              Error ("Tried to pop from empty evaluation stack. "
+              + "Maybe you used a divert to a knot as a function call?");
+              return null;
+            }
         }
 
         internal Runtime.Object PeekEvaluationStack()
         {
-            return evaluationStack [evaluationStack.Count - 1];
+            if (evaluationStack.Count > 0) {
+              return evaluationStack [evaluationStack.Count - 1];
+            } else {
+              return null;
+            }
         }
 
         internal List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
