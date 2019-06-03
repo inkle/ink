@@ -258,7 +258,6 @@ namespace Ink.Runtime
 
             _state = new StoryState (this);
             _state.variablesState.variableChangedEvent += VariableStateDidChangeEvent;
-            _state.lookups = _lookups;
 
             ResetGlobals ();
         }
@@ -2133,74 +2132,6 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// ADVANCED!
-        /// When a story gets very large, the state becomes bigger and bigger
-        /// as it has to store information about how many times knots, stitches,
-        /// choices and gathers have been seen.
-        /// Lookups help to solve this problem and make the save data smaller
-        /// to help with performance issues. When enabling lookups, a piece of
-        /// json is returned which is the lookup table that's specific to this
-        /// version of the story, and any state that's saved for this version of
-        /// the story relies on it. Any time you perform state.LoadJson() you
-        /// then need to pass in this chunk of json as the second parameter.
-        /// The lookup table will be large, but only need to be saved once,
-        /// and allows the individual save states to be optimised, storing a
-        /// large array of numbers for all the read counts and turn indices,
-        /// rather than a dictionary with all the knot/stitch names included.
-        /// </summary>
-        
-        public string EnableLookups()
-        {
-            if (_lookups == null) {
-                _lookups = new StoryLookups();
-                GenerateLookups(mainContentContainer);
-                state.lookups = _lookups;
-            }
-
-            var writer = new SimpleJson.Writer();
-            writer.WriteArrayStart();
-            writer.WriteArrayStart();
-            foreach (var name in state.lookups.visitCountNames) writer.Write(name);
-            writer.WriteArrayEnd();
-            writer.WriteArrayStart();
-            foreach (var name in state.lookups.turnIndexNames) writer.Write(name);
-            writer.WriteArrayEnd();
-            writer.WriteArrayEnd();
-            var str = writer.ToString();
-
-            return str;
-        }
-        
-        void GenerateLookups(Container container)
-        {
-            if (container.visitsShouldBeCounted)
-            {
-                container.visitLookupIdx = _lookups.visitCountNames.Count;
-                _lookups.visitCountNames.Add(container.path.componentsString);
-            }
-
-            if (container.turnIndexShouldBeCounted)
-            {
-                container.turnLookupIdx = _lookups.turnIndexNames.Count;
-                _lookups.turnIndexNames.Add(container.path.componentsString);
-            }
-
-            foreach(var obj in container.content) {
-                var subContainer = obj as Container;
-                if (subContainer)
-                    GenerateLookups(subContainer);
-            }
-
-            if(container.namedOnlyContent != null) {
-                foreach (var obj in container.namedOnlyContent.Values)
-                {
-                    var subContainer = obj as Container;
-                    GenerateLookups(subContainer);
-                }
-            }
-        }
-
-        /// <summary>
         /// Useful when debugging a (very short) story, to visualise the state of the
         /// story. Add this call as a watch and open the extended text. A left-arrow mark
         /// will denote the current point of the story.
@@ -2522,8 +2453,6 @@ namespace Ink.Runtime
         int _recursiveContinueCount = 0;
 
         bool _asyncSaving;
-
-        StoryLookups _lookups;
 
         Profiler _profiler;
 	}

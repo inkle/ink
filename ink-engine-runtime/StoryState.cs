@@ -44,20 +44,10 @@ namespace Ink.Runtime
         /// Loads a previously saved state in JSON format.
         /// </summary>
         /// <param name="json">The JSON string to load.</param>
-        /// <param name="lookupsJson">Optional lookup table for read counts and turn indices. See Story.EnableLookups.</param>
-        public void LoadJson(string json, string lookupsJson = null)
+        public void LoadJson(string json)
         {
             var jObject = SimpleJson.TextToDictionary (json);
-
-            if ( lookupsJson != null ) {
-                var jArray = SimpleJson.TextToArray(lookupsJson);
-                var lookupVisitCountsObj = (List<object>)jArray[0];
-                var lookupTurnIndicesObj = (List<object>)jArray[1];
-                LoadJsonObj(jObject, lookupVisitCountsObj, lookupTurnIndicesObj);
-
-            } else {
-                LoadJsonObj(jObject);
-            }
+            LoadJsonObj(jObject);
         }
 
         /// <summary>
@@ -85,17 +75,8 @@ namespace Ink.Runtime
                     return visitCountOut;
             }
 
-            if( lookups != null ) {
-                var container = story.ContentAtPath(new Path(pathString)).container;
-                if( container != null && container.visitLookupIdx >= 0 && container.visitLookupIdx < _visitCountsByLookupIndex.Count) {
-                    return _visitCountsByLookupIndex[container.visitLookupIdx];
-                }
-            }
-
-            else {
-                if (_visitCounts.TryGetValue(pathString, out visitCountOut))
-                    return visitCountOut;
-            }
+            if (_visitCounts.TryGetValue(pathString, out visitCountOut))
+                return visitCountOut;
 
             return 0;
         }
@@ -111,14 +92,7 @@ namespace Ink.Runtime
             int count = 0;
             if (_patch != null && _patch.TryGetVisitCount(container, out count))
                 return count;
-
-            if( lookups != null ) {
-                if (container.visitLookupIdx >= 0 && container.visitLookupIdx < _visitCountsByLookupIndex.Count) {
-                    return _visitCountsByLookupIndex[container.visitLookupIdx];
-                }
-                throw new System.Exception("Tried to look up visit count for container " + container.path.componentsString + " but its lookup index was out of range: " + container.visitLookupIdx);
-            }
-
+                
             var containerPathStr = container.path.ToString();
             _visitCounts.TryGetValue(containerPathStr, out count);
             return count;
@@ -133,16 +107,6 @@ namespace Ink.Runtime
                 return;
             }
 
-            if (lookups != null)
-            {
-                if (container.visitLookupIdx >= 0 && container.visitLookupIdx < _visitCountsByLookupIndex.Count)
-                {
-                    _visitCountsByLookupIndex[container.visitLookupIdx]++;
-                    return;
-                }
-                throw new System.Exception("Tried to look up visit count for container " + container.path.componentsString + " but its lookup index was out of range: " + container.visitLookupIdx + " (lookups length = "+ _visitCountsByLookupIndex.Count+")");
-            }
-
             int count = 0;
             var containerPathStr = container.path.ToString();
             _visitCounts.TryGetValue(containerPathStr, out count);
@@ -155,16 +119,6 @@ namespace Ink.Runtime
             if( _patch != null ) {
                 _patch.SetTurnIndex(container, currentTurnIndex);
                 return;
-            }
-
-            if (lookups != null)
-            {
-                if (container.turnLookupIdx >= 0 && container.turnLookupIdx < _turnIndicesByLookupIndex.Count)
-                {
-                    _turnIndicesByLookupIndex[container.turnLookupIdx] = currentTurnIndex;
-                    return;
-                }
-                throw new System.Exception("Tried to set turn index for container " + container.path.componentsString + " but its lookup index was out of range: " + container.turnLookupIdx + " (lookups length = " + _turnIndicesByLookupIndex.Count + ")");
             }
 
             var containerPathStr = container.path.ToString();
@@ -184,18 +138,6 @@ namespace Ink.Runtime
                 return currentTurnIndex - index;
             }
 
-            if (lookups != null)
-            {
-                if (container.turnLookupIdx >= 0 && container.turnLookupIdx < _turnIndicesByLookupIndex.Count)
-                {
-                    var turnIndex = _turnIndicesByLookupIndex[container.turnLookupIdx];
-                    if (turnIndex == -1) return -1;
-                    else return currentTurnIndex - turnIndex;
-                }
-                throw new System.Exception("Tried to look up turn index for container " + container.path.componentsString + " but its lookup index was out of range: " + container.turnLookupIdx + " (lookups length = " + _turnIndicesByLookupIndex.Count + ")");
-            }
-
-
             var containerPathStr = container.path.ToString();
             if (_turnIndices.TryGetValue(containerPathStr, out index))
             {
@@ -206,32 +148,6 @@ namespace Ink.Runtime
                 return -1;
             }
         }
-
-        // Migrate from the dictionary based lookup system to the array
-        // based lookup system
-        void MigrateCountsToLookup()
-        {
-            _visitCountsByLookupIndex.Clear();
-            for (int i = 0; i < lookups.visitCountNames.Count; i++) {
-                var name = lookups.visitCountNames[i];
-                int count = 0;
-                _visitCounts.TryGetValue(name, out count);
-                _visitCountsByLookupIndex.Add(count);
-            }
-
-            _turnIndicesByLookupIndex.Clear();
-            for (int i = 0; i < lookups.turnIndexNames.Count; i++)
-            {
-                var name = lookups.turnIndexNames[i];
-                int index;
-                if (!_visitCounts.TryGetValue(name, out index)) index = -1;
-                _turnIndicesByLookupIndex.Add(index);
-            }
-
-            _visitCounts = null;
-            _turnIndices = null;
-        }
-
 
         internal int callstackDepth {
 			get {
@@ -270,30 +186,6 @@ namespace Ink.Runtime
         internal int storySeed { get; set; }
         internal int previousRandom { get; set; }
         internal bool didSafeExit { get; set; }
-
-        // Lookup table for read count and turn indices, so that
-        // when saving we don't have to save an entire dictionary
-        // including all the string keys (see Story.EnableLookups)
-        // Optional feature!
-        internal StoryLookups lookups {
-            get {
-                return _lookups;
-            }
-            set {
-                if(value != null ) {
-                    _lookups = value;
-                    _visitCountsByLookupIndex = new List<int>();
-                    _turnIndicesByLookupIndex = new List<int>();
-                    MigrateCountsToLookup();
-                } else {
-                    _lookups = null;
-                    _visitCountsByLookupIndex = null;
-                    _turnIndicesByLookupIndex = null;
-                }
-
-            }
-        }
-        StoryLookups _lookups;
 
         internal Story story { get; set; }
 
@@ -512,11 +404,8 @@ namespace Ink.Runtime
 
             // visit counts and turn indicies will be read only, not modified
             // while in patch mode
-            copy._lookups = lookups;
             copy._visitCounts = _visitCounts;
             copy._turnIndices = _turnIndices;
-            copy._visitCountsByLookupIndex = _visitCountsByLookupIndex;
-            copy._turnIndicesByLookupIndex = _turnIndicesByLookupIndex;
 
             copy.currentTurnIndex = currentTurnIndex;
             copy.storySeed = storySeed;
@@ -554,56 +443,8 @@ namespace Ink.Runtime
 
         void ApplyCountChanges(Container container, int newCount, bool isVisit)
         {
-            if (lookups != null)
-            {
-                var lookupIdx = isVisit ? container.visitLookupIdx : container.turnLookupIdx;
-                var lookupCounts = isVisit ? _visitCountsByLookupIndex : _turnIndicesByLookupIndex;
-                if (lookupIdx  >= 0 && lookupIdx < lookupCounts.Count)
-                {
-                    lookupCounts[lookupIdx] = newCount;
-                    return;
-                }
-                throw new System.Exception("Tried to patch count for container " + container.path.componentsString + " but its lookup index was out of range: " + container.visitLookupIdx + " (lookups length = " + _visitCountsByLookupIndex.Count + ")");
-            }
-
             var counts = isVisit ? _visitCounts : _turnIndices;
             counts[container.path.ToString()] = newCount;
-        }
-
-        // Writes out all read counts or turn indices in a big long array rather than a dictionary.
-        // When the default value is seen (0 for read counts, -1 for turn indices), then use an RLE scheme
-        // (run length encoding), where the first character indicates the default value, then the subsequent
-        // character is the number of times that default character is seen in the array.
-        void WriteRLECountsProperty(SimpleJson.Writer writer, string countsName, List<int> counts, int defaultVal)
-        {
-            writer.WritePropertyStart(countsName);
-            
-            writer.WriteArrayStart();
-
-            int defaultRLECount = 0;
-            foreach (var c in counts)
-            {
-                if (c == defaultVal)
-                {
-                    if (defaultRLECount == 0) writer.Write(defaultVal);
-                    defaultRLECount++;
-                    continue;
-                }
-                else if (defaultRLECount > 0)
-                {
-                    writer.Write(defaultRLECount);
-                    defaultRLECount = 0;
-                }
-
-                writer.Write(c);
-            }
-
-            if (defaultRLECount > 0)
-                writer.Write(defaultRLECount);
-
-            writer.WriteArrayEnd();
-
-            writer.WritePropertyEnd();
         }
 
         void WriteJson(SimpleJson.Writer writer)
@@ -654,16 +495,9 @@ namespace Ink.Runtime
 
             if (!divertedPointer.isNull)
                 writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
-
-            // If using lookup table for read counts and turn indices, load them
-            // instead of using the usual dictionaries. 
-            if (lookups != null) {
-                WriteRLECountsProperty(writer, "visitCountsLookup", _visitCountsByLookupIndex, 0);
-                WriteRLECountsProperty(writer, "turnIndicesLookup", _turnIndicesByLookupIndex, -1);
-            } else {
-                writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, _visitCounts));
-                writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, _turnIndices));
-            }
+                
+            writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, _visitCounts));
+            writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, _turnIndices));
 
 
             writer.WriteProperty("turnIdx", currentTurnIndex);
@@ -678,47 +512,8 @@ namespace Ink.Runtime
             writer.WriteObjectEnd();
         }
 
-        // Load read counts or turn indices from a big long array specified by the countsObjName key.
-        // The array has run-length encoding (RLE) on any default values, since they're
-        // likely to occur frequently, especially at the start of a game.
-        // We normalise these out as we load to a normal array that's the same
-        // length as the lookup table (see state.lookups)
-        void LoadNamedCountsRLE(Dictionary<string, object> jObject, string countsObjName, List<object> loadedLookups, bool isVisits, int defaultVal)
-        {
-            object countsObj;
-            if (!jObject.TryGetValue(countsObjName, out countsObj))
-                throw new Exception("Trying to load save using a lookup, but save isn't lookup-based.");
 
-            var loadedCounts = (List<object>)countsObj;
-
-            int i = 0;
-            for (int loadedIdx = 0; loadedIdx < loadedCounts.Count; loadedIdx++)
-            {
-                var val = (int)loadedCounts[loadedIdx];
-                var rleCount = 1;
-
-                if( val == defaultVal ) {
-                    loadedIdx++;
-                    rleCount = (int)loadedCounts[loadedIdx];
-                }
-
-                var end = i+rleCount;
-                for (; i < end; i++) {
-                    var name = (string) loadedLookups[i];
-
-                    var container = story.ContentAtPath(new Path(name)).container;
-                    if (container != null)
-                    {
-                        var latestIdx = isVisits ? container.visitLookupIdx : container.turnLookupIdx;
-                        var countsArray = isVisits ? _visitCountsByLookupIndex : _turnIndicesByLookupIndex;
-                        if (latestIdx >= 0 && latestIdx < countsArray.Count)
-                            countsArray[latestIdx] = val;
-                    }
-                }
-            }
-        }
-
-        void LoadJsonObj(Dictionary<string, object> jObject, List<object> loadedLookupVisitCounts = null, List<object> loadedLookupTurnIndices = null)
+        void LoadJsonObj(Dictionary<string, object> jObject)
         {
 			object jSaveVersion = null;
 			if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
@@ -744,22 +539,8 @@ namespace Ink.Runtime
                 divertedPointer = story.PointerAtPath (divertPath);
             }
                 
-            if(loadedLookupVisitCounts != null) {
-                if (lookups == null) throw new Exception("Trying to load story state with lookups without generating own lookups first. Call story.EnableLookups() beforehand.");
-
-                LoadNamedCountsRLE(jObject, "visitCountsLookup", loadedLookupVisitCounts, isVisits: true, defaultVal: 0);
-                LoadNamedCountsRLE(jObject, "turnIndicesLookup", loadedLookupTurnIndices, isVisits: false, defaultVal: -1);
-
-                _visitCounts = null;
-                _turnIndices = null;
-            } else {
-                _visitCounts = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["visitCounts"]);
-                _turnIndices = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["turnIndices"]);
-
-                // Loading a non-lookup based save when we have lookups enabled? Then migrate.
-                if (lookups != null)
-                    MigrateCountsToLookup();
-            }
+            _visitCounts = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["visitCounts"]);
+            _turnIndices = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["turnIndices"]);
 
             currentTurnIndex = (int)jObject ["turnIdx"];
             storySeed = (int)jObject ["storySeed"];
@@ -1345,11 +1126,8 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
 
 
-
         Dictionary<string, int> _visitCounts;
         Dictionary<string, int> _turnIndices;
-        List<int> _visitCountsByLookupIndex;
-        List<int> _turnIndicesByLookupIndex;
 
         List<Runtime.Object> _outputStream;
 		bool _outputStreamTextDirty = true;
