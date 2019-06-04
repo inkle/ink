@@ -16,7 +16,7 @@ namespace Ink
             // Optional explicit sequence type
             SequenceType? parsedSeqType = (SequenceType?) Parse(SequenceTypeAnnotation);
             if (parsedSeqType != null)
-                seqType = (SequenceType) parsedSeqType;
+                seqType = parsedSeqType.Value;
 
             var contentLists = Parse(InnerSequenceObjects);
             if (contentLists == null || contentLists.Count <= 1) {
@@ -28,67 +28,104 @@ namespace Ink
 
         protected object SequenceTypeAnnotation()
         {
-            var symbolAnnotation = Parse(SequenceTypeSymbolAnnotation);
-            if (symbolAnnotation != null)
-                return symbolAnnotation;
+            var annotation = (SequenceType?) Parse(SequenceTypeSymbolAnnotation);
 
-            var wordAnnotation = Parse(SequenceTypeWordAnnotation);
-            if (wordAnnotation != null)
-                return wordAnnotation;
+            if(annotation == null)
+                annotation = (SequenceType?) Parse(SequenceTypeWordAnnotation);
 
-            return null;
+            if (annotation == null)
+                return null;
+                
+            switch (annotation.Value)
+            {
+                case SequenceType.Once:
+                case SequenceType.Cycle:
+                case SequenceType.Stopping:
+                case SequenceType.Shuffle:
+                case (SequenceType.Shuffle | SequenceType.Stopping):
+                case (SequenceType.Shuffle | SequenceType.Once):
+                    break;
+
+                default:
+                    Error("Sequence type combination not supported: " + annotation.Value);
+                    return SequenceType.Stopping;
+            }
+
+            return annotation;
         }
 
         protected object SequenceTypeSymbolAnnotation()
         {
-            var symbol = ParseSingleCharacter ();
+            if(_sequenceTypeSymbols == null ) {}
+                _sequenceTypeSymbols = new CharacterSet("!&~$ ");
 
-            switch (symbol) {
-            case '!':
-                return SequenceType.Once;
-            case '&':
-                return SequenceType.Cycle;
-            case '~':
-                return SequenceType.Shuffle;
-            case '$':
-                return SequenceType.Stopping;
+            var sequenceType = (SequenceType)0;
+            var sequenceAnnotations = ParseCharactersFromCharSet(_sequenceTypeSymbols);
+            if (sequenceAnnotations == null)
+                return null;
+
+            foreach(char symbolChar in sequenceAnnotations) {
+                switch(symbolChar) {
+                    case '!': sequenceType |= SequenceType.Once; break;
+                    case '&': sequenceType |= SequenceType.Cycle; break;
+                    case '~': sequenceType |= SequenceType.Shuffle; break;
+                    case '$': sequenceType |= SequenceType.Stopping; break;
+                }
             }
 
-            return null;
+            if (sequenceType == (SequenceType)0)
+                return null;
+
+            return sequenceType;
         }
 
+        CharacterSet _sequenceTypeSymbols = new CharacterSet("!&~$");
+
         protected object SequenceTypeWordAnnotation()
+        {
+            var sequenceTypes = Interleave<SequenceType?>(SequenceTypeSingleWord, Exclude(Whitespace));
+            if (sequenceTypes == null || sequenceTypes.Count == 0)
+                return null;
+
+            if (ParseString (":") == null)
+                return null;
+
+            var combinedSequenceType = (SequenceType)0;
+            foreach(var seqType in sequenceTypes) {
+                combinedSequenceType |= seqType.Value;
+            }
+
+            return combinedSequenceType;
+        }
+
+        protected object SequenceTypeSingleWord()
         {
             SequenceType? seqType = null;
 
             var word = Parse(Identifier);
-            switch (word) {
-            case "once":
-                seqType = SequenceType.Once;
-                break;
-            case "cycle":
-                seqType = SequenceType.Cycle;
-                break;
-            case "shuffle":
-                seqType = SequenceType.Shuffle;
-                break;
-            case "stopping":
-                seqType = SequenceType.Stopping;
-                break;
+            switch (word)
+            {
+                case "once":
+                    seqType = SequenceType.Once;
+                    break;
+                case "cycle":
+                    seqType = SequenceType.Cycle;
+                    break;
+                case "shuffle":
+                    seqType = SequenceType.Shuffle;
+                    break;
+                case "stopping":
+                    seqType = SequenceType.Stopping;
+                    break;
             }
 
             if (seqType == null)
                 return null;
 
-            Whitespace ();
-
-            if (ParseString (":") == null)
-                return null;
-
             return seqType;
         }
 
-        protected List<ContentList> InnerSequenceObjects()
+            protected List<ContentList> InnerSequenceObjects()
         {
             var multiline = Parse(Newline) != null;
 
