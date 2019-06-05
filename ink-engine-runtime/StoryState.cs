@@ -18,7 +18,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 9;
+        public const int kInkSaveStateVersion = 8;
         const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
