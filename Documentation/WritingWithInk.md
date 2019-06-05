@@ -721,13 +721,13 @@ or:
 
 	"I missed him. Was he particularly evil?"
 
-## 7) Game Queries
+## 7) Game Queries and Functions
 
 **ink** provides a few useful 'game level' queries about game state, for use in conditional logic. They're not quite parts of the language, but they're always available, and they can't be edited by the author. In a sense, they're the "standard library functions" of the language.
 
 The convention is to name these in capital letters.
 
-### CHOICE_COUNT
+### CHOICE_COUNT()
 
 `CHOICE_COUNT` returns the number of options created so far in the current chunk. So for instance.
 
@@ -737,7 +737,11 @@ The convention is to name these in capital letters.
 
 produces two options, B and C. This can be useful for controlling how many options a player gets on a turn. 
 
-### TURNS_SINCE
+### TURNS()
+
+This returns the number of game turns since the game began. 
+
+### TURNS_SINCE(-> knot)
 
 `TURNS_SINCE` returns the number of moves (formally, player inputs) since a particular knot/stitch was last visited.
 
@@ -749,6 +753,14 @@ A value of 0 means "was seen as part of the current chunk". A value of -1 means 
 Note that the parameter passed to `TURNS_SINCE` is a "divert target", not simply the knot address itself (because the knot address is a number - the read count - not a location in the story...)
 
 TODO: (requirement of passing `-c` to the compiler)
+
+### SEED_RANDOM()
+
+For testing purposes, it's often useful to fix the random number generator so ink will produce the same outcomes every time you play. You can do this by "seeding" the random number system. 
+
+	~ SEED_RANDOM(235) 
+	
+The number you pass to the seed function is arbitrary, but providing different seeds will result in different sequences of outcomes. 
 
 #### Advanced: more queries
 
@@ -1262,6 +1274,18 @@ and the following will test conditions:
 **ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. 
 
 If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced). 
+
+#### RANDOM(min, max) 
+
+Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pendants, we said *a dice*), so the min and max values are both inclusive. 
+
+	~ temp dice_roll = RANDOM(1, 6) 
+	
+	~ temp lazy_grading_for_test_paper = RANDOM(30, 75)  
+	
+	~ temp number_of_heads_the_serpent_has = RANDOM(3, 8)
+
+The random number generator can be seeded for testing purposes, see the section of Game Queries and Functions section above. 
 
 #### Advanced: numerical types are implicit
 
@@ -2339,6 +2363,7 @@ We have a few basic ways of getting information about what's in a list:
 	{LIST_COUNT(DoctorsInSurgery)} 	//  "2"
 	{LIST_MIN(DoctorsInSurgery)} 		//  "Adams"
 	{LIST_MAX(DoctorsInSurgery)} 		//  "Cartwright"
+	{LIST_RANDOM(DoctorsInSurgery)} 	//  "Adams" or "Cartwright"
 
 #### Testing for emptiness
 
