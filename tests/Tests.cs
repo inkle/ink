@@ -191,6 +191,66 @@ Hello
         }
 
         [Test()]
+        public void TestAllSequenceTypes()
+        {
+            var storyStr =
+                @"
+~ SEED_RANDOM(1)
+
+Once: {f_once()} {f_once()} {f_once()} {f_once()}
+Stopping: {f_stopping()} {f_stopping()} {f_stopping()} {f_stopping()}
+Default: {f_default()} {f_default()} {f_default()} {f_default()}
+Cycle: {f_cycle()} {f_cycle()} {f_cycle()} {f_cycle()}
+Shuffle: {f_shuffle()} {f_shuffle()} {f_shuffle()} {f_shuffle()}
+Shuffle stopping: {f_shuffle_stopping()} {f_shuffle_stopping()} {f_shuffle_stopping()} {f_shuffle_stopping()}
+Shuffle once: {f_shuffle_once()} {f_shuffle_once()} {f_shuffle_once()} {f_shuffle_once()}
+
+== function f_once ==
+{once:
+    - one
+    - two
+}
+
+== function f_stopping ==
+{stopping:
+    - one
+    - two
+}
+
+== function f_default ==
+{one|two}
+
+== function f_cycle ==
+{cycle:
+    - one
+    - two
+}
+
+== function f_shuffle ==
+{shuffle:
+    - one
+    - two
+}
+
+== function f_shuffle_stopping ==
+{stopping shuffle:
+    - one
+    - two
+}
+
+== function f_shuffle_once ==
+{shuffle once:
+    - one
+    - two
+}
+                ";
+
+            Story story = CompileString(storyStr);
+            Assert.AreEqual("Once: one two\nStopping: one two two two\nDefault: one two two two\nCycle: one two one two\nShuffle: two one two one\nShuffle stopping: one two two two\nShuffle once: two one\n", story.ContinueMaximally());
+        }
+
+
+        [Test()]
         public void TestCallStackEvaluation()
         {
             var storyStr =
@@ -2314,7 +2374,7 @@ this is the end
 -> END
 ";
 
-            Story story = CompileString(storyStr);
+            Story story = CompileString(storyStr, countAllVisits:true);
 
             Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot"));
             Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
@@ -3263,37 +3323,6 @@ Phrase 1
         	Assert.AreEqual ("X\nx\n", story.ContinueMaximally ());
         }
 
-
-        [Test ()]
-        public void TestWarnVariableNotFound ()
-        {
-            var storyStr1 =
-        @"
-VAR x = 0
-Hello world!
-{x}
-        ";
-            var story1 = CompileString (storyStr1);
-
-            story1.Continue ();
-
-            var saveState = story1.state.ToJson ();
-
-var storyStr2 =
-@"
-VAR y = 0
-Hello world!
-{y}
-        ";
-            var story2 = CompileString (storyStr2);
-            story2.state.LoadJson (saveState);
-            story2.Continue ();
-
-            Assert.IsTrue (story2.hasWarning);
-            Assert.IsTrue (HadErrorOrWarning ("not found", story2.currentWarnings));
-        }
-
-
         [Test ()]
         public void TestTempNotFound ()
         {
@@ -3658,6 +3687,37 @@ VAR gatherCount = 0
             Assert.AreEqual("Should be 1 not 0: 1.\n", story.Continue());
         }
 
+        // Test for bug where after a call to ChoosePathString,
+        // the callstack is not fully/cleanly reset, e.g. leaving
+        // "inExpressionEvaluation" variable left to true, as set during
+        // the call to {RunAThing()}.
+        // This was when we unwound the callstack, but we didn't reset
+        // the base element.
+        [Test()]
+        public void TestCleanCallstackResetOnPathChoice()
+        {
+            var storyStr =
+        @"
+{RunAThing()}
+
+== function RunAThing ==
+The first line.
+The second line.
+
+== SomewhereElse ==
+{""somewhere else""}
+->END
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual("The first line.\n", story.Continue());
+
+            story.ChoosePathString("SomewhereElse");
+
+            Assert.AreEqual("somewhere else\n", story.ContinueMaximally());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
@@ -3677,7 +3737,7 @@ VAR gatherCount = 0
             // Convert to json and back again
             if (_mode == TestMode.JsonRoundTrip && story != null)
             {
-                var jsonStr = story.ToJsonString();
+                var jsonStr = story.ToJson();
                 story = new Story(jsonStr);
             }
 

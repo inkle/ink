@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Ink;
 
 
@@ -90,7 +91,6 @@ class InkTestBed : IFileHandler
     Ink.Runtime.Story Compile (string inkSource)
     {
     	compiler = new Compiler (inkSource, new Compiler.Options {
-    		countAllVisits = true,
     		errorHandler = OnError,
     		fileHandler = this
     	});
@@ -101,7 +101,6 @@ class InkTestBed : IFileHandler
 
         return story;
     }
-
 
     Ink.Runtime.Story CompileFile (string filename = null)
     {
@@ -116,7 +115,6 @@ class InkTestBed : IFileHandler
 
         compiler = new Compiler (inkSource, new Compiler.Options {
 			sourceFilename = filename,
-			countAllVisits = true,
 			errorHandler = OnError,
 			fileHandler = this
         });
@@ -130,13 +128,13 @@ class InkTestBed : IFileHandler
 
     void JsonRoundtrip ()
     {
-        var jsonStr = story.ToJsonString ();
+        var jsonStr = story.ToJson ();
         Console.WriteLine (jsonStr);
 
         Console.WriteLine ("---------------------------------------------------");
 
         var reloadedStory = new Ink.Runtime.Story (jsonStr);
-        var newJsonStr = reloadedStory.ToJsonString ();
+        var newJsonStr = reloadedStory.ToJson ();
         Console.WriteLine (newJsonStr);
 
         story = reloadedStory;
@@ -198,6 +196,81 @@ class InkTestBed : IFileHandler
         story2.state.LoadJson (saveState);
 
         test2 ();
+    }
+
+    void SimpleDiff(string s1, string s2)
+    {
+        if (s1 == s2)
+        {
+            Console.WriteLine("Identical!");
+        }
+        else
+        {
+            bool foundDiff = false;
+            for (int i = 0; i < Math.Min(s2.Length, s1.Length); i++)
+            {
+                if (s2[i] != s1[i])
+                {
+                    foundDiff = true;
+                    int diffI = Math.Max(i - 10, 0);
+                    Console.WriteLine("Difference at idx {0}: \n\t{1}\nv.s.\n\t{2}",
+                                      i,
+                                      s1.Substring(diffI, 40),
+                                      s2.Substring(diffI, 40));
+                    break;
+                }
+            }
+
+            if (!foundDiff)
+            {
+                var startOfExtension = Math.Min(s1.Length, s2.Length);
+                var longerText = s1.Length > s2.Length ? s1 : s2;
+                Console.WriteLine("Difference in length: {0} v.s. {1}. Extended: {2}",
+                                  s1.Length,
+                                  s2.Length,
+                                  longerText.Substring(startOfExtension));
+            }
+        }
+    }
+
+    // Examples of usage:
+    //
+    //     var duration = Millisecs(() => DoSomething());
+    //
+    // Or to take the average after running DoSomething 100 times, but skipping
+    // the first time (since we want to know the "warmed caches" time:
+    //
+    //     var duration = Millisecs((() => DoSomething(), 100, 1);
+    //
+    float Millisecs(Action action, int times = 1, int ignoreWarmupTimes = 0) {
+        var s = new Stopwatch();
+
+        var realTimes = times - ignoreWarmupTimes;
+
+        if (times == 1 && ignoreWarmupTimes == 0)
+        {
+            s.Start();
+            action();
+            s.Stop();
+        } else {
+            if(ignoreWarmupTimes > 0 ) {
+                for (int i = 0; i < ignoreWarmupTimes; i++) {
+                    action();
+                }
+            }
+            
+            s.Start();
+            for (int i = 0; i < realTimes; i++) {
+                action();
+            }
+            s.Stop();
+        }
+
+        long ticks = s.ElapsedTicks;
+        long ticksPerSec = Stopwatch.Frequency;
+        double ticksPerMillisec = ticksPerSec / 1000.0;
+        double millisecs = ticks / ticksPerMillisec;
+        return (float)(millisecs / realTimes);
     }
 
     // ---------------------

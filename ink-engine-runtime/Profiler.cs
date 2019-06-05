@@ -267,6 +267,9 @@ namespace Ink.Runtime
 			}
 		}
 
+        /// <summary>
+        /// Total number of milliseconds this node has been active for.
+        /// </summary>
 		public int totalMillisecs {
 			get {
 				return (int)_totalMillisecs;

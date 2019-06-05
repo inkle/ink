@@ -18,9 +18,10 @@ namespace Ink.Parsed
         public Dictionary<string, ExternalDeclaration> externals;
 
         // Build setting for exporting:
-        // When true, the visit count and beat index for *all* knots, stitches, choices,
-        // and gathers are counted. When false, only those that are referenced by
-        // a read count variable reference are stored.
+        // When true, the visit count for *all* knots, stitches, choices,
+        // and gathers is counted. When false, only those that are direclty 
+        // referenced by the ink are recorded. Use this flag to allow game-side 
+        // querying of  arbitrary knots/stitches etc.
         // Storing all counts is more robust and future proof (updates to the story file
         // that reference previously uncounted visits are possible, but generates a much 
         // larger safe file, with a lot of potentially redundant counts.
@@ -144,7 +145,7 @@ namespace Ink.Parsed
             // errors when name resolution failed.)
             ResolveWeavePointNaming ();
 
-			// Get default implementation of runtimeObject, which calls ContainerBase's generation method
+            // Get default implementation of runtimeObject, which calls ContainerBase's generation method
             var rootContainer = runtimeObject as Runtime.Container;
 
             // Export initialisation of global variables

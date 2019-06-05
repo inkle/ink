@@ -281,6 +281,12 @@ If you're modifying a list, and you know that it has/had elements from a particu
 	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
 	fruit.AddItem("Apple");
 	
+Note that single list items in ink, such as:
+
+	VAR lunch = Apple
+	
+...are actually just lists with single items in them rather than a different type. So to create them on the game side, just use the techniques above to create a list with just one item.
+	
 You can also create lists from items if you explicitly know all the metadata for the items - i.e. the origin name as as well as the int value assigned to it. This is useful if you're building a list out of existing lists. Note that InkLists actually derive from `Dictionary`, where the key is an `InkListItem` (which in turn has `originName` and `itemName` strings), and the value is the int value:
 
 	var newList = new Ink.Runtime.InkList();

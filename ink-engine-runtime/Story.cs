@@ -192,18 +192,59 @@ namespace Ink.Runtime
         /// <summary>
         /// The Story itself in JSON representation.
         /// </summary>
-        public string ToJsonString()
+        public string ToJson()
         {
-            var rootContainerJsonList = (List<object>) Json.RuntimeObjectToJToken (_mainContentContainer);
+            //return ToJsonOld();
+            var writer = new SimpleJson.Writer();
+            ToJson(writer);
+            return writer.ToString();
+        }
 
-            var rootObject = new Dictionary<string, object> ();
-            rootObject ["inkVersion"] = inkVersionCurrent;
-            rootObject ["root"] = rootContainerJsonList;
+        /// <summary>
+        /// The Story itself in JSON representation.
+        /// </summary>
+        public void ToJson(Stream stream)
+        {
+            var writer = new SimpleJson.Writer(stream);
+            ToJson(writer);
+        }
 
-            if (_listDefinitions != null)
-                rootObject ["listDefs"] = Json.ListDefinitionsToJToken (_listDefinitions);
+        void ToJson(SimpleJson.Writer writer)
+        {
+            writer.WriteObjectStart();
 
-            return SimpleJson.DictionaryToText (rootObject);
+            writer.WriteProperty("inkVersion", inkVersionCurrent);
+
+            // Main container content
+            writer.WriteProperty("root", w => Json.WriteRuntimeContainer(w, _mainContentContainer));
+
+            // List definitions
+            if (_listDefinitions != null) {
+
+                writer.WritePropertyStart("listDefs");
+                writer.WriteObjectStart();
+
+                foreach (ListDefinition def in _listDefinitions.lists)
+                {
+                    writer.WritePropertyStart(def.name);
+                    writer.WriteObjectStart();
+
+                    foreach (var itemToVal in def.items)
+                    {
+                        InkListItem item = itemToVal.Key;
+                        int val = itemToVal.Value;
+                        writer.WriteProperty(item.itemName, val);
+                    }
+
+                    writer.WriteObjectEnd();
+                    writer.WritePropertyEnd();
+                }
+
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteObjectEnd();
         }
             
         /// <summary>
@@ -380,9 +421,8 @@ namespace Ink.Runtime
             if (outputStreamEndsInNewline || !canContinue) {
 
                 // Need to rewind, due to evaluating further than we should?
-                if( _stateAtLastNewline != null ) {
-    				RestoreStateSnapshot (_stateAtLastNewline);
-                    _stateAtLastNewline = null;
+                if( _stateSnapshotAtLastNewline != null ) {
+    				RestoreStateSnapshot ();
                 }
 
                 // Finished a section of content / reached a choice point?
@@ -440,19 +480,19 @@ namespace Ink.Runtime
 
                 // We previously found a newline, but were we just double checking that
                 // it wouldn't immediately be removed by glue?
-                if (_stateAtLastNewline != null) {
+                if (_stateSnapshotAtLastNewline != null) {
 
                     // Has proper text or a tag been added? Then we know that the newline
                     // that was previously added is definitely the end of the line.
                     var change = CalculateNewlineOutputStateChange (
-                        _stateAtLastNewline.currentText,       state.currentText, 
-                        _stateAtLastNewline.currentTags.Count, state.currentTags.Count
+                        _stateSnapshotAtLastNewline.currentText,       state.currentText, 
+                        _stateSnapshotAtLastNewline.currentTags.Count, state.currentTags.Count
                     );
 
                     // The last time we saw a newline, it was definitely the end of the line, so we
                     // want to rewind to that point.
                     if (change == OutputStateChange.ExtendedBeyondNewline) {
-                        RestoreStateSnapshot (_stateAtLastNewline);
+                        RestoreStateSnapshot ();
 
                         // Hit a newline for sure, we're done
                         return true;
@@ -461,7 +501,7 @@ namespace Ink.Runtime
                     // Newline that previously existed is no longer valid - e.g.
                     // glue was encounted that caused it to be removed.
                     else if (change == OutputStateChange.NewlineRemoved) {
-                        _stateAtLastNewline = null;
+                        DiscardSnapshot();
                     }
                 }
 
@@ -478,14 +518,14 @@ namespace Ink.Runtime
                         // e.g.:
                         // Hello world\n            // record state at the end of here
                         // ~ complexCalculation()   // don't actually need this unless it generates text
-                        if (_stateAtLastNewline == null)
-                            _stateAtLastNewline = StateSnapshot ();
+                        if (_stateSnapshotAtLastNewline == null)
+                            StateSnapshot ();
                     }
 
                     // Can't continue, so we're about to exit - make sure we
                     // don't have an old state hanging around.
                     else {
-                        _stateAtLastNewline = null;
+                        DiscardSnapshot();
                     }
 
                 }
@@ -609,16 +649,96 @@ namespace Ink.Runtime
             return p;
         }
 
-        StoryState StateSnapshot()
+        // Maximum snapshot stack:
+        //  - stateSnapshotDuringSave -- not retained, but returned to game code
+        //  - _stateSnapshotAtLastNewline (has older patch)
+        //  - _state (current, being patched)
+
+        void StateSnapshot()
         {
-            return state.Copy ();
+            _stateSnapshotAtLastNewline = _state;
+            _state = _state.CopyAndStartPatching();
         }
 
-        void RestoreStateSnapshot(StoryState state)
+        void RestoreStateSnapshot()
         {
-            _state = state;
+            // Patched state had temporarily hijacked our
+            // VariablesState and set its own callstack on it,
+            // so we need to restore that.
+            // If we're in the middle of saving, we may also
+            // need to give the VariablesState the old patch.
+            _stateSnapshotAtLastNewline.RestoreAfterPatch();
+
+            _state = _stateSnapshotAtLastNewline;
+            _stateSnapshotAtLastNewline = null;
+
+            // If save completed while the above snapshot was
+            // active, we need to apply any changes made since
+            // the save was started but before the snapshot was made.
+            if( !_asyncSaving ) {
+                _state.ApplyAnyPatch();
+            }
         }
-            
+
+        void DiscardSnapshot()
+        {
+            // Normally we want to integrate the patch
+            // into the main global/counts dictionaries.
+            // However, if we're in the middle of async
+            // saving, we simply stay in a "patching" state,
+            // albeit with the newer cloned patch.
+            if( !_asyncSaving )
+                _state.ApplyAnyPatch();
+
+            // No longer need the snapshot.
+            _stateSnapshotAtLastNewline = null;
+        }
+
+        /// <summary>
+        /// Advanced usage!
+        /// If you have a large story, and saving state to JSON takes too long for your
+        /// framerate, you can temporarily freeze a copy of the state for saving on 
+        /// a separate thread. Internally, the engine maintains a "diff patch".
+        /// When you've finished saving your state, call BackgroundSaveComplete()
+        /// and that diff patch will be applied, allowing the story to continue
+        /// in its usual mode.
+        /// </summary>
+        /// <returns>The state for background thread save.</returns>
+        public StoryState CopyStateForBackgroundThreadSave()
+        {
+            IfAsyncWeCant("start saving on a background thread");
+            if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
+            var stateToSave = _state;
+            _state = _state.CopyAndStartPatching();
+            _asyncSaving = true;
+            return stateToSave;
+        }
+
+        /// <summary>
+        /// See CopyStateForBackgroundThreadSave. This method releases the
+        /// "frozen" save state, applying its patch that it was using internally.
+        /// </summary>
+        public void BackgroundSaveComplete()
+        {
+            // CopyStateForBackgroundThreadSave must be called outside
+            // of any async ink evaluation, since otherwise you'd be saving
+            // during an intermediate state.
+            // However, it's possible to *complete* the save in the middle of
+            // a glue-lookahead when there's a state stored in _stateSnapshotAtLastNewline.
+            // This state will have its own patch that is newer than the save patch.
+            // We hold off on the final apply until the glue-lookahead is finished.
+            // In that case, the apply is always done, it's just that it may
+            // apply the looked-ahead changes OR it may simply apply the changes
+            // made during the save process to the old _stateSnapshotAtLastNewline state.
+            if ( _stateSnapshotAtLastNewline == null ) {
+                _state.ApplyAnyPatch();
+            }
+
+            _asyncSaving = false;
+        }
+
+
+
         void Step ()
         {
             bool shouldAddToStream = true;
@@ -725,10 +845,10 @@ namespace Ink.Runtime
         {
             if ( !container.countingAtStartOnly || atStart ) {
                 if( container.visitsShouldBeCounted )
-                    IncrementVisitCountForContainer (container);
+                    state.IncrementVisitCountForContainer (container);
 
                 if (container.turnIndexShouldBeCounted)
-                    RecordTurnIndexVisitToContainer (container);
+                    state.RecordTurnIndexVisitToContainer (container);
             }
         }
 
@@ -804,7 +924,7 @@ namespace Ink.Runtime
 
             // Don't create choice if player has already read this content
             if (choicePoint.onceOnly) {
-                var visitCount = VisitCountForContainer (choicePoint.choiceTarget);
+                var visitCount = state.VisitCountForContainer (choicePoint.choiceTarget);
                 if (visitCount > 0) {
                     showChoice = false;
                 }
@@ -1095,9 +1215,9 @@ namespace Ink.Runtime
                     int eitherCount;
                     if (container != null) {
                         if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
-                            eitherCount = TurnsSinceForContainer (container);
+                            eitherCount = state.TurnsSinceForContainer (container);
                         else
-                            eitherCount = VisitCountForContainer (container);
+                            eitherCount = state.VisitCountForContainer (container);
                     } else {
                         if (evalCommand.commandType == ControlCommand.CommandType.TurnsSince)
                             eitherCount = -1; // turn count, default to never/unknown
@@ -1152,7 +1272,7 @@ namespace Ink.Runtime
                     break;
 
                 case ControlCommand.CommandType.VisitIndex:
-                    var count = VisitCountForContainer(state.currentPointer.container) - 1; // index not count
+                    var count = state.VisitCountForContainer(state.currentPointer.container) - 1; // index not count
                     state.PushEvaluationStack (new IntValue (count));
                     break;
 
@@ -1304,7 +1424,7 @@ namespace Ink.Runtime
                 if (varRef.pathForCount != null) {
 
                     var container = varRef.containerForCount;
-                    int count = VisitCountForContainer (container);
+                    int count = state.VisitCountForContainer (container);
                     foundValue = new IntValue (count);
                 }
 
@@ -1314,18 +1434,8 @@ namespace Ink.Runtime
                     foundValue = state.variablesState.GetVariableWithName (varRef.name);
 
                     if (foundValue == null) {
-                        var defaultVal = state.variablesState.TryGetDefaultVariableValue (varRef.name);
-                        if (defaultVal != null) {
-                            Warning ("Variable not found in save state: '" + varRef.name + "', but seems to have been newly created. Assigning value from latest ink's declaration: " + defaultVal);
-                            foundValue = defaultVal;
-
-                            // Save for future usage, preventing future errors
-                            // Only do this for variables that are known to be globals, not those that may be missing temps.
-                            state.variablesState.SetGlobal(varRef.name, foundValue);
-                        } else {
-                            Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit.");
-                            foundValue = new IntValue (0);
-                        }
+                        Warning ("Variable not found: '" + varRef.name + "'. Using default value of 0 (false). This can happen with temporary variables if the declaration hasn't yet been hit. Globals are always given a default value on load if a value doesn't exist in the save state.");
+                        foundValue = new IntValue (0);
                     }
                 }
 
@@ -2164,48 +2274,6 @@ namespace Ink.Runtime
             return true;
         }
             
-        int VisitCountForContainer(Container container)
-        {
-            if( !container.visitsShouldBeCounted ) {
-                Error ("Read count for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
-                return 0;
-            }
-
-            int count = 0;
-            var containerPathStr = container.path.ToString();
-            state.visitCounts.TryGetValue (containerPathStr, out count);
-            return count;
-        }
-
-        void IncrementVisitCountForContainer(Container container)
-        {
-            int count = 0;
-            var containerPathStr = container.path.ToString();
-            state.visitCounts.TryGetValue (containerPathStr, out count);
-            count++;
-            state.visitCounts [containerPathStr] = count;
-        }
-
-        void RecordTurnIndexVisitToContainer(Container container)
-        {
-            var containerPathStr = container.path.ToString();
-            state.turnIndices [containerPathStr] = state.currentTurnIndex;
-        }
-
-        int TurnsSinceForContainer(Container container)
-        {
-            if( !container.turnIndexShouldBeCounted ) {
-                Error ("TURNS_SINCE() for target ("+container.name+" - on "+container.debugMetadata+") unknown. The story may need to be compiled with countAllVisits flag (-c).");
-            }
-
-            int index = 0;
-            var containerPathStr = container.path.ToString();
-            if (state.turnIndices.TryGetValue (containerPathStr, out index)) {
-                return state.currentTurnIndex - index;
-            } else {
-                return -1;
-            }
-        }
 
         // Note that this is O(n), since it re-evaluates the shuffle indices
         // from a consistent seed each time.
@@ -2380,11 +2448,13 @@ namespace Ink.Runtime
         StoryState _state;
 
         bool _asyncContinueActive;
-        StoryState _stateAtLastNewline = null;
+        StoryState _stateSnapshotAtLastNewline = null;
 
         int _recursiveContinueCount = 0;
 
-		Profiler _profiler;
+        bool _asyncSaving;
+
+        Profiler _profiler;
 	}
 }
 
