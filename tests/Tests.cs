@@ -236,6 +236,7 @@ Shuffle once: {f_shuffle_once()} {f_shuffle_once()} {f_shuffle_once()} {f_shuffl
 {stopping shuffle:
     - one
     - two
+    - final
 }
 
 == function f_shuffle_once ==
@@ -246,7 +247,7 @@ Shuffle once: {f_shuffle_once()} {f_shuffle_once()} {f_shuffle_once()} {f_shuffl
                 ";
 
             Story story = CompileString(storyStr);
-            Assert.AreEqual("Once: one two\nStopping: one two two two\nDefault: one two two two\nCycle: one two one two\nShuffle: two one two one\nShuffle stopping: one two two two\nShuffle once: two one\n", story.ContinueMaximally());
+            Assert.AreEqual("Once: one two\nStopping: one two two two\nDefault: one two two two\nCycle: one two one two\nShuffle: two one two one\nShuffle stopping: one two final final\nShuffle once: two one\n", story.ContinueMaximally());
         }
 
 
