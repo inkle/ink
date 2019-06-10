@@ -100,12 +100,13 @@ namespace Ink.Parsed
                 // Create point to return to when sequence is complete
                 var postShuffleNoOp = Runtime.ControlCommand.NoOp();
 
-                // When visitIndex == seqElementCount, we skip the shuffle
-                if ( once )
+                // When visitIndex == lastIdx, we skip the shuffle
+                if ( once || stopping )
                 {
-                    // if( visitIndex == seqElementCount ) -> skipShuffle
+                    // if( visitIndex == lastIdx ) -> skipShuffle
+                    int lastIdx = stopping ? sequenceElements.Count - 1 : sequenceElements.Count;
                     container.AddContent(Runtime.ControlCommand.Duplicate());
-                    container.AddContent(new Runtime.IntValue(sequenceElements.Count));
+                    container.AddContent(new Runtime.IntValue(lastIdx));
                     container.AddContent(Runtime.NativeFunctionCall.CallWithName("=="));
 
                     var skipShuffleDivert = new Runtime.Divert();
@@ -116,9 +117,11 @@ namespace Ink.Parsed
                 }
 
                 // This one's a bit more complex! Choose the index at runtime.
-                container.AddContent (new Runtime.IntValue (sequenceElements.Count));
+                var elementCountToShuffle = sequenceElements.Count;
+                if (stopping) elementCountToShuffle--;
+                container.AddContent (new Runtime.IntValue (elementCountToShuffle));
                 container.AddContent (Runtime.ControlCommand.SequenceShuffleIndex ());
-                if (once) container.AddContent(postShuffleNoOp);
+                if (once || stopping) container.AddContent(postShuffleNoOp);
             }
 
             container.AddContent (Runtime.ControlCommand.EvalEnd ());
