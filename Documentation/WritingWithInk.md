@@ -1280,9 +1280,14 @@ and the following will test conditions:
 	
 ### Mathematics
 	
-**ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. 
+**ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. There's also POW for to-the-power-of: 
+
+	{POW(3, 2)} is 9. 
+	{POW(16, 0.5)} is 4. 
+
 
 If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced). 
+
 
 #### RANDOM(min, max) 
 
@@ -1305,6 +1310,16 @@ Results of operations - in particular, for division - are typed based on the typ
 	~ z = 1.2 / 0.5
 	
 assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
+
+#### Advanced: INT() and FLOAT() 
+
+In cases where you don't want implicit types, or you want to round off a variable, you can cast it directly. 
+
+	{INT(3.2)} is 3. 
+	{INT(4.8)} is 4. 
+	{FLOAT(4)} is, um, still 4. 
+
+
 
 ### String queries
 
@@ -1435,8 +1450,7 @@ There's one other class of multiline block, which expands on the alternatives sy
 		- 	Ace of Hearts.
 		- 	King of Spades.
 		- 	2 of Diamonds.
-			'You lose!' crowed the croupier.
-			-> leave_casino
+			'You lose this time!' crowed the croupier.
 	}
 	
 	// Cycle: show each in turn, and then cycle
@@ -1451,6 +1465,28 @@ There's one other class of multiline block, which expands on the alternatives sy
 		- Would my luck hold?
 		- Could I win the hand?
 	}
+
+#### Advanced: modified shuffles 
+
+The shuffle block above is really a "shuffled cycle"; in that it'll shuffle the content, play through it, then reshuffle and go again. 
+
+There are two other versions of shuffle: 
+
+`shuffle once` which will shuffle the content, play through it, and then do nothing.
+
+	{ shuffle once: 
+	-	The sun was hot. 
+	- 	It was a hot day. 
+	}
+
+`shuffle stopping` will shuffle all the content (except the last entry), and once its been played, it'll stick on the last entry. 
+
+	{ shuffle stopping:
+	- 	A silver BMW roars past.
+	-	A bright yellow Mustang takes the turn. 
+	- 	There are like, cars, here. 
+	}
+	
 
 ## 4) Temporary Variables
 
