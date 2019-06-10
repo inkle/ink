@@ -58,8 +58,19 @@ if ($tag -eq "") {
         exit 0
     }
 
-    Write-Host "Building a pre-release build $suffix..."
-    dotnet pack -c Release --version-suffix "$suffix" ink-engine-runtime/ink-engine-runtime.csproj
+    # get the latest tag in the branch history
+    $tag = "$(git describe --tags $(git rev-list --tags --max-count=1))"
+    # extract version number in case it has prefix (like v1.2.3)
+    if (($tag -ne "") -and ($tag -match '\d+(\.\d+)+$')) {
+        $tag = $Matches[0]
+    }
+    if ($tag -ne "") {
+        Write-Host "Building a pre-release build $tag-$suffix..."
+        dotnet pack -c Release /p:VersionPrefix=$tag --version-suffix "$suffix" ink-engine-runtime/ink-engine-runtime.csproj
+    } else {
+        Write-Host "Building a pre-release build $suffix..."
+        dotnet pack -c Release --version-suffix "$suffix" ink-engine-runtime/ink-engine-runtime.csproj
+    }
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }
