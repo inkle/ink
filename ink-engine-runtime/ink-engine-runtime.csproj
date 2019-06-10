@@ -13,7 +13,7 @@
     <Copyright>inkle Ltd</Copyright>
     <RepositoryUrl>https://github.com/inkle/ink</RepositoryUrl>
     <PackageProjectUrl>https://www.inklestudios.com/ink/</PackageProjectUrl>
-    <VersionPrefix>0.8.4</VersionPrefix>
+    <VersionPrefix>0.9.0</VersionPrefix>
     <PackageIconUrl>https://avatars2.githubusercontent.com/u/1987090</PackageIconUrl>
     <Description>Runtime engine for the ink scripting language</Description>
     <RepositoryType>git</RepositoryType>
