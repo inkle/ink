@@ -1311,12 +1311,15 @@ Results of operations - in particular, for division - are typed based on the typ
 	
 assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
 
-#### Advanced: INT() and FLOAT() 
+#### Advanced: INT(), FLOOR() and FLOAT() 
 
 In cases where you don't want implicit types, or you want to round off a variable, you can cast it directly. 
 
 	{INT(3.2)} is 3. 
-	{INT(4.8)} is 4. 
+	{FLOOR(4.8)} is 4.
+	{INT(-4.8)} is -4. 
+	{FLOOR(-4.8)} is -5. 
+	
 	{FLOAT(4)} is, um, still 4. 
 
 
