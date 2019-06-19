@@ -1930,11 +1930,12 @@ namespace Ink.Runtime
         /// Removes the variable observer, to stop getting variable change notifications.
         /// If you pass a specific variable name, it will stop observing that particular one. If you
         /// pass null (or leave it blank, since it's optional), then the observer will be removed
-        /// from all variables that it's subscribed to.
+        /// from all variables that it's subscribed to. If you pass in a specific variable name and
+        /// null for the the observer, all observers for that variable will be removed. 
         /// </summary>
-        /// <param name="observer">The observer to stop observing.</param>
+        /// <param name="observer">(Optional) The observer to stop observing.</param>
         /// <param name="specificVariableName">(Optional) Specific variable name to stop observing.</param>
-        public void RemoveVariableObserver(VariableObserver observer, string specificVariableName = null)
+        public void RemoveVariableObserver(VariableObserver observer = null, string specificVariableName = null)
         {
             IfAsyncWeCant ("remove a variable observer");
 
@@ -1944,12 +1945,17 @@ namespace Ink.Runtime
             // Remove observer for this specific variable
             if (specificVariableName != null) {
                 if (_variableObservers.ContainsKey (specificVariableName)) {
-                    _variableObservers [specificVariableName] -= observer;
+                    if( observer != null) {
+                        _variableObservers [specificVariableName] -= observer;
+                    }
+                    else {
+                        _variableObservers.Remove(specificVariableName);
+                    }
                 }
             } 
 
             // Remove observer for all variables
-            else {
+            else if( observer != null) {
                 var keys = new List<string>(_variableObservers.Keys);
                 foreach (var varName in keys) {
                     _variableObservers[varName] -= observer;
