@@ -20,7 +20,7 @@
 
 ### Other files
 
- * `ink.YAML-tmLanguage`: This is the main source file for the syntax
+ * `ink.YAML-tmLanguage`: This is the main source file for the syntax
  * `LiveWatchAndInstallOnEdit.command` - when continuously editing the above the files, you can run this script so that it installs them automatically as you save changes to them (Mac only).
 
 (Note: Unfortunately we can't use the alternative `.sublime-syntax` ([documentation here](https://www.sublimetext.com/docs/3/syntax.html)) just yet since it's not available for non-dev builds of Sublime Text 3 yet.)
