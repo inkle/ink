@@ -1884,7 +1884,7 @@ namespace Ink.Runtime
 			Assert(func != null, "Can't bind a null function");
 
             BindExternalFunctionGeneral (funcName, (object[] args) => {
-                Assert(args.Length == 3, "External function expected two arguments");
+                Assert(args.Length == 3, "External function expected three arguments");
                 return func(
                     (T1)TryCoerce<T1>(args[0]), 
                     (T2)TryCoerce<T2>(args[1]),
@@ -1903,7 +1903,7 @@ namespace Ink.Runtime
 			Assert(act != null, "Can't bind a null function");
 
             BindExternalFunctionGeneral (funcName, (object[] args) => {
-                Assert(args.Length == 3, "External function expected two arguments");
+                Assert(args.Length == 3, "External function expected three arguments");
                 act(
                     (T1)TryCoerce<T1>(args[0]), 
                     (T2)TryCoerce<T2>(args[1]),
