@@ -2404,6 +2404,24 @@ this is the end
             Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot2"));
         }
 
+        // https://github.com/inkle/ink/issues/539
+        [Test()]
+        public void TestVisitCountBugDueToNestedContainers()
+        {
+            var storyStr = @"
+                - (gather) {gather}
+                * choice
+                - {gather}
+            ";
+
+            Story story = CompileString(storyStr);
+
+            Assert.AreEqual("1\n", story.Continue());
+
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual("choice\n1\n", story.ContinueMaximally());
+        }
+
         [Test()]
         public void TestTempGlobalConflict()
         {

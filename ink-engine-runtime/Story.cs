@@ -882,12 +882,20 @@ namespace Ink.Runtime
 
             Container currentContainerAncestor = currentChildOfContainer.parent as Container;
 
+            bool allChildrenEnteredAtStart = true;
             while (currentContainerAncestor && (!_prevContainers.Contains(currentContainerAncestor) || currentContainerAncestor.countingAtStartOnly)) {
 
                 // Check whether this ancestor container is being entered at the start,
                 // by checking whether the child object is the first.
                 bool enteringAtStart = currentContainerAncestor.content.Count > 0 
-                    && currentChildOfContainer == currentContainerAncestor.content [0];
+                    && currentChildOfContainer == currentContainerAncestor.content [0]
+                    && allChildrenEnteredAtStart;
+
+                // Don't count it as entering at start if we're entering random somewhere within
+                // a container B that happens to be nested at index 0 of container A. It only counts
+                // if we're diverting directly to the first leaf node.
+                if (!enteringAtStart)
+                    allChildrenEnteredAtStart = false;
 
                 // Mark a visit to this container
                 VisitContainer (currentContainerAncestor, enteringAtStart);
