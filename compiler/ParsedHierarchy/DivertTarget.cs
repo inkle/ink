@@ -115,6 +115,29 @@ namespace Ink.Parsed
                     }
 
                 }
+
+                // Unfortunately not possible:
+                // https://github.com/inkle/ink/issues/538
+                //
+                // VAR func = -> double
+                //
+                // === function double(ref x)
+                //    ~ x = x * 2
+                //
+                // Because when generating the parameters for a function
+                // to be called, it needs to know ahead of time when
+                // compiling whether to pass a variable reference or value.
+                //
+                var targetFlow = (targetContent as FlowBase);
+                if (targetFlow != null && targetFlow.arguments != null)
+                {
+                    foreach(var arg in targetFlow.arguments) {
+                        if(arg.isByReference)
+                        {
+                            Error("Can't store a divert target to a knot or function that has by-reference arguments ('"+targetFlow.name+"' has 'ref "+arg.name+"').");
+                        }
+                    }
+                }
             }
         }
 
