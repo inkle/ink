@@ -1250,7 +1250,13 @@ namespace Ink.Runtime
                             Error ("Invalid value for maximum parameter of RANDOM(min, max)");
 
                         // +1 because it's inclusive of min and max, for e.g. RANDOM(1,6) for a dice roll.
-                        var randomRange = maxInt.value - minInt.value + 1;
+                        int randomRange;
+                        try {
+                            randomRange = checked(maxInt.value - minInt.value + 1);
+                        } catch (System.OverflowException) {
+                            randomRange = int.MaxValue;
+                            Error("RANDOM was called with a range that exceeds the size that ink numbers can use.");
+                        }
                         if (randomRange <= 0)
                             Error ("RANDOM was called with minimum as " + minInt.value + " and maximum as " + maxInt.value + ". The maximum must be larger");
 
