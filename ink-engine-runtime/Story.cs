@@ -1091,9 +1091,9 @@ namespace Ink.Runtime
 
                 switch (evalCommand.commandType) {
 
-				case ControlCommand.CommandType.EvalStart:
-					Assert (state.inExpressionEvaluation == false, "Already in expression evaluation (begun " + state.pathStringWhenLastBeganExpressionEvaluation + "?");
-					state.inExpressionEvaluation = true;
+                case ControlCommand.CommandType.EvalStart:
+                    Assert (state.inExpressionEvaluation == false, "Already in expression evaluation?");
+                    state.inExpressionEvaluation = true;
                     break;
 
                 case ControlCommand.CommandType.EvalEnd:
