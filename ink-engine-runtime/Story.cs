@@ -2071,9 +2071,9 @@ namespace Ink.Runtime
                 if (_variableObservers.ContainsKey (specificVariableName)) {
                     if( observer != null) {
                         _variableObservers [specificVariableName] -= observer;
-			if (_variableObservers[specificVariableName] == null) {
-			    _variableObservers.Remove(specificVariableName);
-			}
+                        if (_variableObservers[specificVariableName] == null) {
+                            _variableObservers.Remove(specificVariableName);
+                        }
                     }
                     else {
                         _variableObservers.Remove(specificVariableName);
@@ -2086,9 +2086,9 @@ namespace Ink.Runtime
                 var keys = new List<string>(_variableObservers.Keys);
                 foreach (var varName in keys) {
                     _variableObservers[varName] -= observer;
-		    if (_variableObservers[varName] == null) {
-		    	_variableObservers.Remove(varName);
-		    }
+                    if (_variableObservers[varName] == null) {
+                        _variableObservers.Remove(varName);
+                    }
                 }
             }
         }
