@@ -147,8 +147,8 @@ namespace Ink.Runtime
 			var listValue = originStory.listDefinitions.FindSingleItemListWithName (myListItem);
 			if (listValue)
 				return new InkList (listValue.value);
-			else
-				return new InkList ();
+			else 
+                throw new System.Exception ("Could not find the InkListItem from the string '" + myListItem + "' to create an InkList because it doesn't exist in the original list definition in ink.");
 		}
 
 
