@@ -1955,6 +1955,47 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Bind a C# function to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
+        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Func<T1, T2, T3, T4, object> func)
+        {
+			Assert(func != null, "Can't bind a null function");
+
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 4, "External function expected four arguments");
+                return func(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1]),
+                    (T3)TryCoerce<T3>(args[2]),
+                    (T4)TryCoerce<T4>(args[3])
+                );
+            });
+        }
+
+        /// <summary>
+        /// Bind a C# action to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="act">The C# action to bind.</param>
+        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Action<T1, T2, T3, T4> act)
+        {
+			Assert(act != null, "Can't bind a null function");
+
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 4, "External function expected four arguments");
+                act(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1]),
+                    (T3)TryCoerce<T3>(args[2]),
+                    (T4)TryCoerce<T4>(args[3])
+                );
+                return null;
+            });
+        }
+        
+        /// <summary>
         /// Remove a binding for a named EXTERNAL ink function.
         /// </summary>
         public void UnbindExternalFunction(string funcName)
