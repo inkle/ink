@@ -325,10 +325,14 @@ namespace Ink.Runtime
                 return callStack.currentElement.inExpressionEvaluation;
             }
             set {
+				if (value)
+					pathStringWhenLastBeganExpressionEvaluation = currentPathString;
                 callStack.currentElement.inExpressionEvaluation = value;
             }
         }
-            
+
+		public string pathStringWhenLastBeganExpressionEvaluation = "";
+		    
         internal StoryState (Story story)
         {
             this.story = story;
