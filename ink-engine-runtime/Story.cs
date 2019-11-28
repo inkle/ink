@@ -123,6 +123,29 @@ namespace Ink.Runtime
         /// 
         /// </summary>
         public StoryState state { get { return _state; } }
+        
+        
+        /// <summary>
+        /// Callback for when ContinueInternal is complete
+        /// </summary>
+        public event Action onDidContinue;
+        /// <summary>
+        /// Callback for when a choice is about to be executed
+        /// </summary>
+        public event Action<Choice> onMakeChoice;
+        /// <summary>
+        /// Callback for when a function is about to be evaluated
+        /// </summary>
+        public event Action<string, object[]> onEvaluateFunction;
+        /// <summary>
+        /// Callback for when a function has been evaluated
+        /// This is necessary because evaluating a function can cause continuing
+        /// </summary>
+        public event Action<string, object[], string, object> onCompleteEvaluateFunction;
+        /// <summary>
+        /// Callback for when a path string is chosen
+        /// </summary>
+        public event Action<string, object[]> onChoosePathString;
 
         /// <summary>
         /// Start recording ink profiling information during calls to Continue on Story.
@@ -448,6 +471,7 @@ namespace Ink.Runtime
                     _state.variablesState.batchObservingVariableChanges = false;
 
                 _asyncContinueActive = false;
+                if(onDidContinue != null) onDidContinue();
             }
 
             _recursiveContinueCount--;
@@ -1510,7 +1534,7 @@ namespace Ink.Runtime
         public void ChoosePathString (string path, bool resetCallstack = true, params object [] arguments)
         {
             IfAsyncWeCant ("call ChoosePathString right now");
-
+            if(onChoosePathString != null) onChoosePathString(path, arguments);
             if (resetCallstack) {
                 ResetCallstack ();
             } else {
@@ -1560,6 +1584,7 @@ namespace Ink.Runtime
             // can create multiple leading edges for the story, each of
             // which has its own context.
             var choiceToChoose = choices [choiceIdx];
+            if(onMakeChoice != null) onMakeChoice(choiceToChoose);
             state.callStack.currentThread = choiceToChoose.threadAtGeneration;
 
             ChoosePath (choiceToChoose.targetPath);
@@ -1601,6 +1626,7 @@ namespace Ink.Runtime
         /// <param name="arguments">The arguments that the ink function takes, if any. Note that we don't (can't) do any validation on the number of arguments right now, so make sure you get it right!</param>
         public object EvaluateFunction (string functionName, out string textOutput, params object [] arguments)
         {
+            if(onEvaluateFunction != null) onEvaluateFunction(functionName, arguments);
             IfAsyncWeCant ("evaluate a function");
 
 			if(functionName == null) {
@@ -1634,6 +1660,7 @@ namespace Ink.Runtime
 
             // Finish evaluation, and see whether anything was produced
             var result = state.CompleteFunctionEvaluationFromGame ();
+            if(onCompleteEvaluateFunction != null) onCompleteEvaluateFunction(functionName, arguments, textOutput, result);
             return result;
         }
 
@@ -1928,6 +1955,47 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Bind a C# function to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="func">The C# function to bind.</param>
+        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Func<T1, T2, T3, T4, object> func)
+        {
+			Assert(func != null, "Can't bind a null function");
+
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 4, "External function expected four arguments");
+                return func(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1]),
+                    (T3)TryCoerce<T3>(args[2]),
+                    (T4)TryCoerce<T4>(args[3])
+                );
+            });
+        }
+
+        /// <summary>
+        /// Bind a C# action to an ink EXTERNAL function declaration.
+        /// </summary>
+        /// <param name="funcName">EXTERNAL ink function name to bind to.</param>
+        /// <param name="act">The C# action to bind.</param>
+        public void BindExternalFunction<T1, T2, T3, T4>(string funcName, Action<T1, T2, T3, T4> act)
+        {
+			Assert(act != null, "Can't bind a null function");
+
+            BindExternalFunctionGeneral (funcName, (object[] args) => {
+                Assert(args.Length == 4, "External function expected four arguments");
+                act(
+                    (T1)TryCoerce<T1>(args[0]), 
+                    (T2)TryCoerce<T2>(args[1]),
+                    (T3)TryCoerce<T3>(args[2]),
+                    (T4)TryCoerce<T4>(args[3])
+                );
+                return null;
+            });
+        }
+        
+        /// <summary>
         /// Remove a binding for a named EXTERNAL ink function.
         /// </summary>
         public void UnbindExternalFunction(string funcName)
@@ -2071,9 +2139,9 @@ namespace Ink.Runtime
                 if (_variableObservers.ContainsKey (specificVariableName)) {
                     if( observer != null) {
                         _variableObservers [specificVariableName] -= observer;
-			if (_variableObservers[specificVariableName] == null) {
-			    _variableObservers.Remove(specificVariableName);
-			}
+                        if (_variableObservers[specificVariableName] == null) {
+                            _variableObservers.Remove(specificVariableName);
+                        }
                     }
                     else {
                         _variableObservers.Remove(specificVariableName);
@@ -2086,9 +2154,9 @@ namespace Ink.Runtime
                 var keys = new List<string>(_variableObservers.Keys);
                 foreach (var varName in keys) {
                     _variableObservers[varName] -= observer;
-		    if (_variableObservers[varName] == null) {
-		    	_variableObservers.Remove(varName);
-		    }
+                    if (_variableObservers[varName] == null) {
+                        _variableObservers.Remove(varName);
+                    }
                 }
             }
         }
