@@ -3737,6 +3737,33 @@ The second line.
             Assert.AreEqual("somewhere else\n", story.ContinueMaximally());
         }
 
+
+        // Test for bug where choice's owned thread would get 
+        // reused between re-runs after a state reset, and in
+        // this case would be in the middle of expression evaluation
+        // at the time, causing an error.
+        // Fixed by re-forking the choice thread
+        // in TryFollowDefaultInvisibleChoice
+        [Test()]
+        public void TestStateRollbackOverDefaultChoice()
+        {
+            var storyStr =
+        @"
+<- make_default_choice
+Text.
+
+=== make_default_choice
+    *   -> 
+        {5}
+        -> END 
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual("Text.\n", story.Continue());
+            Assert.AreEqual("5\n", story.Continue());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {

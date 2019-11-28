@@ -2295,6 +2295,12 @@ namespace Ink.Runtime
             // in which case we need to restore it before we continue
             state.callStack.currentThread = choice.threadAtGeneration;
 
+            // If there's a chance that this state will be rolled back to before
+            // the invisible choice then make sure that the choice thread is
+            // left intact, and it isn't re-entered in an old state.
+            if ( _stateSnapshotAtLastNewline != null )
+                state.callStack.currentThread = state.callStack.ForkThread();
+
             ChoosePath (choice.targetPath, incrementingTurnIndex: false);
 
             return true;
