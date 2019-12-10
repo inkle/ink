@@ -619,14 +619,14 @@ namespace Ink.Runtime
         // the main string are ignored, since this is for the purpose of gluing only.
         //
         //  - If no splitting is necessary, null is returned.
-        //  - A newline on its own is returned in an list for consistency.
+        //  - A newline on its own is returned in a list for consistency.
         List<Runtime.StringValue> TrySplittingHeadTailWhitespace(Runtime.StringValue single)
         {
             string str = single.value;
 
             int headFirstNewlineIdx = -1;
             int headLastNewlineIdx = -1;
-            for (int i = 0; i < str.Length; ++i) {
+            for (int i = 0; i < str.Length; i++) {
                 char c = str [i];
                 if (c == '\n') {
                     if (headFirstNewlineIdx == -1)
@@ -641,7 +641,7 @@ namespace Ink.Runtime
 
             int tailLastNewlineIdx = -1;
             int tailFirstNewlineIdx = -1;
-            for (int i = 0; i < str.Length; ++i) {
+            for (int i = str.Length-1; i >= 0; i--) {
                 char c = str [i];
                 if (c == '\n') {
                     if (tailLastNewlineIdx == -1)
