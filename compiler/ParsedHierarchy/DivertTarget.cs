@@ -24,6 +24,12 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
+            if( divert.isDone || divert.isEnd )
+            {
+                Error("Can't Can't use -> DONE or -> END as variable divert targets", this);
+                return;
+            }
+
             Parsed.Object usageContext = this;
             while (usageContext && usageContext is Expression) {
 
