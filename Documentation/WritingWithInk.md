@@ -1820,7 +1820,7 @@ And sometimes the numbers are useful in other ways:
 	VAR suitcase_location = HALLWAY
 	
 	=== report_progress ===
-	{  secret_agent_location = suitcase_location:
+	{  secret_agent_location == suitcase_location:
 		The secret agent grabs the suitcase!
 		~ suitcase_location = HELD_BY_AGENT  
 		
