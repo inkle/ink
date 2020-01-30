@@ -70,18 +70,20 @@ namespace Ink.Runtime
 
 			var stack = new string[callstack.elements.Count];
 			for(int i=0; i<stack.Length; i++) {
-				var objPath = callstack.elements[i].currentPointer.path;
-				string stackElementName = "";
+                string stackElementName = "";
+                if(!callstack.elements[i].currentPointer.isNull) {
+                    var objPath = callstack.elements[i].currentPointer.path;
 
-				for(int c=0; c<objPath.length; c++) {
-					var comp = objPath.GetComponent(c);
-					if( !comp.isIndex ) {
-						stackElementName = comp.name;
-						break;
-					}
-				}
+                    for(int c=0; c<objPath.length; c++) {
+                        var comp = objPath.GetComponent(c);
+                        if( !comp.isIndex ) {
+                            stackElementName = comp.name;
+                            break;
+                        }
+                    }
 
-				stack[i] = stackElementName;
+                }
+                stack[i] = stackElementName;
 			}
 				
 			_currStepStack = stack;
@@ -267,6 +269,9 @@ namespace Ink.Runtime
 			}
 		}
 
+        /// <summary>
+        /// Total number of milliseconds this node has been active for.
+        /// </summary>
 		public int totalMillisecs {
 			get {
 				return (int)_totalMillisecs;

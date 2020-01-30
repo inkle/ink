@@ -191,6 +191,67 @@ Hello
         }
 
         [Test()]
+        public void TestAllSequenceTypes()
+        {
+            var storyStr =
+                @"
+~ SEED_RANDOM(1)
+
+Once: {f_once()} {f_once()} {f_once()} {f_once()}
+Stopping: {f_stopping()} {f_stopping()} {f_stopping()} {f_stopping()}
+Default: {f_default()} {f_default()} {f_default()} {f_default()}
+Cycle: {f_cycle()} {f_cycle()} {f_cycle()} {f_cycle()}
+Shuffle: {f_shuffle()} {f_shuffle()} {f_shuffle()} {f_shuffle()}
+Shuffle stopping: {f_shuffle_stopping()} {f_shuffle_stopping()} {f_shuffle_stopping()} {f_shuffle_stopping()}
+Shuffle once: {f_shuffle_once()} {f_shuffle_once()} {f_shuffle_once()} {f_shuffle_once()}
+
+== function f_once ==
+{once:
+    - one
+    - two
+}
+
+== function f_stopping ==
+{stopping:
+    - one
+    - two
+}
+
+== function f_default ==
+{one|two}
+
+== function f_cycle ==
+{cycle:
+    - one
+    - two
+}
+
+== function f_shuffle ==
+{shuffle:
+    - one
+    - two
+}
+
+== function f_shuffle_stopping ==
+{stopping shuffle:
+    - one
+    - two
+    - final
+}
+
+== function f_shuffle_once ==
+{shuffle once:
+    - one
+    - two
+}
+                ";
+
+            Story story = CompileString(storyStr);
+            Assert.AreEqual("Once: one two\nStopping: one two two two\nDefault: one two two two\nCycle: one two one two\nShuffle: two one two one\nShuffle stopping: one two final final\nShuffle once: two one\n", story.ContinueMaximally());
+        }
+
+
+        [Test()]
         public void TestCallStackEvaluation()
         {
             var storyStr =
@@ -2314,7 +2375,7 @@ this is the end
 -> END
 ";
 
-            Story story = CompileString(storyStr);
+            Story story = CompileString(storyStr, countAllVisits:true);
 
             Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot"));
             Assert.AreEqual (0, story.state.VisitCountAtPathString ("TestKnot2"));
@@ -2341,6 +2402,24 @@ this is the end
 
             Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot"));
             Assert.AreEqual (1, story.state.VisitCountAtPathString ("TestKnot2"));
+        }
+
+        // https://github.com/inkle/ink/issues/539
+        [Test()]
+        public void TestVisitCountBugDueToNestedContainers()
+        {
+            var storyStr = @"
+                - (gather) {gather}
+                * choice
+                - {gather}
+            ";
+
+            Story story = CompileString(storyStr);
+
+            Assert.AreEqual("1\n", story.Continue());
+
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual("choice\n1\n", story.ContinueMaximally());
         }
 
         [Test()]
@@ -3658,6 +3737,33 @@ The second line.
             Assert.AreEqual("somewhere else\n", story.ContinueMaximally());
         }
 
+
+        // Test for bug where choice's owned thread would get 
+        // reused between re-runs after a state reset, and in
+        // this case would be in the middle of expression evaluation
+        // at the time, causing an error.
+        // Fixed by re-forking the choice thread
+        // in TryFollowDefaultInvisibleChoice
+        [Test()]
+        public void TestStateRollbackOverDefaultChoice()
+        {
+            var storyStr =
+        @"
+<- make_default_choice
+Text.
+
+=== make_default_choice
+    *   -> 
+        {5}
+        -> END 
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual("Text.\n", story.Continue());
+            Assert.AreEqual("5\n", story.Continue());
+        }
+
         // Helper compile function
         protected Story CompileString(string str, bool countAllVisits = false, bool testingErrors = false)
         {
@@ -3677,7 +3783,7 @@ The second line.
             // Convert to json and back again
             if (_mode == TestMode.JsonRoundTrip && story != null)
             {
-                var jsonStr = story.ToJsonString();
+                var jsonStr = story.ToJson();
                 story = new Story(jsonStr);
             }
 

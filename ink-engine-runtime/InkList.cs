@@ -135,7 +135,22 @@ namespace Ink.Runtime
         internal InkList (KeyValuePair<InkListItem, int> singleElement)
         {
             Add (singleElement.Key, singleElement.Value);
-        }
+		}
+
+		/// <summary>
+		/// Converts a string to an ink list and returns for use in the story.
+		/// </summary>
+		/// <returns>InkList created from string list item</returns>
+		/// <param name="itemKey">Item key.</param>
+		/// <param name="originStory">Origin story.</param>
+		public static InkList FromString(string myListItem, Story originStory) {
+			var listValue = originStory.listDefinitions.FindSingleItemListWithName (myListItem);
+			if (listValue)
+				return new InkList (listValue.value);
+			else 
+                throw new System.Exception ("Could not find the InkListItem from the string '" + myListItem + "' to create an InkList because it doesn't exist in the original list definition in ink.");
+		}
+
 
         /// <summary>
         /// Adds the given item to the ink list. Note that the item must come from a list definition that

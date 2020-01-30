@@ -10,7 +10,7 @@ The ink pipeline broadly consists of 3 stages:
 
 The following is a fairly brief tour of these 3 stages, hopefully enough to give you a foundation for exploring the codebase yourself.
 
-## Ink parser
+## Ink parser
 
 The parser takes a root ink file (which may reference other ink files), and constructs a hierarchy of `Parsed.Object` objects that closely resemble the structure within the original ink files, as closely as possible to how it was written.
 
@@ -33,7 +33,7 @@ Crucially however, parse rules are wrapped in either `ParseObject(rule)` or `Par
         
 If a rule isn't wrapped in a `Parse` method, then it's an indication that rewinding definitely isn't strictly necessary within the scope, for example if a sub-rule is both optional and atomic. Or, when success and failure of the rule is handled manually.
         
-## StringParser structuring
+## StringParser structuring
 
 The base class `StringParser` contains a number of helper methods to help with parsing.
 
@@ -95,7 +95,7 @@ Each `Parsed.Object` can implement:
         runtimeDivert.targetPath = targetContent.runtimePath;
     }
 
-## Runtime ink engine
+## Runtime ink engine
 
 As mentioned above, the runtime code is built out of smaller, simpler, objects compared to the ink as it's parsed directly.
 
@@ -134,7 +134,7 @@ Some important and useful features of the main runtime engine in `Story.cs`:
  * `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
  * `PerformLogicAndFlowControl(contentObject, out endFlow)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
 
-### Callstack and threads
+### Callstack and threads
 
 TODO
 

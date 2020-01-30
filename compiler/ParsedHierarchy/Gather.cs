@@ -21,7 +21,6 @@ namespace Ink.Parsed
 
             if (this.story.countAllVisits) {
                 container.visitsShouldBeCounted = true;
-                container.turnIndexShouldBeCounted = true;
             }
 
             container.countingAtStartOnly = true;

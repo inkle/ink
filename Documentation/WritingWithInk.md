@@ -541,7 +541,15 @@ You can use several logical tests on an option; if you do, *all* the tests must 
 	+ 	{ visit_paris } { not bored_of_paris } 
 		[Return to Paris] -> visit_paris 
 
+#### Logical operators: AND and OR 
 
+The above "multiple conditions" are really just conditions with an the usual programming AND operator. Ink supports `and` (also written as `&&`) and `or` (also written as `||`) in the usual way, as well as brackets. 
+
+	*	{ not (visit_paris or visit_rome) && (visit_london || visit_new_york) } [ Wait. Go where? I'm confused. ] -> visit_someplace
+
+For non-programmers `X and Y` means both X and Y must be true. `X or Y` means either or both. We don't have a `xor`. 
+
+You can also use the standard `!` for `not`, though it'll sometimes confuse the compiler which thinks `{!text}` is a once-only list. We recommend using `not` because negated boolean tests are never that exciting. 
 
 #### Advanced: knot/stitch labels are actually read counts
 
@@ -554,6 +562,7 @@ is actually testing an *integer* and not a true/false flag. A knot or stitch use
 If it's non-zero, it'll return true in a test like the one above, but you can also be more specific as well:
 
 	* {seen_clue > 3} [Flat-out arrest Mr Jefferson]
+
 
 #### Advanced: more logic
 
@@ -721,13 +730,13 @@ or:
 
 	"I missed him. Was he particularly evil?"
 
-## 7) Game Queries
+## 7) Game Queries and Functions
 
 **ink** provides a few useful 'game level' queries about game state, for use in conditional logic. They're not quite parts of the language, but they're always available, and they can't be edited by the author. In a sense, they're the "standard library functions" of the language.
 
 The convention is to name these in capital letters.
 
-### CHOICE_COUNT
+### CHOICE_COUNT()
 
 `CHOICE_COUNT` returns the number of options created so far in the current chunk. So for instance.
 
@@ -737,7 +746,11 @@ The convention is to name these in capital letters.
 
 produces two options, B and C. This can be useful for controlling how many options a player gets on a turn. 
 
-### TURNS_SINCE
+### TURNS()
+
+This returns the number of game turns since the game began. 
+
+### TURNS_SINCE(-> knot)
 
 `TURNS_SINCE` returns the number of moves (formally, player inputs) since a particular knot/stitch was last visited.
 
@@ -749,6 +762,14 @@ A value of 0 means "was seen as part of the current chunk". A value of -1 means 
 Note that the parameter passed to `TURNS_SINCE` is a "divert target", not simply the knot address itself (because the knot address is a number - the read count - not a location in the story...)
 
 TODO: (requirement of passing `-c` to the compiler)
+
+### SEED_RANDOM()
+
+For testing purposes, it's often useful to fix the random number generator so ink will produce the same outcomes every time you play. You can do this by "seeding" the random number system. 
+
+	~ SEED_RANDOM(235) 
+	
+The number you pass to the seed function is arbitrary, but providing different seeds will result in different sequences of outcomes. 
 
 #### Advanced: more queries
 
@@ -1259,9 +1280,26 @@ and the following will test conditions:
 	
 ### Mathematics
 	
-**ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. 
+**ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. There's also POW for to-the-power-of: 
+
+	{POW(3, 2)} is 9. 
+	{POW(16, 0.5)} is 4. 
+
 
 If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced). 
+
+
+#### RANDOM(min, max) 
+
+Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pendants, we said *a dice*), so the min and max values are both inclusive. 
+
+	~ temp dice_roll = RANDOM(1, 6) 
+	
+	~ temp lazy_grading_for_test_paper = RANDOM(30, 75)  
+	
+	~ temp number_of_heads_the_serpent_has = RANDOM(3, 8)
+
+The random number generator can be seeded for testing purposes, see the section of Game Queries and Functions section above. 
 
 #### Advanced: numerical types are implicit
 
@@ -1272,6 +1310,19 @@ Results of operations - in particular, for division - are typed based on the typ
 	~ z = 1.2 / 0.5
 	
 assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
+
+#### Advanced: INT(), FLOOR() and FLOAT() 
+
+In cases where you don't want implicit types, or you want to round off a variable, you can cast it directly. 
+
+	{INT(3.2)} is 3. 
+	{FLOOR(4.8)} is 4.
+	{INT(-4.8)} is -4. 
+	{FLOOR(-4.8)} is -5. 
+	
+	{FLOAT(4)} is, um, still 4. 
+
+
 
 ### String queries
 
@@ -1402,8 +1453,7 @@ There's one other class of multiline block, which expands on the alternatives sy
 		- 	Ace of Hearts.
 		- 	King of Spades.
 		- 	2 of Diamonds.
-			'You lose!' crowed the croupier.
-			-> leave_casino
+			'You lose this time!' crowed the croupier.
 	}
 	
 	// Cycle: show each in turn, and then cycle
@@ -1418,6 +1468,28 @@ There's one other class of multiline block, which expands on the alternatives sy
 		- Would my luck hold?
 		- Could I win the hand?
 	}
+
+#### Advanced: modified shuffles 
+
+The shuffle block above is really a "shuffled cycle"; in that it'll shuffle the content, play through it, then reshuffle and go again. 
+
+There are two other versions of shuffle: 
+
+`shuffle once` which will shuffle the content, play through it, and then do nothing.
+
+	{ shuffle once: 
+	-	The sun was hot. 
+	- 	It was a hot day. 
+	}
+
+`shuffle stopping` will shuffle all the content (except the last entry), and once its been played, it'll stick on the last entry. 
+
+	{ shuffle stopping:
+	- 	A silver BMW roars past.
+	-	A bright yellow Mustang takes the turn. 
+	- 	There are like, cars, here. 
+	}
+	
 
 ## 4) Temporary Variables
 
@@ -2339,6 +2411,7 @@ We have a few basic ways of getting information about what's in a list:
 	{LIST_COUNT(DoctorsInSurgery)} 	//  "2"
 	{LIST_MIN(DoctorsInSurgery)} 		//  "Adams"
 	{LIST_MAX(DoctorsInSurgery)} 		//  "Cartwright"
+	{LIST_RANDOM(DoctorsInSurgery)} 	//  "Adams" or "Cartwright"
 
 #### Testing for emptiness
 

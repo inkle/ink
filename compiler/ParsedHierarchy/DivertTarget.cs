@@ -24,6 +24,12 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
+            if( divert.isDone || divert.isEnd )
+            {
+                Error("Can't Can't use -> DONE or -> END as variable divert targets", this);
+                return;
+            }
+
             Parsed.Object usageContext = this;
             while (usageContext && usageContext is Expression) {
 
@@ -80,7 +86,7 @@ namespace Ink.Parsed
                 usageContext = usageParent;
             }
 
-            // Example ink for this class:
+            // Example ink for this case:
             //
             //     VAR x = -> blah
             //
@@ -91,7 +97,54 @@ namespace Ink.Parsed
             if (_runtimeDivert.hasVariableTarget)
                 Error ("Since '"+divert.target.dotSeparatedComponents+"' is a variable, it shouldn't be preceded by '->' here.");
 
+            // Main resolve
             _runtimeDivertTargetValue.targetPath = _runtimeDivert.targetPath;
+
+            // Tell hard coded (yet variable) divert targets that they also need to be counted
+            // TODO: Only detect DivertTargets that are values rather than being used directly for
+            // read or turn counts. Should be able to detect this by looking for other uses of containerForCounting
+            var targetContent = this.divert.targetContent;
+            if (targetContent != null ) {
+                var target = targetContent.containerForCounting;
+                if (target != null)
+                {
+                    // Purpose is known: used directly in TURNS_SINCE(-> divTarg)
+                    var parentFunc = this.parent as FunctionCall;
+                    if( parentFunc && parentFunc.isTurnsSince ) {
+                        target.turnIndexShouldBeCounted = true;
+                    }
+
+                    // Unknown purpose, count everything
+                    else {
+                        target.visitsShouldBeCounted = true;
+                        target.turnIndexShouldBeCounted = true;
+                    }
+
+                }
+
+                // Unfortunately not possible:
+                // https://github.com/inkle/ink/issues/538
+                //
+                // VAR func = -> double
+                //
+                // === function double(ref x)
+                //    ~ x = x * 2
+                //
+                // Because when generating the parameters for a function
+                // to be called, it needs to know ahead of time when
+                // compiling whether to pass a variable reference or value.
+                //
+                var targetFlow = (targetContent as FlowBase);
+                if (targetFlow != null && targetFlow.arguments != null)
+                {
+                    foreach(var arg in targetFlow.arguments) {
+                        if(arg.isByReference)
+                        {
+                            Error("Can't store a divert target to a knot or function that has by-reference arguments ('"+targetFlow.name+"' has 'ref "+arg.name+"').");
+                        }
+                    }
+                }
+            }
         }
 
         // Equals override necessary in order to check for CONST multiple definition equality

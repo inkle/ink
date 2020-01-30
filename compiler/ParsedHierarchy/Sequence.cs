@@ -2,12 +2,13 @@
 
 namespace Ink.Parsed
 {
+    [System.Flags]
     public enum SequenceType
     {
-        Stopping, // default
-        Cycle,
-        Shuffle,
-        Once
+        Stopping = 1, // default
+        Cycle = 2,
+        Shuffle = 4,
+        Once = 8
     }
 
     internal class Sequence : Parsed.Object
@@ -40,17 +41,22 @@ namespace Ink.Parsed
         }
 
         // Generate runtime code that looks like:
+        //
         //   chosenIndex = MIN(sequence counter, num elements) e.g. for "Stopping"
         //   if chosenIndex == 0, divert to s0
         //   if chosenIndex == 1, divert to s1  [etc]
-        //   increment sequence
         //
         //   - s0:
         //      <content for sequence element>
-        //      divert back to increment point
+        //      divert to no-op
         //   - s1:
         //      <content for sequence element>
-        //      divert back to increment point
+        //      divert to no-op
+        //   - s2:
+        //      empty branch if using "once"
+        //      divert to no-op
+        //
+        //    no-op
         //
         public override Runtime.Object GenerateRuntimeObject ()
         {
@@ -64,44 +70,68 @@ namespace Ink.Parsed
             container.AddContent (Runtime.ControlCommand.EvalStart ());
             container.AddContent (Runtime.ControlCommand.VisitIndex ());
 
+            bool once = (sequenceType & SequenceType.Once) > 0;
+            bool cycle = (sequenceType & SequenceType.Cycle) > 0;
+            bool stopping = (sequenceType & SequenceType.Stopping) > 0;
+            bool shuffle = (sequenceType & SequenceType.Shuffle) > 0;
+
+            var seqBranchCount = sequenceElements.Count;
+            if (once) seqBranchCount++;
+
             // Chosen sequence index:
             //  - Stopping: take the MIN(read count, num elements - 1)
-            if (sequenceType == SequenceType.Stopping) {
-                container.AddContent (new Runtime.IntValue (sequenceElements.Count - 1));
+            //  - Once: take the MIN(read count, num elements)
+            //    (the last one being empty)
+            if (stopping || once) {
+                //var limit = stopping ? seqBranchCount-1 : seqBranchCount;
+                container.AddContent (new Runtime.IntValue (seqBranchCount-1));
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName ("MIN"));
             } 
 
             // - Cycle: take (read count % num elements)
-            else if (sequenceType == SequenceType.Cycle) {
+            else if (cycle) {
                 container.AddContent (new Runtime.IntValue (sequenceElements.Count));
                 container.AddContent (Runtime.NativeFunctionCall.CallWithName ("%"));
             }
 
-            // Once: allow sequence count to be unbounded
-            else if (sequenceType == SequenceType.Once) {
-                // Do nothing - the sequence count will simply prevent
-                // any content being referenced when it goes out of bounds
-            } 
-
             // Shuffle
-            else if (sequenceType == SequenceType.Shuffle) {
-                // This one's a bit more complex! Choose the index at runtime.
-                container.AddContent (new Runtime.IntValue (sequenceElements.Count));
-                container.AddContent (Runtime.ControlCommand.SequenceShuffleIndex ());
-            }
+            if (shuffle) {
 
-            // Not implemented
-            else {
-                throw new System.NotImplementedException ();
+                // Create point to return to when sequence is complete
+                var postShuffleNoOp = Runtime.ControlCommand.NoOp();
+
+                // When visitIndex == lastIdx, we skip the shuffle
+                if ( once || stopping )
+                {
+                    // if( visitIndex == lastIdx ) -> skipShuffle
+                    int lastIdx = stopping ? sequenceElements.Count - 1 : sequenceElements.Count;
+                    container.AddContent(Runtime.ControlCommand.Duplicate());
+                    container.AddContent(new Runtime.IntValue(lastIdx));
+                    container.AddContent(Runtime.NativeFunctionCall.CallWithName("=="));
+
+                    var skipShuffleDivert = new Runtime.Divert();
+                    skipShuffleDivert.isConditional = true;
+                    container.AddContent(skipShuffleDivert);
+
+                    AddDivertToResolve(skipShuffleDivert, postShuffleNoOp);
+                }
+
+                // This one's a bit more complex! Choose the index at runtime.
+                var elementCountToShuffle = sequenceElements.Count;
+                if (stopping) elementCountToShuffle--;
+                container.AddContent (new Runtime.IntValue (elementCountToShuffle));
+                container.AddContent (Runtime.ControlCommand.SequenceShuffleIndex ());
+                if (once || stopping) container.AddContent(postShuffleNoOp);
             }
 
             container.AddContent (Runtime.ControlCommand.EvalEnd ());
 
             // Create point to return to when sequence is complete
-            var postSequenceNoOp = Runtime.ControlCommand.NoOp ();
+            var postSequenceNoOp = Runtime.ControlCommand.NoOp();
 
-            var elIndex = 0;
-            foreach (var el in sequenceElements) {
+            // Each of the main sequence branches, and one extra empty branch if 
+            // we have a "once" sequence.
+            for (var elIndex=0; elIndex<seqBranchCount; elIndex++) {
 
                 // This sequence element:
                 //  if( chosenIndex == this index ) divert to this sequence element
@@ -117,10 +147,21 @@ namespace Ink.Parsed
                 sequenceDivert.isConditional = true;
                 container.AddContent (sequenceDivert);
 
+                Runtime.Container contentContainerForSequenceBranch;
+
                 // Generate content for this sequence element
-                var contentContainerForSequenceBranch = (Runtime.Container) el.runtimeObject;
+                if ( elIndex < sequenceElements.Count ) {
+                    var el = sequenceElements[elIndex];
+                    contentContainerForSequenceBranch = (Runtime.Container)el.runtimeObject;
+                } 
+
+                // Final empty branch for "once" sequences
+                else {
+                    contentContainerForSequenceBranch = new Runtime.Container();
+                }
+
                 contentContainerForSequenceBranch.name = "s" + elIndex;
-                contentContainerForSequenceBranch.InsertContent (Runtime.ControlCommand.PopEvaluatedValue (), 0);
+                contentContainerForSequenceBranch.InsertContent(Runtime.ControlCommand.PopEvaluatedValue(), 0);
 
                 // When sequence element is complete, divert back to end of sequence
                 var seqBranchCompleteDivert = new Runtime.Divert ();
@@ -130,14 +171,7 @@ namespace Ink.Parsed
                 // Save the diverts for reference resolution later (in ResolveReferences)
                 AddDivertToResolve (sequenceDivert, contentContainerForSequenceBranch);
                 AddDivertToResolve (seqBranchCompleteDivert, postSequenceNoOp);
-
-                elIndex++;
             }
-
-            // If all Once-only branches are done, then we need to pop the eval stack
-            // for the visit index that went unused (normally popped in each branch).
-            if( sequenceType == SequenceType.Once )
-                container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
 
             container.AddContent (postSequenceNoOp);
 

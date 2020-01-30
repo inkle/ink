@@ -602,15 +602,20 @@ namespace Ink
 			ParseCharactersFromString (" \t");
 
 			var parsedString = ParseCharactersFromCharSet (numbersCharacterSet);
+            if(parsedString == null) {
+                // Roll back and fail
+                index = oldIndex;
+                return null;
+            }
+
 			int parsedInt;
 			if (int.TryParse (parsedString, out parsedInt)) {
 				return negative ? -parsedInt : parsedInt;
 			}
 
-			// Roll back and fail
-			index = oldIndex;
-			return null;
-		}
+            Error("Failed to read integer value: " + parsedString + ". Perhaps it's out of the range of acceptable numbers ink supports? (" + int.MinValue + " to " + int.MaxValue + ")");
+            return null;
+        }
 
         // No need to Begin/End rule since we never parse a newline, so keeping oldIndex is good enough
         public float? ParseFloat()

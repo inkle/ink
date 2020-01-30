@@ -185,9 +185,9 @@ namespace Ink.Parsed
             var container = new Runtime.Container ();
             container.name = name;
 
-            // Count visits on all knots and stitches
-            container.visitsShouldBeCounted = true;
-            container.turnIndexShouldBeCounted = true;
+            if( this.story.countAllVisits ) {
+                container.visitsShouldBeCounted = true;
+            }
 
             GenerateArgumentVariableAssignments (container);
 

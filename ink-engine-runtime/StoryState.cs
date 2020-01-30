@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.IO;
 
 namespace Ink.Runtime
 {
@@ -25,7 +26,18 @@ namespace Ink.Runtime
         /// </summary>
         /// <returns>The save state in json format.</returns>
         public string ToJson() {
-            return SimpleJson.DictionaryToText (jsonToken);
+            var writer = new SimpleJson.Writer();
+            WriteJson(writer);
+            return writer.ToString();
+        }
+
+        /// <summary>
+        /// Exports the current state to json format, in order to save the game.
+        /// For this overload you can pass in a custom stream, such as a FileStream.
+        /// </summary>
+        public void ToJson(Stream stream) {
+            var writer = new SimpleJson.Writer(stream);
+            WriteJson(writer);
         }
 
         /// <summary>
@@ -34,7 +46,8 @@ namespace Ink.Runtime
         /// <param name="json">The JSON string to load.</param>
         public void LoadJson(string json)
         {
-            jsonToken = SimpleJson.TextToDictionary (json);
+            var jObject = SimpleJson.TextToDictionary (json);
+            LoadJsonObj(jObject);
         }
 
         /// <summary>
@@ -52,13 +65,91 @@ namespace Ink.Runtime
         public int VisitCountAtPathString(string pathString)
         {
             int visitCountOut;
-            if (visitCounts.TryGetValue (pathString, out visitCountOut))
+
+            if ( _patch != null ) {
+                var container = story.ContentAtPath(new Path(pathString)).container;
+                if (container == null)
+                    throw new Exception("Content at path not found: " + pathString);
+
+                if( _patch.TryGetVisitCount(container, out visitCountOut) )
+                    return visitCountOut;
+            }
+
+            if (_visitCounts.TryGetValue(pathString, out visitCountOut))
                 return visitCountOut;
 
             return 0;
         }
 
-		internal int callstackDepth {
+        internal int VisitCountForContainer(Container container)
+        {
+            if (!container.visitsShouldBeCounted)
+            {
+                story.Error("Read count for target (" + container.name + " - on " + container.debugMetadata + ") unknown.");
+                return 0;
+            }
+
+            int count = 0;
+            if (_patch != null && _patch.TryGetVisitCount(container, out count))
+                return count;
+                
+            var containerPathStr = container.path.ToString();
+            _visitCounts.TryGetValue(containerPathStr, out count);
+            return count;
+        }
+
+        internal void IncrementVisitCountForContainer(Container container)
+        {
+            if( _patch != null ) {
+                var currCount = VisitCountForContainer(container);
+                currCount++;
+                _patch.SetVisitCount(container, currCount);
+                return;
+            }
+
+            int count = 0;
+            var containerPathStr = container.path.ToString();
+            _visitCounts.TryGetValue(containerPathStr, out count);
+            count++;
+            _visitCounts[containerPathStr] = count;
+        }
+
+        internal void RecordTurnIndexVisitToContainer(Container container)
+        {
+            if( _patch != null ) {
+                _patch.SetTurnIndex(container, currentTurnIndex);
+                return;
+            }
+
+            var containerPathStr = container.path.ToString();
+            _turnIndices[containerPathStr] = currentTurnIndex;
+        }
+
+        internal int TurnsSinceForContainer(Container container)
+        {
+            if (!container.turnIndexShouldBeCounted)
+            {
+                story.Error("TURNS_SINCE() for target (" + container.name + " - on " + container.debugMetadata + ") unknown.");
+            }
+
+            int index = 0;
+
+            if ( _patch != null && _patch.TryGetTurnIndex(container, out index) ) {
+                return currentTurnIndex - index;
+            }
+
+            var containerPathStr = container.path.ToString();
+            if (_turnIndices.TryGetValue(containerPathStr, out index))
+            {
+                return currentTurnIndex - index;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        internal int callstackDepth {
 			get {
 				return callStack.depth;
 			}
@@ -89,8 +180,8 @@ namespace Ink.Runtime
         internal CallStack callStack { get; set; }
         internal List<Runtime.Object> evaluationStack { get; private set; }
         internal Pointer divertedPointer { get; set; }
-        internal Dictionary<string, int> visitCounts { get; private set; }
-        internal Dictionary<string, int> turnIndices { get; private set; }
+
+
         internal int currentTurnIndex { get; private set; }
         internal int storySeed { get; set; }
         internal int previousRandom { get; set; }
@@ -250,8 +341,9 @@ namespace Ink.Runtime
             callStack = new CallStack (story);
             variablesState = new VariablesState (callStack, story.listDefinitions);
 
-            visitCounts = new Dictionary<string, int> ();
-            turnIndices = new Dictionary<string, int> ();
+            _visitCounts = new Dictionary<string, int> ();
+            _turnIndices = new Dictionary<string, int> ();
+
             currentTurnIndex = -1;
 
             // Seed the shuffle random numbers
@@ -274,12 +366,14 @@ namespace Ink.Runtime
         // Runtime.Objects are treated as immutable after they've been set up.
         // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
-        internal StoryState Copy()
+        internal StoryState CopyAndStartPatching()
         {
             var copy = new StoryState(story);
 
+            copy._patch = new StatePatch(_patch);
+
             copy.outputStream.AddRange(_outputStream);
-			OutputStreamDirty();
+            copy.OutputStreamDirty();
 
 			copy._currentChoices.AddRange(_currentChoices);
 
@@ -294,8 +388,12 @@ namespace Ink.Runtime
 
             copy.callStack = new CallStack (callStack);
 
-            copy.variablesState = new VariablesState (copy.callStack, story.listDefinitions);
-            copy.variablesState.CopyFrom (variablesState);
+            // ref copy - exactly the same variables state!
+            // we're expecting not to read it only while in patch mode
+            // (though the callstack will be modified)
+            copy.variablesState = variablesState;
+            copy.variablesState.callStack = copy.callStack;
+            copy.variablesState.patch = copy._patch;
 
             copy.evaluationStack.AddRange (evaluationStack);
 
@@ -304,8 +402,11 @@ namespace Ink.Runtime
 
             copy.previousPointer = previousPointer;
 
-            copy.visitCounts = new Dictionary<string, int> (visitCounts);
-            copy.turnIndices = new Dictionary<string, int> (turnIndices);
+            // visit counts and turn indicies will be read only, not modified
+            // while in patch mode
+            copy._visitCounts = _visitCounts;
+            copy._turnIndices = _turnIndices;
+
             copy.currentTurnIndex = currentTurnIndex;
             copy.storySeed = storySeed;
             copy.previousRandom = previousRandom;
@@ -314,108 +415,157 @@ namespace Ink.Runtime
 
             return copy;
         }
-            
-        /// <summary>
-        /// Object representation of full JSON state. Usually you should use
-        /// LoadJson and ToJson since they serialise directly to string for you.
-        /// But it may be useful to get the object representation so that you
-        /// can integrate it into your own serialisation system.
-        /// </summary>
-        public Dictionary<string, object> jsonToken
+
+        internal void RestoreAfterPatch()
         {
-            get {
-				
-				var obj = new Dictionary<string, object> ();
+            // VariablesState was being borrowed by the patched
+            // state, so restore it with our own callstack.
+            // _patch will be null normally, but if you're in the
+            // middle of a save, it may contain a _patch for save purpsoes.
+            variablesState.callStack = callStack;
+            variablesState.patch = _patch; // usually null
+        }
 
-				Dictionary<string, object> choiceThreads = null;
-				foreach (Choice c in _currentChoices) {
-                    c.originalThreadIndex = c.threadAtGeneration.threadIndex;
+        internal void ApplyAnyPatch()
+        {
+            if (_patch == null) return;
 
-					if( callStack.ThreadWithIndex(c.originalThreadIndex) == null ) {
-						if( choiceThreads == null )
-							choiceThreads = new Dictionary<string, object> ();
+            variablesState.ApplyPatch();
 
-						choiceThreads[c.originalThreadIndex.ToString()] = c.threadAtGeneration.jsonToken;
-					}
+            foreach(var pathToCount in _patch.visitCounts)
+                ApplyCountChanges(pathToCount.Key, pathToCount.Value, isVisit:true);
+
+            foreach (var pathToIndex in _patch.turnIndices)
+                ApplyCountChanges(pathToIndex.Key, pathToIndex.Value, isVisit:false);
+
+            _patch = null;
+        }
+
+        void ApplyCountChanges(Container container, int newCount, bool isVisit)
+        {
+            var counts = isVisit ? _visitCounts : _turnIndices;
+            counts[container.path.ToString()] = newCount;
+        }
+
+        void WriteJson(SimpleJson.Writer writer)
+        {
+            writer.WriteObjectStart();
+
+
+            bool hasChoiceThreads = false;
+            foreach (Choice c in _currentChoices)
+            {
+                c.originalThreadIndex = c.threadAtGeneration.threadIndex;
+
+                if (callStack.ThreadWithIndex(c.originalThreadIndex) == null)
+                {
+                    if (!hasChoiceThreads)
+                    {
+                        hasChoiceThreads = true;
+                        writer.WritePropertyStart("choiceThreads");
+                        writer.WriteObjectStart();
+                    }
+
+                    writer.WritePropertyStart(c.originalThreadIndex);
+                    c.threadAtGeneration.WriteJson(writer);
+                    writer.WritePropertyEnd();
                 }
-				if( choiceThreads != null )
-					obj["choiceThreads"] = choiceThreads;
+            }
 
+            if (hasChoiceThreads)
+            {
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+            }
+
+            writer.WriteProperty("callstackThreads", callStack.WriteJson);
+
+            writer.WriteProperty("variablesState", variablesState.WriteJson);
+
+            writer.WriteProperty("evalStack", w => Json.WriteListRuntimeObjs(w, evaluationStack));
+
+            writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, _outputStream));
+
+            writer.WriteProperty("currentChoices", w => {
+                w.WriteArrayStart();
+                foreach (var c in _currentChoices)
+                    Json.WriteChoice(w, c);
+                w.WriteArrayEnd();
+            });
+
+            if (!divertedPointer.isNull)
+                writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
                 
-                obj ["callstackThreads"] = callStack.GetJsonToken();
-                obj ["variablesState"] = variablesState.jsonToken;
+            writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, _visitCounts));
+            writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, _turnIndices));
 
-                obj ["evalStack"] = Json.ListToJArray (evaluationStack);
 
-                obj ["outputStream"] = Json.ListToJArray (_outputStream);
+            writer.WriteProperty("turnIdx", currentTurnIndex);
+            writer.WriteProperty("storySeed", storySeed);
+            writer.WriteProperty("previousRandom", previousRandom);
 
-				obj ["currentChoices"] = Json.ListToJArray (_currentChoices);
+            writer.WriteProperty("inkSaveVersion", kInkSaveStateVersion);
 
-                if( !divertedPointer.isNull )
-                    obj ["currentDivertTarget"] = divertedPointer.path.componentsString;
+            // Not using this right now, but could do in future.
+            writer.WriteProperty("inkFormatVersion", Story.inkVersionCurrent);
 
-                obj ["visitCounts"] = Json.IntDictionaryToJObject (visitCounts);
-                obj ["turnIndices"] = Json.IntDictionaryToJObject (turnIndices);
-                obj ["turnIdx"] = currentTurnIndex;
-                obj ["storySeed"] = storySeed;
-                obj ["previousRandom"] = previousRandom;
+            writer.WriteObjectEnd();
+        }
 
-                obj ["inkSaveVersion"] = kInkSaveStateVersion;
 
-                // Not using this right now, but could do in future.
-                obj ["inkFormatVersion"] = Story.inkVersionCurrent;
-
-                return obj;
+        void LoadJsonObj(Dictionary<string, object> jObject)
+        {
+			object jSaveVersion = null;
+			if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
+                throw new StoryException ("ink save format incorrect, can't load.");
             }
-            set {
+            else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
+                throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
+            }
 
-                var jObject = value;
+            callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+            variablesState.SetJsonToken((Dictionary < string, object> )jObject["variablesState"]);
 
-				object jSaveVersion = null;
-				if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
-                    throw new StoryException ("ink save format incorrect, can't load.");
-                }
-                else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
-                    throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
-                }
+            evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 
-                callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
-                variablesState.jsonToken = (Dictionary < string, object> )jObject["variablesState"];
+            _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
+			OutputStreamDirty();
 
-                evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
+			_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
-                _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
-				OutputStreamDirty();
+			object currentDivertTargetPath;
+			if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
+                var divertPath = new Path (currentDivertTargetPath.ToString ());
+                divertedPointer = story.PointerAtPath (divertPath);
+            }
+                
+            _visitCounts = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["visitCounts"]);
+            _turnIndices = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["turnIndices"]);
 
-				_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+            currentTurnIndex = (int)jObject ["turnIdx"];
+            storySeed = (int)jObject ["storySeed"];
 
-				object currentDivertTargetPath;
-				if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
-                    var divertPath = new Path (currentDivertTargetPath.ToString ());
-                    divertedPointer = story.PointerAtPath (divertPath);
-                }
-                    
-                visitCounts = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["visitCounts"]);
-                turnIndices = Json.JObjectToIntDictionary ((Dictionary<string, object>)jObject ["turnIndices"]);
-                currentTurnIndex = (int)jObject ["turnIdx"];
-                storySeed = (int)jObject ["storySeed"];
-                previousRandom = (int)jObject ["previousRandom"];
+            // Not optional, but bug in inkjs means it's actually missing in inkjs saves
+            object previousRandomObj = null;
+            if( jObject.TryGetValue("previousRandom", out previousRandomObj) ) {
+                previousRandom = (int)previousRandomObj;
+            } else {
+                previousRandom = 0;
+            }
 
-				object jChoiceThreadsObj = null;
-				jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
-				var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
+			object jChoiceThreadsObj = null;
+			jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
+			var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
 
-				foreach (var c in _currentChoices) {
-					var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
-					if( foundActiveThread != null ) {
-                        c.threadAtGeneration = foundActiveThread.Copy ();
-					} else {
-						var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
-						c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
-					}
+			foreach (var c in _currentChoices) {
+				var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
+				if( foundActiveThread != null ) {
+                    c.threadAtGeneration = foundActiveThread.Copy ();
+				} else {
+					var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
+					c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
 				}
-
-            }
+			}
         }
             
         internal void ResetErrors()
@@ -469,14 +619,14 @@ namespace Ink.Runtime
         // the main string are ignored, since this is for the purpose of gluing only.
         //
         //  - If no splitting is necessary, null is returned.
-        //  - A newline on its own is returned in an list for consistency.
+        //  - A newline on its own is returned in a list for consistency.
         List<Runtime.StringValue> TrySplittingHeadTailWhitespace(Runtime.StringValue single)
         {
             string str = single.value;
 
             int headFirstNewlineIdx = -1;
             int headLastNewlineIdx = -1;
-            for (int i = 0; i < str.Length; ++i) {
+            for (int i = 0; i < str.Length; i++) {
                 char c = str [i];
                 if (c == '\n') {
                     if (headFirstNewlineIdx == -1)
@@ -491,7 +641,7 @@ namespace Ink.Runtime
 
             int tailLastNewlineIdx = -1;
             int tailFirstNewlineIdx = -1;
-            for (int i = 0; i < str.Length; ++i) {
+            for (int i = str.Length-1; i >= 0; i--) {
                 char c = str [i];
                 if (c == '\n') {
                     if (tailLastNewlineIdx == -1)
@@ -890,8 +1040,8 @@ namespace Ink.Runtime
             // Pass arguments onto the evaluation stack
             if (arguments != null) {
                 for (int i = 0; i < arguments.Length; i++) {
-                    if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string)) {
-                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float or string");
+                    if (!(arguments [i] is int || arguments [i] is float || arguments [i] is string || arguments [i] is InkList)) {
+                        throw new System.ArgumentException ("ink arguments when calling EvaluateFunction / ChoosePathStringWithParameters must be int, float, string or InkList. Argument was "+(arguments [i] == null ? "null" : arguments [i].GetType().Name));
                     }
 
                     PushEvaluationStack (Runtime.Value.Create (arguments [i]));
@@ -974,12 +1124,18 @@ namespace Ink.Runtime
         // REMEMBER! REMEMBER! REMEMBER!
         // When adding state, update the Copy method and serialisation
         // REMEMBER! REMEMBER! REMEMBER!
-            
+
+
+        Dictionary<string, int> _visitCounts;
+        Dictionary<string, int> _turnIndices;
+
         List<Runtime.Object> _outputStream;
 		bool _outputStreamTextDirty = true;
 		bool _outputStreamTagsDirty = true;
 
 		List<Choice> _currentChoices;
+
+        StatePatch _patch;
     }
 }
 

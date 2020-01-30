@@ -65,10 +65,6 @@ namespace Ink.Parsed
                     AddContent (_variableReferenceToCount);
 
                     _variableReferenceToCount.GenerateIntoContainer (container);
-
-                    if (!story.countAllVisits) {
-                        Error ("Attempting to get TURNS_SINCE for a variable target without -c compiler option. You need the compiler switch turned on so that it can track turn counts for everything, not just those you directly reference.");
-                    }
                 }
 
                 if (isTurnsSince)

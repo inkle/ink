@@ -22,6 +22,8 @@ namespace Ink
 			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
 		internal static readonly CharacterRange Arabic = 
 			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
+		internal static readonly CharacterRange Korean =
+			CharacterRange.Define('\uAC00', '\uD7AF', excludes: new CharacterSet());
 
         private void ExtendIdentifierCharacterRanges(CharacterSet identifierCharSet)
         {
@@ -51,6 +53,7 @@ namespace Ink
                 Cyrillic,
                 Greek,
                 Hebrew,
+                Korean,
             };
         }
 	}
