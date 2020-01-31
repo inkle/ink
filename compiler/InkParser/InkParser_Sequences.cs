@@ -56,7 +56,7 @@ namespace Ink
 
         protected object SequenceTypeSymbolAnnotation()
         {
-            if(_sequenceTypeSymbols == null ) {}
+            if(_sequenceTypeSymbols == null )
                 _sequenceTypeSymbols = new CharacterSet("!&~$ ");
 
             var sequenceType = (SequenceType)0;
