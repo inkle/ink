@@ -86,7 +86,7 @@ Nothing
 { 2 * (5-1) }
 ");
 
-            Assert.AreEqual("36\n2\n3\n2\n2"+System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator+"333333\n8\n8\n", story.ContinueMaximally());
+            Assert.AreEqual("36\n2\n3\n2\n2"+System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator+"3333333\n8\n8\n", story.ContinueMaximally());
         }
 
         [Test()]
