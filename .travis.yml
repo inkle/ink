@@ -1,15 +1,12 @@
-dist: xenial
+dist: bionic
 addons:
-  apt:
-    sources:
-      - sourceline: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/16.04/prod xenial main"
-        key_url: "https://packages.microsoft.com/keys/microsoft.asc"
-    packages:
-      - powershell
+  snaps:
+    - name: powershell
+      confinement: classic
 language: csharp
 solution: ink.sln
 mono: none
-dotnet: 2.2
+dotnet: 3.1
 cache:
   directories:
     - /home/travis/.nuget/packages/

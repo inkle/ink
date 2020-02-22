@@ -104,7 +104,7 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
 ## Build Requirements
 
 **All Environments:**
- * [.NET Core SDK 2.2](https://dotnet.microsoft.com/download) or newer
+ * [.NET Core SDK 3.1](https://dotnet.microsoft.com/download) or newer
  * Optionally [Visual Studio Code](https://code.visualstudio.com/)
 
 

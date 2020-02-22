@@ -15,8 +15,8 @@ export CC="cc -arch i386 -framework CoreFoundation -lobjc -liconv"
 
 # "Bundles in addition support a –static flag. The –static flag causes mkbundle to generate a static executable that statically links the Mono runtime. Be advised that this option will trigger the LGPL requirement that you still distribute the independent pieces to your user so he can manually upgrade his Mono runtime if he chooses to do so. Alternatively, you can obtain a proprietary license of Mono by contacting Xamarin."
 # http://www.mono-project.com/archived/guiderunning_mono_applications/
-cd ./inklecate/bin/Debug/netcoreapp2.2/win-x86/publish/
-mkbundle --static --sdk /Library/Frameworks/Mono.framework/Versions/Current --deps inklecate.exe inklecate.dll ink-engine-runtime.dll ink_compiler.dll -o inklecate_mac -L ./inklecate/bin/Release/netcoreapp2.2/win-x86/publish
+cd ./inklecate/bin/Debug/netcoreapp3.1/win-x86/publish/
+mkbundle --static --sdk /Library/Frameworks/Mono.framework/Versions/Current --deps inklecate.exe inklecate.dll ink-engine-runtime.dll ink_compiler.dll -o inklecate_mac -L ./inklecate/bin/Release/netcoreapp3.1/win-x86/publish
 
 # TODO: See if you can whittle down the dependencies a bit instead of using the --deps option above?
 # It mentions all of the dependencies below, but I'm not convinced they're all necessary?
