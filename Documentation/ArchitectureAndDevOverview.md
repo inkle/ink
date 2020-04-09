@@ -134,10 +134,6 @@ Some important and useful features of the main runtime engine in `Story.cs`:
  * `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
  * `PerformLogicAndFlowControl(contentObject)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
 
-### Callstack and threads
-
-TODO
-
 ## Compiler development and debugging tips
 
 While testing modifications to the compiler, it's useful to run the **InkTestBed** project. Inside this project `InkTestBed.cs` contains a suite of useful tools.
