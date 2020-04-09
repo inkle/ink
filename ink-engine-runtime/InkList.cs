@@ -115,7 +115,14 @@ namespace Ink.Runtime
         /// <summary>
         /// Create a new ink list that contains the same contents as another list.
         /// </summary>
-        public InkList (InkList otherList) : base (otherList) { _originNames = otherList.originNames; }
+        public InkList(InkList otherList) : base(otherList)
+        {
+            _originNames = otherList.originNames;
+            if (otherList.origins != null)
+            {
+                origins = new List<ListDefinition>(otherList.origins);
+            }
+        }
 
         /// <summary>
         /// Create a new empty ink list that's intended to hold items from a particular origin

@@ -60,8 +60,7 @@ Text content from the game will appear 'as is' when the engine runs. However, it
 
 **ink** provides a simple system for tagging lines of content, with hashtags. 
 
-	=== content 
-		A line of normal game-text. # colour it blue
+	A line of normal game-text. # colour it blue
 
 These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [RunningYourInk](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
 
@@ -1820,7 +1819,7 @@ And sometimes the numbers are useful in other ways:
 	VAR suitcase_location = HALLWAY
 	
 	=== report_progress ===
-	{  secret_agent_location = suitcase_location:
+	{  secret_agent_location == suitcase_location:
 		The secret agent grabs the suitcase!
 		~ suitcase_location = HELD_BY_AGENT  
 		
