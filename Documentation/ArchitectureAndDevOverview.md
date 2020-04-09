@@ -107,7 +107,7 @@ This structure is loaded by the ink engine in a [JSON based format](https://gith
 
 The `Runtime.Container` is general purpose, and can work as either than array or a dictionary, or both. Therefore, it can have ordered (indexed content) that's designed to be iterated through sequentially, and can also have named content, that's designed to be accessed by a string key.
 
-For example, a `Parsed.Choice` compiles down to a `Runtime.Container` that contains, amongst other things, the initial sequential content that forms the text of the choice, the minimal `Runtime.Choice` itself, as well as a named sub-container that contains the content that is run when the choice is picked by the player.
+For example, a `Parsed.Choice` compiles down to a `Runtime.Container` that contains, amongst other things, the initial sequential content that forms the text of the choice, the minimal `Runtime.ChoicePoint` itself, as well as a named sub-container that contains the content that is run when the choice is picked by the player.
 
 ### Content
 
@@ -127,12 +127,12 @@ Alongside the content that's designed to be seen by the player, additional comma
 
 Some important and useful features of the main runtime engine in `Story.cs`:
 
- * `Continue()` is the top level point where iteration of the content happens:
+ * `Continue()` is the top level point where iteration of the content happens, and has this rough structure internally:
 
         while( Step () || TryFollowDefaultInvisibleChoice() ) {}
         
  * `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
- * `PerformLogicAndFlowControl(contentObject, out endFlow)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
+ * `PerformLogicAndFlowControl(contentObject)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
 
 ### Callstack and threads
 
@@ -140,7 +140,25 @@ TODO
 
 ## Compiler development and debugging tips
 
-While testing modifications to the compiler, it's useful to put a test program in `test.ink`, and it will be used when building and running in the *Test* configuration.
+While testing modifications to the compiler, it's useful to run the **InkTestBed** project. Inside this project `InkTestBed.cs` contains a suite of useful tools.
+
+The main entry point is `Run()`. By default it simply calls `Play()`, which will load up a pre-existing `test.ink` (that you can put your test ink in). `Play()` has a basic choice loop that also serves as a good introduction to some of the built in convenience functions.
+
+However if you want to automatate the testing of a particular flow, you could write something like:
+
+    void Run ()
+    {
+        CompileFile();
+
+        ContinueMaximally ();
+        Choose(0);
+
+        ContinueMaximally ();
+        Choose(1);
+
+        ContinueMaximally ();
+    }
+
 
 `BuildStringOfHierarchy()` is a method in `Runtime.Story` that's useful when debugging. If you add it as a Watch expression while debugging the ink engine, you can see a representation of the runtime hierarchy, as well as an arrow that points at where execution currently is in the hierarchy. For example, the following ink:
 
