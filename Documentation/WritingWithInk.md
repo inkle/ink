@@ -2011,7 +2011,7 @@ But for games with lots of independent moving parts, threads quickly become esse
 		}
 	
 	== hallway ==	
-		<- characters_present
+		<- characters_present(HALLWAY)
 		*	[Drawers]	-> examine_drawers
 		* 	[Wardrobe] -> examine_wardrobe
 		*  [Go to Office] 	-> go_office
@@ -2022,12 +2022,13 @@ But for games with lots of independent moving parts, threads quickly become esse
 	// Here's the thread, which mixes in dialogue for characters you share the room with at the moment.
 	
 	== characters_present(room)
-		{ generals_location == player_location:
+		{ generals_location == room:
 			<- general_conversation
 		}
 		{ doctors_location == room:
 			<- doctor_conversation
 		}
+		-> DONE
 		
 	== general_conversation 
 		*	[Ask the General about the bloodied knife]
