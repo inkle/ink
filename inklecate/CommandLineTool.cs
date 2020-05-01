@@ -127,6 +127,12 @@ namespace Ink
 
                 writer.WriteObjectStart();
                 writer.WriteProperty("words", stats.words);
+                writer.WriteProperty("knots", stats.knots);
+                writer.WriteProperty("stitches", stats.stitches);
+                writer.WriteProperty("functions", stats.functions);
+                writer.WriteProperty("choices", stats.choices);
+                writer.WriteProperty("gathers", stats.gathers);
+                writer.WriteProperty("diverts", stats.diverts);
                 writer.WriteObjectEnd();
 
                 Console.WriteLine(writer.ToString());
