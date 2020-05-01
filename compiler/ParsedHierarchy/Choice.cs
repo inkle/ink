@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    internal class Choice : Parsed.Object, IWeavePoint, INamedContent
+    public class Choice : Parsed.Object, IWeavePoint, INamedContent
 	{
         public ContentList startContent { get; protected set; }
         public ContentList choiceOnlyContent { get; protected set; }

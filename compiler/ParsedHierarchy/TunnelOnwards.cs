@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    internal class TunnelOnwards : Parsed.Object
+    public class TunnelOnwards : Parsed.Object
     {
         public Divert divertAfter {
             get {

@@ -11,7 +11,7 @@ namespace Ink.Parsed
         Once = 8
     }
 
-    internal class Sequence : Parsed.Object
+    public class Sequence : Parsed.Object
     {
 
         public List<Parsed.Object> sequenceElements;

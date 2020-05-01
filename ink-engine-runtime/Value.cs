@@ -8,7 +8,7 @@ namespace Ink.Runtime
     // they're coerced to the same type, downward.
     // Higher value types "infect" an operation.
     // (This may not be the most sensible thing to do, but it's worked so far!)
-    internal enum ValueType
+    public enum ValueType
     {
         // Used in coersion
         Int,
@@ -21,7 +21,7 @@ namespace Ink.Runtime
         VariablePointer
     }
 
-    internal abstract class Value : Runtime.Object
+    public abstract class Value : Runtime.Object
     {
         public abstract ValueType valueType { get; }
         public abstract bool isTruthy { get; }
@@ -63,7 +63,7 @@ namespace Ink.Runtime
             return null;
         }
 
-        internal override Object Copy()
+        public override Object Copy()
         {
             return Create (valueObject);
         }
@@ -74,7 +74,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal abstract class Value<T> : Value
+    public abstract class Value<T> : Value
     {
         public T value { get; set; }
 
@@ -95,7 +95,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal class IntValue : Value<int>
+    public class IntValue : Value<int>
     {
         public override ValueType valueType { get { return ValueType.Int; } }
         public override bool isTruthy { get { return value != 0; } }
@@ -124,7 +124,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal class FloatValue : Value<float>
+    public class FloatValue : Value<float>
     {
         public override ValueType valueType { get { return ValueType.Float; } }
         public override bool isTruthy { get { return value != 0.0f; } }
@@ -153,7 +153,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal class StringValue : Value<string>
+    public class StringValue : Value<string>
     {
         public override ValueType valueType { get { return ValueType.String; } }
         public override bool isTruthy { get { return value.Length > 0; } }
@@ -210,7 +210,7 @@ namespace Ink.Runtime
         }
     }
 
-    internal class DivertTargetValue : Value<Path>
+    public class DivertTargetValue : Value<Path>
     {
         public Path targetPath { get { return this.value; } set { this.value = value; } }
         public override ValueType valueType { get { return ValueType.DivertTarget; } }
@@ -239,7 +239,7 @@ namespace Ink.Runtime
 
     // TODO: Think: Erm, I get that this contains a string, but should
     // we really derive from Value<string>? That seems a bit misleading to me.
-    internal class VariablePointerValue : Value<string>
+    public class VariablePointerValue : Value<string>
     {
         public string variableName { get { return this.value; } set { this.value = value; } }
         public override ValueType valueType { get { return ValueType.VariablePointer; } }
@@ -273,13 +273,13 @@ namespace Ink.Runtime
             return "VariablePointerValue(" + variableName + ")";
         }
 
-        internal override Object Copy()
+        public override Object Copy()
         {
             return new VariablePointerValue (variableName, contextIndex);
         }
     }
 
-    internal class ListValue : Value<InkList>
+    public class ListValue : Value<InkList>
     {
         public override ValueType valueType {
             get {

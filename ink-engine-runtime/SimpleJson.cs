@@ -9,7 +9,7 @@ namespace Ink.Runtime
     /// Simple custom JSON serialisation implementation that takes JSON-able System.Collections that
     /// are produced by the ink engine and converts to and from JSON text.
     /// </summary>
-    internal static class SimpleJson
+    public static class SimpleJson
     {
         public static Dictionary<string, object> TextToDictionary (string text)
         {

@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Ink.Parsed
 {
-	internal class Story : FlowBase
+	public class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
         public bool hadError { get { return _hadError; } }
@@ -215,7 +215,7 @@ namespace Ink.Parsed
 			return runtimeStory;
 		}
 
-        internal ListDefinition ResolveList (string listName)
+        public ListDefinition ResolveList (string listName)
         {
             ListDefinition list;
             if (!_listDefs.TryGetValue (listName, out list))
@@ -223,7 +223,7 @@ namespace Ink.Parsed
             return list;
         }
 
-        internal ListElementDefinition ResolveListItem (string listName, string itemName, Parsed.Object source = null)
+        public ListElementDefinition ResolveListItem (string listName, string itemName, Parsed.Object source = null)
         {
             ListDefinition listDef = null;
 

@@ -7,7 +7,7 @@
     /// </summary>
     public class StoryException : System.Exception
     {
-        internal bool useEndLineNumber;
+        public bool useEndLineNumber;
 
         /// <summary>
         /// Constructs a default instance of a StoryException without a message.

@@ -4,7 +4,7 @@ using Ink.Runtime;
 
 namespace Ink
 {
-	internal class CommandLinePlayer
+	public class CommandLinePlayer
 	{
 		public Story story { get; protected set; }
 		public bool autoPlay { get; set; }

@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace Ink.Runtime
 {
-	internal class Container : Runtime.Object, INamedContent
+	public class Container : Runtime.Object, INamedContent
 	{
 		public string name { get; set; }
 

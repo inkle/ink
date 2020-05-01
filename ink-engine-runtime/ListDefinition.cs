@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    internal class ListDefinition
+    public class ListDefinition
     {
         public string name { get { return _name; } }
 

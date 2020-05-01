@@ -2,7 +2,7 @@
 
 namespace Ink
 {
-    internal static class InkStringConversionExtensions
+    public static class InkStringConversionExtensions
     {
         public static string[] ToStringsArray<T>(this List<T> list) {
             int count = list.Count;

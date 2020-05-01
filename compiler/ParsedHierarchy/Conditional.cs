@@ -4,7 +4,7 @@ using Ink.Runtime;
 
 namespace Ink.Parsed
 {
-    internal class Conditional : Parsed.Object
+    public class Conditional : Parsed.Object
     {
 		public Expression initialCondition { get; private set; }
 		public List<ConditionalSingleBranch> branches { get; private set; }

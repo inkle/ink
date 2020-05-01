@@ -6,23 +6,23 @@ using System.Linq;
 
 namespace Ink
 {
-    internal partial class InkParser
+    public partial class InkParser
     {
-		internal static readonly CharacterRange LatinBasic = 
+		public static readonly CharacterRange LatinBasic = 
 			CharacterRange.Define ('\u0041', '\u007A', excludes: new CharacterSet().AddRange('\u005B', '\u0060'));
-		internal static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
-		internal static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180', '\u024F'); // no excludes here
-		internal static readonly CharacterRange Greek = 
+		public static readonly CharacterRange LatinExtendedA = CharacterRange.Define('\u0100', '\u017F'); // no excludes here
+		public static readonly CharacterRange LatinExtendedB = CharacterRange.Define('\u0180', '\u024F'); // no excludes here
+		public static readonly CharacterRange Greek = 
 			CharacterRange.Define('\u0370', '\u03FF', excludes: new CharacterSet().AddRange('\u0378','\u0385').AddCharacters("\u0374\u0375\u0378\u0387\u038B\u038D\u03A2"));
-		internal static readonly CharacterRange Cyrillic = 
+		public static readonly CharacterRange Cyrillic = 
 			CharacterRange.Define('\u0400', '\u04FF', excludes: new CharacterSet().AddRange('\u0482', '\u0489'));
-		internal static readonly CharacterRange Armenian = 
+		public static readonly CharacterRange Armenian = 
 			CharacterRange.Define('\u0530', '\u058F', excludes: new CharacterSet().AddCharacters("\u0530").AddRange('\u0557', '\u0560').AddRange('\u0588', '\u058E'));
-		internal static readonly CharacterRange Hebrew = 
+		public static readonly CharacterRange Hebrew = 
 			CharacterRange.Define('\u0590', '\u05FF', excludes: new CharacterSet());
-		internal static readonly CharacterRange Arabic = 
+		public static readonly CharacterRange Arabic = 
 			CharacterRange.Define('\u0600', '\u06FF', excludes: new CharacterSet());
-		internal static readonly CharacterRange Korean =
+		public static readonly CharacterRange Korean =
 			CharacterRange.Define('\uAC00', '\uD7AF', excludes: new CharacterSet());
 
         private void ExtendIdentifierCharacterRanges(CharacterSet identifierCharSet)
@@ -43,7 +43,7 @@ namespace Ink
         /// An array of <see cref="CharacterRange" /> representing all of the currently supported
         /// non-ASCII character ranges that can be used in identifier names.
         /// </returns>
-        internal static CharacterRange[] ListAllCharacterRanges() {
+        public static CharacterRange[] ListAllCharacterRanges() {
             return new CharacterRange[] {
                 LatinBasic,
                 LatinExtendedA,

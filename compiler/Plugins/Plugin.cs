@@ -2,7 +2,7 @@
 
 namespace Ink
 {
-    internal interface IPlugin
+    public interface IPlugin
     {  
         // Hooks: if in doubt use PostExport, since the parsedStory is in a more finalised state.
 

@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-    internal interface IWeavePoint
+    public interface IWeavePoint
     {
         int indentationDepth { get; }
         Runtime.Container runtimeContainer { get; }

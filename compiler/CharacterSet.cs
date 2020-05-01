@@ -3,7 +3,7 @@
 namespace Ink
 {
 
-	internal class CharacterSet : HashSet<char>
+	public class CharacterSet : HashSet<char>
 	{
 		public static CharacterSet FromRange(char start, char end) 
 		{

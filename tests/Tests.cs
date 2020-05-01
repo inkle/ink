@@ -18,7 +18,7 @@ namespace Tests
 
     [TestFixture(TestMode.Normal)]
     [TestFixture(TestMode.JsonRoundTrip)]
-    internal class Tests : IFileHandler
+    public class Tests : IFileHandler
     {
         
         private TestMode _mode;

@@ -1,7 +1,7 @@
 ﻿
 namespace Ink.Parsed
 {
-    internal class Gather : Parsed.Object, IWeavePoint, INamedContent
+    public class Gather : Parsed.Object, IWeavePoint, INamedContent
     { 
         public string name { get; set; }
         public int indentationDepth { get; protected set; }

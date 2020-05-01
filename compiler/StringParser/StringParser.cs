@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Ink
 {
-	internal class StringParser
+	public class StringParser
 	{
 		public delegate object ParseRule();
 
@@ -29,7 +29,7 @@ namespace Ink
 			inputString = str;
 		}
             
-		internal class ParseSuccessStruct {};
+		public class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
 		public static CharacterSet numbersCharacterSet = new CharacterSet("0123456789");

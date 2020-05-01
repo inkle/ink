@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    internal class StatePatch
+    public class StatePatch
     {
         public Dictionary<string, Runtime.Object> globals { get { return _globals;  } }
         public HashSet<string> changedVariables { get { return _changedVariables;  } }

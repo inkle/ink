@@ -10,7 +10,7 @@ namespace Ink.Runtime
     /// possible to increment the pointer (move the story forwards) in a way that's as
     /// native to the internal engine as possible.
     /// </summary>
-	internal struct Pointer
+	public struct Pointer
 	{
 		public Container container;
 		public int index;

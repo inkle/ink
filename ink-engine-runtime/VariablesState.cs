@@ -9,12 +9,12 @@ namespace Ink.Runtime
     /// </summary>
 	public class VariablesState : IEnumerable<string>
     {
-        internal delegate void VariableChanged(string variableName, Runtime.Object newValue);
-        internal event VariableChanged variableChangedEvent;
+        public delegate void VariableChanged(string variableName, Runtime.Object newValue);
+        public event VariableChanged variableChangedEvent;
 
-        internal StatePatch patch;
+        public StatePatch patch;
 
-        internal bool batchObservingVariableChanges 
+        public bool batchObservingVariableChanges 
         { 
             get {
                 return _batchObservingVariableChanges;
@@ -43,7 +43,7 @@ namespace Ink.Runtime
 
         // Allow StoryState to change the current callstack, e.g. for
         // temporary function evaluation.
-        internal CallStack callStack {
+        public CallStack callStack {
             get {
                 return _callStack;
             }
@@ -108,14 +108,14 @@ namespace Ink.Runtime
 			return _globalVariables.Keys.GetEnumerator();
 		}
 
-        internal VariablesState (CallStack callStack, ListDefinitionsOrigin listDefsOrigin)
+        public VariablesState (CallStack callStack, ListDefinitionsOrigin listDefsOrigin)
         {
             _globalVariables = new Dictionary<string, Object> ();
             _callStack = callStack;
             _listDefsOrigin = listDefsOrigin;
         }
 
-        internal void ApplyPatch()
+        public void ApplyPatch()
         {
             foreach(var namedVar in patch.globals) {
                 _globalVariables[namedVar.Key] = namedVar.Value;
@@ -129,7 +129,7 @@ namespace Ink.Runtime
             patch = null;
         }
 
-        internal void SetJsonToken(Dictionary<string, object> jToken)
+        public void SetJsonToken(Dictionary<string, object> jToken)
         {
             _globalVariables.Clear();
 
@@ -155,7 +155,7 @@ namespace Ink.Runtime
         /// </summary>
         public static bool dontSaveDefaultValues = true;
 
-        internal void WriteJson(SimpleJson.Writer writer)
+        public void WriteJson(SimpleJson.Writer writer)
         {
             writer.WriteObjectStart();
             foreach (var keyVal in _globalVariables)
@@ -181,7 +181,7 @@ namespace Ink.Runtime
             writer.WriteObjectEnd();
         }
 
-        internal bool RuntimeObjectsEqual(Runtime.Object obj1, Runtime.Object obj2)
+        public bool RuntimeObjectsEqual(Runtime.Object obj1, Runtime.Object obj2)
         {
             if (obj1.GetType() != obj2.GetType()) return false;
 
@@ -207,19 +207,19 @@ namespace Ink.Runtime
             throw new System.Exception("FastRoughDefinitelyEquals: Unsupported runtime object type: "+obj1.GetType());
         }
 
-        internal Runtime.Object GetVariableWithName(string name)
+        public Runtime.Object GetVariableWithName(string name)
         {
             return GetVariableWithName (name, -1);
         }
 
-        internal Runtime.Object TryGetDefaultVariableValue (string name)
+        public Runtime.Object TryGetDefaultVariableValue (string name)
         {
             Runtime.Object val = null;
             _defaultGlobalVariables.TryGetValue (name, out val);
             return val;
         }
 
-		internal bool GlobalVariableExistsWithName(string name)
+		public bool GlobalVariableExistsWithName(string name)
 		{
 			return _globalVariables.ContainsKey(name) || _defaultGlobalVariables != null && _defaultGlobalVariables.ContainsKey(name);
 		}
@@ -269,12 +269,12 @@ namespace Ink.Runtime
             return varValue;
         }
 
-        internal Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
+        public Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
         {
             return GetVariableWithName (pointer.variableName, pointer.contextIndex);
         }
 
-        internal void Assign(VariableAssignment varAss, Runtime.Object value)
+        public void Assign(VariableAssignment varAss, Runtime.Object value)
         {
             var name = varAss.variableName;
             int contextIndex = -1;
@@ -321,7 +321,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal void SnapshotDefaultGlobals ()
+        public void SnapshotDefaultGlobals ()
         {
             _defaultGlobalVariables = new Dictionary<string, Object> (_globalVariables);
         }
@@ -334,7 +334,7 @@ namespace Ink.Runtime
                 newList.value.SetInitialOriginNames (oldList.value.originNames);
         }
 
-        internal void SetGlobal(string variableName, Runtime.Object value)
+        public void SetGlobal(string variableName, Runtime.Object value)
         {
             Runtime.Object oldValue = null;
             if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Ink.Runtime
 {
-    internal static class Json
+    public static class Json
     {
         public static List<T> JArrayToRuntimeObjList<T>(List<object> jArray, bool skipLast=false) where T : Runtime.Object
         {

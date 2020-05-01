@@ -81,7 +81,7 @@ namespace Ink.Runtime
             return 0;
         }
 
-        internal int VisitCountForContainer(Container container)
+        public int VisitCountForContainer(Container container)
         {
             if (!container.visitsShouldBeCounted)
             {
@@ -98,7 +98,7 @@ namespace Ink.Runtime
             return count;
         }
 
-        internal void IncrementVisitCountForContainer(Container container)
+        public void IncrementVisitCountForContainer(Container container)
         {
             if( _patch != null ) {
                 var currCount = VisitCountForContainer(container);
@@ -114,7 +114,7 @@ namespace Ink.Runtime
             _visitCounts[containerPathStr] = count;
         }
 
-        internal void RecordTurnIndexVisitToContainer(Container container)
+        public void RecordTurnIndexVisitToContainer(Container container)
         {
             if( _patch != null ) {
                 _patch.SetTurnIndex(container, currentTurnIndex);
@@ -125,7 +125,7 @@ namespace Ink.Runtime
             _turnIndices[containerPathStr] = currentTurnIndex;
         }
 
-        internal int TurnsSinceForContainer(Container container)
+        public int TurnsSinceForContainer(Container container)
         {
             if (!container.turnIndexShouldBeCounted)
             {
@@ -149,7 +149,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal int callstackDepth {
+        public int callstackDepth {
 			get {
 				return callStack.depth;
 			}
@@ -159,8 +159,8 @@ namespace Ink.Runtime
         // When adding state, update the Copy method, and serialisation.
         // REMEMBER! REMEMBER! REMEMBER!
 
-        internal List<Runtime.Object> outputStream { get { return _outputStream; } }
-		internal List<Choice> currentChoices { 
+        public List<Runtime.Object> outputStream { get { return _outputStream; } }
+		public List<Choice> currentChoices { 
 			get { 
 				// If we can continue generating text content rather than choices,
 				// then we reflect the choice list as being empty, since choices
@@ -169,25 +169,25 @@ namespace Ink.Runtime
 				return _currentChoices;
 			} 
 		}
-		internal List<Choice> generatedChoices {
+		public List<Choice> generatedChoices {
 			get {
 				return _currentChoices;
 			}
 		}
-        internal List<string> currentErrors { get; private set; }
-        internal List<string> currentWarnings { get; private set; }
-        internal VariablesState variablesState { get; private set; }
-        internal CallStack callStack { get; set; }
-        internal List<Runtime.Object> evaluationStack { get; private set; }
-        internal Pointer divertedPointer { get; set; }
+        public List<string> currentErrors { get; private set; }
+        public List<string> currentWarnings { get; private set; }
+        public VariablesState variablesState { get; private set; }
+        public CallStack callStack { get; set; }
+        public List<Runtime.Object> evaluationStack { get; private set; }
+        public Pointer divertedPointer { get; set; }
 
 
-        internal int currentTurnIndex { get; private set; }
-        internal int storySeed { get; set; }
-        internal int previousRandom { get; set; }
-        internal bool didSafeExit { get; set; }
+        public int currentTurnIndex { get; private set; }
+        public int storySeed { get; set; }
+        public int previousRandom { get; set; }
+        public bool didSafeExit { get; set; }
 
-        internal Story story { get; set; }
+        public Story story { get; set; }
 
         /// <summary>
         /// String representation of the location where the story currently is.
@@ -202,7 +202,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal Runtime.Pointer currentPointer {
+        public Runtime.Pointer currentPointer {
             get {
                 return callStack.currentElement.currentPointer;
             }
@@ -211,7 +211,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal Pointer previousPointer { 
+        public Pointer previousPointer { 
             get {
                 return callStack.currentThread.previousPointer;
             }
@@ -220,26 +220,26 @@ namespace Ink.Runtime
             }
         }
 
-		internal bool canContinue {
+		public bool canContinue {
 			get {
 				return !currentPointer.isNull && !hasError;
 			}
 		}
             
-        internal bool hasError
+        public bool hasError
         {
             get {
                 return currentErrors != null && currentErrors.Count > 0;
             }
         }
 
-        internal bool hasWarning {
+        public bool hasWarning {
             get {
                 return currentWarnings != null && currentWarnings.Count > 0;
             }
         }
 
-        internal string currentText
+        public string currentText
         {
             get 
             {
@@ -298,7 +298,7 @@ namespace Ink.Runtime
             return sb.ToString();
         }
 
-        internal List<string> currentTags 
+        public List<string> currentTags 
         {
             get 
             {
@@ -320,7 +320,7 @@ namespace Ink.Runtime
         }
 		List<string> _currentTags;
 
-        internal bool inExpressionEvaluation {
+        public bool inExpressionEvaluation {
             get {
                 return callStack.currentElement.inExpressionEvaluation;
             }
@@ -329,7 +329,7 @@ namespace Ink.Runtime
             }
         }
             
-        internal StoryState (Story story)
+        public StoryState (Story story)
         {
             this.story = story;
 
@@ -356,7 +356,7 @@ namespace Ink.Runtime
             GoToStart();
         }
 
-        internal void GoToStart()
+        public void GoToStart()
         {
             callStack.currentElement.currentPointer = Pointer.StartOf (story.mainContentContainer);
         }
@@ -366,7 +366,7 @@ namespace Ink.Runtime
         // Runtime.Objects are treated as immutable after they've been set up.
         // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
-        internal StoryState CopyAndStartPatching()
+        public StoryState CopyAndStartPatching()
         {
             var copy = new StoryState(story);
 
@@ -416,7 +416,7 @@ namespace Ink.Runtime
             return copy;
         }
 
-        internal void RestoreAfterPatch()
+        public void RestoreAfterPatch()
         {
             // VariablesState was being borrowed by the patched
             // state, so restore it with our own callstack.
@@ -426,7 +426,7 @@ namespace Ink.Runtime
             variablesState.patch = _patch; // usually null
         }
 
-        internal void ApplyAnyPatch()
+        public void ApplyAnyPatch()
         {
             if (_patch == null) return;
 
@@ -568,13 +568,13 @@ namespace Ink.Runtime
 			}
         }
             
-        internal void ResetErrors()
+        public void ResetErrors()
         {
             currentErrors = null;
             currentWarnings = null;
         }
             
-        internal void ResetOutput(List<Runtime.Object> objs = null)
+        public void ResetOutput(List<Runtime.Object> objs = null)
         {
             _outputStream.Clear ();
             if( objs != null ) _outputStream.AddRange (objs);
@@ -583,7 +583,7 @@ namespace Ink.Runtime
 
         // Push to output stream, but split out newlines in text for consistency
         // in dealing with them later.
-        internal void PushToOutputStream(Runtime.Object obj)
+        public void PushToOutputStream(Runtime.Object obj)
         {
             var text = obj as StringValue;
             if (text) {
@@ -602,7 +602,7 @@ namespace Ink.Runtime
 			OutputStreamDirty();
         }
 
-        internal void PopFromOutputStream (int count)
+        public void PopFromOutputStream (int count)
         {
             outputStream.RemoveRange (outputStream.Count - count, count);
             OutputStreamDirty ();
@@ -854,7 +854,7 @@ namespace Ink.Runtime
 			OutputStreamDirty();
         }
 
-        internal bool outputStreamEndsInNewline {
+        public bool outputStreamEndsInNewline {
             get {
                 if (_outputStream.Count > 0) {
 
@@ -876,7 +876,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal bool outputStreamContainsContent {
+        public bool outputStreamContainsContent {
             get {
                 foreach (var content in _outputStream) {
                     if (content is StringValue)
@@ -886,7 +886,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal bool inStringEvaluation {
+        public bool inStringEvaluation {
             get {
                 for (int i = _outputStream.Count - 1; i >= 0; i--) {
                     var cmd = _outputStream [i] as ControlCommand;
@@ -899,7 +899,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal void PushEvaluationStack(Runtime.Object obj)
+        public void PushEvaluationStack(Runtime.Object obj)
         {
             // Include metadata about the origin List for list values when
             // they're used, so that lower level functions can make use
@@ -926,19 +926,19 @@ namespace Ink.Runtime
             evaluationStack.Add(obj);
         }
 
-        internal Runtime.Object PopEvaluationStack()
+        public Runtime.Object PopEvaluationStack()
         {
             var obj = evaluationStack [evaluationStack.Count - 1];
             evaluationStack.RemoveAt (evaluationStack.Count - 1);
             return obj;
         }
 
-        internal Runtime.Object PeekEvaluationStack()
+        public Runtime.Object PeekEvaluationStack()
         {
             return evaluationStack [evaluationStack.Count - 1];
         }
 
-        internal List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
+        public List<Runtime.Object> PopEvaluationStack(int numberOfObjects)
         {
             if(numberOfObjects > evaluationStack.Count) {
                 throw new System.Exception ("trying to pop too many objects");
@@ -1002,7 +1002,7 @@ namespace Ink.Runtime
             }
         }
 
-        internal void PopCallstack (PushPopType? popType = null)
+        public void PopCallstack (PushPopType? popType = null)
         {
             // Add the end of a function call, trim any whitespace from the end.
             if (callStack.currentElement.type == PushPopType.Function)
@@ -1012,7 +1012,7 @@ namespace Ink.Runtime
         }
 
         // Don't make public since the method need to be wrapped in Story for visit counting
-        internal void SetChosenPath(Path path, bool incrementingTurnIndex)
+        public void SetChosenPath(Path path, bool incrementingTurnIndex)
         {
             // Changing direction, assume we need to clear current set of choices
 			_currentChoices.Clear ();
@@ -1027,7 +1027,7 @@ namespace Ink.Runtime
                 currentTurnIndex++;
         }
 
-        internal void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
+        public void StartFunctionEvaluationFromGame (Container funcContainer, params object[] arguments)
         {
             callStack.Push (PushPopType.FunctionEvaluationFromGame, evaluationStack.Count);
             callStack.currentElement.currentPointer = Pointer.StartOf (funcContainer);
@@ -1035,7 +1035,7 @@ namespace Ink.Runtime
             PassArgumentsToEvaluationStack (arguments);
         }
 
-        internal void PassArgumentsToEvaluationStack (params object [] arguments)
+        public void PassArgumentsToEvaluationStack (params object [] arguments)
         {
             // Pass arguments onto the evaluation stack
             if (arguments != null) {
@@ -1049,7 +1049,7 @@ namespace Ink.Runtime
             }
         }
             
-        internal bool TryExitFunctionEvaluationFromGame ()
+        public bool TryExitFunctionEvaluationFromGame ()
         {
             if( callStack.currentElement.type == PushPopType.FunctionEvaluationFromGame ) {
                 currentPointer = Pointer.Null;
@@ -1060,7 +1060,7 @@ namespace Ink.Runtime
             return false;
         }
 
-        internal object CompleteFunctionEvaluationFromGame ()
+        public object CompleteFunctionEvaluationFromGame ()
         {
             if (callStack.currentElement.type != PushPopType.FunctionEvaluationFromGame) {
                 throw new StoryException ("Expected external function evaluation to be complete. Stack trace: "+callStack.callStackTrace);
@@ -1104,7 +1104,7 @@ namespace Ink.Runtime
             return null;
         }
 
-        internal void AddError(string message, bool isWarning)
+        public void AddError(string message, bool isWarning)
         {
             if (!isWarning) {
                 if (currentErrors == null) currentErrors = new List<string> ();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ink
 {
-    internal class PluginManager
+    public class PluginManager
     {
         public PluginManager (List<string> pluginNames)
         {

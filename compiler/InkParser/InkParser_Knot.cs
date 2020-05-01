@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Ink
 {
-	internal partial class InkParser
+	public partial class InkParser
 	{
         protected class FlowDecl
         {

@@ -30,7 +30,7 @@ namespace Ink.Runtime
 			}
 		}
 
-		internal Profiler() {
+		public Profiler() {
 			_rootNode = new ProfileNode();
 		}
 
@@ -47,24 +47,24 @@ namespace Ink.Runtime
 			return sb.ToString();
 		}
 
-		internal void PreContinue() {
+		public void PreContinue() {
 			_continueWatch.Reset();
 			_continueWatch.Start();
 		}
 
-		internal void PostContinue() {
+		public void PostContinue() {
 			_continueWatch.Stop();
 			_continueTotal += Millisecs(_continueWatch);
 			_numContinues++;
 		}
 
-		internal void PreStep() {
+		public void PreStep() {
 			_currStepStack = null;
 			_stepWatch.Reset();
 			_stepWatch.Start();
 		}
 
-		internal void Step(CallStack callstack) 
+		public void Step(CallStack callstack) 
 		{
 			_stepWatch.Stop();
 
@@ -105,7 +105,7 @@ namespace Ink.Runtime
 			_stepWatch.Start();
 		}
 
-		internal void PostStep() {
+		public void PostStep() {
 			_stepWatch.Stop();
 
 			var duration = Millisecs(_stepWatch);
@@ -181,12 +181,12 @@ namespace Ink.Runtime
 			return sb.ToString();
 		}
 
-		internal void PreSnapshot() {
+		public void PreSnapshot() {
 			_snapWatch.Reset();
 			_snapWatch.Start();
 		}
 
-		internal void PostSnapshot() {
+		public void PostSnapshot() {
 			_snapWatch.Stop();
 			_snapTotal += Millisecs(_snapWatch);
 		}
@@ -197,7 +197,7 @@ namespace Ink.Runtime
 			return ticks * _millisecsPerTick;
 		}
 
-		internal static string FormatMillisecs(double num) {
+		public static string FormatMillisecs(double num) {
 			if( num > 5000 ) {
 				return string.Format("{0:N1} secs", num / 1000.0);
 			} if( num > 1000 ) {
@@ -278,15 +278,15 @@ namespace Ink.Runtime
 			}
 		}
 
-		internal ProfileNode() {
+		public ProfileNode() {
 
 		}
 
-		internal ProfileNode(string key) {
+		public ProfileNode(string key) {
 			this.key = key;
 		}
 
-		internal void AddSample(string[] stack, double duration) {
+		public void AddSample(string[] stack, double duration) {
 			AddSample(stack, -1, duration);
 		}
 

@@ -7,7 +7,7 @@ namespace Ink.Runtime
     // try to recover by finding an approximate result by working up the story hierarchy
     // in the path to find the closest valid container. Instead of crashing horribly,
     // we might see some slight oddness in the content, but hopefully it recovers!
-    internal struct SearchResult
+    public struct SearchResult
     {
         public Runtime.Object obj;
         public bool approximate;

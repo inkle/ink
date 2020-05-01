@@ -2,7 +2,7 @@
 
 namespace Ink.Parsed
 {
-	internal class Knot : FlowBase
+	public class Knot : FlowBase
 	{
         public override FlowLevel flowLevel { get { return FlowLevel.Knot; } }
 

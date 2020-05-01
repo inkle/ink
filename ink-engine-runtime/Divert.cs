@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-	internal class Divert : Runtime.Object
+	public class Divert : Runtime.Object
 	{
         public Path targetPath { 
             get { 
