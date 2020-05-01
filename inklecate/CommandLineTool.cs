@@ -89,7 +89,8 @@ namespace Ink
                 Environment.Exit (ExitCodeError);
             }
 
-            Runtime.Story story;
+            Parsed.Story parsedStory = null;
+            Runtime.Story story = null;
             Compiler compiler = null;
 
             // Loading a normal ink file (as opposed to an already compiled json file)
@@ -103,7 +104,37 @@ namespace Ink
                     fileHandler = this
                 });
 
-                story = compiler.Compile ();
+                // Only want stats, don't need to code-gen
+                if (opts.stats)
+                {
+                    parsedStory = compiler.Parse();
+
+                    // Print any errors
+                    PrintAllMessages();
+
+                    // Generate stats, then print as JSON
+                    var stats = Ink.Stats.Generate(compiler.parsedStory);
+
+                    var writer = new Runtime.SimpleJson.Writer();
+
+                    writer.WriteObjectStart();
+                    writer.WriteProperty("words", stats.words);
+                    writer.WriteProperty("knots", stats.knots);
+                    writer.WriteProperty("stitches", stats.stitches);
+                    writer.WriteProperty("functions", stats.functions);
+                    writer.WriteProperty("choices", stats.choices);
+                    writer.WriteProperty("gathers", stats.gathers);
+                    writer.WriteProperty("diverts", stats.diverts);
+                    writer.WriteObjectEnd();
+
+                    Console.WriteLine(writer.ToString());
+
+                    return;
+                }
+
+                // Full compile
+                else
+                    story = compiler.Compile();
             } 
 
             // Opening up a compiled json file for playing
@@ -119,26 +150,6 @@ namespace Ink
             if (story == null || _errors.Count > 0) {
 				Environment.Exit (ExitCodeError);
 			}
-
-            if( !inputIsJson && opts.stats ) {
-                var stats = Ink.Stats.Generate(compiler.parsedStory);
-
-                var writer = new Runtime.SimpleJson.Writer();
-
-                writer.WriteObjectStart();
-                writer.WriteProperty("words", stats.words);
-                writer.WriteProperty("knots", stats.knots);
-                writer.WriteProperty("stitches", stats.stitches);
-                writer.WriteProperty("functions", stats.functions);
-                writer.WriteProperty("choices", stats.choices);
-                writer.WriteProperty("gathers", stats.gathers);
-                writer.WriteProperty("diverts", stats.diverts);
-                writer.WriteObjectEnd();
-
-                Console.WriteLine(writer.ToString());
-
-                return;
-            }
 
 			// Play mode
             if (opts.playMode) {
