@@ -11,6 +11,7 @@ namespace Ink
 		class Options {
             public bool verbose;
 			public bool playMode;
+            public bool stats;
 			public string inputFile;
             public string outputFile;
             public bool countAllVisits;
@@ -32,6 +33,7 @@ namespace Ink
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
+                "   -s:              Print stats about story including word count in JSON format" +
                 "   -v:              Verbose mode - print compilation timings\n"+
                 "   -k:              Keep inklecate running in play mode even after story is complete\n");
             Environment.Exit (ExitCodeError);
@@ -82,6 +84,10 @@ namespace Ink
             }
 
             var inputIsJson = opts.inputFile.EndsWith (".json", StringComparison.InvariantCultureIgnoreCase);
+            if( inputIsJson && opts.stats ) {
+                Console.WriteLine ("Cannot show stats for .json, only for .ink");
+                Environment.Exit (ExitCodeError);
+            }
 
             Runtime.Story story;
             Compiler compiler = null;
@@ -113,6 +119,20 @@ namespace Ink
             if (story == null || _errors.Count > 0) {
 				Environment.Exit (ExitCodeError);
 			}
+
+            if( !inputIsJson && opts.stats ) {
+                var stats = Ink.Stats.Generate(compiler.parsedStory);
+
+                var writer = new Runtime.SimpleJson.Writer();
+
+                writer.WriteObjectStart();
+                writer.WriteProperty("words", stats.words);
+                writer.WriteObjectEnd();
+
+                Console.WriteLine(writer.ToString());
+
+                return;
+            }
 
 			// Play mode
             if (opts.playMode) {
@@ -257,6 +277,9 @@ namespace Ink
                             break;
                         case 'v':
                             opts.verbose = true;
+                            break;
+                        case 's':
+                            opts.stats = true;
                             break;
                         case 'o':
                             nextArgIsOutputFilename = true;   

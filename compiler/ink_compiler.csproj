@@ -79,6 +79,7 @@
     <Compile Include="InkParser\InkParser_Tags.cs" />
     <Compile Include="InkParser\InkParser_Whitespace.cs" />
     <Compile Include="Compiler.cs" />
+    <Compile Include="Stats.cs" />
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="CharacterRange.cs" />

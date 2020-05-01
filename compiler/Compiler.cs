@@ -33,6 +33,12 @@ namespace Ink
             }
         }
 
+        public Parsed.Story parsedStory {
+            get {
+                return _parsedStory;
+            }
+        }
+
         public Compiler (string inkSource, Options options = null)
         {
             _inputString = inkSource;
@@ -41,11 +47,16 @@ namespace Ink
                 _pluginManager = new PluginManager (_options.pluginNames);
         }
 
+        public Parsed.Story Parse()
+        {
+            _parser = new InkParser(_inputString, _options.sourceFilename, OnError, _options.fileHandler);
+            _parsedStory = _parser.Parse();
+            return _parsedStory;
+        }
+
         public Runtime.Story Compile ()
         {
-            _parser = new InkParser (_inputString, _options.sourceFilename, OnError, _options.fileHandler);
-
-            _parsedStory = _parser.Parse ();
+            Parse();
 
             if( _pluginManager != null )
                 _pluginManager.PostParse(_parsedStory);
