@@ -102,22 +102,29 @@ class InkTestBed : IFileHandler
         return story;
     }
 
-    Ink.Runtime.Story CompileFile (string filename = null)
+    Compiler CreateCompiler(string filename = null)
     {
         if (filename == null) filename = "test.ink";
 
-        if (Path.IsPathRooted (filename)) {
-            var dir = Path.GetDirectoryName (filename);
-            Directory.SetCurrentDirectory (dir);
+        if (Path.IsPathRooted(filename))
+        {
+            var dir = Path.GetDirectoryName(filename);
+            Directory.SetCurrentDirectory(dir);
         }
 
-        var inkSource = File.ReadAllText (filename);
+        var inkSource = File.ReadAllText(filename);
 
-        compiler = new Compiler (inkSource, new Compiler.Options {
-			sourceFilename = filename,
-			errorHandler = OnError,
-			fileHandler = this
+        return new Compiler(inkSource, new Compiler.Options
+        {
+            sourceFilename = filename,
+            errorHandler = OnError,
+            fileHandler = this
         });
+    }
+
+    Ink.Runtime.Story CompileFile (string filename = null)
+    {
+        CreateCompiler(filename);
 
         story = compiler.Compile ();
 
