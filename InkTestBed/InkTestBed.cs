@@ -124,7 +124,7 @@ class InkTestBed : IFileHandler
 
     Ink.Runtime.Story CompileFile (string filename = null)
     {
-        CreateCompiler(filename);
+        compiler = CreateCompiler(filename);
 
         story = compiler.Compile ();
 
