@@ -12,6 +12,7 @@ namespace Ink
             public bool verbose;
 			public bool playMode;
             public bool stats;
+            public bool jsonOutput;
 			public string inputFile;
             public string outputFile;
             public bool countAllVisits;
@@ -33,6 +34,7 @@ namespace Ink
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
+                "   -j:              Output in JSON format (for communication with tools like Inky)"+
                 "   -s:              Print stats about story including word count in JSON format" +
                 "   -v:              Verbose mode - print compilation timings\n"+
                 "   -k:              Keep inklecate running in play mode even after story is complete\n");
@@ -115,19 +117,35 @@ namespace Ink
                     // Generate stats, then print as JSON
                     var stats = Ink.Stats.Generate(compiler.parsedStory);
 
-                    var writer = new Runtime.SimpleJson.Writer();
+                    if( opts.jsonOutput ) {
+                        var writer = new Runtime.SimpleJson.Writer();
 
-                    writer.WriteObjectStart();
-                    writer.WriteProperty("words", stats.words);
-                    writer.WriteProperty("knots", stats.knots);
-                    writer.WriteProperty("stitches", stats.stitches);
-                    writer.WriteProperty("functions", stats.functions);
-                    writer.WriteProperty("choices", stats.choices);
-                    writer.WriteProperty("gathers", stats.gathers);
-                    writer.WriteProperty("diverts", stats.diverts);
-                    writer.WriteObjectEnd();
+                        writer.WriteObjectStart();
+                        writer.WritePropertyStart("stats");
 
-                    Console.WriteLine(writer.ToString());
+                        writer.WriteObjectStart();
+                        writer.WriteProperty("words", stats.words);
+                        writer.WriteProperty("knots", stats.knots);
+                        writer.WriteProperty("stitches", stats.stitches);
+                        writer.WriteProperty("functions", stats.functions);
+                        writer.WriteProperty("choices", stats.choices);
+                        writer.WriteProperty("gathers", stats.gathers);
+                        writer.WriteProperty("diverts", stats.diverts);
+                        writer.WriteObjectEnd();
+
+                        writer.WritePropertyEnd();
+                        writer.WriteObjectEnd();
+
+                        Console.WriteLine(writer.ToString());
+                    } else {
+                        Console.WriteLine("Words: "+stats.words);
+                        Console.WriteLine("Knots: "+stats.knots);
+                        Console.WriteLine("Stitches: "+stats.stitches);
+                        Console.WriteLine("Functions: "+stats.functions);
+                        Console.WriteLine("Choices: "+stats.choices);
+                        Console.WriteLine("Gathers: "+stats.gathers);
+                        Console.WriteLine("Diverts: "+stats.diverts);
+                    }
 
                     return;
                 }
@@ -145,11 +163,19 @@ namespace Ink
                 opts.playMode = true;
             }
 
+            var compileSuccess = !(story == null || _errors.Count > 0);
+            if( opts.jsonOutput ) {
+                if( compileSuccess )
+                    Console.WriteLine("{\"compile-success\": true}");
+                else
+                    Console.WriteLine("{\"compile-success\": false}");
+            }
+
+
             PrintAllMessages ();
 
-            if (story == null || _errors.Count > 0) {
+            if (!compileSuccess)
 				Environment.Exit (ExitCodeError);
-			}
 
 			// Play mode
             if (opts.playMode) {
@@ -159,7 +185,7 @@ namespace Ink
                 // Always allow ink external fallbacks
                 story.allowExternalFunctionFallbacks = true;
 
-                var player = new CommandLinePlayer (story, false, compiler, opts.keepOpenAfterStoryFinish);
+                var player = new CommandLinePlayer (story, false, compiler, opts.keepOpenAfterStoryFinish, opts.jsonOutput);
 
                 //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
                 Console.CancelKeyPress += OnExit;
@@ -190,6 +216,10 @@ namespace Ink
 
                 try {
                     File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
+
+                    if( opts.jsonOutput )
+                        Console.WriteLine("{\"export-complete\": true}");
+
                 } catch {
                     Console.WriteLine ("Could not write to output file '" + opts.outputFile+"'");
                     Environment.Exit (ExitCodeError);
@@ -234,22 +264,45 @@ namespace Ink
             if( _playing ) PrintAllMessages ();
         }
 
-        void PrintMessages(List<string> messageList, ConsoleColor colour)
+        void PrintIssues(List<string> messageList, ConsoleColor colour)
         {
             Console.ForegroundColor = colour;
-
             foreach (string msg in messageList) {
                 Console.WriteLine (msg);
             }
-
             Console.ResetColor ();
         }
 
         void PrintAllMessages ()
         {
-            PrintMessages (_authorMessages, ConsoleColor.Green);
-            PrintMessages (_warnings, ConsoleColor.Blue);
-            PrintMessages (_errors, ConsoleColor.Red);
+            // { "issues": ["ERROR: blah", "WARNING: blah"] }
+            if( opts.jsonOutput ) {
+                var writer = new Runtime.SimpleJson.Writer();
+
+                writer.WriteObjectStart();
+                writer.WritePropertyStart("issues");
+                writer.WriteArrayStart();
+                foreach (string msg in _authorMessages) {
+                    writer.Write(msg);
+                }
+                foreach (string msg in _warnings) {
+                    writer.Write(msg);
+                }
+                foreach (string msg in _errors) {
+                    writer.Write(msg);
+                }
+                writer.WriteArrayEnd();
+                writer.WritePropertyEnd();
+                writer.WriteObjectEnd();
+                Console.Write (writer.ToString());
+            } 
+
+            // Human consumption
+            else {
+                PrintIssues (_authorMessages, ConsoleColor.Green);
+                PrintIssues (_warnings, ConsoleColor.Blue);
+                PrintIssues (_errors, ConsoleColor.Red);
+            }
 
             _authorMessages.Clear ();
             _warnings.Clear ();
@@ -291,6 +344,9 @@ namespace Ink
                         switch (argChar) {
                         case 'p':
                             opts.playMode = true;
+                            break;
+                        case 'j':
+                            opts.jsonOutput = true;
                             break;
                         case 'v':
                             opts.verbose = true;
