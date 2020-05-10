@@ -34,8 +34,8 @@ namespace Ink
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
                 "   -p:              Play mode\n"+
-                "   -j:              Output in JSON format (for communication with tools like Inky)"+
-                "   -s:              Print stats about story including word count in JSON format" +
+                "   -j:              Output in JSON format (for communication with tools like Inky)\n"+
+                "   -s:              Print stats about story including word count in JSON format\n" +
                 "   -v:              Verbose mode - print compilation timings\n"+
                 "   -k:              Keep inklecate running in play mode even after story is complete\n");
             Environment.Exit (ExitCodeError);
