@@ -40,7 +40,7 @@ namespace Ink
                 "   -k:              Keep inklecate running in play mode even after story is complete\n");
             Environment.Exit (ExitCodeError);
         }
-            
+
 		CommandLineTool(string[] args)
 		{
             // Set console's output encoding to UTF-8
@@ -53,7 +53,7 @@ namespace Ink
             if (opts.inputFile == null) {
                 ExitWithUsageInstructions ();
             }
-                
+
             string inputString = null;
             string workingDirectory = Directory.GetCurrentDirectory();
 
@@ -153,7 +153,7 @@ namespace Ink
                 // Full compile
                 else
                     story = compiler.Compile();
-            } 
+            }
 
             // Opening up a compiled json file for playing
             else {
@@ -207,11 +207,11 @@ namespace Ink
                     }
                     throw new System.Exception(e.Message + " (Internal story path: " + storyPath + ")", e);
                 }
-            } 
+            }
 
             // Compile mode
             else {
-                
+
                 var jsonStr = story.ToJson ();
 
                 try {
@@ -295,7 +295,7 @@ namespace Ink
                 writer.WritePropertyEnd();
                 writer.WriteObjectEnd();
                 Console.Write (writer.ToString());
-            } 
+            }
 
             // Human consumption
             else {
@@ -325,7 +325,7 @@ namespace Ink
 			// Process arguments
             int argIdx = 0;
 			foreach (string arg in args) {
-                            
+
                 if (nextArgIsOutputFilename) {
                     opts.outputFile = arg;
                     nextArgIsOutputFilename = false;
@@ -355,7 +355,7 @@ namespace Ink
                             opts.stats = true;
                             break;
                         case 'o':
-                            nextArgIsOutputFilename = true;   
+                            nextArgIsOutputFilename = true;
                             break;
                         case 'c':
                             opts.countAllVisits = true;
@@ -371,8 +371,8 @@ namespace Ink
                             break;
                         }
                     }
-                } 
-                    
+                }
+
                 // Last argument: input file
                 else if( argIdx == args.Length-1 ) {
                     opts.inputFile = arg;
