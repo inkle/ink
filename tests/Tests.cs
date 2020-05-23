@@ -882,6 +882,49 @@ EXTERNAL times(i,str)
         }
 
         [Test()]
+        public void TestLookupSafeOrNot()
+        {
+            var story = CompileString(@"
+EXTERNAL myAction()
+
+One
+~ myAction()
+Two
+");
+
+            // Lookahead SAFE - should get multiple calls to the ext function,
+            // one for lookahead on first line, one "for real" on second line.
+            int callCount = 0;
+            story.BindExternalFunction("myAction", () => callCount++, lookaheadSafe:true);
+
+            story.ContinueMaximally();
+            Assert.AreEqual(2, callCount);
+
+            // Lookahead UNSAFE - when it sees the function, it should break out early
+            // and stop lookahead, making sure that the action is only called for the second line.
+            callCount = 0;
+            story.ResetState();
+            story.UnbindExternalFunction("myAction");
+            story.BindExternalFunction("myAction", () => callCount++, lookaheadSafe:false);
+
+            story.ContinueMaximally();
+            Assert.AreEqual(1, callCount);
+
+            // Lookahead SAFE but breaks glue intentionally
+            var storyWithPostGlue = CompileString(@"
+EXTERNAL myAction()
+
+One 
+~ myAction()
+<> Two
+");
+
+            storyWithPostGlue.BindExternalFunction("myAction", () => {});
+            var result = storyWithPostGlue.ContinueMaximally();
+            Assert.AreEqual("One\nTwo\n", result);
+        }
+
+        [Test()]
         public void TestFactorialByReference()
         {
             var storyStr = @"
