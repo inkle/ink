@@ -762,6 +762,20 @@ Note that the parameter passed to `TURNS_SINCE` is a "divert target", not simply
 
 TODO: (requirement of passing `-c` to the compiler)
 
+#### Sneak preview: using TURNS_SINCE in a function
+
+The `TURNS_SINCE(->x) == 0` test is so useful it's often worth wrapping it up as an ink function.
+
+	=== function came_from(-> x) 
+		~ return TURNS_SINCE(x) == 0
+	
+The section on functions outlines the syntax here a bit more clearly but the above allows you to say things like:
+
+	* {came_from(->  nice_welcome)} 'I'm happy to be here!' 
+	* {came_from(->  nasty_welcome)} 'Let's keep this quick.' 
+
+... and have the game react to content the player saw *just now*.
+
 ### SEED_RANDOM()
 
 For testing purposes, it's often useful to fix the random number generator so ink will produce the same outcomes every time you play. You can do this by "seeding" the random number system. 
