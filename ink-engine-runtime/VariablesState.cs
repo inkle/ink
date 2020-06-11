@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
@@ -85,9 +86,9 @@ namespace Ink.Runtime
                 var val = Runtime.Value.Create(value);
                 if (val == null) {
                     if (value == null) {
-                        throw new StoryException ("Cannot pass null to VariableState");
+                        throw new Exception ("Cannot pass null to VariableState");
                     } else {
-                        throw new StoryException ("Invalid value passed to VariableState: "+value.ToString());
+                        throw new Exception ("Invalid value passed to VariableState: "+value.ToString());
                     }
                 }
 

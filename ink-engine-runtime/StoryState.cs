@@ -174,6 +174,11 @@ namespace Ink.Runtime
 				return _currentChoices;
 			}
 		}
+
+        // TODO: Consider removing currentErrors / currentWarnings altogether
+        // and relying on client error handler code immediately handling StoryExceptions etc
+        // Or is there a specific reason we need to collect potentially multiple
+        // errors before throwing/exiting?
         public List<string> currentErrors { get; private set; }
         public List<string> currentWarnings { get; private set; }
         public VariablesState variablesState { get; private set; }
@@ -517,10 +522,10 @@ namespace Ink.Runtime
         {
 			object jSaveVersion = null;
 			if (!jObject.TryGetValue("inkSaveVersion", out jSaveVersion)) {
-                throw new StoryException ("ink save format incorrect, can't load.");
+                throw new Exception ("ink save format incorrect, can't load.");
             }
             else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
-                throw new StoryException("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
+                throw new Exception("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
             }
 
             callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
@@ -1063,7 +1068,7 @@ namespace Ink.Runtime
         public object CompleteFunctionEvaluationFromGame ()
         {
             if (callStack.currentElement.type != PushPopType.FunctionEvaluationFromGame) {
-                throw new StoryException ("Expected external function evaluation to be complete. Stack trace: "+callStack.callStackTrace);
+                throw new Exception ("Expected external function evaluation to be complete. Stack trace: "+callStack.callStackTrace);
             }
 
             int originalEvaluationStackHeight = callStack.currentElement.evaluationStackHeightWhenPushed;

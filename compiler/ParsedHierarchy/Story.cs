@@ -11,8 +11,14 @@ namespace Ink.Parsed
 	public class Story : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
-        public bool hadError { get { return _hadError; } }
-        public bool hadWarning { get { return _hadWarning; } }
+
+        /// <summary>
+        /// Had error during code gen, resolve references?
+        /// Most of the time it shouldn't be necessary to use this
+        /// since errors should be caught by the error handler.
+        /// </summary>
+        internal bool hadError { get { return _hadError; } }
+        internal bool hadWarning { get { return _hadWarning; } }
 
         public Dictionary<string, Expression> constants;
         public Dictionary<string, ExternalDeclaration> externals;
@@ -191,7 +197,7 @@ namespace Ink.Parsed
             
 			runtimeObject = runtimeStory;
 
-            if (hadError)
+            if (_hadError)
                 return null;
 
             // Optimisation step - inline containers that can be
@@ -207,7 +213,7 @@ namespace Ink.Parsed
 			// we want the paths to be absolute)
 			ResolveReferences (this);
 
-            if (hadError)
+            if (_hadError)
                 return null;
 
             runtimeStory.ResetState ();
@@ -338,13 +344,12 @@ namespace Ink.Parsed
             message = sb.ToString ();
 
             if (_errorHandler != null) {
+                _hadError = errorType == ErrorType.Error;
+                _hadWarning = errorType == ErrorType.Warning;
                 _errorHandler (message, errorType);
             } else {
                 throw new System.Exception (message);
             }
-
-            _hadError = errorType == ErrorType.Error;
-            _hadWarning = errorType == ErrorType.Warning;
 		}
 
         public void ResetError()

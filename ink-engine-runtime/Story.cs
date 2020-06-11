@@ -91,6 +91,8 @@ namespace Ink.Runtime
 
         /// <summary>
         /// Whether the currentErrors list contains any errors.
+        /// THIS MAY BE REMOVED - you should be setting an error handler directly
+        /// using Story.onError.
         /// </summary>
         public bool hasError { get { return state.hasError; } }
 
@@ -124,6 +126,14 @@ namespace Ink.Runtime
         /// </summary>
         public StoryState state { get { return _state; } }
         
+        /// <summary>
+        /// Error handler for all runtime errors in ink - i.e. problems
+        /// with the source ink itself that are only discovered when playing
+        /// the story.
+        /// It's strongly recommended that you assign an error handler to your
+        /// story instance to avoid getting exceptions for ink errors.
+        /// </summary>
+        public event Ink.ErrorHandler onError;
         
         /// <summary>
         /// Callback for when ContinueInternal is complete
@@ -285,10 +295,7 @@ namespace Ink.Runtime
             ResetGlobals ();
         }
 
-        /// <summary>
-        /// Reset the runtime error and warning list within the state.
-        /// </summary>
-        public void ResetErrors()
+        void ResetErrors()
         {
             _state.ResetErrors ();
         }
@@ -395,7 +402,7 @@ namespace Ink.Runtime
                 _asyncContinueActive = isAsyncTimeLimited;
 				
                 if (!canContinue) {
-                    throw new StoryException ("Can't continue - should check canContinue before calling Continue");
+                    throw new Exception ("Can't continue - should check canContinue before calling Continue");
                 }
 
                 _state.didSafeExit = false;
@@ -480,6 +487,57 @@ namespace Ink.Runtime
 
             if( _profiler != null )
                 _profiler.PostContinue();
+
+            // Report any errors that occured during evaluation.
+            // This may either have been StoryExceptions that were thrown
+            // and caught during evaluation, or directly added with AddError.
+            if( state.hasError || state.hasWarning ) {
+                if( onError != null ) {
+                    if( state.hasError ) {
+                        foreach(var err in state.currentErrors) {
+                            onError(err, ErrorType.Error);
+                        }
+                    }
+                    if( state.hasWarning ) {
+                        foreach(var err in state.currentWarnings) {
+                            onError(err, ErrorType.Warning);
+                        }
+                    }
+                    ResetErrors();
+                } 
+                
+                // Throw an exception since there's no error handler
+                else {
+                    var sb = new StringBuilder();
+                    sb.Append("Ink had ");
+                    if( state.hasError ) {
+                        sb.Append(state.currentErrors.Count);
+                        sb.Append(state.currentErrors.Count == 1 ? " error" : " errors");
+                        if( state.hasWarning ) sb.Append(" and ");
+                    }
+                    if( state.hasWarning ) {
+                        sb.Append(state.currentWarnings.Count);
+                        sb.Append(state.currentWarnings.Count == 1 ? " warning" : " warnings");
+                    }
+                    sb.Append(". It is strongly suggested that you assign an error handler to story.onError. The first issue was: ");
+                    sb.Append(state.hasError ? state.currentErrors[0] : state.currentWarnings[0]);
+
+                    // If you get this exception, please assign an error handler to your story.
+                    // If you're using Unity, you can do something like this when you create
+                    // your story:
+                    //
+                    // var story = new Ink.Runtime.Story(jsonTxt);
+                    // story.onError = (errorMessage, errorType) => {
+                    //     if( errorType == ErrorType.Warning )
+                    //         Debug.LogWarning(errorMessage);
+                    //     else
+                    //         Debug.LogError(errorMessage);
+                    // };
+                    //
+                    // 
+                    throw new StoryException(sb.ToString());
+                }
+            }
         }
 
         bool ContinueSingleStep ()
@@ -2206,7 +2264,7 @@ namespace Ink.Runtime
                 _variableObservers = new Dictionary<string, VariableObserver> ();
 
 			if( !state.variablesState.GlobalVariableExistsWithName(variableName) ) 
-				throw new StoryException("Cannot observe variable '"+variableName+"' because it wasn't declared in the ink story.");
+				throw new Exception("Cannot observe variable '"+variableName+"' because it wasn't declared in the ink story.");
 
             if (_variableObservers.ContainsKey (variableName)) {
                 _variableObservers[variableName] += observer;

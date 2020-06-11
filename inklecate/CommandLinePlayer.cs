@@ -13,6 +13,7 @@ namespace Ink
         public CommandLinePlayer (Story story, bool autoPlay = false, Compiler compiler = null, bool keepOpenAfterStoryFinish = false, bool jsonOutput = false)
 		{
 			this.story = story;
+            this.story.onError += OnStoryError;
 			this.autoPlay = autoPlay;
             _compiler = compiler;
             _jsonOutput = jsonOutput;
@@ -143,6 +144,7 @@ namespace Ink
 			}
 		}
 
+
         void EvaluateStory ()
         {
             while (story.canContinue) {
@@ -181,19 +183,19 @@ namespace Ink
                 }
 
                 Runtime.SimpleJson.Writer issueWriter = null;
-                if( _jsonOutput && (story.hasError || story.hasWarning) ) {
+                if( _jsonOutput && (_errors.Count > 0 || _warnings.Count > 0) ) {
                     issueWriter = new Runtime.SimpleJson.Writer();
                     issueWriter.WriteObjectStart();
                     issueWriter.WritePropertyStart("issues");
                     issueWriter.WriteArrayStart();
 
-                    if( story.hasError ) {
-                        foreach (var errorMsg in story.currentErrors) {
+                    if( _errors.Count > 0 ) {
+                        foreach (var errorMsg in _errors) {
                             issueWriter.Write (errorMsg);
                         }
                     }
-                    if( story.hasWarning ) {
-                        foreach (var warningMsg in story.currentWarnings) {
+                    if( _warnings.Count > 0 ) {
+                        foreach (var warningMsg in _warnings) {
                             issueWriter.Write (warningMsg);
                         }
                     }
@@ -204,19 +206,20 @@ namespace Ink
                     Console.WriteLine(issueWriter.ToString());
                 }
 
-                if (story.hasError && !_jsonOutput ) {
-                    foreach (var errorMsg in story.currentErrors) {
+                if (_errors.Count > 0 && !_jsonOutput ) {
+                    foreach (var errorMsg in _errors) {
                         Console.WriteLine (errorMsg, ConsoleColor.Red);
                     }
                 }
 
-                if (story.hasWarning && !_jsonOutput) {
-                    foreach (var warningMsg in story.currentWarnings) {
+                if (_warnings.Count > 0 && !_jsonOutput) {
+                    foreach (var warningMsg in _warnings) {
                         Console.WriteLine (warningMsg, ConsoleColor.Blue);
                     }
                 }
 
-                story.ResetErrors ();
+                _errors.Clear();
+                _warnings.Clear();
             }
 
             if (story.currentChoices.Count == 0 && keepOpenAfterStoryFinish) {
@@ -228,8 +231,18 @@ namespace Ink
             }
         }
 
+        void OnStoryError(string msg, ErrorType type)
+        {
+            if( type == ErrorType.Error )
+                _errors.Add(msg);
+            else
+                _warnings.Add(msg);
+        }
+
         Compiler _compiler;
         bool _jsonOutput;
+        List<string> _errors = new List<string>();
+        List<string> _warnings = new List<string>();
 	}
 
 

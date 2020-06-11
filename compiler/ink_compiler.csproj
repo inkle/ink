@@ -84,7 +84,6 @@
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="CharacterRange.cs" />
     <Compile Include="CharacterSet.cs" />
-    <Compile Include="Error.cs" />
     <Compile Include="StringParser\StringParser.cs" />
     <Compile Include="StringParser\StringParserState.cs" />
     <Compile Include="FileHandler.cs">

@@ -78,6 +78,19 @@ To save the state of your story within your game, call:
 
 `_inkStory.state.LoadJson(savedJson);`
 
+### Error handling
+
+If you made a mistake in your ink that the compiler can't catch, then the story will throw an exception. To avoid this and get standard Unity errors instead, you can use an error handler that you should assign when you create your story:
+
+    _inkStory = new Story(inkAsset.text);
+    
+    _inkStory.onError = (msg, type) => {
+        if( type == ErrorType.Warning )
+            Debug.LogWarning(errorMessage);
+        else
+            Debug.LogError(errorMessage);
+    };
+
 ### Is that it?
     
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.

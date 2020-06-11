@@ -32,8 +32,6 @@ class InkTestBed
             if (story.canContinue)
                 ContinueMaximally ();
 
-            PrintAllMessages ();
-
             if (story.currentChoices.Count > 0)
                 PlayerChoice ();
         }
@@ -43,14 +41,12 @@ class InkTestBed
     {
         Console.WriteLine(story.Continue ());
         PrintChoicesIfNecessary ();
-        PrintAllMessages (); // errors etc
     }
 
     void ContinueMaximally ()
     {
         Console.WriteLine (story.ContinueMaximally ());
         PrintChoicesIfNecessary ();
-        PrintAllMessages (); // errors etc
     }
 
     void Choose (int choiceIdx)
@@ -95,8 +91,7 @@ class InkTestBed
     	});
 
     	story = compiler.Compile ();
-
-    	PrintAllMessages ();
+        story.onError += OnError;
 
         return story;
     }
@@ -125,8 +120,7 @@ class InkTestBed
         compiler = CreateCompiler(filename);
 
         story = compiler.Compile ();
-
-        PrintAllMessages ();
+        //story.onError += OnError;
 
         return story;
     }
@@ -292,35 +286,6 @@ class InkTestBed
         Console.WriteLine (">>> TEST BED ENDED <<<");
     }
 
-    void PrintMessages (List<string> messageList, ConsoleColor colour)
-    {
-        Console.ForegroundColor = colour;
-
-        foreach (string msg in messageList) {
-            Console.WriteLine (msg);
-        }
-
-        Console.ResetColor ();
-    }
-
-    void PrintAllMessages ()
-    {
-        PrintMessages (_authorMessages, ConsoleColor.Green);
-        PrintMessages (_warnings, ConsoleColor.Blue);
-        PrintMessages (_errors, ConsoleColor.Red);
-
-        _authorMessages.Clear ();
-        _warnings.Clear ();
-        _errors.Clear ();
-
-        if (story != null) {
-            if( story.hasError )
-                PrintMessages (story.currentErrors, ConsoleColor.Red);
-            if( story.hasWarning )
-                PrintMessages (story.currentWarnings, ConsoleColor.Blue);
-            story.ResetErrors ();
-        }
-    }
 
     void PrintChoicesIfNecessary ()
     {
@@ -334,37 +299,18 @@ class InkTestBed
         }
     }
 
+    // Handler used for both compiler and story errors
     void OnError (string message, Ink.ErrorType errorType)
     {
-        switch (errorType) {
-        case ErrorType.Author:
-            _authorMessages.Add (message);
-            break;
+        ConsoleColor color = ConsoleColor.Red;
+        if( errorType == ErrorType.Warning )
+            color = ConsoleColor.Blue;
+        else if( errorType == ErrorType.Author )
+            color = ConsoleColor.Green;
 
-        case ErrorType.Warning:
-            _warnings.Add (message);
-            break;
-
-        case ErrorType.Error:
-            _errors.Add (message);
-            break;
-        }
+        Console.ForegroundColor = color;
+        Console.WriteLine (message);
+        Console.ResetColor ();
     }
-
-    public string ResolveInkFilename (string includeName)
-    {
-        var workingDir = Directory.GetCurrentDirectory ();
-        var fullRootInkPath = Path.Combine (workingDir, includeName);
-        return fullRootInkPath;
-    }
-
-    public string LoadInkFileContents (string fullFilename)
-    {
-        return File.ReadAllText (fullFilename);
-    }
-
-    List<string> _errors = new List<string> ();
-    List<string> _warnings = new List<string> ();
-    List<string> _authorMessages = new List<string> ();
 }
 

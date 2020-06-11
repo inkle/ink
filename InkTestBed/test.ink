@@ -1,1 +1,3 @@
-﻿This is a convenience test file for InkTestBed.
+﻿{x}
+~temp x = 5
+hello

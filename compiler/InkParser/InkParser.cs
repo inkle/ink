@@ -14,8 +14,14 @@ namespace Ink
             _filename = inkFilename;
 			RegisterExpressionOperators ();
             GenerateStatementLevelRules ();
-            this.errorHandler = OnError;
+
+            // Built in handler for all standard parse errors and warnings
+            this.errorHandler = OnStringParserError;
+            
+            // The above parse errors are then formatted as strings and passed
+            // to the Ink.ErrorHandler, or it throws an exception
             _externalErrorHandler = externalErrorHandler;
+
             _fileHandler = fileHandler ?? new DefaultFileHandler();
 
             if (rootParser == null) {
@@ -129,7 +135,7 @@ namespace Ink
             ParsingString = 0x1
         }
 
-        void OnError(string message, int index, int lineIndex, bool isWarning)
+        void OnStringParserError(string message, int index, int lineIndex, bool isWarning)
         {
             var warningType = isWarning ? "WARNING:" : "ERROR:";
             string fullMessage;

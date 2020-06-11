@@ -364,7 +364,7 @@ namespace Ink.Runtime
             var contextElement = callStack [contextIndex-1];
             
             if (!declareNew && !contextElement.temporaryVariables.ContainsKey(name)) {
-                throw new StoryException ("Could not find temporary variable to set: " + name);
+                throw new System.Exception ("Could not find temporary variable to set: " + name);
             }
 
             Runtime.Object oldValue;

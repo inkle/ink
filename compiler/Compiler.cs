@@ -15,24 +15,6 @@ namespace Ink
             public Ink.IFileHandler fileHandler;
         }
 
-        public List<string> errors {
-            get {
-                return _errors;
-            }
-        }
-
-        public List<string> warnings {
-            get {
-                return _warnings;
-            }
-        }
-
-        public List<string> authorMessages {
-            get {
-                return _authorMessages;
-            }
-        }
-
         public Parsed.Story parsedStory {
             get {
                 return _parsedStory;
@@ -49,7 +31,7 @@ namespace Ink
 
         public Parsed.Story Parse()
         {
-            _parser = new InkParser(_inputString, _options.sourceFilename, OnError, _options.fileHandler);
+            _parser = new InkParser(_inputString, _options.sourceFilename, OnParseError, _options.fileHandler);
             _parsedStory = _parser.Parse();
             return _parsedStory;
         }
@@ -61,11 +43,11 @@ namespace Ink
             if( _pluginManager != null )
                 _pluginManager.PostParse(_parsedStory);
 
-            if (_parsedStory != null && _errors.Count == 0) {
+            if (_parsedStory != null && !_hadParseError) {
 
                 _parsedStory.countAllVisits = _options.countAllVisits;
 
-                _runtimeStory = _parsedStory.ExportRuntime (OnError);
+                _runtimeStory = _parsedStory.ExportRuntime (_options.errorHandler);
 
                 if( _pluginManager != null )
                     _pluginManager.PostExport (_parsedStory, _runtimeStory);
@@ -209,24 +191,17 @@ namespace Ink
             public string text;
         }
 
-        void OnError (string message, ErrorType errorType)
+        // Need to wrap the error handler so that we know
+        // when there was a critical error between parse and codegen stages
+        void OnParseError (string message, ErrorType errorType)
         {
-        	switch (errorType) {
-        	case ErrorType.Author:
-        		_authorMessages.Add (message);
-        		break;
-
-        	case ErrorType.Warning:
-        		_warnings.Add (message);
-        		break;
-
-        	case ErrorType.Error:
-        		_errors.Add (message);
-        		break;
-        	}
-
+            if( errorType == ErrorType.Error )
+                _hadParseError = true;
+            
             if (_options.errorHandler != null)
                 _options.errorHandler (message, errorType);
+            else
+                throw new System.Exception(message);
         }
 
         string _inputString;
@@ -239,9 +214,7 @@ namespace Ink
 
         PluginManager _pluginManager;
 
-        List<string> _errors = new List<string> ();
-        List<string> _warnings = new List<string> ();
-        List<string> _authorMessages = new List<string> ();
+        bool _hadParseError;
 
         List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange> ();
     }
