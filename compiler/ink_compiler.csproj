@@ -87,7 +87,7 @@
     <Compile Include="Error.cs" />
     <Compile Include="StringParser\StringParser.cs" />
     <Compile Include="StringParser\StringParserState.cs" />
-    <Compile Include="IFileHandler.cs">
+    <Compile Include="FileHandler.cs">
       <IncludeInPackage>true</IncludeInPackage>
     </Compile>
     <Compile Include="CommandLineInput.cs" />

@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Ink;
 
 
-class InkTestBed : IFileHandler
+class InkTestBed
 {
     // ---------------------------------------------------------------
     // Main area to test stuff!
@@ -91,8 +91,7 @@ class InkTestBed : IFileHandler
     Ink.Runtime.Story Compile (string inkSource)
     {
     	compiler = new Compiler (inkSource, new Compiler.Options {
-    		errorHandler = OnError,
-    		fileHandler = this
+    		errorHandler = OnError
     	});
 
     	story = compiler.Compile ();
@@ -117,8 +116,7 @@ class InkTestBed : IFileHandler
         return new Compiler(inkSource, new Compiler.Options
         {
             sourceFilename = filename,
-            errorHandler = OnError,
-            fileHandler = this
+            errorHandler = OnError
         });
     }
 

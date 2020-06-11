@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Ink
 {
-	class CommandLineTool : Ink.IFileHandler
+	class CommandLineTool
 	{
 		class Options {
             public bool verbose;
@@ -102,8 +102,7 @@ namespace Ink
                     sourceFilename = opts.inputFile,
                     pluginNames = pluginNames,
                     countAllVisits = opts.countAllVisits,
-                    errorHandler = OnError,
-                    fileHandler = this
+                    errorHandler = OnError
                 });
 
                 // Only want stats, don't need to code-gen
@@ -225,18 +224,6 @@ namespace Ink
                     Environment.Exit (ExitCodeError);
                 }
             }
-        }
-
-        public string ResolveInkFilename (string includeName)
-        {
-            var workingDir = Directory.GetCurrentDirectory ();
-            var fullRootInkPath = Path.Combine (workingDir, includeName);
-            return fullRootInkPath;
-        }
-
-        public string LoadInkFileContents (string fullFilename)
-        {
-        	return File.ReadAllText (fullFilename);
         }
 
         private void OnExit(object sender, ConsoleCancelEventArgs e)

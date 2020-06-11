@@ -18,7 +18,7 @@ namespace Tests
 
     [TestFixture(TestMode.Normal)]
     [TestFixture(TestMode.JsonRoundTrip)]
-    public class Tests : IFileHandler
+    public class Tests
     {
         
         private TestMode _mode;
@@ -37,18 +37,6 @@ namespace Tests
             var path = Uri.UnescapeDataString (uri.Path);
             path = System.IO.Path.GetDirectoryName (path);
             Directory.SetCurrentDirectory (path);
-        }
-
-        public string ResolveInkFilename (string includeName)
-        {
-            var workingDir = Directory.GetCurrentDirectory ();
-            var fullRootInkPath = System.IO.Path.Combine (workingDir, includeName);
-            return fullRootInkPath;
-        }
-
-        public string LoadInkFileContents (string fullFilename)
-        {
-            return File.ReadAllText (fullFilename);
         }
 
         [Test()]
@@ -3815,7 +3803,7 @@ Text.
             _warningMessages.Clear();
             _authorMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, TestErrorHandler, this);
+            InkParser parser = new InkParser(str, null, TestErrorHandler);
             var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
 

@@ -16,7 +16,7 @@ namespace Ink
             GenerateStatementLevelRules ();
             this.errorHandler = OnError;
             _externalErrorHandler = externalErrorHandler;
-            _fileHandler = fileHandler;
+            _fileHandler = fileHandler ?? new DefaultFileHandler();
 
             if (rootParser == null) {
                 _rootParser = this;
