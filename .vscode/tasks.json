@@ -125,7 +125,7 @@
             ]
         },
         {
-            "label": "run tests",
+            "label": "Run tests",
             "command": "dotnet",
             "type": "shell",
             "args": [
@@ -137,6 +137,18 @@
                 "kind": "test",
                 "isDefault": true
             }
-        }
+        },
+        {
+            "label": "Build InkTestBed",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration", "Debug",
+                "${workspaceFolder}/InkTestBed/InkTestBed.csproj"
+            ],
+            "group": "none"
+        },
     ]
 }

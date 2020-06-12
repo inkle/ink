@@ -8,7 +8,7 @@
             "name": "ink Testbed (output only)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "Build InkTestBed",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/InkTestBed/bin/Debug/netcoreapp3.1/InkTestBed.dll",
             "args": [],
@@ -22,7 +22,7 @@
             "name": "ink Testbed (choices in terminal)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "Build InkTestBed",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/InkTestBed/bin/Debug/netcoreapp3.1/InkTestBed.dll",
             "args": [],
