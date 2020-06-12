@@ -20,6 +20,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>Inkle.Ink.Engine</PackageId>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">

@@ -10,7 +10,8 @@
                 "publish",
                 "--configuration", "Release",
                 "--runtime", "win-x86",
-                "/p:PublishTrimmed=true;PublishSingleFile=true",
+                "/p:PublishTrimmed=true",
+                "/p:PublishSingleFile=true",
                 "--output", "${workspaceFolder}/ReleaseBinary/inklecate-win32",
                 "${workspaceFolder}/inklecate/inklecate.csproj"
             ],
@@ -26,7 +27,8 @@
                 "publish",
                 "--configuration", "Release",
                 "--runtime", "linux-x64",
-                "/p:PublishTrimmed=true;PublishSingleFile=true",
+                "/p:PublishTrimmed=true",
+                "/p:PublishSingleFile=true",
                 "--output", "${workspaceFolder}/ReleaseBinary/inklecate-lin64",
                 "${workspaceFolder}/inklecate/inklecate.csproj"
             ],
@@ -42,7 +44,8 @@
                 "publish",
                 "--configuration", "Release",
                 "--runtime", "osx-x64",
-                "/p:PublishTrimmed=true;PublishSingleFile=true",
+                "/p:PublishTrimmed=true",
+                "/p:PublishSingleFile=true",
                 "--output", "${workspaceFolder}/ReleaseBinary/inklecate-osx64",
                 "${workspaceFolder}/inklecate/inklecate.csproj"
             ],
@@ -76,7 +79,8 @@
                     "publish",
                     "--configuration", "Release",
                     "--runtime", "win-x64",
-                    "/p:PublishTrimmed=true;PublishSingleFile=true",
+                    "/p:PublishTrimmed=true",
+                    "/p:PublishSingleFile=true",
                     "--output", "${workspaceFolder}/ReleaseBinary/inklecate",
                     "${workspaceFolder}/inklecate/inklecate.csproj"
                 ]
@@ -87,7 +91,8 @@
                     "publish",
                     "--configuration", "Release",
                     "--runtime", "linux-x64",
-                    "/p:PublishTrimmed=true;PublishSingleFile=true",
+                    "/p:PublishTrimmed=true",
+                    "/p:PublishSingleFile=true",
                     "--output", "${workspaceFolder}/ReleaseBinary/inklecate",
                     "${workspaceFolder}/inklecate/inklecate.csproj"
                 ]
@@ -98,7 +103,8 @@
                     "publish",
                     "--configuration", "Release",
                     "--runtime", "osx-x64",
-                    "/p:PublishTrimmed=true;PublishSingleFile=true",
+                    "/p:PublishTrimmed=true",
+                    "/p:PublishSingleFile=true",
                     "--output", "${workspaceFolder}/ReleaseBinary/inklecate",
                     "${workspaceFolder}/inklecate/inklecate.csproj"
                 ]
