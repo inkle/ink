@@ -23,10 +23,10 @@
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+  <!-- PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
+  </PropertyGroup -->
 
   <ItemGroup>
     <None Include="..\LICENSE.txt">

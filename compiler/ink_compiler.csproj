@@ -16,10 +16,10 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net35|AnyCPU'">
+  <!-- PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net35|AnyCPU'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
+  </PropertyGroup -->
 
   <ItemGroup>
     <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj" />
