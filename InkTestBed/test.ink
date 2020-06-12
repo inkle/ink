@@ -1,3 +1,1 @@
-﻿{x}
-~temp x = 5
-hello
+﻿This is a convenience test file for InkTestBed.
