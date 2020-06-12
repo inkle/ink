@@ -34,4 +34,21 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- this is planned for the future sdk versions
+      <InternalsVisibleTo Include="ink_compiler"/>
+      <InternalsVisibleTo Include="inklecate"/>
+      <InternalsVisibleTo Include="ink-tests"/>
+    -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ink_compiler</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>inklecate</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ink-tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

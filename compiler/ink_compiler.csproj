@@ -25,4 +25,17 @@
     <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- this is planned for the future sdk versions
+      <InternalsVisibleTo Include="inklecate"/>
+      <InternalsVisibleTo Include="ink-tests"/>
+    -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>inklecate</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ink-tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>
