@@ -94,7 +94,7 @@ Control commands are special instructions to the text engine to perform various 
 
 These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. The following operators are supported:
 
-`"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"~"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
+`"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"_"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
         
 Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
 
