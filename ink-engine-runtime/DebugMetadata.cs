@@ -4,6 +4,8 @@
 	{
 		public int startLineNumber = 0;
         public int endLineNumber = 0;
+        public int startCharacterNumber = 0;
+        public int endCharacterNumber = 0;
         public string fileName = null;
         public string sourceName = null;
 

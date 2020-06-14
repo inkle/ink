@@ -13,7 +13,7 @@ namespace Ink
         public delegate T SpecificParseRule<T>() where T : class;
 
         public delegate void ErrorHandler(string message, int index, int lineIndex, bool isWarning);
-		
+
 		public StringParser (string str)
 		{
             str = PreProcessInputString (str);
@@ -25,10 +25,10 @@ namespace Ink
             } else {
                 _chars = new char[0];
             }
-			
+
 			inputString = str;
 		}
-            
+
 		public class ParseSuccessStruct {};
 		public static ParseSuccessStruct ParseSuccess = new ParseSuccessStruct();
 
@@ -38,7 +38,7 @@ namespace Ink
 
 		public char currentCharacter
 		{
-			get 
+			get
 			{
 				if (index >= 0 && remainingLength > 0) {
 					return _chars [index];
@@ -104,7 +104,7 @@ namespace Ink
         {
 
         }
-            
+
         protected object Expect(ParseRule rule, string message = null, ParseRule recoveryRule = null)
 		{
             object result = ParseObject(rule);
@@ -120,7 +120,7 @@ namespace Ink
                 } else {
                     butSaw = "'" + lineRemainder + "'";
                 }
-                    
+
                 Error ("Expected "+message+" but saw "+butSaw);
 
 				if (recoveryRule != null) {
@@ -198,6 +198,16 @@ namespace Ink
             }
             get {
                 return state.lineIndex;
+            }
+        }
+
+        public int characterInLineIndex
+        {
+            set {
+                state.characterInLineIndex = value;
+            }
+            get {
+                return state.characterInLineIndex;
             }
         }
 
@@ -349,7 +359,7 @@ namespace Ink
 						list.Add ((T)obj);
 					}
 					return;
-				} 
+				}
 			}
 
 			Debug.Assert (result is T);
@@ -399,7 +409,7 @@ namespace Ink
 				}
 
 			// Stop if there are no results, or if both are the placeholder "ParseSuccess" (i.e. Optional success rather than a true value)
-			} while((lastMainResult != null || outerResult != null) 
+			} while((lastMainResult != null || outerResult != null)
 				 && !(lastMainResult == ParseSuccess && outerResult == ParseSuccess) && remainingLength > 0);
 
 			if (results.Count == 0) {
@@ -426,6 +436,7 @@ namespace Ink
             // since they're properties that would have to access
             // the rule stack every time otherwise.
             int i = index;
+            int cli = characterInLineIndex;
             int li = lineIndex;
 
 			bool success = true;
@@ -436,11 +447,14 @@ namespace Ink
 				}
                 if (c == '\n') {
                     li++;
+                    cli = -1;
                 }
 				i++;
+                cli++;
 			}
 
             index = i;
+            characterInLineIndex = cli;
             lineIndex = li;
 
 			if (success) {
@@ -457,8 +471,10 @@ namespace Ink
                 char c = _chars [index];
                 if (c == '\n') {
                     lineIndex++;
+                    characterInLineIndex = -1;
                 }
                 index++;
+                characterInLineIndex++;
                 return c;
             } else {
                 return (char)0;
@@ -498,18 +514,22 @@ namespace Ink
             // since they're properties that would have to access
             // the rule stack every time otherwise.
             int i = index;
+            int cli = characterInLineIndex;
             int li = lineIndex;
 
 			int count = 0;
             while ( i < _chars.Length && charSet.Contains (_chars [i]) == shouldIncludeChars && count < maxCount ) {
                 if (_chars [i] == '\n') {
                     li++;
+                    cli = -1;
                 }
                 i++;
+                cli++;
 				count++;
 			}
 
             index = i;
+            characterInLineIndex = cli;
             lineIndex = li;
 
 			int lastCharIndex = index;
@@ -532,7 +552,7 @@ namespace Ink
 		{
 			int ruleId = BeginRule ();
 
-			
+
 			CharacterSet pauseAndEnd = new CharacterSet ();
 			if (pauseCharacters != null) {
 				pauseAndEnd.UnionWith (pauseCharacters);
@@ -573,8 +593,10 @@ namespace Ink
 						parsedString.Append(pauseCharacter);
                         if( pauseCharacter == '\n' ) {
                             lineIndex++;
+                            characterInLineIndex = -1;
                         }
 						index++;
+                        characterInLineIndex++;
 						continue;
 					} else {
 						break;
@@ -595,6 +617,7 @@ namespace Ink
 		public int? ParseInt()
 		{
 			int oldIndex = index;
+            int oldCharacterInLineIndex = characterInLineIndex;
 
 			bool negative = ParseString ("-") != null;
 
@@ -605,6 +628,7 @@ namespace Ink
             if(parsedString == null) {
                 // Roll back and fail
                 index = oldIndex;
+                characterInLineIndex = oldCharacterInLineIndex;
                 return null;
             }
 
@@ -621,6 +645,7 @@ namespace Ink
         public float? ParseFloat()
         {
             int oldIndex = index;
+            int oldCharacterInLineIndex = characterInLineIndex;
 
             int? leadingInt = ParseInt ();
             if (leadingInt != null) {
@@ -634,6 +659,7 @@ namespace Ink
 
             // Roll back and fail
             index = oldIndex;
+            characterInLineIndex = oldCharacterInLineIndex;
             return null;
         }
 

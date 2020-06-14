@@ -3,15 +3,20 @@ namespace Ink
 {
 	public class StringParserState
 	{
-		public int lineIndex { 
-			get { return currentElement.lineIndex; } 
-			set { currentElement.lineIndex = value; } 
+		public int lineIndex {
+			get { return currentElement.lineIndex; }
+			set { currentElement.lineIndex = value; }
 		}
 
-		public int characterIndex { 
-			get { return currentElement.characterIndex; } 
-			set { currentElement.characterIndex = value; } 
+		public int characterIndex {
+			get { return currentElement.characterIndex; }
+			set { currentElement.characterIndex = value; }
 		}
+
+        public int characterInLineIndex {
+            get { return currentElement.characterInLineIndex; }
+            set { currentElement.characterInLineIndex = value; }
+        }
 
         public uint customFlags {
             get { return currentElement.customFlags; }
@@ -29,9 +34,10 @@ namespace Ink
                 return _numElements;
             }
         }
-					
+
 		public class Element {
 			public int characterIndex;
+            public int characterInLineIndex;
 			public int lineIndex;
             public bool reportedErrorInScope;
             public int uniqueId;
@@ -46,6 +52,7 @@ namespace Ink
                 _uniqueIdCounter++;
                 this.uniqueId = _uniqueIdCounter;
                 this.characterIndex = fromElement.characterIndex;
+                this.characterInLineIndex = fromElement.characterInLineIndex;
                 this.lineIndex = fromElement.lineIndex;
                 this.customFlags = fromElement.customFlags;
                 this.reportedErrorInScope = false;
@@ -60,6 +67,7 @@ namespace Ink
             public void SquashFrom(Element fromElement)
             {
                 this.characterIndex = fromElement.characterIndex;
+                this.characterInLineIndex = fromElement.characterInLineIndex;
                 this.lineIndex = fromElement.lineIndex;
                 this.reportedErrorInScope = fromElement.reportedErrorInScope;
             }
@@ -137,7 +145,7 @@ namespace Ink
             var lastEl = _stack [_numElements - 1];
 
             penultimateEl.SquashFrom (lastEl);
-				
+
             _numElements--;
 		}
 
@@ -147,7 +155,7 @@ namespace Ink
                 el.reportedErrorInScope = true;
             }
         }
-            
+
 		protected Element currentElement
 		{
 			get {
