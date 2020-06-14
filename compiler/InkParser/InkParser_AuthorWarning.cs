@@ -8,7 +8,8 @@ namespace Ink
         {
             Whitespace ();
 
-            if (Parse (Identifier) != "TODO")
+            var identifier = Parse (IdentifierWithMetadata);
+            if (identifier == null || identifier.name != "TODO")
                 return null;
 
             Whitespace ();

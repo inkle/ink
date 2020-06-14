@@ -6,7 +6,7 @@ namespace Ink
 {
     public partial class InkParser
     {
-        
+
         protected Parsed.Object LogicLine()
         {
             Whitespace ();
@@ -44,7 +44,7 @@ namespace Ink
                 var varRef = result as VariableReference;
                 if (varRef && varRef.name == "include") {
                     Error ("'~ include' is no longer the correct syntax - please use 'INCLUDE your_filename.ink', without the tilda, and in block capitals.");
-                } 
+                }
 
                 else {
                     Error ("Logic following a '~' can't be that type of expression. It can only be something like:\n\t~ return\n\t~ var x = blah\n\t~ x++\n\t~ myFunction()");
@@ -84,7 +84,7 @@ namespace Ink
 
             Whitespace ();
 
-            var varName = Expect (Identifier, "variable name") as string;
+            var varName = Expect (IdentifierWithMetadata, "variable name") as Identifier;
 
             Whitespace ();
 
@@ -129,7 +129,7 @@ namespace Ink
 
             Whitespace ();
 
-            var varName = Expect (Identifier, "list name") as string;
+            var varName = Expect (IdentifierWithMetadata, "list name") as Identifier;
 
             Whitespace ();
 
@@ -141,7 +141,7 @@ namespace Ink
 
             if (definition) {
 
-                definition.name = varName;
+                definition.identifier = varName;
 
                 return new VariableAssignment (varName, definition);
             }
@@ -178,7 +178,7 @@ namespace Ink
 
             Whitespace ();
 
-            var name = Parse (Identifier);
+            var name = Parse (IdentifierWithMetadata);
             if (name == null)
                 return null;
 
@@ -225,7 +225,7 @@ namespace Ink
 
             Whitespace ();
 
-            var varName = Expect (Identifier, "constant name") as string;
+            var varName = Expect (IdentifierWithMetadata, "constant name") as Identifier;
 
             Whitespace ();
 
@@ -285,7 +285,7 @@ namespace Ink
             if (!contentList) {
                 contentList = new ContentList (logic);
             }
-                
+
             Whitespace ();
 
             Expect (String("}"), "closing brace '}' for inline logic");
@@ -325,13 +325,13 @@ namespace Ink
                 //   - true:  this is true
                 //   - false: this is false
                 // }
-                InnerConditionalContent, 
+                InnerConditionalContent,
                 InnerSequence,
                 InnerExpression,
             };
 
-            // Adapted from "OneOf" structuring rule except that in 
-            // order for the rule to succeed, it has to maximally 
+            // Adapted from "OneOf" structuring rule except that in
+            // order for the rule to succeed, it has to maximally
             // cover the entire string within the { }. Used to
             // differentiate between:
             //  {myVar}                 -- Expression (try first)
@@ -349,7 +349,7 @@ namespace Ink
                     // Full parse of content within braces
                     else
                         return (Parsed.Object) SucceedRule (ruleId, result);
-                    
+
                 } else {
                     FailRule (ruleId);
                 }
@@ -365,6 +365,15 @@ namespace Ink
                 expr.outputWhenComplete = true;
             }
             return expr;
+        }
+
+        protected Identifier IdentifierWithMetadata()
+        {
+            var id = Identifier();
+            if( id == null ) return null;
+
+            // InkParser.RuleDidSucceed will add DebugMetadata
+            return new Identifier { name = id, debugMetadata = null };
         }
 
         // Note: we allow identifiers that start with a number,
@@ -405,7 +414,7 @@ namespace Ink
                 return _identifierCharSet;
             }
         }
-            
+
         private CharacterSet _identifierCharSet;
     }
 }

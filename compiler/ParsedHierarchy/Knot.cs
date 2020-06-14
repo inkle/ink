@@ -6,7 +6,7 @@ namespace Ink.Parsed
 	{
         public override FlowLevel flowLevel { get { return FlowLevel.Knot; } }
 
-        public Knot (string name, List<Parsed.Object> topLevelObjects, List<Argument> arguments, bool isFunction) : base(name, topLevelObjects, arguments, isFunction)
+        public Knot (Identifier name, List<Parsed.Object> topLevelObjects, List<Argument> arguments, bool isFunction) : base(name, topLevelObjects, arguments, isFunction)
 		{
 		}
 
@@ -24,12 +24,12 @@ namespace Ink.Parsed
                 var knotWithStitchName = parentStory.ContentWithNameAtLevel (stitchName, FlowLevel.Knot, false);
                 if (knotWithStitchName) {
                     var stitch = stitchNamePair.Value;
-                    var errorMsg = string.Format ("Stitch '{0}' has the same name as a knot (on {1})", stitch.name, knotWithStitchName.debugMetadata);
+                    var errorMsg = string.Format ("Stitch '{0}' has the same name as a knot (on {1})", stitch.identifier, knotWithStitchName.debugMetadata);
                     Error(errorMsg, stitch);
                 }
             }
         }
-            
+
 	}
 }
 
