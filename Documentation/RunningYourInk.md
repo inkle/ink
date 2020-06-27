@@ -331,6 +331,17 @@ Lists also expose many of the operations you can do in ink:
 	list.Without(otherList)    // equivalent to (list - otherList) in ink
 	list.Contains(otherList)   // equivalent to (list ? otherList) in ink
 
+
+## Using the compiler
+
+Precompiling your stories is more efficient than loading .ink at runtime. That said, it's a useful approach for some situations, and can be done with the following code:
+
+	// inkFileContents: linked TextAsset, or Resources.Load, or even StreamingAssets
+	var compiler = new Ink.Compiler(inkFileContents);
+	Ink.Runtime.Story story = compiler.Compile();
+	Debug.Log(story.Continue());
+
+
 ## Debugging ink engine issues
 
 The **ink** engine is still in a nascent stage (alpha!), and you may well encounter bugs, or unhelpful error messages and exceptions.
