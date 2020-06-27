@@ -4,7 +4,7 @@
 
 *Note that although these instructions are written with Unity in mind, it's possible (and straightforward) to run your ink in a non-Unity C# environment.*
 
-* Download the [latest version of the ink-unity-integration Unity package](https://github.com/inkle/ink-unity-integration//releases), and add to your project.
+* Download the [latest version of the ink-unity-integration Unity package](https://github.com/inkle/ink-unity-integration/releases), and add to your project.
 * Select your `.ink` file in Unity, and you should see a *Play* button in the file's inspector.
 * Click it, and you should get an Editor window that lets you play (preview) your story.
 * To integrate into your game, see **Getting started with the runtime API**, below.
