@@ -61,7 +61,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
     **Linux:** `mono inklecate.exe -p myStory.ink`
     
     * To run on Linux, you need the Mono runtime and the Mono System.Core library (for CLI 4.0). If you have access to the debian repository, you can install these using: <br>
-    `sudo apt-get install mono-runtime libmono-system-core4.0-cil`
+    `sudo apt install mono-complete`
 
     The `-p` option uses play mode so that you can see the result immediately. If you want to get a compiled `.json` file, just remove the `-p` option from the examples above.
     
