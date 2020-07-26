@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Path = Ink.Runtime.Path;
+using Ink.InkParser;
 
 namespace Tests
 {
@@ -668,18 +669,7 @@ VAR x = 3
         public void TestEmptyChoice()
         {
             int warningCount = 0;
-            InkParser parser = new InkParser("*", null, (string message, ErrorType errorType) =>
-            {
-                if (errorType == ErrorType.Warning)
-                {
-                    warningCount++;
-                    Assert.IsTrue(message.Contains("completely empty"));
-                }
-                else
-                {
-                    Assert.Fail("Shouldn't have had any errors");
-                }
-            });
+            InkParser parser = new InkParser("*", null);
 
             parser.Parse();
 
@@ -1723,15 +1713,7 @@ hi
         [Test()]
         public void TestReturnTextWarning()
         {
-            InkParser parser = new InkParser("== test ==\n return something",
-                null,
-                (string message, ErrorType errorType) =>
-                {
-                    if (errorType == ErrorType.Warning)
-                    {
-                        throw new TestWarningException();
-                    }
-                });
+            InkParser parser = new InkParser("== test ==\n return something", null);
 
             Assert.Throws<TestWarningException>(() => parser.Parse());
         }
@@ -3791,24 +3773,23 @@ Text.
             _warningMessages.Clear();
             _authorMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, OnError);
+            InkParser parser = new InkParser(str, null);
             var parsedStory = parser.Parse();
             parsedStory.countAllVisits = countAllVisits;
 
-            Story story = parsedStory.ExportRuntime(OnError);
+            Story story = parsedStory.ExportRuntime();
             if ( !testingErrors )
                 Assert.AreNotEqual(null, story);
 
             if (story != null)
             {
-                story.onError += OnError;
+                story.StoryError += StoryErrorHandler;
 
                 // Convert to json and back again
                 if (_mode == TestMode.JsonRoundTrip)
                 {
                     var jsonStr = story.ToJson();
                     story = new Story(jsonStr);
-                    story.onError += OnError;
                 }
             }
 
@@ -3822,7 +3803,7 @@ Text.
             _warningMessages.Clear();
             _authorMessages.Clear ();
 
-            InkParser parser = new InkParser(str, null, OnError);
+            InkParser parser = new InkParser(str, null);
             var parsedStory = parser.Parse();
 
             if (!testingErrors) {
@@ -3830,7 +3811,7 @@ Text.
             }
 
             if (parsedStory && _errorMessages.Count == 0) {
-                parsedStory.ExportRuntime (OnError);
+                parsedStory.ExportRuntime ();
             }
 
             return parsedStory;
@@ -3859,19 +3840,20 @@ Text.
             return HadErrorOrWarning(matchStr, _warningMessages);
         }
 
-        private void OnError(string message, ErrorType errorType)
+
+        private void StoryErrorHandler(object sender, StoryErrorEventArgs e)
         {
             if (_testingErrors)
             {
-                if (errorType == ErrorType.Error)
-                    _errorMessages.Add (message);
-                else if (errorType == ErrorType.Warning)
-                    _warningMessages.Add (message);
+                if (e.ErrorType == StoryErrorType.Error)
+                    _errorMessages.Add (e.Message);
+                else if (e.ErrorType == StoryErrorType.Warning)
+                    _warningMessages.Add (e.Message);
                 else
-                    _authorMessages.Add (message);
+                    _authorMessages.Add (e.Message);
             }
             else
-                Assert.Fail(message);
+                Assert.Fail(e.Message);
         }
 
         private string GenerateIdentifierFromCharacterRange(CharacterRange range, string varNameUniquePart)

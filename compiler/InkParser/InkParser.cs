@@ -2,15 +2,28 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Ink
+namespace Ink.InkParser
 {
 	public partial class InkParser : StringParser
-	{
-        public InkParser(string str, string filenameForMetadata = null, Ink.ErrorHandler externalErrorHandler = null, IFileHandler fileHandler = null) 
-            : this(str, filenameForMetadata, externalErrorHandler, null, fileHandler) 
+    {
+        #region Events
+
+        public event ParserErrorEventHandler ParserError;
+        protected virtual void OnParserError(ParserErrorEventArgs e)
+        {
+            var handler = ParserError;
+            handler?.Invoke(this, e);
+        }
+
+        #endregion Events
+
+        #region Constructor
+
+        public InkParser(string str, string filenameForMetadata = null, IFileHandler fileHandler = null) 
+            : this(str, filenameForMetadata, null, fileHandler) 
         {  }
 
-        InkParser(string str, string inkFilename = null, Ink.ErrorHandler externalErrorHandler = null, InkParser rootParser = null, IFileHandler fileHandler = null) : base(str) { 
+        InkParser(string str, string inkFilename = null, InkParser rootParser = null, IFileHandler fileHandler = null) : base(str) { 
             _filename = inkFilename;
 			RegisterExpressionOperators ();
             GenerateStatementLevelRules ();
@@ -20,9 +33,8 @@ namespace Ink
             
             // The above parse errors are then formatted as strings and passed
             // to the Ink.ErrorHandler, or it throws an exception
-            _externalErrorHandler = externalErrorHandler;
 
-            _fileHandler = fileHandler ?? new DefaultFileHandler();
+            _fileHandler = fileHandler ?? new CurrentDirectoryFileHandler();
 
             if (rootParser == null) {
                 _rootParser = this;
@@ -38,7 +50,9 @@ namespace Ink
                 _rootParser = rootParser;
             }
 
-		}
+        }
+
+        #endregion Constructor
 
         // Main entry point
         public Parsed.Story Parse()
@@ -146,16 +160,12 @@ namespace Ink
                 fullMessage = string.Format(warningType+" line {0}: {1}", (lineIndex+1), message);
             }
 
-            if (_externalErrorHandler != null) {
-                _externalErrorHandler (fullMessage, isWarning ? ErrorType.Warning : ErrorType.Error);
-            } else {
-                throw new System.Exception (fullMessage);
-            }
+            OnParserError(new ParserErrorEventArgs() { Message = fullMessage , ErrorType = isWarning ? ParserErrorType.Warning : ParserErrorType.Error });
         }
 
         IFileHandler _fileHandler;
 
-        Ink.ErrorHandler _externalErrorHandler;
+
 
         string _filename;
 	}

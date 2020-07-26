@@ -4,7 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ink
+namespace Ink.InkParser
 {
     public partial class InkParser
     {

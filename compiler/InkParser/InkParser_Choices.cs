@@ -1,7 +1,7 @@
 ﻿using Ink.Parsed;
 using System.Diagnostics;
 
-namespace Ink
+namespace Ink.InkParser
 {
 	public partial class InkParser
 	{

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 
-namespace Ink
+namespace Ink.InkParser
 {
     public partial class InkParser
     {
@@ -41,7 +41,7 @@ namespace Ink
 
 
             if (includedString != null ) {
-                InkParser parser = new InkParser(includedString, filename, _externalErrorHandler, _rootParser);
+                InkParser parser = new InkParser(includedString, filename, _rootParser);
                 includedStory = parser.Parse();
             }
 

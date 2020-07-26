@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Ink
+namespace Ink.InkParser
 {
     public interface IFileHandler
     {
@@ -8,7 +8,7 @@ namespace Ink
         string LoadInkFileContents (string fullFilename);
     }
 
-    public class DefaultFileHandler : Ink.IFileHandler {
+    public class CurrentDirectoryFileHandler : IFileHandler {
         public string ResolveInkFilename (string includeName)
         {
             var workingDir = Directory.GetCurrentDirectory ();

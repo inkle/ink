@@ -1,114 +1,103 @@
 ﻿using System;
+using System.IO;
+using System.Text;
+using System.Linq;
+using System.Diagnostics;
 using System.Collections.Generic;
 using Ink.Runtime;
+using Ink.Inklecate.Interaction;
+using Ink.Inklecate.AutoPlay;
+using Ink.Inklecate.OutputManagement;
 
-namespace Ink
+namespace Ink.Inklecate
 {
-	public class CommandLinePlayer
-	{
-		public Story story { get; protected set; }
-		public bool autoPlay { get; set; }
-        public bool keepOpenAfterStoryFinish { get; set; }
+    /// <summary>The ConsoleUserInterface class encapsulates the functionality of the user interface run in the console.</summary>
+    public class ConsoleUserInterface
+    {
+        #region Properties
 
-        public CommandLinePlayer (Story story, bool autoPlay = false, Compiler compiler = null, bool keepOpenAfterStoryFinish = false, bool jsonOutput = false)
-		{
-			this.story = story;
-            this.story.onError += OnStoryError;
-			this.autoPlay = autoPlay;
-            _compiler = compiler;
-            _jsonOutput = jsonOutput;
-            this.keepOpenAfterStoryFinish = keepOpenAfterStoryFinish;
-		}
+        public IConsoleInteractable ConsoleInteractor { get; set; } = new ConsoleInteractor();
+        public IChoiceGeneratable ChoiceGenerator { get; set; } = new ChoiceGenerator();
+        public static IPlayerOutputManagable OutputManager { get; set; } = null; // default null because determined by flag
 
-		public void Begin()
-		{
-            EvaluateStory ();
+        public IInkCompiler Compiler { get; set; }
 
-			var rand = new Random ();
+        public List<string> Errors { get; set; } = new List<string>();
+        public List<string> Warnings { get; set; } = new List<string>();
 
-            while (story.currentChoices.Count > 0 || this.keepOpenAfterStoryFinish) {
-				var choices = story.currentChoices;
-				
-                var choiceIdx = 0;
+        #endregion Properties
+
+        #region Constructor
+
+        /// <summary>Initializes a new instance of the <see cref="ConsoleUserInterface" /> class.</summary>
+        /// <param name="compiler">The compiler.</param>
+        public ConsoleUserInterface(IInkCompiler compiler)
+        {
+            Compiler = compiler;
+        }
+
+        #endregion Constructor
+
+        #region Player interaction
+
+        /// <summary>Begins the user interaction with the specified story.</summary>
+        /// <param name="story">The story.</param>
+        /// <param name="options">The options.</param>
+        public void Begin(IStory story, ConsoleUserInterfaceOptions options)
+        {
+            if (story == null || options == null)
+                return;
+
+            SetOuputFormat(options);
+
+            // Add a handeler for the story errors
+            story.StoryError += Story_StoryError;
+
+
+
+            EvaluateStory(story, options);
+
+            while (story.currentChoices.Count > 0 || options.IsKeepRunningAfterStoryFinishedNeeded)
+            {
+                var choices = story.currentChoices;
+
+                var choiceIdex = 0;
                 bool choiceIsValid = false;
                 string userDivertedPath = null;
 
-				// autoPlay: Pick random choice
-				if (autoPlay) {
-					choiceIdx = rand.Next () % choices.Count;
-				}
+                // autoPlay: Pick random choice
+                if (options.IsAutoPlayActive)
+                {
+                    choiceIdex = ChoiceGenerator.GetRandomChoice(choices.Count);
+                }
+                else
+                {
+                    // Normal: Ask user for choice number
+                    OutputManager.ShowChoices(choices, options);
 
-				// Normal: Ask user for choice number
-				else {
-                    
-                    if( !_jsonOutput ) {
-                        Console.ForegroundColor = ConsoleColor.Blue;
+                    do
+                    {
+                        OutputManager.RequestInput(options);
 
-                        // Add extra newline to ensure that the choice is
-                        // on a separate line.
-                        Console.WriteLine ();
-
-                        int i = 1;
-                        foreach (Choice choice in choices) {
-                            Console.WriteLine ("{0}: {1}", i, choice.text);
-                            i++;
-                        }
-                    }
-
-                    else {
-                        var writer = new Runtime.SimpleJson.Writer();
-                        writer.WriteObjectStart();
-                        writer.WritePropertyStart("choices");
-                        writer.WriteArrayStart();
-                        foreach(var choice in choices) {
-                            writer.Write(choice.text);
-                        }
-                        writer.WriteArrayEnd();
-                        writer.WritePropertyEnd();
-                        writer.WriteObjectEnd();
-                        Console.WriteLine(writer.ToString());
-                    }
-
-
-                    do {
-                        if( !_jsonOutput ) {
-                            // Prompt
-                            Console.Write("?> ");
-                        }
-                        
-                        else {
-                            // Johnny Five, he's alive!
-                            Console.Write("{\"needInput\": true}");
-                        }
-
-                        string userInput = Console.ReadLine ();
+                        string userInput = Console.ReadLine();
 
                         // If we have null user input, it means that we're
                         // "at the end of the stream", or in other words, the input
                         // stream has closed, so there's nothing more we can do.
                         // We return immediately, since otherwise we get into a busy
                         // loop waiting for user input.
-                        if (userInput == null) {
-                            if( _jsonOutput ) {
-                                Console.WriteLine ("{\"close\": true}");
-                            } else {
-                                Console.WriteLine ("<User input stream closed.>");
-                            }
+                        if (userInput == null)
+                        {
+                            OutputManager.ShowStreamError(options);
                             return;
                         }
 
-                        var result = _compiler.ReadCommandLineInput (userInput);
+                        var result = Compiler.ReadCommandLineInput(userInput);
 
-                        if (result.output != null) {
-                            if( _jsonOutput ) {
-                                var writer = new Runtime.SimpleJson.Writer();
-                                writer.WriteObjectStart();
-                                writer.WriteProperty("cmdOutput", result.output);
-                                writer.WriteObjectEnd();
-                                Console.WriteLine(writer.ToString());
-                            } else {
-                                Console.WriteLine (result.output);
-                            }
+
+                        if (result.output != null)
+                        {
+                            OutputManager.ShowOutputResult(options, result);
                         }
 
                         if (result.requestsExit)
@@ -117,134 +106,104 @@ namespace Ink
                         if (result.divertedPath != null)
                             userDivertedPath = result.divertedPath;
 
-                        if (result.choiceIdx >= 0) {
-                            if (result.choiceIdx >= choices.Count) {
-                                if( !_jsonOutput ) // fail silently in json mode
-                                    Console.WriteLine ("Choice out of range");
-                            } else {
-                                choiceIdx = result.choiceIdx;
+                        if (result.choiceIdx >= 0)
+                        {
+                            if (result.choiceIdx >= choices.Count)
+                            {
+                                OutputManager.ShowChoiceOutOffRange(options);
+                            }
+                            else
+                            {
+                                choiceIdex = result.choiceIdx;
                                 choiceIsValid = true;
                             }
                         }
 
-                    } while(!choiceIsValid && userDivertedPath == null);
+                    }
+                    while (!choiceIsValid && userDivertedPath == null);
 
-				}
+                }
 
-                Console.ResetColor ();
+                Console.ResetColor();
 
-                if (choiceIsValid) {
-                    story.ChooseChoiceIndex (choiceIdx);
-                } else if (userDivertedPath != null) {
-                    story.ChoosePathString (userDivertedPath);
+                if (choiceIsValid)
+                {
+                    story.ChooseChoiceIndex(choiceIdex);
+                }
+                else if (userDivertedPath != null)
+                {
+                    story.ChoosePathString(userDivertedPath);
                     userDivertedPath = null;
                 }
-                    
-                EvaluateStory ();
-			}
-		}
 
+                EvaluateStory(story, options);
+            }
+        }
 
-        void EvaluateStory ()
+        /// <summary>Sets the ouput format.</summary>
+        /// <param name="options">The options.</param>
+        public void SetOuputFormat(ConsoleUserInterfaceOptions options)
         {
-            while (story.canContinue) {
+            // Instrument the story with the kind of output that is requested.
+            if (options.IsJsonOutputNeeded)
+                OutputManager = new JsonPlayerOutputManager(ConsoleInteractor);
+            else
+                OutputManager = new ConsolePlayerOutputManager(ConsoleInteractor);
+        }
 
-                story.Continue ();
+        #endregion Player interaction
 
-                _compiler.RetrieveDebugSourceForLatestContent ();
+        #region Story Evaluation
 
-                if( _jsonOutput ) {
-                    var writer = new Runtime.SimpleJson.Writer();
-                    writer.WriteObjectStart();
-                    writer.WriteProperty("text", story.currentText);
-                    writer.WriteObjectEnd();
-                    Console.WriteLine (writer.ToString());
-                } else {
-                    Console.Write (story.currentText);
-                }
+        /// <summary>Evaluates the story.</summary>
+        /// <param name="story">The story.</param>
+        /// <param name="options">The options.</param>
+        private void EvaluateStory(IStory story, ConsoleUserInterfaceOptions options)
+        {
+            while (story.canContinue)
+            {
+                story.Continue();
+
+                Compiler.RetrieveDebugSourceForLatestContent();
+
+                OutputManager.ShowCurrentText(story, options);
 
                 var tags = story.currentTags;
-                if (tags.Count > 0) {
-                    if( _jsonOutput ) {
-                        var writer = new Runtime.SimpleJson.Writer();
-                        writer.WriteObjectStart();
-                        writer.WritePropertyStart("tags");
-                        writer.WriteArrayStart();
-                        foreach(var tag in tags) {
-                            writer.Write(tag);
-                        }
-                        writer.WriteArrayEnd();
-                        writer.WritePropertyEnd();
-                        writer.WriteObjectEnd();
-                        Console.WriteLine(writer.ToString());
-                    } else {
-                        Console.WriteLine ("# tags: " + string.Join (", ", tags));
-                    }
+                if (tags.Count > 0)
+                {
+                    OutputManager.ShowTags(options, tags);
                 }
 
-                Runtime.SimpleJson.Writer issueWriter = null;
-                if( _jsonOutput && (_errors.Count > 0 || _warnings.Count > 0) ) {
-                    issueWriter = new Runtime.SimpleJson.Writer();
-                    issueWriter.WriteObjectStart();
-                    issueWriter.WritePropertyStart("issues");
-                    issueWriter.WriteArrayStart();
-
-                    if( _errors.Count > 0 ) {
-                        foreach (var errorMsg in _errors) {
-                            issueWriter.Write (errorMsg);
-                        }
-                    }
-                    if( _warnings.Count > 0 ) {
-                        foreach (var warningMsg in _warnings) {
-                            issueWriter.Write (warningMsg);
-                        }
-                    }
-
-                    issueWriter.WriteArrayEnd();
-                    issueWriter.WritePropertyEnd();
-                    issueWriter.WriteObjectEnd();
-                    Console.WriteLine(issueWriter.ToString());
+                if ((Errors.Count > 0 || Warnings.Count > 0))
+                {
+                    OutputManager.ShowWarningsAndErrors(Warnings, Errors, options);
                 }
 
-                if (_errors.Count > 0 && !_jsonOutput ) {
-                    foreach (var errorMsg in _errors) {
-                        Console.WriteLine (errorMsg, ConsoleColor.Red);
-                    }
-                }
-
-                if (_warnings.Count > 0 && !_jsonOutput) {
-                    foreach (var warningMsg in _warnings) {
-                        Console.WriteLine (warningMsg, ConsoleColor.Blue);
-                    }
-                }
-
-                _errors.Clear();
-                _warnings.Clear();
+                Errors.Clear();
+                Warnings.Clear();
             }
 
-            if (story.currentChoices.Count == 0 && keepOpenAfterStoryFinish) {
-                if( _jsonOutput ) {
-                    Console.WriteLine("{\"end\": true}");
-                } else {
-                    Console.WriteLine ("--- End of story ---");
-                }
+            if (story.currentChoices.Count == 0 && options.IsKeepRunningAfterStoryFinishedNeeded)
+            {
+                OutputManager.ShowEndOfStory(options);
             }
         }
 
-        void OnStoryError(string msg, ErrorType type)
+        #endregion Story Evaluation
+
+        #region Event handling
+
+        /// <summary>Handles the StoryError event of the Story control.</summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="StoryErrorEventArgs" /> instance containing the event data.</param>
+        private void Story_StoryError(object sender, StoryErrorEventArgs e)
         {
-            if( type == ErrorType.Error )
-                _errors.Add(msg);
+            if (e.ErrorType == StoryErrorType.Error)
+                Errors.Add(e.Message);
             else
-                _warnings.Add(msg);
+                Warnings.Add(e.Message);
         }
 
-        Compiler _compiler;
-        bool _jsonOutput;
-        List<string> _errors = new List<string>();
-        List<string> _warnings = new List<string>();
-	}
-
-
+        #endregion Event handling
+    }
 }
-

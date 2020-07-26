@@ -2,7 +2,7 @@
 using Ink.Parsed;
 
 
-namespace Ink
+namespace Ink.InkParser
 {
     public partial class InkParser
     {

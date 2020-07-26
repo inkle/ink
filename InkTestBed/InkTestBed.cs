@@ -86,12 +86,11 @@ class InkTestBed
 
     Ink.Runtime.Story Compile (string inkSource)
     {
-    	compiler = new Compiler (inkSource, new Compiler.Options {
-    		errorHandler = OnError
+    	compiler = new Compiler (inkSource, new CompilerOptions {
     	});
 
     	story = compiler.Compile ();
-        story.onError += OnError;
+        story.StoryError += StoryErrorHandler;
 
         return story;
     }
@@ -108,10 +107,9 @@ class InkTestBed
 
         var inkSource = File.ReadAllText(filename);
 
-        return new Compiler(inkSource, new Compiler.Options
+        return new Compiler(inkSource, new CompilerOptions
         {
             sourceFilename = filename,
-            errorHandler = OnError
         });
     }
 
@@ -299,17 +297,17 @@ class InkTestBed
         }
     }
 
-    // Handler used for both compiler and story errors
-    void OnError (string message, Ink.ErrorType errorType)
+
+    private void StoryErrorHandler(object sender, StoryErrorEventArgs e)
     {
         ConsoleColor color = ConsoleColor.Red;
-        if( errorType == ErrorType.Warning )
+        if(e.ErrorType == StoryErrorType.Warning )
             color = ConsoleColor.Blue;
-        else if( errorType == ErrorType.Author )
+        else if(e.ErrorType == StoryErrorType.Author )
             color = ConsoleColor.Green;
 
         Console.ForegroundColor = color;
-        Console.WriteLine (message);
+        Console.WriteLine (e.Message);
         Console.ResetColor ();
     }
 }

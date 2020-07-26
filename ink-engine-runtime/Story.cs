@@ -7,12 +7,28 @@ using System.Diagnostics;
 
 namespace Ink.Runtime
 {
-    /// <summary>
-    /// A Story is the core class that represents a complete Ink narrative, and
-    /// manages the evaluation and state of it.
-    /// </summary>
-	public class Story : Runtime.Object
-	{
+    /// <summary>A Story is the core class that represents a complete Ink narrative, and
+    /// manages the evaluation and state of it.</summary>
+	public class Story : Runtime.Object, IStory
+    {
+        #region Events
+
+        /// <summary>
+        /// StoryError handler for all runtime errors in ink - i.e. problems
+        /// with the source ink itself that are only discovered when playing
+        /// the story.
+        /// It's strongly recommended that you assign an error handler to your
+        /// story instance to avoid getting exceptions for ink errors.
+        /// </summary>
+        public event StoryErrorEventHandler StoryError;
+        protected virtual void OnStoryError(StoryErrorEventArgs e)
+        {
+            var handler = StoryError;
+            handler?.Invoke(this, e);
+        }
+
+        #endregion Events
+
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
@@ -125,16 +141,7 @@ namespace Ink.Runtime
         /// 
         /// </summary>
         public StoryState state { get { return _state; } }
-        
-        /// <summary>
-        /// Error handler for all runtime errors in ink - i.e. problems
-        /// with the source ink itself that are only discovered when playing
-        /// the story.
-        /// It's strongly recommended that you assign an error handler to your
-        /// story instance to avoid getting exceptions for ink errors.
-        /// </summary>
-        public event Ink.ErrorHandler onError;
-        
+                
         /// <summary>
         /// Callback for when ContinueInternal is complete
         /// </summary>
@@ -492,22 +499,26 @@ namespace Ink.Runtime
             // This may either have been StoryExceptions that were thrown
             // and caught during evaluation, or directly added with AddError.
             if( state.hasError || state.hasWarning ) {
-                if( onError != null ) {
-                    if( state.hasError ) {
-                        foreach(var err in state.currentErrors) {
-                            onError(err, ErrorType.Error);
+                if(StoryError != null ) {
+                    if (state.hasError)
+                    {
+                        foreach (var err in state.currentErrors)
+                        {
+                            OnStoryError(new StoryErrorEventArgs() { Message = err, ErrorType = StoryErrorType.Error });
                         }
                     }
-                    if( state.hasWarning ) {
-                        foreach(var err in state.currentWarnings) {
-                            onError(err, ErrorType.Warning);
+                    if (state.hasWarning)
+                    {
+                        foreach (var err in state.currentWarnings)
+                        {
+                            OnStoryError(new StoryErrorEventArgs() { Message = err, ErrorType = StoryErrorType.Warning });
                         }
                     }
-                    ResetErrors();
-                } 
-                
-                // Throw an exception since there's no error handler
-                else {
+                    _state.ResetErrors();
+                }                
+                else
+                {
+                    // Throw an exception since there's no error handler
                     var sb = new StringBuilder();
                     sb.Append("Ink had ");
                     if( state.hasError ) {

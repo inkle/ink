@@ -1,383 +1,497 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Ink.Inklecate.Interaction;
+using Ink.Inklecate.OutputManagement;
 
-namespace Ink
+namespace Ink.Inklecate
 {
-	class CommandLineTool
-	{
-		class Options {
-            public bool verbose;
-			public bool playMode;
-            public bool stats;
-            public bool jsonOutput;
-			public string inputFile;
-            public string outputFile;
-            public bool countAllVisits;
-            public bool keepOpenAfterStoryFinish;
-		}
+    /// <summary>The CommandLineTool class encapsulates the functionality of the tool that is started on the command line.</summary>
+    public partial class CommandLineTool
+    {
+        #region Properties
 
-		public static int ExitCodeError = 1;
+        public IFileSystemInteractable FileSystemInteractor { get; set; } = new FileSystemInteractor();
+        public ICompilerInteractable CompilerInteractor { get; set; } = new CompilerInteractor();
+        public IEngineInteractable EngineInteractor { get; set; } = new EngineInteractor();
+        public IConsoleInteractable ConsoleInteractor { get; set; } = new ConsoleInteractor();
+        public IToolOutputManagable OutputManager { get; set; } = null; // default null because determined by flag
 
-		public static void Main (string[] args)
-		{
-			new CommandLineTool(args);
-		}
+        public ParsedCommandLineOptions parsedOptions;
+        public CommandLineToolOptions toolOptions;
 
-        void ExitWithUsageInstructions()
+        public List<string> Errors { get; set; } = new List<string>();
+        public List<string> Warnings { get; set; } = new List<string>();
+        public List<string> AuthorMessages { get; set; } = new List<string>();
+
+        #endregion Properties
+
+        /// <summary>Defines the entry point of the application.</summary>
+        /// <param name="args">The arguments.</param>
+        public static void Main(string[] args)
         {
-            Console.WriteLine (
-                "Usage: inklecate2 <options> <ink file> \n"+
-                "   -o <filename>:   Output file name\n"+
+            var tool = new CommandLineTool();
+
+            // Add default values by processing the configured options.
+            var toolOptions = tool.CreateCommandLineToolOptions(args);
+            tool.SetOuputFormat(toolOptions);
+            tool.Run(toolOptions);
+        }
+
+        #region Instructions
+
+        /// <summary>Exits with the usage instructions.</summary>
+        public void ExitWithUsageInstructions()
+        {
+            string usageInstructions =
+                "Usage: inklecate2 <options> <ink file> \n" +
+                "   -o <filename>:   Output file name\n" +
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
-                "   -p:              Play mode\n"+
-                "   -j:              Output in JSON format (for communication with tools like Inky)\n"+
+                "   -p:              Play mode\n" +
+                "   -j:              Output in JSON format (for communication with tools like Inky)\n" +
                 "   -s:              Print stats about story including word count in JSON format\n" +
-                "   -v:              Verbose mode - print compilation timings\n"+
-                "   -k:              Keep inklecate running in play mode even after story is complete\n");
-            Environment.Exit (ExitCodeError);
+                "   -v:              Verbose mode - print compilation timings\n" +
+                "   -k:              Keep inklecate running in play mode even after story is complete\n";
+            ConsoleInteractor.WriteInformation(usageInstructions);
+            ConsoleInteractor.EnvironmentExitWithCodeError1();
         }
 
-		CommandLineTool(string[] args)
-		{
-            // Set console's output encoding to UTF-8
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+        #endregion Instructions
 
-            if (ProcessArguments (args) == false) {
-                ExitWithUsageInstructions ();
-            }
+        #region Constructor
 
-            if (opts.inputFile == null) {
-                ExitWithUsageInstructions ();
-            }
+        /// <summary>Initializes a new instance of the <see cref="CommandLineTool" /> class.</summary>
+        public CommandLineTool()
+        {
+            // Nothing here, witch is kind of shocking if you know what we started out with.
+        }
 
-            string inputString = null;
-            string workingDirectory = Directory.GetCurrentDirectory();
+        #endregion Constructor
 
-            if (opts.outputFile == null)
-                opts.outputFile = Path.ChangeExtension (opts.inputFile, ".ink.json");
+        #region ArgumentProcessing
 
-            if( !Path.IsPathRooted(opts.outputFile) )
-                opts.outputFile = Path.Combine (workingDirectory, opts.outputFile);
+        /// <summary>Creates the command line tool options.</summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns></returns>
+        private CommandLineToolOptions CreateCommandLineToolOptions(string[] args)
+        {
+            toolOptions = new CommandLineToolOptions();
 
-            try {
-                string fullFilename = opts.inputFile;
-                if(!Path.IsPathRooted(fullFilename)) {
-                    fullFilename = Path.Combine(workingDirectory, fullFilename);
-                }
+            // Getting the current dir early is better in ustable situations.
+            string startingDirectory = Directory.GetCurrentDirectory();
 
-                // Make the working directory the directory for the root ink file,
-                // so that relative paths for INCLUDE files are correct.
-                workingDirectory = Path.GetDirectoryName(fullFilename);
-                Directory.SetCurrentDirectory(workingDirectory);
+            parsedOptions = ParseArguments(args);
+            if (parsedOptions == null || !parsedOptions.IsInputPathGiven)
+                ExitWithUsageInstructions();
 
-                // Now make the input file relative to the working directory,
-                // but just getting the file's actual name.
-                opts.inputFile = Path.GetFileName(fullFilename);
+            ProcesOutputFilePath(parsedOptions, toolOptions, startingDirectory);
+            ProcesInputFilePath(parsedOptions, toolOptions, startingDirectory);
+            ProcesFlags(parsedOptions, toolOptions);
 
-                inputString = File.ReadAllText(opts.inputFile);
-            }
-            catch {
-                Console.WriteLine ("Could not open file '" + opts.inputFile+"'");
-                Environment.Exit (ExitCodeError);
-            }
+            return toolOptions;
+        }
 
-            var inputIsJson = opts.inputFile.EndsWith (".json", StringComparison.InvariantCultureIgnoreCase);
-            if( inputIsJson && opts.stats ) {
-                Console.WriteLine ("Cannot show stats for .json, only for .ink");
-                Environment.Exit (ExitCodeError);
-            }
+        /// <summary>Parses the command line arguments.</summary>
+        /// <param name="args">The command line arguments.</param>
+        /// <returns>An options object.</returns>
+        public ParsedCommandLineOptions ParseArguments(string[] args)
+        {
+            if (args == null || args.Length == 0)
+                return null;
 
-            Parsed.Story parsedStory = null;
-            Runtime.Story story = null;
-            Compiler compiler = null;
+            var options = new ParsedCommandLineOptions();
 
-            // Loading a normal ink file (as opposed to an already compiled json file)
-            if (!inputIsJson) {
+            bool expectingOutputFilename = false;
+            bool expectingPluginName = false;
 
-                compiler = new Compiler (inputString, new Compiler.Options {
-                    sourceFilename = opts.inputFile,
-                    pluginNames = pluginNames,
-                    countAllVisits = opts.countAllVisits,
-                    errorHandler = OnError
-                });
+            // Process arguments
+            int lastArgumentIndex = args.Length - 1;
+            for (int i = 0; i < args.Length; i++)
+            {
+                string argument = args[i];
 
-                // Only want stats, don't need to code-gen
-                if (opts.stats)
+                if (i == lastArgumentIndex)
                 {
-                    parsedStory = compiler.Parse();
-
-                    // Print any errors
-                    PrintAllMessages();
-
-                    // Generate stats, then print as JSON
-                    var stats = Ink.Stats.Generate(compiler.parsedStory);
-
-                    if( opts.jsonOutput ) {
-                        var writer = new Runtime.SimpleJson.Writer();
-
-                        writer.WriteObjectStart();
-                        writer.WritePropertyStart("stats");
-
-                        writer.WriteObjectStart();
-                        writer.WriteProperty("words", stats.words);
-                        writer.WriteProperty("knots", stats.knots);
-                        writer.WriteProperty("stitches", stats.stitches);
-                        writer.WriteProperty("functions", stats.functions);
-                        writer.WriteProperty("choices", stats.choices);
-                        writer.WriteProperty("gathers", stats.gathers);
-                        writer.WriteProperty("diverts", stats.diverts);
-                        writer.WriteObjectEnd();
-
-                        writer.WritePropertyEnd();
-                        writer.WriteObjectEnd();
-
-                        Console.WriteLine(writer.ToString());
-                    } else {
-                        Console.WriteLine("Words: "+stats.words);
-                        Console.WriteLine("Knots: "+stats.knots);
-                        Console.WriteLine("Stitches: "+stats.stitches);
-                        Console.WriteLine("Functions: "+stats.functions);
-                        Console.WriteLine("Choices: "+stats.choices);
-                        Console.WriteLine("Gathers: "+stats.gathers);
-                        Console.WriteLine("Diverts: "+stats.diverts);
-                    }
-
-                    return;
+                    // When on the last argument we assume it's the file.
+                    options.InputFilePath = argument;
                 }
-
-                // Full compile
+                else if (expectingOutputFilename)
+                {
+                    // When a outputfilename flag preceded the current argument we assume it's the outputfilename.
+                    options.OutputFilePath = argument;
+                    expectingOutputFilename = false;
+                }
+                else if (expectingPluginName)
+                {
+                    // When a pluginname flag preceded the current argument we assume it's a pluginname.
+                    options.PluginNames.Add(argument);
+                    expectingPluginName = false;
+                }
+                else if (argument.StartsWith("-"))
+                {
+                    // Determin options  
+                    switch (argument)
+                    {
+                        case "-p": options.IsPlayMode = true; break;
+                        case "-v": options.IsVerboseMode = true; break;
+                        case "-j": options.IsJsonOutputNeeded = true; break;
+                        case "-s": options.IsOnlyShowJsonStatsActive = true; break;
+                        case "-o": expectingOutputFilename = true; break;
+                        case "-c": options.IsCountAllVisitsNeeded = true; break;
+                        case "-x": expectingPluginName = true; break;
+                        case "-k": options.IsKeepOpenAfterStoryFinishNeeded = true; break;
+                        default: ConsoleInteractor.WriteWarning("Unsupported argument flag: '{0}'", argument); break;
+                    }
+                }
                 else
-                    story = compiler.Compile();
+                {
+                    ConsoleInteractor.WriteWarning("Unexpected argument: '{0}'", argument); break;
+                }
+            }
+            return options;
+        }
+
+        /// <summary>Proceses the output file path.</summary>
+        /// <param name="parsedOptions">The parsed options.</param>
+        /// <param name="processedOptions">The processed options.</param>
+        /// <param name="startingDirectory">The starting directory.</param>
+        public void ProcesOutputFilePath(ParsedCommandLineOptions parsedOptions, CommandLineToolOptions processedOptions, string startingDirectory)
+        {
+            // Without a parsed object and a input file path we can't do anything.
+            if (parsedOptions == null || processedOptions == null)
+                return;
+
+            // Generate an outputpath when none is given.
+            if (!string.IsNullOrEmpty(parsedOptions.OutputFilePath))
+            {
+                // if the GIVEN outputpath is not rooted we strip of the filename and tag the directory on it.
+                processedOptions.RootedOutputFilePath = Path.IsPathRooted(parsedOptions.OutputFilePath)
+                    ? parsedOptions.OutputFilePath
+                    : Path.Combine(startingDirectory, parsedOptions.OutputFilePath);
+            }
+            else
+            {
+                processedOptions.GeneratedOutputFilePath = Path.ChangeExtension(parsedOptions.InputFilePath, ".ink.json");
+
+                // if the GENERATED outputpath is not rooted we strip of the filename and tag the directory on it.
+                processedOptions.RootedOutputFilePath = Path.IsPathRooted(processedOptions.GeneratedOutputFilePath)
+                    ? processedOptions.GeneratedOutputFilePath
+                    : Path.Combine(startingDirectory, processedOptions.GeneratedOutputFilePath);
+            }
+        }
+
+        /// <summary>Proceses the input file path.</summary>
+        /// <param name="parsedOptions">The parsed options.</param>
+        /// <param name="processedOptions">The processed options.</param>
+        /// <param name="startingDirectory">The starting directory.</param>
+        public void ProcesInputFilePath(ParsedCommandLineOptions parsedOptions, CommandLineToolOptions processedOptions, string startingDirectory)
+        {
+            // Without a parsed object and a input file path we can't do anything.
+            if (parsedOptions == null || processedOptions == null)
+                return;
+
+            processedOptions.InputFilePath = parsedOptions.InputFilePath;
+
+            // Get the file's actual name, needed for reading after the working directory has changed.
+            processedOptions.InputFileName = Path.GetFileName(parsedOptions.InputFilePath);
+
+            processedOptions.RootedInputFilePath = Path.IsPathRooted(parsedOptions.InputFilePath)
+                ? parsedOptions.InputFilePath
+                : Path.Combine(startingDirectory, parsedOptions.InputFilePath);
+
+            processedOptions.InputFileDirectory = Path.GetDirectoryName(processedOptions.RootedInputFilePath);
+        }
+
+        /// <summary>Proceses the flags by copying them from the parsed options to the processed options so we can always compare them.</summary>
+        /// <param name="parsedOptions">The parsed options.</param>
+        /// <param name="processedOptions">The processed options.</param>
+        public void ProcesFlags(ParsedCommandLineOptions parsedOptions, CommandLineToolOptions processedOptions)
+        {
+            // Without a parsed object and a input file path we can't do anything.
+            if (parsedOptions == null || processedOptions == null)
+                return;
+
+            // Most of the flags are not changed while running exept for IsPlayMode.
+            processedOptions.IsPlayMode = parsedOptions.IsPlayMode;
+            processedOptions.IsVerboseMode = parsedOptions.IsVerboseMode;
+            processedOptions.IsCountAllVisitsNeeded = parsedOptions.IsCountAllVisitsNeeded;
+            processedOptions.IsOnlyShowJsonStatsActive = parsedOptions.IsOnlyShowJsonStatsActive;
+            processedOptions.IsJsonOutputNeeded = parsedOptions.IsJsonOutputNeeded;
+            processedOptions.IsKeepRunningAfterStoryFinishedNeeded = parsedOptions.IsKeepOpenAfterStoryFinishNeeded;
+            processedOptions.PluginNames = parsedOptions.PluginNames;
+        }
+
+        #endregion ArgumentProcessing
+
+        #region Run
+
+        /// <summary>Set the output format.</summary>
+        /// <param name="options"></param>
+        public void SetOuputFormat(CommandLineToolOptions options)
+        {
+            // Set console's output encoding to UTF-8
+            ConsoleInteractor.SetEncodingToUtF8();
+
+            if (options.IsJsonOutputNeeded)
+                OutputManager = new JsonToolOutputManager(ConsoleInteractor);
+            else
+                OutputManager = new ConsoleToolOutputManager(ConsoleInteractor);
+        }
+
+        /// <summary>Does a Run with the specified options.</summary>
+        /// <param name="options">The options.</param>
+        public void Run(CommandLineToolOptions options)
+        {
+            if (options == null)
+            {
+                ConsoleInteractor.WriteErrorMessage("Missing options object");
+                ConsoleInteractor.EnvironmentExitWithCodeError1();
             }
 
-            // Opening up a compiled json file for playing
-            else {
-                story = new Runtime.Story (inputString);
+            // Read the file content
+            string fileContent = ReadFileText(toolOptions.InputFileDirectory, toolOptions.InputFileName);
 
-                // No purpose for loading an already compiled file other than to play it
-                opts.playMode = true;
-            }
+            SetOuputFormat(options);
 
-            var compileSuccess = !(story == null || _errors.Count > 0);
-            if( opts.jsonOutput ) {
-                if( compileSuccess )
-                    Console.WriteLine("{\"compile-success\": true}");
-                else
-                    Console.WriteLine("{\"compile-success\": false}");
-            }
+            IInkCompiler compiler = null;
+            bool finished = false;
+            bool compileSuccess = false;
+            var story = CreateStory(fileContent, options, ref compiler, ref compileSuccess, ref finished);
+            OutputManager.ShowCompileSuccess(options, compileSuccess);
+            if (finished)
+                return;
 
 
-            PrintAllMessages ();
+            PrintAllMessages();
 
             if (!compileSuccess)
-				Environment.Exit (ExitCodeError);
+                ConsoleInteractor.EnvironmentExitWithCodeError1();
 
-			// Play mode
-            if (opts.playMode) {
+            if (options.IsPlayMode)
+            {
+                PlayStory(story, compiler, options);
+            }
+            else
+            {
+                WritStoryToJsonFile(story, options);
+            }
+        }
 
-                _playing = true;
+        /// <summary>Reads the file text.</summary>
+        /// <param name="inputFileDirectory">The input file directory.</param>
+        /// <param name="inputFileName">Name of the input file.</param>
+        /// <returns>The file text content.</returns>
+        public string ReadFileText(string inputFileDirectory, string inputFileName)
+        {
+            if (string.IsNullOrEmpty(inputFileDirectory) || string.IsNullOrEmpty(inputFileName))
+                return null;
 
-                // Always allow ink external fallbacks
-                story.allowExternalFunctionFallbacks = true;
-
-                var player = new CommandLinePlayer (story, false, compiler, opts.keepOpenAfterStoryFinish, opts.jsonOutput);
-
-                //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
-                Console.CancelKeyPress += OnExit;
-
-                try {
-                    player.Begin ();
-                } catch (Runtime.StoryException e) {
-                    if (e.Message.Contains ("Missing function binding")) {
-                        OnError (e.Message, ErrorType.Error);
-                        PrintAllMessages ();
-                    } else {
-                        throw e;
-                    }
-                } catch (System.Exception e) {
-                    string storyPath = "<END>";
-                    var path = story.state.currentPathString;
-                    if (path != null) {
-                        storyPath = path.ToString ();
-                    }
-                    throw new System.Exception(e.Message + " (Internal story path: " + storyPath + ")", e);
-                }
+            try
+            {
+                // Make the working directory the directory for the root ink file,
+                // so that relative paths for INCLUDE files are correct.
+                FileSystemInteractor.SetCurrentDirectory(inputFileDirectory);
+            }
+            catch (Exception exception)
+            {
+                ConsoleInteractor.WriteErrorMessage("Could not set directory '{0}'", exception);
+                ConsoleInteractor.EnvironmentExitWithCodeError1();
             }
 
+            string fileText = null;
+            try
+            {
+                fileText = FileSystemInteractor.ReadAllTextFromFile(inputFileName);
+            }
+            catch (Exception exception)
+            {
+                ConsoleInteractor.WriteErrorMessage("Could not open file '{0}'", exception);
+                ConsoleInteractor.EnvironmentExitWithCodeError1();
+            }
+            return fileText;
+        }
+
+        /// <summary>Creates the story from the file contents.</summary>
+        /// <param name="fileContent">Content of the file.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="compiler">The compiler.</param>
+        /// <param name="compileSuccess">if set to <c>true</c> [compile success].</param>
+        /// <param name="finished">if set to <c>true</c> [finished].</param>
+        /// <returns></returns>
+        public Runtime.IStory CreateStory(string fileContent, CommandLineToolOptions options, ref IInkCompiler compiler, ref bool compileSuccess, ref bool finished)
+        {
+            Runtime.IStory story = null;
+
+            if (!options.IsInputFileJson)
+            {
+                // Loading a normal ink file (as opposed to an already compiled json file)
+                compiler = CreateCompiler(fileContent, options);
+
+                if (options.IsOnlyShowJsonStatsActive)
+                {
+                    ShowStats(compiler, options);
+
+                    finished = true;
+                }
+                else
+                {
+                    // Full compile
+                    story = compiler.Compile();
+                }
+            }
+            else
+            {
+                story = CreateStoryFromJson(fileContent, options);
+            }
+            compileSuccess = !(story == null || Errors.Count > 0);
+
+            return story;
+        }
+
+        /// <summary>Creates the compiler with specific compiler options.</summary>
+        /// <param name="fileContent">Content of the file.</param>
+        /// <param name="options">The options.</param>
+        /// <returns></returns>
+        private IInkCompiler CreateCompiler(string fileContent, CommandLineToolOptions options)
+        {            
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                sourceFilename = options.InputFilePath,
+                pluginNames = options.PluginNames,
+                countAllVisits = options.IsCountAllVisitsNeeded,
+            };
+            return CompilerInteractor.CreateCompiler(fileContent, compilerOptions);
+        }
+
+        /// <summary>Shows the stats of the compiled story.</summary>
+        /// <param name="compiler">The compiler.</param>
+        /// <param name="options">The options.</param>
+        private void ShowStats(IInkCompiler compiler, CommandLineToolOptions options)
+        {
+            // Only want stats, don't need to code-gen
+            var parsedStory = compiler.Parse();
+
+            // Print any errors
+            PrintAllMessages();
+
+            // Generate stats, then print as JSON
+            var stats = Ink.Stats.Generate(compiler.parsedStory);
+
+            OutputManager.ShowStats(options, stats);
+        }
+
+        /// <summary>Creates the story from json.</summary>
+        /// <param name="fileContent">Content of the file.</param>
+        /// <param name="options">The options.</param>
+        /// <returns></returns>
+        private Runtime.IStory CreateStoryFromJson(string fileContent, CommandLineToolOptions options)
+        {
+            // Opening up a compiled json file for playing
+            Runtime.IStory story = EngineInteractor.CreateStoryFromJson(fileContent);
+
+            // No purpose for loading an already compiled file other than to play it
+            options.IsPlayMode = true;
+            return story;
+        }
+
+        /// <summary>Plays the story.</summary>
+        /// <param name="story">The story.</param>
+        /// <param name="compiler">The compiler.</param>
+        /// <param name="options">The options.</param>
+        /// <exception cref="Exception"></exception>
+        public void PlayStory(Runtime.IStory story, IInkCompiler compiler, CommandLineToolOptions options)
+        {
+            // Always allow ink external fallbacks
+            story.allowExternalFunctionFallbacks = true;
+            ConsoleUserInterface userInterface = CreateConsoleUserInterface(compiler);
+
+            //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
+            ConsoleInteractor.ResetColorOnCancelKeyPress();
+
+            try
+            {
+                ConsoleUserInterfaceOptions uiOptions = new ConsoleUserInterfaceOptions()
+                {
+                    IsAutoPlayActive = false,
+                    IsKeepRunningAfterStoryFinishedNeeded = options.IsKeepRunningAfterStoryFinishedNeeded,
+                    IsJsonOutputNeeded = options.IsJsonOutputNeeded
+                };
+                userInterface.Begin(story, uiOptions);
+            }
+            catch (Runtime.StoryException e)
+            {
+                if (e.Message.Contains("Missing function binding"))
+                {
+                    Errors.Add(e.Message);
+
+                    // If you get an error while playing, just print immediately
+                    PrintAllMessages();
+                }
+                else
+                {
+                    throw e;
+                }
+            }
+            catch (Exception e)
+            {
+                string storyPath = "<END>";
+                var path = story.state.currentPathString;
+                if (path != null)
+                {
+                    storyPath = path.ToString();
+                }
+                throw new Exception(e.Message + " (Internal story path: " + storyPath + ")", e);
+            }
+        }
+
+        /// <summary>Creates the console user interface.</summary>
+        /// <param name="compiler">The compiler.</param>
+        /// <returns></returns>
+        public virtual ConsoleUserInterface CreateConsoleUserInterface(IInkCompiler compiler)
+        {
+            return new ConsoleUserInterface(compiler);
+        }
+
+        /// <summary>Writes the compiled story to a json file.</summary>
+        /// <param name="story">The story.</param>
+        /// <param name="options">The options.</param>
+        public void WritStoryToJsonFile(Runtime.IStory story, CommandLineToolOptions options)
+        {
             // Compile mode
-            else {
+            var jsonStr = story.ToJson();
 
-                var jsonStr = story.ToJson ();
+            try
+            {
+                FileSystemInteractor.WriteAllTextToFile(options.RootedOutputFilePath, jsonStr, System.Text.Encoding.UTF8);
 
-                try {
-                    File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
+                OutputManager.ShowExportComplete(options);
 
-                    if( opts.jsonOutput )
-                        Console.WriteLine("{\"export-complete\": true}");
-
-                } catch {
-                    Console.WriteLine ("Could not write to output file '" + opts.outputFile+"'");
-                    Environment.Exit (ExitCodeError);
-                }
+            }
+            catch
+            {
+                ConsoleInteractor.WriteErrorMessage("Could not write to output file '{0}'", options.RootedOutputFilePath);
+                ConsoleInteractor.EnvironmentExitWithCodeError1();
             }
         }
 
-        private void OnExit(object sender, ConsoleCancelEventArgs e)
+        #endregion Run
+
+        #region Error handling
+
+        /// <summary>Prints all messages.</summary>
+        private void PrintAllMessages()
         {
-            Console.ResetColor();
+            OutputManager.PrintAllMessages(AuthorMessages, Warnings, Errors);
+
+            AuthorMessages.Clear();
+            Warnings.Clear();
+            Errors.Clear();
         }
 
-        void OnError(string message, ErrorType errorType)
-        {
-            switch (errorType) {
-            case ErrorType.Author:
-                _authorMessages.Add (message);
-                break;
-
-            case ErrorType.Warning:
-                _warnings.Add (message);
-                break;
-
-            case ErrorType.Error:
-                _errors.Add (message);
-                break;
-            }
-
-            // If you get an error while playing, just print immediately
-            if( _playing ) PrintAllMessages ();
-        }
-
-        void PrintIssues(List<string> messageList, ConsoleColor colour)
-        {
-            Console.ForegroundColor = colour;
-            foreach (string msg in messageList) {
-                Console.WriteLine (msg);
-            }
-            Console.ResetColor ();
-        }
-
-        void PrintAllMessages ()
-        {
-            // { "issues": ["ERROR: blah", "WARNING: blah"] }
-            if( opts.jsonOutput ) {
-                var writer = new Runtime.SimpleJson.Writer();
-
-                writer.WriteObjectStart();
-                writer.WritePropertyStart("issues");
-                writer.WriteArrayStart();
-                foreach (string msg in _authorMessages) {
-                    writer.Write(msg);
-                }
-                foreach (string msg in _warnings) {
-                    writer.Write(msg);
-                }
-                foreach (string msg in _errors) {
-                    writer.Write(msg);
-                }
-                writer.WriteArrayEnd();
-                writer.WritePropertyEnd();
-                writer.WriteObjectEnd();
-                Console.Write (writer.ToString());
-            }
-
-            // Human consumption
-            else {
-                PrintIssues (_authorMessages, ConsoleColor.Green);
-                PrintIssues (_warnings, ConsoleColor.Blue);
-                PrintIssues (_errors, ConsoleColor.Red);
-            }
-
-            _authorMessages.Clear ();
-            _warnings.Clear ();
-            _errors.Clear ();
-        }
-
-        bool ProcessArguments(string[] args)
-		{
-            if (args.Length < 1) {
-                opts = null;
-                return false;
-            }
-
-			opts = new Options();
-            pluginNames = new List<string> ();
-
-            bool nextArgIsOutputFilename = false;
-            bool nextArgIsPlugin = false;
-
-			// Process arguments
-            int argIdx = 0;
-			foreach (string arg in args) {
-
-                if (nextArgIsOutputFilename) {
-                    opts.outputFile = arg;
-                    nextArgIsOutputFilename = false;
-                } else if (nextArgIsPlugin) {
-                    pluginNames.Add (arg);
-                    nextArgIsPlugin = false;
-                }
-
-				// Options
-				var firstChar = arg.Substring(0,1);
-                if (firstChar == "-" && arg.Length > 1) {
-
-                    for (int i = 1; i < arg.Length; ++i) {
-                        char argChar = arg [i];
-
-                        switch (argChar) {
-                        case 'p':
-                            opts.playMode = true;
-                            break;
-                        case 'j':
-                            opts.jsonOutput = true;
-                            break;
-                        case 'v':
-                            opts.verbose = true;
-                            break;
-                        case 's':
-                            opts.stats = true;
-                            break;
-                        case 'o':
-                            nextArgIsOutputFilename = true;
-                            break;
-                        case 'c':
-                            opts.countAllVisits = true;
-                            break;
-                        case 'x':
-                            nextArgIsPlugin = true;
-                            break;
-                        case 'k':
-                            opts.keepOpenAfterStoryFinish = true;
-                            break;
-                        default:
-                            Console.WriteLine ("Unsupported argument type: '{0}'", argChar);
-                            break;
-                        }
-                    }
-                }
-
-                // Last argument: input file
-                else if( argIdx == args.Length-1 ) {
-                    opts.inputFile = arg;
-                }
-
-                argIdx++;
-			}
-
-			return true;
-		}
-
-        Options opts;
-        List<string> pluginNames;
-
-        List<string> _errors = new List<string>();
-        List<string> _warnings = new List<string>();
-        List<string> _authorMessages = new List<string>();
-
-        bool _playing;
-	}
+        #endregion Error handling
+    }
 }

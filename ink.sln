@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28606.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inklecate", "inklecate\inklecate.csproj", "{D10ED1A8-CF83-4E58-B505-3714B3A16215}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "inklecate", "inklecate\inklecate.csproj", "{D10ED1A8-CF83-4E58-B505-3714B3A16215}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj", "{C48016BB-CF8B-4357-B052-E4DC63AED06B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ink_compiler", "compiler\in
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InkTestBed", "InkTestBed\InkTestBed.csproj", "{714B52DE-576A-4760-BA2E-F8483DD2CAAA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Inklecate.Tests", "Inklecate.Tests\Inklecate.Tests.csproj", "{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,22 @@ Global
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|Any CPU.Build.0 = Release|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|x86.ActiveCfg = Release|Any CPU
 		{714B52DE-576A-4760-BA2E-F8483DD2CAAA}.Test|x86.Build.0 = Release|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Debug|x86.Build.0 = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.InkTestBed|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.InkTestBed|Any CPU.Build.0 = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.InkTestBed|x86.ActiveCfg = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.InkTestBed|x86.Build.0 = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Release|x86.ActiveCfg = Release|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Release|x86.Build.0 = Release|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Test|x86.ActiveCfg = Debug|Any CPU
+		{EA9950CF-EE42-44BA-8CBD-693CC86AF3A4}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
