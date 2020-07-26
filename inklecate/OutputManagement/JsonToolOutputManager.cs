@@ -16,7 +16,7 @@ namespace Ink.Inklecate.OutputManagement
 
         public void ShowExportComplete(CommandLineToolOptions options)
         {
-            ConsoleInteractor.WriteJsonMessage("export-complete", true);
+            ConsoleInteractor.WriteJsonNameValuePair("export-complete", true);
         }
 
         public void ShowStats(CommandLineToolOptions options, Stats stats)
@@ -39,12 +39,12 @@ namespace Ink.Inklecate.OutputManagement
             writer.WritePropertyEnd();
             writer.WriteObjectEnd();
 
-            ConsoleInteractor.WriteInformation(writer.ToString());
+            ConsoleInteractor.WriteJsonInformation(writer.ToString());
         }
 
         public void ShowCompileSuccess(CommandLineToolOptions options, bool compileSuccess)
         {
-            ConsoleInteractor.WriteJsonMessage("compile-success", compileSuccess);
+            ConsoleInteractor.WriteJsonNameValuePair("compile-success", compileSuccess);
         }
 
 
@@ -73,7 +73,7 @@ namespace Ink.Inklecate.OutputManagement
             writer.WritePropertyEnd();
             writer.WriteObjectEnd();
 
-            ConsoleInteractor.WriteInformation(writer.ToString());
+            ConsoleInteractor.WriteJsonInformation(writer.ToString());
         }
     }
 }

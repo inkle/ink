@@ -28,18 +28,18 @@ namespace Ink.Inklecate.OutputManagement
             writer.WriteArrayEnd();
             writer.WritePropertyEnd();
             writer.WriteObjectEnd();
-            Console.WriteLine(writer.ToString());
+            ConsoleInteractor.WriteJsonInformation(writer.ToString());
         }
 
         public void RequestInput(ConsoleUserInterfaceOptions options)
         {
             // Johnny Five, he's alive!
-            Console.Write("{\"needInput\": true}");
+            ConsoleInteractor.WriteJsonInformation("{\"needInput\": true}");
 
         }
         public void ShowStreamError(ConsoleUserInterfaceOptions options)
         {
-            Console.WriteLine("{\"close\": true}");
+            ConsoleInteractor.WriteJsonError("{\"close\": true}");
         }
 
         public void ShowOutputResult(ConsoleUserInterfaceOptions options, Compiler.CommandLineInputResult result)
@@ -50,7 +50,7 @@ namespace Ink.Inklecate.OutputManagement
                 writer.WriteObjectStart();
                 writer.WriteProperty("cmdOutput", result.output);
                 writer.WriteObjectEnd();
-                Console.WriteLine(writer.ToString());
+                ConsoleInteractor.WriteJsonError(writer.ToString());
             }
         }
 
@@ -68,10 +68,10 @@ namespace Ink.Inklecate.OutputManagement
             writer.WriteObjectStart();
             writer.WriteProperty("text", story.currentText);
             writer.WriteObjectEnd();
-            Console.WriteLine(writer.ToString());
+            ConsoleInteractor.WriteJsonInformation(writer.ToString());
         }
 
-        public void ShowTags(ConsoleUserInterfaceOptions options, List<string> tags)
+        public void ShowTags(List<string> tags, ConsoleUserInterfaceOptions options)
         {
             var writer = new Runtime.SimpleJson.Writer();
             writer.WriteObjectStart();
@@ -84,7 +84,7 @@ namespace Ink.Inklecate.OutputManagement
             writer.WriteArrayEnd();
             writer.WritePropertyEnd();
             writer.WriteObjectEnd();
-            Console.WriteLine(writer.ToString());
+            ConsoleInteractor.WriteJsonInformation(writer.ToString());
         }
 
         public void ShowWarningsAndErrors(List<string> warnings, List<string> errors, ConsoleUserInterfaceOptions options)
@@ -113,12 +113,12 @@ namespace Ink.Inklecate.OutputManagement
             issueWriter.WriteArrayEnd();
             issueWriter.WritePropertyEnd();
             issueWriter.WriteObjectEnd();
-            Console.WriteLine(issueWriter.ToString());
+            ConsoleInteractor.WriteJsonError(issueWriter.ToString());
         }
 
         public void ShowEndOfStory(ConsoleUserInterfaceOptions options)
         {
-            Console.WriteLine("{\"end\": true}");
+            ConsoleInteractor.WriteJsonInformation("{\"end\": true}");
         }
     }
 }

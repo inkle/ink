@@ -17,16 +17,16 @@ namespace Ink.Inklecate.OutputManagement
 
         public void ShowChoices(List<Ink.Runtime.Choice> choices, ConsoleUserInterfaceOptions options)
         {
-            Console.ForegroundColor = ConsoleColor.Blue;
+            ConsoleInteractor.SetConsoleForegroundColor(ConsoleColor.Blue);
 
             // Add extra newline to ensure that the choice is
             // on a separate line.
-            Console.WriteLine();
+            ConsoleInteractor.WriteEmptyLine();
 
             int i = 1;
             foreach (var choice in choices)
             {
-                Console.WriteLine("{0}: {1}", i, choice.text);
+                ConsoleInteractor.WriteInformation("{0}: {1}", i, choice.text);
                 i++;
             }
         }
@@ -34,11 +34,11 @@ namespace Ink.Inklecate.OutputManagement
         public void RequestInput(ConsoleUserInterfaceOptions options)
         {
             // Prompt
-            Console.Write("?> ");
+            ConsoleInteractor.WriteInformation("?> ");
         }
         public void ShowStreamError(ConsoleUserInterfaceOptions options)
         {
-            Console.WriteLine("<User input stream closed.>");
+            ConsoleInteractor.WriteErrorMessage("<User input stream closed.>");
 
         }
 
@@ -46,13 +46,13 @@ namespace Ink.Inklecate.OutputManagement
         {
             if (result.output != null)
             {
-                Console.WriteLine(result.output);
+                ConsoleInteractor.WriteErrorMessage(result.output);
             }
         }
 
         public void ShowChoiceOutOffRange(ConsoleUserInterfaceOptions options)
         {
-            Console.WriteLine("Choice out of range");
+            ConsoleInteractor.WriteWarning("Choice out of range");
         }
 
 
@@ -60,12 +60,12 @@ namespace Ink.Inklecate.OutputManagement
 
         public void ShowCurrentText(IStory story, ConsoleUserInterfaceOptions options)
         {
-            Console.Write(story.currentText);
+            ConsoleInteractor.WriteInformation(story.currentText);
         }
 
-        public void ShowTags(ConsoleUserInterfaceOptions options, List<string> tags)
+        public void ShowTags(List<string> tags, ConsoleUserInterfaceOptions options)
         {
-            Console.WriteLine("# tags: " + string.Join(", ", tags));
+            ConsoleInteractor.WriteInformation("# tags: " + string.Join(", ", tags));
         }
 
         public void ShowWarningsAndErrors(List<string> warnings, List<string> errors, ConsoleUserInterfaceOptions options)
@@ -74,7 +74,7 @@ namespace Ink.Inklecate.OutputManagement
             {
                 foreach (var errorMsg in errors)
                 {
-                    Console.WriteLine(errorMsg, ConsoleColor.Red);
+                    ConsoleInteractor.WriteErrorMessage(errorMsg, ConsoleColor.Red);
                 }
             }
 
@@ -82,14 +82,14 @@ namespace Ink.Inklecate.OutputManagement
             {
                 foreach (var warningMsg in warnings)
                 {
-                    Console.WriteLine(warningMsg, ConsoleColor.Blue);
+                    ConsoleInteractor.WriteWarning(warningMsg, ConsoleColor.Blue);
                 }
             }
         }
 
         public void ShowEndOfStory(ConsoleUserInterfaceOptions options)
         {
-            Console.WriteLine("--- End of story ---");
+            ConsoleInteractor.WriteInformation("--- End of story ---");
         }
     }
 }

@@ -6,13 +6,18 @@ namespace Ink.Inklecate.Interaction
 {
     public interface IConsoleInteractable
     {
-        void ResetColorOnCancelKeyPress();
-
         void SetEncodingToUtF8();
+
+        void EnvironmentExitWithCodeError1();
+
+
+        void ResetColorOnCancelKeyPress();
 
         void SetConsoleForegroundColor(ConsoleColor colour);
 
         void ResetConsoleColor();
+
+        void WriteEmptyLine();
 
         void WriteErrorMessage(string errorMessage);
 
@@ -23,9 +28,15 @@ namespace Ink.Inklecate.Interaction
         void WriteWarning(string message, object value);
 
         void WriteInformation(string message);
+        void WriteInformation(string name, object value, object secondValue);
 
-        void WriteJsonMessage(string name, object value);
+        void WriteJson(string json);
 
-        void EnvironmentExitWithCodeError1();
+        void WriteJsonInformation(string json);
+
+        void WriteJsonWarning(string json);
+
+        void WriteJsonError(string json);
+        void WriteJsonNameValuePair(string name, object value);
     }
 }
