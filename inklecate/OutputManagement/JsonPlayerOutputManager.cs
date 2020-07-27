@@ -35,14 +35,19 @@ namespace Ink.Inklecate.OutputManagement
         {
             // Johnny Five, he's alive!
             ConsoleInteractor.WriteJsonInformation("{\"needInput\": true}");
-
         }
+        
+        public string GetUserInput()
+        {
+            return Console.ReadLine();
+        }
+        
         public void ShowStreamError(ConsoleUserInterfaceOptions options)
         {
             ConsoleInteractor.WriteJsonError("{\"close\": true}");
         }
 
-        public void ShowOutputResult(ConsoleUserInterfaceOptions options, Compiler.CommandLineInputResult result)
+        public void ShowOutputResult(Compiler.CommandLineInputResult result, ConsoleUserInterfaceOptions options)
         {
             if (result.output != null)
             {

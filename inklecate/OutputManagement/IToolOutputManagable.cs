@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ink.Inklecate.Interaction;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,6 +7,8 @@ namespace Ink.Inklecate.OutputManagement
 {
     public interface IToolOutputManagable
     {
+        IConsoleInteractable ConsoleInteractor { get; set; }
+
         void ShowExportComplete(CommandLineToolOptions options);
 
         void ShowStats(CommandLineToolOptions options, Stats stats);

@@ -36,13 +36,18 @@ namespace Ink.Inklecate.OutputManagement
             // Prompt
             ConsoleInteractor.WriteInformation("?> ");
         }
+        public string GetUserInput()
+        {
+            return Console.ReadLine();
+        }
+        
         public void ShowStreamError(ConsoleUserInterfaceOptions options)
         {
             ConsoleInteractor.WriteErrorMessage("<User input stream closed.>");
 
         }
 
-        public void ShowOutputResult(ConsoleUserInterfaceOptions options, Compiler.CommandLineInputResult result)
+        public void ShowOutputResult(Compiler.CommandLineInputResult result, ConsoleUserInterfaceOptions options)
         {
             if (result.output != null)
             {

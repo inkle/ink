@@ -72,12 +72,26 @@ namespace Ink.Runtime
                 }
                 return choices;
 			}
-		}
-            
+        }
+
+        /// <summary>Gets a value indicating whether this instance has current choices.</summary>
+        /// <value>
+        ///   <c>true</c> if this instance has current choices; otherwise, <c>false</c>.</value>
+        public bool HasCurrentChoices
+        {
+            get
+            {
+                if (currentChoices == null)
+                    return false;
+
+                return currentChoices.Count > 0;
+            }
+        }
+
         /// <summary>
         /// The latest line of text to be generated from a Continue() call.
         /// </summary>
-		public string currentText { 
+        public string currentText { 
             get  { 
                 IfAsyncWeCant ("call currentText since it's a work in progress");
                 return state.currentText; 
@@ -92,7 +106,22 @@ namespace Ink.Runtime
             get { 
                 IfAsyncWeCant ("call currentTags since it's a work in progress");
                 return state.currentTags; 
-            } 
+            }
+        }
+
+        /// <summary>Gets a value indicating whether this instance has current tags.</summary>
+        /// <value>
+        ///   <c>true</c> if this instance has current tags; otherwise, <c>false</c>.</value>
+        public bool HasCurrentTags
+        {
+            get
+            {
+                var tags = currentTags;
+                if (tags == null)
+                    return false;
+
+                return tags.Count > 0;
+            }
         }
 
         /// <summary>
