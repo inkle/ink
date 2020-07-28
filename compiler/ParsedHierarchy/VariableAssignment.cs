@@ -43,7 +43,7 @@ namespace Ink.Parsed
         {
             FlowBase newDeclScope = null;
             if (isGlobalDeclaration) {
-                newDeclScope = story;
+                newDeclScope = ParsedFiction;
             } else if(isNewTemporaryDeclaration) {
                 newDeclScope = ClosestFlowBase ();
             }
@@ -71,13 +71,13 @@ namespace Ink.Parsed
             return container;
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 
             // List definitions are checked for conflicts separately
             if( this.isDeclaration && listDefinition == null )
-                context.CheckForNamingCollisions (this, variableName, this.isGlobalDeclaration ? Story.SymbolType.Var : Story.SymbolType.Temp);
+                context.CheckForNamingCollisions (this, variableName, this.isGlobalDeclaration ? Fiction.SymbolType.Var : Fiction.SymbolType.Temp);
 
             // Initial VAR x = [intialValue] declaration, not re-assignment
             if (this.isGlobalDeclaration) {
@@ -90,7 +90,7 @@ namespace Ink.Parsed
             if (!this.isNewTemporaryDeclaration) {
                 var resolvedVarAssignment = context.ResolveVariableWithName(this.variableName, fromNode: this);
                 if (!resolvedVarAssignment.found) {
-                    if (story.constants.ContainsKey (variableName)) {
+                    if (ParsedFiction.constants.ContainsKey (variableName)) {
                         Error ("Can't re-assign to a constant (do you need to use VAR when declaring '" + this.variableName + "'?)", this);
                     } else {
                         Error ("Variable could not be found to assign to: '" + this.variableName + "'", this);

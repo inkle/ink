@@ -20,17 +20,17 @@ namespace Ink
             }
         }
 
-        public void PostParse(Parsed.Story parsedStory)
+        public void PostParse(Parsed.Fiction parsedFiction)
         {
             foreach (var plugin in _plugins) {
-                plugin.PostParse (parsedStory);
+                plugin.PostParse (parsedFiction);
             }
         }
 
-        public void PostExport(Parsed.Story parsedStory, Runtime.Story runtimeStory)
+        public void PostExport(Parsed.Fiction parsedFiction, Runtime.Story runtimeStory)
         {
             foreach (var plugin in _plugins) {
-                plugin.PostExport (parsedStory, runtimeStory);
+                plugin.PostExport (parsedFiction, runtimeStory);
             }
         }
 

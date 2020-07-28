@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Ink.Parsed
 {
-	public class Story : FlowBase
+    public class Fiction : FlowBase
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
 
@@ -33,7 +33,7 @@ namespace Ink.Parsed
         // larger safe file, with a lot of potentially redundant counts.
         public bool countAllVisits = false;
 
-        public Story (List<Parsed.Object> toplevelObjects, bool isInclude = false) : base(null, toplevelObjects, isIncludedStory:isInclude)
+        public Fiction(List<Parsed.Object> toplevelObjects, bool isInclude = false) : base(null, toplevelObjects, isIncludedStory:isInclude)
 		{
             // Don't do anything much on construction, leave it lightweight until
             // the ExportRuntime method is called.

@@ -60,7 +60,7 @@ namespace Ink.Parsed
             }
 
             if( dontFlatten )
-                story.DontFlattenContainer (container);
+                ParsedFiction.DontFlattenContainer (container);
 
             return container;
         }

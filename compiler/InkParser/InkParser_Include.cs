@@ -30,7 +30,7 @@ namespace Ink.InkParser
                 AddOpenFilename (fullFilename);
             }
 
-            Parsed.Story includedStory = null;
+            Parsed.Fiction includedFiction = null;
             string includedString = null;
             try {
                 includedString = _rootParser._fileHandler.LoadInkFileContents(fullFilename);
@@ -42,7 +42,7 @@ namespace Ink.InkParser
 
             if (includedString != null ) {
                 InkParser parser = new InkParser(includedString, filename, _rootParser);
-                includedStory = parser.Parse();
+                includedFiction = parser.Parse();
             }
 
             RemoveOpenFilename (fullFilename);
@@ -51,7 +51,7 @@ namespace Ink.InkParser
             // We don't want to attempt to re-parse the include line as something else,
             // and we want to include the bits that *are* valid, so we don't generate
             // more errors than necessary.
-            return new IncludedFile (includedStory);
+            return new IncludedFile (includedFiction);
         }
 
         bool FilenameIsAlreadyOpen(string fullFilename)

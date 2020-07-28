@@ -19,7 +19,7 @@ namespace Ink.Parsed
             var container = new Runtime.Container ();
             container.name = name;
 
-            if (this.story.countAllVisits) {
+            if (this.ParsedFiction.countAllVisits) {
                 container.visitsShouldBeCounted = true;
             }
 
@@ -35,12 +35,12 @@ namespace Ink.Parsed
             return container;
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 
             if( name != null && name.Length > 0 )
-                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
+                context.CheckForNamingCollisions (this, name, Fiction.SymbolType.SubFlowAndWeave);
         }
     }
 }

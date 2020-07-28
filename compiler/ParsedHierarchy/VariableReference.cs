@@ -35,7 +35,7 @@ namespace Ink.Parsed
             // It's okay to access the constants at code generation time, since the
             // first thing the ExportRuntime function does it search for all the constants
             // in the story hierarchy, so they're all available.
-            if ( story.constants.TryGetValue (name, out constantValue) ) {
+            if ( ParsedFiction.constants.TryGetValue (name, out constantValue) ) {
                 constantValue.GenerateConstantIntoContainer (container);
                 isConstantReference = true;
                 return;
@@ -55,7 +55,7 @@ namespace Ink.Parsed
                     listItemName = path [1];
                 }
 
-                var listItem = story.ResolveListItem (listName, listItemName, this);
+                var listItem = ParsedFiction.ResolveListItem (listName, listItemName, this);
                 if (listItem) {
                     isListItemReference = true;
                 }
@@ -64,7 +64,7 @@ namespace Ink.Parsed
             container.AddContent (_runtimeVarRef);
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 

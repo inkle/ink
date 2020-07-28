@@ -10,10 +10,10 @@ namespace Ink {
         public int gathers;
         public int diverts;
 
-        public static Stats Generate(Ink.Parsed.Story story) {
+        public static Stats Generate(Ink.Parsed.Fiction fiction) {
             var stats = new Stats();
 
-            var allText = story.FindAll<Ink.Parsed.Text>();
+            var allText = fiction.FindAll<Ink.Parsed.Text>();
 
             // Count all the words across all strings
             stats.words = 0;
@@ -33,22 +33,22 @@ namespace Ink {
                 stats.words += wordsInThisStr;
             }
 
-            var knots = story.FindAll<Ink.Parsed.Knot>();
+            var knots = fiction.FindAll<Ink.Parsed.Knot>();
             stats.knots = knots.Count;
 
             stats.functions = 0;
             foreach(var knot in knots)
                 if (knot.isFunction) stats.functions++;
 
-            var stitches = story.FindAll<Ink.Parsed.Stitch>();
+            var stitches = fiction.FindAll<Ink.Parsed.Stitch>();
             stats.stitches = stitches.Count;
 
-            var choices = story.FindAll<Ink.Parsed.Choice>();
+            var choices = fiction.FindAll<Ink.Parsed.Choice>();
             stats.choices = choices.Count;
 
             // Skip implicit gather that's generated at top of story
             // (we know which it is because it isn't assigned debug metadata)
-            var gathers = story.FindAll<Ink.Parsed.Gather>(g => g.debugMetadata != null);
+            var gathers = fiction.FindAll<Ink.Parsed.Gather>(g => g.debugMetadata != null);
             stats.gathers = gathers.Count;
 
             // May not be entirely what you expect.
@@ -59,7 +59,7 @@ namespace Ink {
             //  - Some implicitly generated weave diverts
             // But we subtract one for the implicit DONE
             // at the end of the main flow outside of knots.
-            var diverts = story.FindAll<Ink.Parsed.Divert>();
+            var diverts = fiction.FindAll<Ink.Parsed.Divert>();
             stats.diverts = diverts.Count - 1;
 
             return stats;

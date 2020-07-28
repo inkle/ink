@@ -223,7 +223,7 @@ namespace Ink.Parsed
                 _innerContentContainer.AddContentsOfContainer (innerChoiceOnlyContent);
             }
 
-            if (this.story.countAllVisits) {
+            if (this.ParsedFiction.countAllVisits) {
                 _innerContentContainer.visitsShouldBeCounted = true;
             }
 
@@ -232,7 +232,7 @@ namespace Ink.Parsed
             return _outerContainer;
 		}
 
-        public override void ResolveReferences(Story context)
+        public override void ResolveReferences(Fiction context)
 		{
 			// Weave style choice - target own content container
             if (_innerContentContainer) {
@@ -257,7 +257,7 @@ namespace Ink.Parsed
             base.ResolveReferences (context);
 
             if( name != null && name.Length > 0 )
-                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
+                context.CheckForNamingCollisions (this, name, Fiction.SymbolType.SubFlowAndWeave);
 		}
 
         public override string ToString ()

@@ -200,7 +200,7 @@ namespace Ink.Parsed
             }
         }
 
-        public override void ResolveReferences(Story context)
+        public override void ResolveReferences(Fiction context)
 		{
             if (isEmpty || isEnd || isDone) {
                 return;
@@ -357,7 +357,7 @@ namespace Ink.Parsed
             return;
         }
 
-        void CheckExternalArgumentValidity(Story context)
+        void CheckExternalArgumentValidity(Fiction context)
         {
             string externalName = target.firstComponent;
             ExternalDeclaration external = null;

@@ -3796,7 +3796,7 @@ Text.
             return story;
         }
 
-        protected Ink.Parsed.Story CompileStringWithoutRuntime(string str, bool testingErrors = false)
+        protected Ink.Parsed.Fiction CompileStringWithoutRuntime(string str, bool testingErrors = false)
         {
             _testingErrors = testingErrors;
             _errorMessages.Clear();

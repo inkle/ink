@@ -55,7 +55,7 @@ namespace Ink.InkParser
         #endregion Constructor
 
         // Main entry point
-        public Parsed.Story Parse()
+        public Parsed.Fiction Parse()
         {
             List<Parsed.Object> topLevelContent = StatementsAtLevel (StatementLevel.Top);
 
@@ -64,7 +64,7 @@ namespace Ink.InkParser
             // continue with errors. Returning an empty include files meant that anything
             // that *did* compile successfully would otherwise be ignored, generating way
             // more errors than necessary.
-            return new Parsed.Story (topLevelContent, isInclude:_rootParser != this);
+            return new Parsed.Fiction (topLevelContent, isInclude:_rootParser != this);
         }
 
         protected List<T> SeparatedList<T> (SpecificParseRule<T> mainRule, ParseRule separatorRule) where T : class

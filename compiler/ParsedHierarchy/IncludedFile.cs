@@ -3,11 +3,11 @@ namespace Ink.Parsed
 {
     public class IncludedFile : Parsed.Object
     {
-        public Parsed.Story includedStory { get; private set; }
+        public Parsed.Fiction includedStory { get; private set; }
 
-        public IncludedFile (Parsed.Story includedStory)
+        public IncludedFile (Parsed.Fiction includedFiction)
         {
-            this.includedStory = includedStory;
+            this.includedStory = includedFiction;
         }
 
         public override Runtime.Object GenerateRuntimeObject ()

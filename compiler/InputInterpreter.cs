@@ -9,7 +9,7 @@ namespace Ink
         List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange>();
 
 
-        public InputInterpretationResult ReadCommandLineInput(string userInput, Parsed.Story parsedStory, Runtime.Story runtimeStory)
+        public InputInterpretationResult ReadCommandLineInput(string userInput, Parsed.Fiction parsedFiction, Runtime.Story runtimeStory)
         {
             var inputParser = new InkParser.InkParser(userInput);
             var inputResult = inputParser.CommandLineUserInput();
@@ -64,16 +64,16 @@ namespace Ink
                     var varAssign = (Parsed.VariableAssignment)parsedObj;
                     if (varAssign.isNewTemporaryDeclaration)
                     {
-                        parsedStory.TryAddNewVariableDeclaration(varAssign);
+                        parsedFiction.TryAddNewVariableDeclaration(varAssign);
                     }
                 }
 
-                parsedObj.parent = parsedStory;
+                parsedObj.parent = parsedFiction;
                 var runtimeObj = parsedObj.runtimeObject;
 
-                parsedObj.ResolveReferences(parsedStory);
+                parsedObj.ResolveReferences(parsedFiction);
 
-                if (!parsedStory.hadError)
+                if (!parsedFiction.hadError)
                 {
 
                     // Divert
@@ -95,7 +95,7 @@ namespace Ink
                 }
                 else
                 {
-                    parsedStory.ResetError();
+                    parsedFiction.ResetError();
                 }
             }
             else

@@ -27,11 +27,11 @@ namespace Ink
 
         #region Properties
 
-        public Parsed.Story parsedStory
+        public Parsed.Fiction ParsedFiction
         {
             get
             {
-                return _parsedStory;
+                return _parsedFiction;
             }
         }
 
@@ -49,12 +49,12 @@ namespace Ink
 
         #endregion Constructor
 
-        public Parsed.Story Parse()
+        public Parsed.Fiction Parse()
         {
             _parser = new InkParser.InkParser(_inputString, _options.sourceFilename, _options.fileHandler);
             _parser.ParserError += ParserErrorHandler;
             var parsedStory = _parser.Parse();
-            _parsedStory = parsedStory;
+            _parsedFiction = parsedStory;
             return parsedStory;
         }
 
@@ -144,16 +144,16 @@ namespace Ink
                     var varAssign = (Parsed.VariableAssignment)parsedObj;
                     if (varAssign.isNewTemporaryDeclaration)
                     {
-                        parsedStory.TryAddNewVariableDeclaration(varAssign);
+                        ParsedFiction.TryAddNewVariableDeclaration(varAssign);
                     }
                 }
 
-                parsedObj.parent = parsedStory;
+                parsedObj.parent = ParsedFiction;
                 var runtimeObj = parsedObj.runtimeObject;
 
-                parsedObj.ResolveReferences(parsedStory);
+                parsedObj.ResolveReferences(ParsedFiction);
 
-                if (!parsedStory.hadError)
+                if (!ParsedFiction.hadError)
                 {
 
                     // Divert
@@ -175,7 +175,7 @@ namespace Ink
                 }
                 else
                 {
-                    parsedStory.ResetError();
+                    ParsedFiction.ResetError();
                 }
             }
             else
@@ -236,7 +236,7 @@ namespace Ink
 
 
         InkParser.InkParser _parser;
-        Parsed.Story _parsedStory;
+        Parsed.Fiction _parsedFiction;
         Runtime.Story _runtimeStory;
 
         PluginManager _pluginManager;

@@ -27,7 +27,7 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
-            var foundList = story.ResolveList (name);
+            var foundList = ParsedFiction.ResolveList (name);
 
             bool usingProxyDivert = false;
 
@@ -172,7 +172,7 @@ namespace Ink.Parsed
                 container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 

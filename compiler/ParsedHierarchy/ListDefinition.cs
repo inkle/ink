@@ -74,11 +74,11 @@ namespace Ink.Parsed
             return new Runtime.ListValue (initialValues);
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 
-            context.CheckForNamingCollisions (this, name, Story.SymbolType.List);
+            context.CheckForNamingCollisions (this, name, Fiction.SymbolType.List);
         }
 
         public override string typeName {
@@ -119,11 +119,11 @@ namespace Ink.Parsed
             throw new System.NotImplementedException ();
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 
-            context.CheckForNamingCollisions (this, name, Story.SymbolType.ListItem);
+            context.CheckForNamingCollisions (this, name, Fiction.SymbolType.ListItem);
         }
 
         public override string typeName {

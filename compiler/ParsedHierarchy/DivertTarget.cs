@@ -20,7 +20,7 @@ namespace Ink.Parsed
             container.AddContent (_runtimeDivertTargetValue);
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 

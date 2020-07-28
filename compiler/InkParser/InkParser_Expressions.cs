@@ -351,7 +351,7 @@ namespace Ink.InkParser
         {
             List<string> path = Interleave<string> (Identifier, Exclude (Spaced (String ("."))));
             
-            if (path == null || Story.IsReservedKeyword (path[0]) )
+            if (path == null || Fiction.IsReservedKeyword (path[0]) )
                 return null;
             
             return new VariableReference (path);

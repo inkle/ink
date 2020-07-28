@@ -37,13 +37,13 @@ namespace Ink.Parsed
 		public Parsed.Object parent { get; set; }
         public List<Parsed.Object> content { get; protected set; }
 
-        public Parsed.Story story {
+        public Parsed.Fiction ParsedFiction {
             get {
                 Parsed.Object ancestor = this;
                 while (ancestor.parent) {
                     ancestor = ancestor.parent;
                 }
-                return ancestor as Parsed.Story;
+                return ancestor as Parsed.Fiction;
             }
         }
 
@@ -112,7 +112,7 @@ namespace Ink.Parsed
             FlowLevel baseFlow = FlowLevel.WeavePoint;
 
             var ancestor = this;
-            while(ancestor && (ancestor != commonFlowAncestor) && !(ancestor is Story)) {
+            while(ancestor && (ancestor != commonFlowAncestor) && !(ancestor is Fiction)) {
 
                 if (ancestor == commonFlowAncestor)
                     break;
@@ -273,7 +273,7 @@ namespace Ink.Parsed
 
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
-        public virtual void ResolveReferences(Story context)
+        public virtual void ResolveReferences(Fiction context)
 		{
             if (content != null) {
                 foreach(var obj in content) {

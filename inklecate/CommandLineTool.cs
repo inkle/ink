@@ -379,7 +379,7 @@ namespace Ink.Inklecate
             PrintAllMessages();
 
             // Generate stats, then print as JSON
-            var stats = Ink.Stats.Generate(compiler.parsedStory);
+            var stats = Ink.Stats.Generate(compiler.ParsedFiction);
 
             OutputManager.ShowStats(options, stats);
         }

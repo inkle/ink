@@ -3,6 +3,6 @@ namespace Ink
 {
     public interface IInputInterpreter
     {
-        InputInterpretationResult ReadCommandLineInput(string userInput, Parsed.Story parsedStory, Runtime.Story runtimeStory);
+        InputInterpretationResult ReadCommandLineInput(string userInput, Parsed.Fiction parsedFiction, Runtime.Story runtimeStory);
     }
 }

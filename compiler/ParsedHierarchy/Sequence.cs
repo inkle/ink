@@ -186,7 +186,7 @@ namespace Ink.Parsed
             });
         }
 
-        public override void ResolveReferences(Story context)
+        public override void ResolveReferences(Fiction context)
         {
             base.ResolveReferences (context);
 

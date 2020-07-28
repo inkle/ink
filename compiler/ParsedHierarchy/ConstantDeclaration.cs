@@ -24,11 +24,11 @@ namespace Ink.Parsed
             return null;
         }
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 
-            context.CheckForNamingCollisions (this, constantName, Story.SymbolType.Var);
+            context.CheckForNamingCollisions (this, constantName, Fiction.SymbolType.Var);
         }
 
         public override string typeName {

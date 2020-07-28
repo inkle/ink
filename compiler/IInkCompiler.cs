@@ -3,10 +3,10 @@ namespace Ink
 {
     public interface IInkCompiler
     {
-        Parsed.Story parsedStory { get; }
+        Parsed.Fiction ParsedFiction { get; }
 
         Runtime.Story Compile();
-        Parsed.Story Parse();
+        Parsed.Fiction Parse();
         InputInterpretationResult ReadCommandLineInput(string userInput);
         void RetrieveDebugSourceForLatestContent();
     }

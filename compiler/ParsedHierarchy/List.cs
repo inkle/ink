@@ -30,7 +30,7 @@ namespace Ink.Parsed
                         listItemName = nameParts [0];
                     }
 
-                    var listItem = story.ResolveListItem (listName, listItemName, this);
+                    var listItem = ParsedFiction.ResolveListItem (listName, listItemName, this);
                     if (listItem == null) {
                         if (listName == null)
                             Error ("Could not find list definition that contains item '" + itemName + "'");

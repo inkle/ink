@@ -10,11 +10,11 @@ namespace Ink.Parsed
 		{
 		}
 
-        public override void ResolveReferences (Story context)
+        public override void ResolveReferences (Fiction context)
         {
             base.ResolveReferences (context);
 
-            var parentStory = this.story;
+            var parentStory = this.ParsedFiction;
 
             // Enforce rule that stitches must not have the same
             // name as any knots that exist in the story
