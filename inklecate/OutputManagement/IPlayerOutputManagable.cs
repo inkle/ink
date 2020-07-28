@@ -17,7 +17,7 @@ namespace Ink.Inklecate.OutputManagement
         
         void ShowStreamError(ConsoleUserInterfaceOptions options);
 
-        void ShowOutputResult(Compiler.CommandLineInputResult result, ConsoleUserInterfaceOptions options);
+        void ShowOutputResult(InputInterpretationResult result, ConsoleUserInterfaceOptions options);
 
         void ShowChoiceOutOffRange(ConsoleUserInterfaceOptions options);
 

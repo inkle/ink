@@ -7,7 +7,7 @@ namespace Ink
 
         Runtime.Story Compile();
         Parsed.Story Parse();
-        Compiler.CommandLineInputResult ReadCommandLineInput(string userInput);
+        InputInterpretationResult ReadCommandLineInput(string userInput);
         void RetrieveDebugSourceForLatestContent();
     }
 }

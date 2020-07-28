@@ -263,7 +263,7 @@ namespace Inklecate.Tests
                 var testInput = "TestInput";
                 outputManager.GetUserInput().Returns(x => testInput);
                 var compiler = Substitute.For<IInkCompiler>();
-                var commandLineInputResult = new Compiler.CommandLineInputResult
+                var commandLineInputResult = new InputInterpretationResult
                 {
                     requestsExit = false,
                     choiceIdx = 0, // the first valid index
@@ -294,7 +294,7 @@ namespace Inklecate.Tests
                 var testInput = "TestInput";
                 outputManager.GetUserInput().Returns(x => testInput);
                 var compiler = Substitute.For<IInkCompiler>();
-                var commandLineInputResult = new Compiler.CommandLineInputResult
+                var commandLineInputResult = new InputInterpretationResult
                 {
                     requestsExit = false,
                     choiceIdx = -1, // below range
@@ -326,7 +326,7 @@ namespace Inklecate.Tests
                 var testInput = "TestInput";
                 outputManager.GetUserInput().Returns(x => testInput);
                 var compiler = Substitute.For<IInkCompiler>();
-                var commandLineInputResult = new Compiler.CommandLineInputResult
+                var commandLineInputResult = new InputInterpretationResult
                 {
                     requestsExit = false,
                     choiceIdx = 1, // above range
@@ -375,7 +375,7 @@ namespace Inklecate.Tests
                 var path = "test path";
                 var testOutput = "test output";
                 var index = 0;
-                var result = new Compiler.CommandLineInputResult() { choiceIdx = index, divertedPath = path, requestsExit = true, output = testOutput };
+                var result = new InputInterpretationResult() { choiceIdx = index, divertedPath = path, requestsExit = true, output = testOutput };
                 var choice = new Choice();
                 var choices = new List<Choice>() { choice };
 
@@ -401,7 +401,7 @@ namespace Inklecate.Tests
                 var path = "test path";
                 var testOutput = "test output";
                 var index = -1;
-                var result = new Compiler.CommandLineInputResult() { choiceIdx = index, divertedPath = path, requestsExit = true, output = testOutput };
+                var result = new InputInterpretationResult() { choiceIdx = index, divertedPath = path, requestsExit = true, output = testOutput };
                 var choice = new Choice();
                 var choices = new List<Choice>() { choice };
 
@@ -427,7 +427,7 @@ namespace Inklecate.Tests
                 var path = "test path";
                 var testOutput = "test output";
                 var index = 1;
-                var result = new Compiler.CommandLineInputResult() { choiceIdx = index, divertedPath = path, requestsExit = true, output = testOutput };
+                var result = new InputInterpretationResult() { choiceIdx = index, divertedPath = path, requestsExit = true, output = testOutput };
                 var choice = new Choice();
                 var choices = new List<Choice>() { choice };
 

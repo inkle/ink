@@ -47,7 +47,7 @@ namespace Ink.Inklecate.OutputManagement
 
         }
 
-        public void ShowOutputResult(Compiler.CommandLineInputResult result, ConsoleUserInterfaceOptions options)
+        public void ShowOutputResult(InputInterpretationResult result, ConsoleUserInterfaceOptions options)
         {
             if (result.output != null)
             {

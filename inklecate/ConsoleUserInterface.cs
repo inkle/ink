@@ -185,7 +185,7 @@ namespace Ink.Inklecate
         /// <param name="uiResult">The UI result.</param>
         /// <param name="result">The result.</param>
         /// <param name="choices">The choices.</param>
-        public virtual void ProcessCommandLineInputResult(UserInteractionResult uiResult, Compiler.CommandLineInputResult result, List<Choice> choices)
+        public virtual void ProcessCommandLineInputResult(UserInteractionResult uiResult, InputInterpretationResult result, List<Choice> choices)
         {
             if (uiResult == null || result == null)
                 return;
