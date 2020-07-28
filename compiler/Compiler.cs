@@ -60,30 +60,39 @@ namespace Ink
 
         public Runtime.Story Compile()
         {
-            var parsedStory = Parse();
+            var parsedFiction = Parse();
 
-            if (_pluginManager != null)
-                _pluginManager.PostParse(parsedStory);
 
-            if (parsedStory != null && !_hadParseError)
-            {
-
-                parsedStory.countAllVisits = _options.countAllVisits;
-
-                _runtimeStory = parsedStory.ExportRuntime();
-
-                if (_pluginManager != null)
-                    _pluginManager.PostExport(parsedStory, _runtimeStory);
-            }
-            else
-            {
-                _runtimeStory = null;
-            }
+            _runtimeStory = CreateStory(parsedFiction);
 
             return _runtimeStory;
         }
 
-        public InputInterpretationResult ReadCommandLineInput(string userInput)
+        private Runtime.Story CreateStory(Parsed.Fiction parsedFiction)
+        {
+            Runtime.Story runtimeStory = null;
+
+            if (_pluginManager != null)
+                _pluginManager.PostParse(parsedFiction);
+
+            if (parsedFiction != null && !_hadParseError)
+            {
+
+                parsedFiction.countAllVisits = _options.countAllVisits;
+
+                runtimeStory = parsedFiction.ExportRuntime();
+
+                if (_pluginManager != null)
+                    _pluginManager.PostExport(parsedFiction, runtimeStory);
+            }
+            else
+            {
+                runtimeStory = null;
+            }
+            return runtimeStory;
+        }
+
+        public InputInterpretationResult InterpretCommandLineInput(string userInput)
         {
             var inputParser = new InkParser.InkParser(userInput);
             var inputResult = inputParser.CommandLineUserInput();

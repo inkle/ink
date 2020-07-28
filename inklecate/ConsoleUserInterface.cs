@@ -160,7 +160,7 @@ namespace Ink.Inklecate
             }
             else
             {
-                var result = Compiler.ReadCommandLineInput(userInput);
+                var result = Compiler.InterpretCommandLineInput(userInput);
                 if (result == null)
                     return null;
 

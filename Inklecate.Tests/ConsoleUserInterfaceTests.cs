@@ -240,7 +240,7 @@ namespace Inklecate.Tests
                 var testInput = "TestInput";
                 outputManager.GetUserInput().Returns(x => testInput);
                 var compiler = Substitute.For<IInkCompiler>();
-                compiler.ReadCommandLineInput(testInput).Returns(x => null);
+                compiler.InterpretCommandLineInput(testInput).Returns(x => null);
                 var consoleUI = new ConsoleUserInterface(compiler) { OutputManager = outputManager };
 
                 var choice = new Choice() { text = "Test" };
@@ -270,7 +270,7 @@ namespace Inklecate.Tests
                     divertedPath = null,
                     output = "TestOutput",                    
                 };
-                compiler.ReadCommandLineInput(testInput).Returns(x => commandLineInputResult);
+                compiler.InterpretCommandLineInput(testInput).Returns(x => commandLineInputResult);
                 var consoleUI = new ConsoleUserInterface(compiler) { OutputManager = outputManager };
 
                 var choice = new Choice() { text = "Test" };
@@ -301,7 +301,7 @@ namespace Inklecate.Tests
                     divertedPath = null,
                     output = "TestOutput",
                 };
-                compiler.ReadCommandLineInput(testInput).Returns(x => commandLineInputResult);
+                compiler.InterpretCommandLineInput(testInput).Returns(x => commandLineInputResult);
                 var consoleUI = new ConsoleUserInterface(compiler) { OutputManager = outputManager };
 
                 var choice = new Choice() { text = "Test" };
@@ -333,7 +333,7 @@ namespace Inklecate.Tests
                     divertedPath = null,
                     output = "TestOutput",
                 };
-                compiler.ReadCommandLineInput(testInput).Returns(x => commandLineInputResult);
+                compiler.InterpretCommandLineInput(testInput).Returns(x => commandLineInputResult);
                 var consoleUI = new ConsoleUserInterface(compiler) { OutputManager = outputManager };
 
                 var choice = new Choice() { text = "Test" };

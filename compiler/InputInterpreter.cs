@@ -9,7 +9,7 @@ namespace Ink
         List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange>();
 
 
-        public InputInterpretationResult ReadCommandLineInput(string userInput, Parsed.Fiction parsedFiction, Runtime.Story runtimeStory)
+        public InputInterpretationResult InterpretCommandLineInput(string userInput, Parsed.Fiction parsedFiction, Runtime.Story runtimeStory)
         {
             var inputParser = new InkParser.InkParser(userInput);
             var inputResult = inputParser.CommandLineUserInput();
