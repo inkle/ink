@@ -341,6 +341,15 @@ Precompiling your stories is more efficient than loading .ink at runtime. That s
 	Ink.Runtime.Story story = compiler.Compile();
 	Debug.Log(story.Continue());
 
+Note that if your story is broken up into several ink files using the INCLUDE keyword, that you will need to use:
+
+	var compiler = new Ink.Compiler(inkFileContents, new Compiler.Options
+	{
+		countAllVisits = true,
+		fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(inkAbsoluteFilePath))
+	});
+	Ink.Runtime.Story story = compiler.Compile();
+	Debug.Log(story.Continue());
 
 ## Debugging ink engine issues
 
