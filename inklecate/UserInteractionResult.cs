@@ -9,7 +9,7 @@ namespace Ink
         public bool IsInputStreamClosed { get; set; }
         public bool IsExitRequested { get; set; }
         public bool IsValidChoice { get; set; }
-        public int ChosenIdex { get; set; } = -1;
+        public int ChosenIndex { get; set; } = -1;
         public string DivertedPath { get; set; }
         public string Output { get; set; }
     }

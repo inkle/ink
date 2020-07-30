@@ -74,7 +74,7 @@ namespace Ink.Parsed
             return new Runtime.ListValue (initialValues);
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 
@@ -119,7 +119,7 @@ namespace Ink.Parsed
             throw new System.NotImplementedException ();
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 

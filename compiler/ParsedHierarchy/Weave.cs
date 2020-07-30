@@ -445,7 +445,7 @@ namespace Ink.Parsed
             looseEnds.Add(childWeaveLooseEnd);
         }
 
-        public override void ResolveReferences(Fiction context)
+        public override void ResolveReferences(IFiction context)
         {
             base.ResolveReferences (context);
 

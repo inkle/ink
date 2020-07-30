@@ -3,8 +3,8 @@ using System.Text;
 
 namespace Ink.Parsed
 {
-	public abstract class Object
-	{
+	public abstract class Object : IObject
+    {
         public Runtime.DebugMetadata debugMetadata { 
             get {
                 if (_debugMetadata == null) {
@@ -273,7 +273,7 @@ namespace Ink.Parsed
 
 		public abstract Runtime.Object GenerateRuntimeObject ();
 
-        public virtual void ResolveReferences(Fiction context)
+        public virtual void ResolveReferences(IFiction context)
 		{
             if (content != null) {
                 foreach(var obj in content) {

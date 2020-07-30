@@ -89,7 +89,8 @@ class InkTestBed
     	compiler = new Compiler (inkSource, new CompilerOptions {
     	});
 
-    	story = compiler.Compile ();
+        Ink.Parsed.Fiction parsedFiction = null;
+        story = compiler.Compile (out parsedFiction);
         story.StoryError += StoryErrorHandler;
 
         return story;
@@ -117,7 +118,8 @@ class InkTestBed
     {
         compiler = CreateCompiler(filename);
 
-        story = compiler.Compile ();
+        Ink.Parsed.Fiction parsedFiction = null;
+        story = compiler.Compile (out parsedFiction);
         //story.onError += OnError;
 
         return story;

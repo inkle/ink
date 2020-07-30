@@ -6,10 +6,10 @@ namespace Ink
 {
     public class InputInterpreter : IInputInterpreter
     {
-        List<DebugSourceRange> _debugSourceRanges = new List<DebugSourceRange>();
+        public List<DebugSourceRange> DebugSourceRanges { get; set; } = new List<DebugSourceRange>();
 
 
-        public InputInterpretationResult InterpretCommandLineInput(string userInput, Parsed.Fiction parsedFiction, Runtime.Story runtimeStory)
+        public InputInterpretationResult InterpretCommandLineInput(string userInput, Parsed.IFiction parsedFiction, Runtime.IStory runtimeStory)
         {
             var inputParser = new InkParser.InkParser(userInput);
             var inputResult = inputParser.CommandLineUserInput();
@@ -68,7 +68,7 @@ namespace Ink
                     }
                 }
 
-                parsedObj.parent = parsedFiction;
+                parsedObj.parent = (Parsed.Object) parsedFiction;
                 var runtimeObj = parsedObj.runtimeObject;
 
                 parsedObj.ResolveReferences(parsedFiction);
@@ -111,7 +111,7 @@ namespace Ink
             int currOffset = 0;
 
             Runtime.DebugMetadata lastValidMetadata = null;
-            foreach (var range in _debugSourceRanges)
+            foreach (var range in DebugSourceRanges)
             {
                 if (range.debugMetadata != null)
                     lastValidMetadata = range.debugMetadata;
@@ -123,6 +123,22 @@ namespace Ink
             }
 
             return null;
+        }
+
+        public void RetrieveDebugSourceForLatestContent(Runtime.IStory runtimeStory)
+        {
+            foreach (var outputObj in runtimeStory.state.outputStream)
+            {
+                var textContent = outputObj as Runtime.StringValue;
+                if (textContent != null)
+                {
+                    var range = new DebugSourceRange();
+                    range.length = textContent.value.Length;
+                    range.debugMetadata = textContent.debugMetadata;
+                    range.text = textContent.value;
+                    DebugSourceRanges.Add(range);
+                }
+            }
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Ink.Parsed
             container.AddContent (_runtimeVarRef);
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 

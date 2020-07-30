@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Ink.Parsed
 {
-    public class Fiction : FlowBase
+    public class Fiction : FlowBase, IFiction
     {
         public override FlowLevel flowLevel { get { return FlowLevel.Story; } }
 
@@ -17,11 +17,11 @@ namespace Ink.Parsed
         /// Most of the time it shouldn't be necessary to use this
         /// since errors should be caught by the error handler.
         /// </summary>
-        internal bool hadError { get { return _hadError; } }
+        public bool hadError { get { return _hadError; } }
         internal bool hadWarning { get { return _hadWarning; } }
 
         public Dictionary<string, Expression> constants;
-        public Dictionary<string, ExternalDeclaration> externals;
+        public Dictionary<string, ExternalDeclaration> externals { get; set; }
 
         // Build setting for exporting:
         // When true, the visit count for *all* knots, stitches, choices,

@@ -172,7 +172,7 @@ namespace Ink.Parsed
                 container.AddContent (Runtime.ControlCommand.PopEvaluatedValue ());
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 

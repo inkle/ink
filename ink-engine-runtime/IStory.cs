@@ -34,5 +34,10 @@ namespace Ink.Runtime
         string Continue();
         string ToJson();
 
+        SearchResult ContentAtPath(Path path);
+
+        // Evaluate a "hot compiled" piece of ink content, as used by the REPL-like
+        // CommandLinePlayer.
+        Runtime.Object EvaluateExpression(Runtime.Container exprContainer);
     }
 }

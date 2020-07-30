@@ -19,6 +19,7 @@ namespace Ink.Inklecate
         public IEngineInteractable EngineInteractor { get; set; } = new EngineInteractor();
         public IConsoleInteractable ConsoleInteractor { get; set; } = new ConsoleInteractor();
         public IToolOutputManagable OutputManager { get; set; } = null; // default null because determined by flag
+        public IConsoleUserInterface UserInterface { get; set; } = new ConsoleUserInterface();
 
         public ParsedCommandLineOptions parsedOptions;
         public CommandLineToolOptions toolOptions;
@@ -257,27 +258,32 @@ namespace Ink.Inklecate
 
             SetOuputFormat(options);
 
-            IInkCompiler compiler = null;
-            bool finished = false;
-            bool compileSuccess = false;
-            var story = CreateStory(fileContent, options, ref compiler, ref compileSuccess, ref finished);
+            Parsed.Fiction parsedFiction;
+            var story = CreateStory(fileContent, options, out parsedFiction);
+
+            // If we have a story without errors we have compiled succesfully.
+            var compileSuccess = !(story == null || Errors.Count > 0);
             OutputManager.ShowCompileSuccess(options, compileSuccess);
-            if (finished)
+
+            // If we only wanted to show the stats we are done now.
+            if (options.IsOnlyShowJsonStatsActive)
                 return;
 
 
             PrintAllMessages();
 
+            // Without having succesfully compiled we can not go on to play or flush Json.
             if (!compileSuccess)
                 ConsoleInteractor.EnvironmentExitWithCodeError1();
 
+
             if (options.IsPlayMode)
             {
-                PlayStory(story, compiler, options);
+                PlayStory(story, parsedFiction, options);
             }
             else
             {
-                WritStoryToJsonFile(story, options);
+                WriteStoryToJsonFile(story, options);
             }
         }
 
@@ -322,32 +328,32 @@ namespace Ink.Inklecate
         /// <param name="compileSuccess">if set to <c>true</c> [compile success].</param>
         /// <param name="finished">if set to <c>true</c> [finished].</param>
         /// <returns></returns>
-        public Runtime.IStory CreateStory(string fileContent, CommandLineToolOptions options, ref IInkCompiler compiler, ref bool compileSuccess, ref bool finished)
+        public Runtime.IStory CreateStory(string fileContent, CommandLineToolOptions options, out Parsed.Fiction parsedFiction)
         {
             Runtime.IStory story = null;
 
             if (!options.IsInputFileJson)
             {
                 // Loading a normal ink file (as opposed to an already compiled json file)
-                compiler = CreateCompiler(fileContent, options);
+                var compiler = CreateCompiler(fileContent, options);
 
                 if (options.IsOnlyShowJsonStatsActive)
                 {
                     ShowStats(compiler, options);
-
-                    finished = true;
+                    parsedFiction = null;
                 }
                 else
                 {
+                    //Parsed.Fiction parsedFiction = null;
                     // Full compile
-                    story = compiler.Compile();
+                    story = compiler.Compile(out parsedFiction);
                 }
             }
             else
             {
                 story = CreateStoryFromJson(fileContent, options);
+                parsedFiction = null;
             }
-            compileSuccess = !(story == null || Errors.Count > 0);
 
             return story;
         }
@@ -391,7 +397,7 @@ namespace Ink.Inklecate
         private Runtime.IStory CreateStoryFromJson(string fileContent, CommandLineToolOptions options)
         {
             // Opening up a compiled json file for playing
-            Runtime.IStory story = EngineInteractor.CreateStoryFromJson(fileContent);
+            var story = EngineInteractor.CreateStoryFromJson(fileContent);
 
             // No purpose for loading an already compiled file other than to play it
             options.IsPlayMode = true;
@@ -403,11 +409,10 @@ namespace Ink.Inklecate
         /// <param name="compiler">The compiler.</param>
         /// <param name="options">The options.</param>
         /// <exception cref="Exception"></exception>
-        public void PlayStory(Runtime.IStory story, IInkCompiler compiler, CommandLineToolOptions options)
+        public void PlayStory(Runtime.IStory story, Parsed.Fiction parsedFiction, CommandLineToolOptions options)
         {
             // Always allow ink external fallbacks
             story.allowExternalFunctionFallbacks = true;
-            ConsoleUserInterface userInterface = CreateConsoleUserInterface(compiler);
 
             //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
             ConsoleInteractor.ResetColorOnCancelKeyPress();
@@ -420,7 +425,7 @@ namespace Ink.Inklecate
                     IsKeepRunningAfterStoryFinishedNeeded = options.IsKeepRunningAfterStoryFinishedNeeded,
                     IsJsonOutputNeeded = options.IsJsonOutputNeeded
                 };
-                userInterface.Begin(story, uiOptions);
+                UserInterface.Begin(story, parsedFiction, uiOptions);
             }
             catch (Runtime.StoryException e)
             {
@@ -448,18 +453,10 @@ namespace Ink.Inklecate
             }
         }
 
-        /// <summary>Creates the console user interface.</summary>
-        /// <param name="compiler">The compiler.</param>
-        /// <returns></returns>
-        public virtual ConsoleUserInterface CreateConsoleUserInterface(IInkCompiler compiler)
-        {
-            return new ConsoleUserInterface(compiler);
-        }
-
         /// <summary>Writes the compiled story to a json file.</summary>
         /// <param name="story">The story.</param>
         /// <param name="options">The options.</param>
-        public void WritStoryToJsonFile(Runtime.IStory story, CommandLineToolOptions options)
+        public void WriteStoryToJsonFile(Runtime.IStory story, CommandLineToolOptions options)
         {
             // Compile mode
             var jsonStr = story.ToJson();

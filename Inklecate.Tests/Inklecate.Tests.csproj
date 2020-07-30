@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\compiler\ink_compiler.csproj" />
+    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj" />
     <ProjectReference Include="..\inklecate\inklecate.csproj" />
   </ItemGroup>
 

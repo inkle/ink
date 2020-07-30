@@ -333,7 +333,7 @@ namespace Ink.Parsed
             return null;
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             if (_startingSubFlowDivert) {
                 _startingSubFlowDivert.targetPath = _startingSubFlowRuntime.path;

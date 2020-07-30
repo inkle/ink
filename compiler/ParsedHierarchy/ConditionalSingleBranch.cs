@@ -141,7 +141,7 @@ namespace Ink.Parsed
             return _innerWeave.rootContainer;
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             _conditionalDivert.targetPath = _contentContainer.path;
 

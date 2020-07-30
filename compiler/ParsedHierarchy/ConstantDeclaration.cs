@@ -24,7 +24,7 @@ namespace Ink.Parsed
             return null;
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 

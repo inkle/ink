@@ -74,7 +74,7 @@ namespace Ink.Parsed
             container.AddContent(Runtime.NativeFunctionCall.CallWithName(opName));
 		}
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 
@@ -234,7 +234,7 @@ namespace Ink.Parsed
             container.AddContent (_runtimeAssignment);
         }
 
-        public override void ResolveReferences (Fiction context)
+        public override void ResolveReferences (IFiction context)
         {
             base.ResolveReferences (context);
 

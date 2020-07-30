@@ -13,40 +13,30 @@ using System.Linq.Expressions;
 namespace Ink.Inklecate
 {
     /// <summary>The ConsoleUserInterface class encapsulates the functionality of the user interface run in the console.</summary>
-    public class ConsoleUserInterface
+    public class ConsoleUserInterface : IConsoleUserInterface
     {
         #region Properties
 
         public IConsoleInteractable ConsoleInteractor { get; set; } = new ConsoleInteractor();
         public IChoiceGeneratable ChoiceGenerator { get; set; } = new ChoiceGenerator();
         public IPlayerOutputManagable OutputManager { get; set; } = null; // default null because determined by flag
+        public IInputInterpreter Interpreter { get; set; } = new InputInterpreter();
 
-        public IInkCompiler Compiler { get; set; }
 
         public List<string> Errors { get; set; } = new List<string>();
         public List<string> Warnings { get; set; } = new List<string>();
 
         #endregion Properties
 
-        #region Constructor
-
-        /// <summary>Initializes a new instance of the <see cref="ConsoleUserInterface" /> class.</summary>
-        /// <param name="compiler">The compiler.</param>
-        public ConsoleUserInterface(IInkCompiler compiler)
-        {
-            Compiler = compiler;
-        }
-
-        #endregion Constructor
-
         #region Player interaction
 
         /// <summary>Begins the user interaction with the specified story.</summary>
         /// <param name="story">The story.</param>
+        /// <param name="parsedFiction"></param>
         /// <param name="options">The options.</param>
-        public void Begin(IStory story, ConsoleUserInterfaceOptions options)
+        public void Begin(Runtime.IStory story, Parsed.IFiction parsedFiction, ConsoleUserInterfaceOptions options)
         {
-            if (story == null || options == null)
+            if (story == null || parsedFiction == null)
                 return;
 
             SetOutputFormat(options);
@@ -57,46 +47,54 @@ namespace Ink.Inklecate
 
             EvaluateStory(story, options);
 
-            bool continueAfterThisPoint = false;
-            while (!continueAfterThisPoint && (story.HasCurrentChoices || options.IsKeepRunningAfterStoryFinishedNeeded))
+            bool continueAfterThisPoint = true;
+            bool isKeepRunningAfterStoryFinishedNeeded = options != null ? options.IsKeepRunningAfterStoryFinishedNeeded : false;
+            while (continueAfterThisPoint && (story.HasCurrentChoices || isKeepRunningAfterStoryFinishedNeeded))
             {
-                continueAfterThisPoint = RunStoryUntilContinuationPoint(story, options);
+                continueAfterThisPoint = RunStoryUntilContinuationPoint(story, parsedFiction, options);
             }
         }
 
         /// <summary>Runs the story until continuation point.</summary>
         /// <param name="story">The story.</param>
+        /// <param name="parsedFiction"></param>
         /// <param name="options">The options.</param>
         /// <returns></returns>
-        private bool RunStoryUntilContinuationPoint(IStory story, ConsoleUserInterfaceOptions options)
+        public virtual bool RunStoryUntilContinuationPoint(Runtime.IStory story, Parsed.IFiction parsedFiction, ConsoleUserInterfaceOptions options)
         {
-            var choices = story.currentChoices;
+            if (story == null)
+                return false;
 
-            if (options.IsAutoPlayActive)
+
+             var choices = story.currentChoices;
+
+            bool isAutoPlayActive = options != null ? options.IsAutoPlayActive : false;
+            if (isAutoPlayActive)
             {
                 // autoPlay: Pick random choice
                 var choiceIndex = ChoiceGenerator.GetRandomChoice(choices.Count);
 
-                Console.ResetColor();
+                ConsoleInteractor.ResetConsoleColor();
             }
             else
             {
                 // Normal: Ask user for choice number
                 OutputManager.ShowChoices(choices, options);
 
-                var uiResult = GetPropperUserInteractionResult(choices, options);
+                var uiResult = GetPropperUserInteractionResult(story, parsedFiction, options);
+                ConsoleInteractor.ResetConsoleColor();
+
                 if (uiResult == null)
+                {
                     return false;
-
-                Console.ResetColor();
-
-                if (uiResult.IsInputStreamClosed)
+                }
+                else if (uiResult.IsInputStreamClosed)
                 {
                     return false;
                 }
                 else if (uiResult.IsValidChoice)
                 {
-                    story.ChooseChoiceIndex(uiResult.ChosenIdex);
+                    story.ChooseChoiceIndex(uiResult.ChosenIndex);
                 }
                 else if (uiResult.DivertedPath != null)
                 {
@@ -111,20 +109,18 @@ namespace Ink.Inklecate
         }
 
         /// <summary>Gets a propper user interaction result.</summary>
-        /// <param name="choices">The choices.</param>
+        /// <param name="runtimeStory"></param>
+        /// <param name="parsedFiction"></param>
         /// <param name="options">The options.</param>
         /// <returns></returns>
-        public UserInteractionResult GetPropperUserInteractionResult(List<Choice> choices, ConsoleUserInterfaceOptions options)
+        public virtual UserInteractionResult GetPropperUserInteractionResult(Runtime.IStory runtimeStory, Parsed.IFiction parsedFiction, ConsoleUserInterfaceOptions options)
         {
-            if (choices == null || options == null)
-                return null;
-            
             UserInteractionResult uiResult;
             do
             {
-                uiResult = GetUserInteractionResult(choices, options);
+                uiResult = GetUserInteractionResult(runtimeStory, parsedFiction, options);
             }
-            while (   !(uiResult == null                    // if the uiResult is null something is seriously wrong and we stop asking and go on.
+            while (!(uiResult == null                    // if the uiResult is null something is seriously wrong and we stop asking and go on.
                      || uiResult.IsInputStreamClosed        // We keep asking the user again for input as long as the stream is active
                      || uiResult.IsExitRequested            // no exit is requested 
                      || uiResult.IsValidChoice              // no valid choice was made
@@ -134,14 +130,12 @@ namespace Ink.Inklecate
         }
 
         /// <summary>Gets the user interaction result.</summary>
-        /// <param name="choices">The choices.</param>
+        /// <param name="runtimeStory"></param>
+        /// <param name="parsedFiction"></param>
         /// <param name="options">The options.</param>
         /// <returns></returns>
-        public virtual UserInteractionResult GetUserInteractionResult(List<Choice> choices, ConsoleUserInterfaceOptions options)
+        public virtual UserInteractionResult GetUserInteractionResult(Runtime.IStory runtimeStory, Parsed.IFiction parsedFiction, ConsoleUserInterfaceOptions options)
         {
-            if (choices == null || options == null)
-                return null;
-
             var uiResult = new UserInteractionResult();
 
             OutputManager.RequestInput(options);
@@ -160,11 +154,12 @@ namespace Ink.Inklecate
             }
             else
             {
-                var result = Compiler.InterpretCommandLineInput(userInput);
+                var result = Interpreter.InterpretCommandLineInput(userInput, parsedFiction, runtimeStory);
                 if (result == null)
                     return null;
 
-                ProcessCommandLineInputResult(uiResult, result, choices);
+
+                ProcessCommandLineInputResult(uiResult, result, runtimeStory);
 
                 if (uiResult.Output != null)
                 {
@@ -184,19 +179,22 @@ namespace Ink.Inklecate
         /// <summary>Processes the command line input result.</summary>
         /// <param name="uiResult">The UI result.</param>
         /// <param name="result">The result.</param>
-        /// <param name="choices">The choices.</param>
-        public virtual void ProcessCommandLineInputResult(UserInteractionResult uiResult, InputInterpretationResult result, List<Choice> choices)
+        /// <param name="choiceCount">The choices counted.</param>
+        public virtual void ProcessCommandLineInputResult(UserInteractionResult uiResult, InputInterpretationResult result, Runtime.IStory runtimeStory)
         {
             if (uiResult == null || result == null)
                 return;
-            
+
             uiResult.IsExitRequested = result.requestsExit;
-            uiResult.ChosenIdex = result.choiceIdx;
+            uiResult.ChosenIndex = result.choiceIdx;
             uiResult.DivertedPath = result.divertedPath;
             uiResult.Output = result.output;
-            
 
-            if (choices != null && result.choiceIdx >= 0 && result.choiceIdx < choices.Count)
+            int choiceCount = 0;
+            if (runtimeStory != null && runtimeStory.currentChoices != null)
+                choiceCount = runtimeStory.currentChoices.Count;
+
+            if (result.choiceIdx >= 0 && result.choiceIdx < choiceCount)
             {
                 // The choice is only valid if it's a valid index.
                 uiResult.IsValidChoice = true;
@@ -205,13 +203,14 @@ namespace Ink.Inklecate
 
         /// <summary>Sets the output format.</summary>
         /// <param name="options">The options.</param>
-        public void SetOutputFormat(ConsoleUserInterfaceOptions options)
+        public virtual void SetOutputFormat(ConsoleUserInterfaceOptions options)
         {
             // Instrument the story with the kind of output that is requested.
-            if (options == null || !options.IsJsonOutputNeeded)
-                OutputManager = new ConsolePlayerOutputManager(ConsoleInteractor);
-            else
+            bool isJsonOutputNeeded = options != null ? options.IsJsonOutputNeeded : false;
+            if (isJsonOutputNeeded)
                 OutputManager = new JsonPlayerOutputManager(ConsoleInteractor);
+            else
+                OutputManager = new ConsolePlayerOutputManager(ConsoleInteractor);
         }
 
         #endregion Player interaction
@@ -231,7 +230,8 @@ namespace Ink.Inklecate
                 EvaluateNextStoryLine(story, options);
             }
 
-            if (!story.HasCurrentChoices && options.IsKeepRunningAfterStoryFinishedNeeded)
+            bool isKeepRunningAfterStoryFinishedNeeded = options != null ? options.IsKeepRunningAfterStoryFinishedNeeded : false;
+            if (!story.HasCurrentChoices && isKeepRunningAfterStoryFinishedNeeded)
             {
                 OutputManager.ShowEndOfStory(options);
             }
@@ -242,12 +242,12 @@ namespace Ink.Inklecate
         /// <param name="options">The options.</param>
         public virtual void EvaluateNextStoryLine(IStory story, ConsoleUserInterfaceOptions options)
         {
-            if (story == null || options == null)
+            if (story == null)
                 return;
 
             story.Continue();
 
-            Compiler.RetrieveDebugSourceForLatestContent();
+            Interpreter.RetrieveDebugSourceForLatestContent(story);
 
             OutputManager.ShowCurrentText(story, options);
 

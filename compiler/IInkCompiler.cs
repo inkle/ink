@@ -5,9 +5,7 @@ namespace Ink
     {
         Parsed.Fiction ParsedFiction { get; }
 
-        Runtime.Story Compile();
+        Runtime.Story Compile(out Parsed.Fiction parsedFiction);
         Parsed.Fiction Parse();
-        InputInterpretationResult InterpretCommandLineInput(string userInput);
-        void RetrieveDebugSourceForLatestContent();
     }
 }

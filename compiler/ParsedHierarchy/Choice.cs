@@ -232,7 +232,7 @@ namespace Ink.Parsed
             return _outerContainer;
 		}
 
-        public override void ResolveReferences(Fiction context)
+        public override void ResolveReferences(IFiction context)
 		{
 			// Weave style choice - target own content container
             if (_innerContentContainer) {
