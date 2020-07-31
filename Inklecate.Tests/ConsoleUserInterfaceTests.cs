@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using Xunit;
 using FluentAssertions;
-using Ink.Inklecate;
-using Ink.Inklecate.Interaction;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using Ink;
-using Ink.Inklecate.OutputManagement;
-using Ink.Runtime;
 using NSubstitute.Extensions;
 using NSubstitute.ReceivedExtensions;
+using NSubstitute.ExceptionExtensions;
+
+using Ink;
+using Ink.Inklecate;
+using Ink.Inklecate.Interaction;
+using Ink.Inklecate.OutputManagement;
+using Ink.Runtime;
 using Ink.Parsed;
 
-namespace Inklecate.Tests
+namespace Ink.Inklecate.Tests
 {
     public class ConsoleUserInterfaceTests
     {

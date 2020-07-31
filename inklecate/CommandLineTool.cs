@@ -85,7 +85,8 @@ namespace Ink.Inklecate
             // Getting the current dir early is better in ustable situations.
             string startingDirectory = Directory.GetCurrentDirectory();
 
-            parsedOptions = ParseArguments(args);
+            var parsedOptions = new ParsedCommandLineOptions();
+            ParseArguments(args, parsedOptions);
             if (parsedOptions == null || !parsedOptions.IsInputPathGiven)
                 ExitWithUsageInstructions();
 
@@ -99,12 +100,10 @@ namespace Ink.Inklecate
         /// <summary>Parses the command line arguments.</summary>
         /// <param name="args">The command line arguments.</param>
         /// <returns>An options object.</returns>
-        public ParsedCommandLineOptions ParseArguments(string[] args)
+        public void ParseArguments(string[] args, ParsedCommandLineOptions options)
         {
-            if (args == null || args.Length == 0)
-                return null;
-
-            var options = new ParsedCommandLineOptions();
+            if (args == null || args.Length == 0 || options == null)
+                return;
 
             bool expectingOutputFilename = false;
             bool expectingPluginName = false;
@@ -153,7 +152,6 @@ namespace Ink.Inklecate
                     ConsoleInteractor.WriteWarning("Unexpected argument: '{0}'", argument); break;
                 }
             }
-            return options;
         }
 
         /// <summary>Proceses the output file path.</summary>

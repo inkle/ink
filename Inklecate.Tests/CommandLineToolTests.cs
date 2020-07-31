@@ -2,10 +2,17 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 using FluentAssertions;
+using NSubstitute;
+using NSubstitute.Extensions;
+using NSubstitute.ReceivedExtensions;
+using NSubstitute.ExceptionExtensions;
+
+using Ink;
 using Ink.Inklecate;
 using Ink.Inklecate.Interaction;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
+using Ink.Inklecate.OutputManagement;
+using Ink.Runtime;
+using Ink.Parsed;
 
 namespace Ink.Inklecate.Tests
 {
@@ -20,7 +27,7 @@ namespace Ink.Inklecate.Tests
                 var tool = new CommandLineTool();
 
                 // Act
-                tool.ParseArguments(null);
+                tool.ParseArguments(null, null);
 
                 // Assert
                 // Without arguments the function should process nothing.
@@ -30,139 +37,145 @@ namespace Ink.Inklecate.Tests
             public void With_OnlyInputFile()
             {
                 // Arrange
+                var options = new ParsedCommandLineOptions();
                 const string InputFilePath = "test.ink";
 
                 string[] args = new string[] { InputFilePath };
                 var tool = new CommandLineTool();
 
                 // Act
-                var parsedOptions = tool.ParseArguments(args);
+                tool.ParseArguments(args, options);
 
                 // Assert
-                parsedOptions.Should().NotBeNull("because the parsing should succeed");
+                options.Should().NotBeNull("because the parsing should succeed");
 
-                parsedOptions.InputFilePath.Should().BeEquivalentTo(InputFilePath);
+                options.InputFilePath.Should().BeEquivalentTo(InputFilePath);
 
-                parsedOptions.OutputFilePath.Should().BeNull("because none was given");
-                parsedOptions.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
-                parsedOptions.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
-                parsedOptions.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
-                parsedOptions.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
+                options.OutputFilePath.Should().BeNull("because none was given");
+                options.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
+                options.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
+                options.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
+                options.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
             }
 
             [Fact]
             public void With_InputFileAndOutputFile()
             {
                 // Arrange
+                var options = new ParsedCommandLineOptions();
                 const string ArgumentString = "-o output test.ink";
                 string[] args = ArgumentString.Split(" ");
                 var tool = new CommandLineTool();
 
                 // Act
-                var parsedOptions = tool.ParseArguments(args);
+                tool.ParseArguments(args, options);
 
                 // Assert
-                parsedOptions.Should().NotBeNull("because the parsing should succeed");
+                options.Should().NotBeNull("because the parsing should succeed");
 
-                parsedOptions.InputFilePath.Should().BeEquivalentTo("test.ink");
-                parsedOptions.OutputFilePath.Should().Be("output");
+                options.InputFilePath.Should().BeEquivalentTo("test.ink");
+                options.OutputFilePath.Should().Be("output");
 
-                parsedOptions.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
-                parsedOptions.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
-                parsedOptions.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
-                parsedOptions.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
+                options.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
+                options.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
+                options.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
+                options.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
             }
 
             [Fact]
             public void With_CountAllVisitsAndOutputFile()
             {
                 // Arrange
+                var options = new ParsedCommandLineOptions();
                 const string ArgumentString = "-c test.ink";
                 string[] args = ArgumentString.Split(" ");
                 var tool = new CommandLineTool();
 
                 // Act
-                var parsedOptions = tool.ParseArguments(args);
+                tool.ParseArguments(args, options);
 
                 // Assert
-                parsedOptions.Should().NotBeNull("because the parsing should succeed");
+                options.Should().NotBeNull("because the parsing should succeed");
 
-                parsedOptions.InputFilePath.Should().BeEquivalentTo("test.ink");
+                options.InputFilePath.Should().BeEquivalentTo("test.ink");
 
-                parsedOptions.OutputFilePath.Should().BeNull("because none was given");
-                parsedOptions.IsCountAllVisitsNeeded.Should().BeTrue("because the count all visits flag was set");
-                parsedOptions.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
-                parsedOptions.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
-                parsedOptions.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
+                options.OutputFilePath.Should().BeNull("because none was given");
+                options.IsCountAllVisitsNeeded.Should().BeTrue("because the count all visits flag was set");
+                options.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
+                options.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
+                options.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
             }
 
             [Fact]
             public void With_PlayModeAndOutputFile()
             {
                 // Arrange
+                var options = new ParsedCommandLineOptions();
                 const string ArgumentString = "-p test.ink";
                 string[] args = ArgumentString.Split(" ");
                 var tool = new CommandLineTool();
 
                 // Act
-                var parsedOptions = tool.ParseArguments(args);
+                tool.ParseArguments(args, options);
 
                 // Assert
-                parsedOptions.Should().NotBeNull("because the parsing should succeed");
+                options.Should().NotBeNull("because the parsing should succeed");
 
-                parsedOptions.InputFilePath.Should().BeEquivalentTo("test.ink");
+                options.InputFilePath.Should().BeEquivalentTo("test.ink");
 
-                parsedOptions.OutputFilePath.Should().BeNull("because none was given");
-                parsedOptions.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
-                parsedOptions.IsPlayMode.Should().BeTrue("because the playmode flag was set");
-                parsedOptions.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
-                parsedOptions.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
+                options.OutputFilePath.Should().BeNull("because none was given");
+                options.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
+                options.IsPlayMode.Should().BeTrue("because the playmode flag was set");
+                options.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
+                options.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
             }
 
             [Fact]
             public void With_VerboseAndOutputFile()
             {
                 // Arrange
+                var options = new ParsedCommandLineOptions();
                 const string ArgumentString = "-v test.ink";
                 string[] args = ArgumentString.Split(" ");
                 var tool = new CommandLineTool();
 
                 // Act
-                var parsedOptions = tool.ParseArguments(args);
+                tool.ParseArguments(args, options);
 
                 // Assert
-                parsedOptions.Should().NotBeNull("because the parsing should succeed");
+                options.Should().NotBeNull("because the parsing should succeed");
 
-                parsedOptions.InputFilePath.Should().BeEquivalentTo("test.ink");
+                options.InputFilePath.Should().BeEquivalentTo("test.ink");
 
-                parsedOptions.OutputFilePath.Should().BeNull("because none was given");
-                parsedOptions.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
-                parsedOptions.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
-                parsedOptions.IsVerboseMode.Should().BeTrue("because the verbose flag was set");
-                parsedOptions.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
+                options.OutputFilePath.Should().BeNull("because none was given");
+                options.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
+                options.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
+                options.IsVerboseMode.Should().BeTrue("because the verbose flag was set");
+                options.IsKeepOpenAfterStoryFinishNeeded.Should().BeFalse("because the keep running after finished flag was not set");
             }
 
             [Fact]
             public void With_KeepRunningAfterStoryFinishedAndOutputFileTest()
             {
                 // Arrange
+                var options = new ParsedCommandLineOptions();
                 const string ArgumentString = "-k test.ink";
                 string[] args = ArgumentString.Split(" ");
                 var tool = new CommandLineTool();
 
                 // Act
-                var parsedOptions = tool.ParseArguments(args);
+                tool.ParseArguments(args, options);
 
                 // Assert
-                parsedOptions.Should().NotBeNull("because the parsing should succeed");
+                options.Should().NotBeNull("because the parsing should succeed");
 
-                parsedOptions.InputFilePath.Should().BeEquivalentTo("test.ink");
+                options.InputFilePath.Should().BeEquivalentTo("test.ink");
 
-                parsedOptions.OutputFilePath.Should().BeNull("because none was given");
-                parsedOptions.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
-                parsedOptions.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
-                parsedOptions.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
-                parsedOptions.IsKeepOpenAfterStoryFinishNeeded.Should().BeTrue("because the keep running after finished flag was set");
+                options.OutputFilePath.Should().BeNull("because none was given");
+                options.IsCountAllVisitsNeeded.Should().BeFalse("because the count all visits flag was not set");
+                options.IsPlayMode.Should().BeFalse("because the playmode flag was not set");
+                options.IsVerboseMode.Should().BeFalse("because the verbose flag was not set");
+                options.IsKeepOpenAfterStoryFinishNeeded.Should().BeTrue("because the keep running after finished flag was set");
             }
         }
 

@@ -36,7 +36,7 @@ namespace Ink.Inklecate.OutputManagement
 
         public void ShowCompileSuccess(CommandLineToolOptions options, bool compileSuccess)
         {
-            // We don't show compile succes in the console
+            // We don't show compile success in the console
         }
 
         public void PrintAllMessages(List<string> authorMessages, List<string> warnings, List<string> errors)

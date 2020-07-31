@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ink
+namespace Ink.Inklecate
 {
     public class UserInteractionResult
     {
