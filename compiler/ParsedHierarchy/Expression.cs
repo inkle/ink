@@ -145,9 +145,11 @@ namespace Ink.Parsed
 
                 else if( op == "!" || op == "not" ) {
                     if( innerNumber.value is int ) {
-                        return new Number( ((int)innerNumber.value == 0) ? 1 : 0 );
+                        return new Number( (int)innerNumber.value == 0 );
                     } else if( innerNumber.value is float ) {
-                        return new Number( ((float)innerNumber.value == 0.0f) ? 1 : 0 );
+                        return new Number( (float)innerNumber.value == 0.0f );
+                    } else if( innerNumber.value is bool ) {
+                        return new Number( !(bool)innerNumber.value );
                     }
                 }
 

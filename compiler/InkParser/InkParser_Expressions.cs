@@ -304,9 +304,9 @@ namespace Ink
         {
             var id = Parse(Identifier);
             if (id == "true") {
-                return new Number (1);
+                return new Number (true);
             } else if (id == "false") {
-                return new Number (0);
+                return new Number (false);
             }
 
             return null;

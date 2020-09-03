@@ -1319,7 +1319,7 @@ VAR negativeLiteral3 = !(0)
 {negativeLiteral2}
 {negativeLiteral3}
 ");
-            Assert.AreEqual("-1\n0\n1\n", story.ContinueMaximally());
+            Assert.AreEqual("-1\nfalse\ntrue\n", story.ContinueMaximally());
         }
 
         [Test()]
@@ -2816,7 +2816,7 @@ LIST list = a, (b), c, (d), e
 ";
             var story = CompileString (storyStr);
 
-            Assert.AreEqual ("b, d\na, b, c, e\nb, c\n0\n1\n1\n", story.ContinueMaximally ());
+            Assert.AreEqual ("b, d\na, b, c, e\nb, c\nfalse\ntrue\ntrue\n", story.ContinueMaximally ());
         }
 
 
@@ -3195,7 +3195,7 @@ VAR x = ->place
 
         	var result = story.ContinueMaximally ();
 
-        	Assert.AreEqual ("1\n0\n1\n1\n", result);
+        	Assert.AreEqual ("true\nfalse\ntrue\ntrue\n", result);
         }
 
         [Test ()]
@@ -3781,6 +3781,34 @@ Text.
 
             Assert.AreEqual("Text.\n", story.Continue());
             Assert.AreEqual("5\n", story.Continue());
+        }
+
+        // Bools used to be represented purely
+        // using ints. However as of September 2020
+        // we decided to add "proper" bools but with the
+        // original semantics that made the int-based bools
+        // useful - i.e. the ability to easily upgrade
+        // a simple bool flag to a counter. Therefore we
+        // get the slightly nausia-inducing "true + 1 == 2",
+        // "1 == true", etc. It's for the best though, I promise!
+        [Test()]
+        public void TestBools()
+        {
+            Assert.AreEqual("true\n", CompileString("{true}").Continue());
+            Assert.AreEqual("2\n", CompileString("{true + 1}").Continue());
+            Assert.AreEqual("3\n", CompileString("{2 + true}").Continue());
+            Assert.AreEqual("0\n", CompileString("{false + false}").Continue());
+            Assert.AreEqual("2\n", CompileString("{true + true}").Continue());
+            Assert.AreEqual("true\n", CompileString("{true == 1}").Continue());
+            Assert.AreEqual("false\n", CompileString("{not 1}").Continue());
+            Assert.AreEqual("false\n", CompileString("{not true}").Continue());
+            Assert.AreEqual("true\n", CompileString("{3 > 1}").Continue());
+
+            var listHasntStory = @"
+                LIST list = a, (b), c, (d), e
+                {list !? (c)}
+            ";
+            Assert.AreEqual("true\n", CompileString(listHasntStory).Continue());
         }
 
         // Helper compile function

@@ -10,6 +10,10 @@ namespace Ink.Runtime
     // (This may not be the most sensible thing to do, but it's worked so far!)
     public enum ValueType
     {
+        // Bool is new addition, keep enum values the same, with Int==0, Float==1 etc,
+        // but for coersion rules, we want to keep bool with a lower value than Int
+        // so that it converts in the right direction
+        Bool = -1, 
         // Used in coersion
         Int,
         Float,
@@ -38,13 +42,9 @@ namespace Ink.Runtime
                 val = (float)doub;
             }
 
-            // Implicitly convert bools into ints
-            if (val is bool) {
-                bool b = (bool)val;
-                val = (int)(b ? 1 : 0);
-            }
-
-            if (val is int) {
+            if( val is bool ) {
+                return new BoolValue((bool)val);
+            } else if (val is int) {
                 return new IntValue ((int)val);
             } else if (val is long) {
                 return new IntValue ((int)(long)val);
@@ -95,6 +95,45 @@ namespace Ink.Runtime
         }
     }
 
+    public class BoolValue : Value<bool>
+    {
+        public override ValueType valueType { get { return ValueType.Bool; } }
+        public override bool isTruthy { get { return value; } }
+
+        public BoolValue(bool boolVal) : base(boolVal)
+        {
+        }
+
+        public BoolValue() : this(false) {}
+
+        public override Value Cast(ValueType newType)
+        {
+            if (newType == valueType) {
+                return this;
+            }
+
+            if (newType == ValueType.Int) {
+                return new IntValue (this.value ? 1 : 0);
+            }
+
+            if (newType == ValueType.Float) {
+                return new FloatValue (this.value ? 1.0f : 0.0f);
+            }
+
+            if (newType == ValueType.String) {
+                return new StringValue(this.value ? "true" : "false");
+            }
+
+            throw BadCastException (newType);
+        }
+
+        public override string ToString ()
+        {
+            // Instead of C# "True" / "False"
+            return value ? "true" : "false";
+        }
+    }
+
     public class IntValue : Value<int>
     {
         public override ValueType valueType { get { return ValueType.Int; } }
@@ -110,6 +149,10 @@ namespace Ink.Runtime
         {
             if (newType == valueType) {
                 return this;
+            }
+
+            if (newType == ValueType.Bool) {
+                return new BoolValue (this.value == 0 ? false : true);
             }
 
             if (newType == ValueType.Float) {
@@ -139,6 +182,10 @@ namespace Ink.Runtime
         {
             if (newType == valueType) {
                 return this;
+            }
+
+            if (newType == ValueType.Bool) {
+                return new BoolValue (this.value == 0.0f ? false : true);
             }
 
             if (newType == ValueType.Int) {

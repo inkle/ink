@@ -113,6 +113,12 @@ namespace Ink.Runtime
                 return;
             }
 
+            var boolVal = obj as BoolValue;
+            if (boolVal) {
+                writer.Write(boolVal.value);
+                return;
+            }
+
             var intVal = obj as IntValue;
             if (intVal) {
                 writer.Write(intVal.value);
@@ -324,7 +330,7 @@ namespace Ink.Runtime
         // Tag:            {"#": "the tag text"}
         public static Runtime.Object JTokenToRuntimeObject(object token)
         {
-            if (token is int || token is float) {
+            if (token is int || token is float || token is bool) {
                 return Value.Create (token);
             }
             
