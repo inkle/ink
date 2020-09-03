@@ -186,7 +186,12 @@ namespace Ink.Runtime
         {
             if (obj1.GetType() != obj2.GetType()) return false;
 
-            // Perform equality on int/float manually to avoid boxing
+            // Perform equality on int/float/bool manually to avoid boxing
+            var boolVal = obj1 as BoolValue;
+            if( boolVal != null ) {
+                return boolVal.value == ((BoolValue)obj2).value;
+            }
+
             var intVal = obj1 as IntValue;
             if( intVal != null ) {
                 return intVal.value == ((IntValue)obj2).value;

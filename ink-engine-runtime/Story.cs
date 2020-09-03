@@ -1882,6 +1882,11 @@ namespace Ink.Runtime
                 return intVal == 0 ? false : true;
             }
 
+            if (value is bool && typeof(T) == typeof(int)) {
+                bool boolVal = (bool)value;
+                return boolVal ? 1 : 0;
+            }
+
             if (typeof(T) == typeof(string)) {
                 return value.ToString ();
             }
