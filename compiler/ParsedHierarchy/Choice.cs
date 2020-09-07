@@ -8,14 +8,18 @@ namespace Ink.Parsed
         public ContentList choiceOnlyContent { get; protected set; }
         public ContentList innerContent { get; protected set; }
 
-        public string name { get; set; }
+        public string name
+        {
+            get { return identifier?.name; }
+        }
+        public Identifier identifier { get; set; }
 
-        public Expression condition { 
-            get { 
-                return _condition; 
-            } 
-            set { 
-                _condition = value; 
+        public Expression condition {
+            get {
+                return _condition;
+            }
+            set {
+                _condition = value;
                 if( _condition )
                     AddContent (_condition);
             }
@@ -115,7 +119,7 @@ namespace Ink.Parsed
             //      [(r2)]            -- return label 1 (after start content)
             //      inner content
             //  ]
-            // 
+            //
 
             _runtimeChoice = new Runtime.ChoicePoint (onceOnly);
             _runtimeChoice.isInvisibleDefault = this.isInvisibleDefault;
@@ -188,7 +192,7 @@ namespace Ink.Parsed
             if (startContent || choiceOnlyContent || condition) {
                 _outerContainer.AddContent (Runtime.ControlCommand.EvalEnd ());
             }
-                
+
             // Add choice itself
             _outerContainer.AddContent (_runtimeChoice);
 
@@ -256,8 +260,8 @@ namespace Ink.Parsed
 
             base.ResolveReferences (context);
 
-            if( name != null && name.Length > 0 )
-                context.CheckForNamingCollisions (this, name, Story.SymbolType.SubFlowAndWeave);
+            if( identifier != null && identifier.name.Length > 0 )
+                context.CheckForNamingCollisions (this, identifier, Story.SymbolType.SubFlowAndWeave);
 		}
 
         public override string ToString ()

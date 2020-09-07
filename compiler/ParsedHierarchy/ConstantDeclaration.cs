@@ -4,12 +4,16 @@ namespace Ink.Parsed
 {
     public class ConstantDeclaration : Parsed.Object
     {
-        public string constantName { get; protected set; }
+        public string constantName
+        {
+            get { return constantIdentifier?.name; }
+        }
+        public Identifier constantIdentifier { get; protected set; }
         public Expression expression { get; protected set; }
 
-        public ConstantDeclaration (string name, Expression assignedExpression)
+        public ConstantDeclaration (Identifier name, Expression assignedExpression)
         {
-            this.constantName = name;
+            this.constantIdentifier = name;
 
             // Defensive programming in case parsing of assignedExpression failed
             if( assignedExpression )
@@ -28,7 +32,7 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            context.CheckForNamingCollisions (this, constantName, Story.SymbolType.Var);
+            context.CheckForNamingCollisions (this, constantIdentifier, Story.SymbolType.Var);
         }
 
         public override string typeName {
@@ -36,7 +40,7 @@ namespace Ink.Parsed
                 return "Constant";
             }
         }
-            
+
     }
 }
 

@@ -13,12 +13,12 @@ namespace Ink.Parsed
         public bool isEmpty { get; set; }
         public bool isTunnel { get; set; }
         public bool isThread { get; set; }
-        public bool isEnd { 
+        public bool isEnd {
             get {
                 return target != null && target.dotSeparatedComponents == "END";
             }
         }
-        public bool isDone { 
+        public bool isDone {
             get {
                 return target != null && target.dotSeparatedComponents == "DONE";
             }
@@ -58,7 +58,7 @@ namespace Ink.Parsed
             // the destination. However, we need to resolve the target
             // (albeit without the runtime target) early so that
             // we can get information about the arguments - whether
-            // they're by reference - since it affects the code we 
+            // they're by reference - since it affects the code we
             // generate here.
             ResolveTargetContent ();
 
@@ -91,8 +91,8 @@ namespace Ink.Parsed
 
                     for (var i = 0; i < arguments.Count; ++i) {
                         Expression argToPass = arguments [i];
-                        FlowBase.Argument argExpected = null; 
-                        if( targetArguments != null && i < targetArguments.Count ) 
+                        FlowBase.Argument argExpected = null;
+                        if( targetArguments != null && i < targetArguments.Count )
                             argExpected = targetArguments [i];
 
                         // Pass by reference: argument needs to be a variable reference
@@ -100,12 +100,12 @@ namespace Ink.Parsed
 
                             var varRef = argToPass as VariableReference;
                             if (varRef == null) {
-                                Error ("Expected variable name to pass by reference to 'ref " + argExpected.name + "' but saw " + argToPass.ToString ());
+                                Error ("Expected variable name to pass by reference to 'ref " + argExpected.identifier + "' but saw " + argToPass.ToString ());
                                 break;
                             }
 
                             // Check that we're not attempting to pass a read count by reference
-                            var targetPath = new Path(varRef.path);
+                            var targetPath = new Path(varRef.pathIdentifiers);
                             Parsed.Object targetForCount = targetPath.ResolveFromContext (this);
                             if (targetForCount != null) {
                                 Error ("can't pass a read count by reference. '" + targetPath.dotSeparatedComponents+"' is a knot/stitch/label, but '"+target.dotSeparatedComponents+"' requires the name of a VAR to be passed.");
@@ -114,7 +114,7 @@ namespace Ink.Parsed
 
                             var varPointer = new Runtime.VariablePointerValue (varRef.name);
                             container.AddContent (varPointer);
-                        } 
+                        }
 
                         // Normal value being passed: evaluate it as normal
                         else {
@@ -127,7 +127,7 @@ namespace Ink.Parsed
                         container.AddContent (Runtime.ControlCommand.EvalEnd());
                     }
                 }
-                    
+
 
                 // Starting a thread? A bit like a push to the call stack below... but not.
                 // It sort of puts the call stack on a thread stack (argh!) - forks the full flow.
@@ -146,12 +146,12 @@ namespace Ink.Parsed
                 container.AddContent (runtimeDivert);
 
                 return container;
-            } 
+            }
 
             // Simple divert
             else {
                 return runtimeDivert;
-            }			
+            }
 		}
 
 
@@ -162,7 +162,7 @@ namespace Ink.Parsed
         {
             return target.firstComponent;
         }
-            
+
 
         void ResolveTargetContent()
         {
@@ -184,9 +184,9 @@ namespace Ink.Parsed
                         // Make sure that the flow was typed correctly, given that we know that this
                         // is meant to be a divert target
                         if (resolveResult.isArgument) {
-                            var argument = resolveResult.ownerFlow.arguments.Where (a => a.name == variableTargetName).First();
+                            var argument = resolveResult.ownerFlow.arguments.Where (a => a.identifier.name == variableTargetName).First();
                             if ( !argument.isDivertTarget ) {
-                                Error ("Since '" + argument.name + "' is used as a variable divert target (on "+this.debugMetadata+"), it should be marked as: -> " + argument.name, resolveResult.ownerFlow);
+                                Error ("Since '" + argument.identifier + "' is used as a variable divert target (on "+this.debugMetadata+"), it should be marked as: -> " + argument.identifier, resolveResult.ownerFlow);
                             }
                         }
 
@@ -218,11 +218,11 @@ namespace Ink.Parsed
             var targetFlow = targetContent as FlowBase;
             if (targetFlow) {
                 if (!targetFlow.isFunction && this.isFunctionCall) {
-                    base.Error (targetFlow.name + " hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function " + targetFlow.name + " =='?");
+                    base.Error (targetFlow.identifier + " hasn't been marked as a function, but it's being called as one. Do you need to delcare the knot as '== function " + targetFlow.identifier + " =='?");
                 } else if (targetFlow.isFunction && !this.isFunctionCall && !(this.parent is DivertTarget)) {
-                    base.Error (targetFlow.name + " can't be diverted to. It can only be called as a function since it's been marked as such: '" + targetFlow.name + "(...)'");
+                    base.Error (targetFlow.identifier + " can't be diverted to. It can only be called as a function since it's been marked as such: '" + targetFlow.identifier + "(...)'");
                 }
-            } 
+            }
 
             // Check validity of target content
             bool targetWasFound = targetContent != null;
@@ -257,7 +257,7 @@ namespace Ink.Parsed
             if (runtimeDivert.variableDivertName != null) {
                 return;
             }
-                  
+
             if( !targetWasFound && !isBuiltIn && !isExternal )
                 Error ("target not found: '" + target + "'");
 		}
@@ -265,7 +265,7 @@ namespace Ink.Parsed
         // Returns false if there's an error
         void CheckArgumentValidity()
         {
-            if (isEmpty) 
+            if (isEmpty)
                 return;
 
             // Argument passing: Check for errors in number of arguments
@@ -275,7 +275,7 @@ namespace Ink.Parsed
 
             // Missing content?
             // Can't check arguments properly. It'll be due to some
-            // other error though, so although there's a problem and 
+            // other error though, so although there's a problem and
             // we report false, we don't need to report a specific error.
             // It may also be because it's a valid call to an external
             // function, that we check at the resolve stage.
@@ -317,7 +317,7 @@ namespace Ink.Parsed
                 } else {
                     butClause = "but got " + numArgs;
                 }
-                Error ("to '" + targetFlow.name + "' requires " + paramCount + " arguments, "+butClause);
+                Error ("to '" + targetFlow.identifier + "' requires " + paramCount + " arguments, "+butClause);
                 return;
             }
 
@@ -332,15 +332,15 @@ namespace Ink.Parsed
                     // Not passing a divert target or any kind of variable reference?
                     var varRef = divArgExpr as VariableReference;
                     if (!(divArgExpr is DivertTarget) && varRef == null ) {
-                        Error ("Target '" + targetFlow.name + "' expects a divert target for the parameter named -> " + flowArg.name + " but saw " + divArgExpr, divArgExpr);
-                    } 
+                        Error ("Target '" + targetFlow.identifier + "' expects a divert target for the parameter named -> " + flowArg.identifier + " but saw " + divArgExpr, divArgExpr);
+                    }
 
-                    // Passing 'a' instead of '-> a'? 
+                    // Passing 'a' instead of '-> a'?
                     // i.e. read count instead of divert target
                     else if (varRef != null) {
 
                         // Unfortunately have to manually resolve here since we're still in code gen
-                        var knotCountPath = new Path(varRef.path);
+                        var knotCountPath = new Path(varRef.pathIdentifiers);
                         Parsed.Object targetForCount = knotCountPath.ResolveFromContext (varRef);
                         if (targetForCount != null) {
                             Error ("Passing read count of '" + knotCountPath.dotSeparatedComponents + "' instead of a divert target. You probably meant '" + knotCountPath + "'");
@@ -348,7 +348,7 @@ namespace Ink.Parsed
                     }
                 }
             }
-                
+
             if (targetFlow == null) {
                 Error ("Can't call as a function or with arguments unless it's a knot or stitch");
                 return;

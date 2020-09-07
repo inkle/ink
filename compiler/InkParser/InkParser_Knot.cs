@@ -6,9 +6,14 @@ namespace Ink
 {
 	public partial class InkParser
 	{
+        protected class NameWithMetadata {
+            public string name;
+            public Runtime.DebugMetadata metadata;
+        }
+
         protected class FlowDecl
         {
-            public string name;
+            public Identifier name;
             public List<FlowBase.Argument> arguments;
             public bool isFunction;
         }
@@ -24,7 +29,7 @@ namespace Ink
 			ParseRule innerKnotStatements = () => StatementsAtLevel (StatementLevel.Knot);
 
             var content = Expect (innerKnotStatements, "at least one line within the knot", recoveryRule: KnotStitchNoContentRecoveryRule) as List<Parsed.Object>;
-			 
+
             return new Knot (knotDecl.name, content, knotDecl.arguments, knotDecl.isFunction);
 		}
 
@@ -38,20 +43,20 @@ namespace Ink
             Whitespace ();
 
 
-            string identifier = Parse(Identifier);
-            string knotName;
+            Identifier identifier = Parse(IdentifierWithMetadata);
+            Identifier knotName;
 
-            bool isFunc = identifier == "function";
+            bool isFunc = identifier?.name == "function";
             if (isFunc) {
                 Expect (Whitespace, "whitespace after the 'function' keyword");
-                knotName = Parse(Identifier);
+                knotName = Parse(IdentifierWithMetadata);
             } else {
                 knotName = identifier;
             }
 
             if (knotName == null) {
                 Error ("Expected the name of the " + (isFunc ? "function" : "knot"));
-                knotName = ""; // prevent later null ref
+                knotName = new Identifier { name = "" }; // prevent later null ref
             }
 
             Whitespace ();
@@ -112,7 +117,7 @@ namespace Ink
                 Whitespace ();
             }
 
-            string stitchName = Parse(Identifier);
+            Identifier stitchName = Parse(IdentifierWithMetadata);
             if (stitchName == null)
                 return null;
 
@@ -145,7 +150,7 @@ namespace Ink
 
             Expect (String (")"), "closing ')' for parameter list");
 
-            // If no parameters, create an empty list so that this method is type safe and 
+            // If no parameters, create an empty list so that this method is type safe and
             // doesn't attempt to return the ParseSuccess object
             if (flowArguments == null) {
                 flowArguments = new List<FlowBase.Argument> ();
@@ -161,11 +166,11 @@ namespace Ink
             //  -> name      (variable divert target argument
             //  ref name
             //  ref -> name  (variable divert target by reference)
-            var firstIden = Parse(Identifier);
+            var firstIden = Parse(IdentifierWithMetadata);
             Whitespace ();
             var divertArrow = ParseDivertArrow ();
             Whitespace ();
-            var secondIden = Parse(Identifier);
+            var secondIden = Parse(IdentifierWithMetadata);
 
             if (firstIden == null && secondIden == null)
                 return null;
@@ -177,26 +182,26 @@ namespace Ink
             }
 
             // Passing by reference
-            if (firstIden == "ref") {
+            if (firstIden != null && firstIden.name == "ref") {
 
                 if (secondIden == null) {
                     Error ("Expected an parameter name after 'ref'");
                 }
 
-                flowArg.name = secondIden;
+                flowArg.identifier = secondIden;
                 flowArg.isByReference = true;
-            } 
+            }
 
             // Simple argument name
             else {
 
                 if (flowArg.isDivertTarget) {
-                    flowArg.name = secondIden;
+                    flowArg.identifier = secondIden;
                 } else {
-                    flowArg.name = firstIden;
+                    flowArg.identifier = firstIden;
                 }
 
-                if (flowArg.name == null) {
+                if (flowArg.identifier == null) {
                     Error ("Expected an parameter name");
                 }
 
@@ -210,23 +215,23 @@ namespace Ink
         {
             Whitespace ();
 
-            string external = Parse(Identifier);
-            if (external != "EXTERNAL")
+            Identifier external = Parse(IdentifierWithMetadata);
+            if (external == null || external.name != "EXTERNAL")
                 return null;
 
             Whitespace ();
-            
-            string funcName = Expect(Identifier, "name of external function") as string ?? "";
+
+            var funcIdentifier = Expect(IdentifierWithMetadata, "name of external function") as Identifier ?? new Identifier();
 
             Whitespace ();
 
-            var parameterNames = Expect (BracketedKnotDeclArguments, "declaration of arguments for EXTERNAL, even if empty, i.e. 'EXTERNAL "+funcName+"()'") as List<FlowBase.Argument>;
+            var parameterNames = Expect (BracketedKnotDeclArguments, "declaration of arguments for EXTERNAL, even if empty, i.e. 'EXTERNAL "+funcIdentifier+"()'") as List<FlowBase.Argument>;
             if (parameterNames == null)
                 parameterNames = new List<FlowBase.Argument> ();
 
-            var argNames = parameterNames.Select (arg => arg.name).ToList();
+            var argNames = parameterNames.Select (arg => arg.identifier?.name).ToList();
 
-            return new ExternalDeclaration (funcName, argNames);
+            return new ExternalDeclaration (funcIdentifier, argNames);
         }
 
 	}

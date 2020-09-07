@@ -4,7 +4,11 @@ namespace Ink.Parsed
 {
     public class VariableAssignment : Parsed.Object
     {
-        public string variableName { get; protected set; }
+        public string variableName
+        {
+            get { return variableIdentifier.name; }
+        }
+        public Identifier variableIdentifier { get; protected set; }
         public Expression expression { get; protected set; }
         public ListDefinition listDefinition { get; protected set; }
 
@@ -17,18 +21,18 @@ namespace Ink.Parsed
             }
         }
 
-        public VariableAssignment (string variableName, Expression assignedExpression)
+        public VariableAssignment (Identifier identifier, Expression assignedExpression)
         {
-            this.variableName = variableName;
+            this.variableIdentifier = identifier;
 
             // Defensive programming in case parsing of assignedExpression failed
             if( assignedExpression )
                 this.expression = AddContent(assignedExpression);
         }
 
-        public VariableAssignment (string variableName, ListDefinition listDef)
+        public VariableAssignment (Identifier identifier, ListDefinition listDef)
         {
-            this.variableName = variableName;
+            this.variableIdentifier = identifier;
 
             if (listDef) {
                 this.listDefinition = AddContent (listDef);
@@ -77,14 +81,14 @@ namespace Ink.Parsed
 
             // List definitions are checked for conflicts separately
             if( this.isDeclaration && listDefinition == null )
-                context.CheckForNamingCollisions (this, variableName, this.isGlobalDeclaration ? Story.SymbolType.Var : Story.SymbolType.Temp);
+                context.CheckForNamingCollisions (this, variableIdentifier, this.isGlobalDeclaration ? Story.SymbolType.Var : Story.SymbolType.Temp);
 
             // Initial VAR x = [intialValue] declaration, not re-assignment
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
                 if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
                     Error ("global variable assignments cannot refer to other variables, only literal values, constants and list items");
-                }       
+                }
             }
 
             if (!this.isNewTemporaryDeclaration) {
@@ -99,7 +103,7 @@ namespace Ink.Parsed
 
                 // A runtime assignment may not have been generated if it's the initial global declaration,
                 // since these are hoisted out and handled specially in Story.ExportRuntime.
-                if( _runtimeAssignment != null ) 
+                if( _runtimeAssignment != null )
                     _runtimeAssignment.isGlobal = resolvedVarAssignment.isGlobal;
             }
         }

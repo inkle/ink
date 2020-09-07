@@ -6,8 +6,8 @@ namespace Ink.Parsed
 {
 	public class Path
 	{
-        public FlowLevel baseTargetLevel { 
-            get { 
+        public FlowLevel baseTargetLevel {
+            get {
                 if (baseLevelIsAmbiguous)
                     return FlowLevel.Story;
                 else
@@ -42,25 +42,33 @@ namespace Ink.Parsed
             }
         }
 
-        public Path(FlowLevel baseFlowLevel, List<string> components)
+        public List<Identifier> identifiableComponents { get; }
+
+        List<string> _components {
+            get {
+                 return identifiableComponents.Select(id => id?.name).ToList();
+            }
+        }
+
+        public Path(FlowLevel baseFlowLevel, List<Identifier> components)
         {
             _baseTargetLevel = baseFlowLevel;
-            _components = components;
+            identifiableComponents = components;
         }
 
-        public Path(List<string> components)
+        public Path(List<Identifier> components)
         {
             _baseTargetLevel = null;
-            _components = components;
+            identifiableComponents = components;
         }
 
-        public Path(string ambiguousName)
+        public Path(Identifier ambiguousName)
         {
             _baseTargetLevel = null;
-            _components = new List<string> ();
-            _components.Add (ambiguousName);
+            identifiableComponents = new List<Identifier> ();
+            identifiableComponents.Add (ambiguousName);
         }
-             
+
 		public override string ToString ()
 		{
             if (_components == null || _components.Count == 0) {
@@ -69,10 +77,10 @@ namespace Ink.Parsed
                 else
                     return "<invalid Path>";
             }
-             
+
             return "-> " + dotSeparatedComponents;
 		}
-            
+
         public Parsed.Object ResolveFromContext(Parsed.Object context)
         {
             if (_components == null || _components.Count == 0) {
@@ -140,7 +148,7 @@ namespace Ink.Parsed
                     minimumExpectedLevel = (FlowLevel)(foundFlow.flowLevel + 1);
                 else
                     minimumExpectedLevel = FlowLevel.WeavePoint;
-                
+
 
                 foundComponent = TryGetChildFromContext (foundComponent, compName, minimumExpectedLevel);
                 if (foundComponent == null)
@@ -178,9 +186,8 @@ namespace Ink.Parsed
 
             return null;
         }
-            
+
         FlowLevel? _baseTargetLevel;
-        List<string> _components;
 	}
 }
 

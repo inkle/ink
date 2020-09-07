@@ -101,7 +101,7 @@ namespace Ink.Parsed
         {
             if (opName == "and")
                 return "&&";
-            
+
             if (opName == "or")
                 return "||";
 
@@ -113,7 +113,7 @@ namespace Ink.Parsed
 
             if (opName == "hasnt")
                 return "!?";
-            
+
             return opName;
         }
 
@@ -194,17 +194,17 @@ namespace Ink.Parsed
 
     public class IncDecExpression : Expression
     {
-        public string varName;
+        public Identifier varIdentifier;
         public bool isInc;
         public Expression expression;
 
-        public IncDecExpression(string varName, bool isInc)
+        public IncDecExpression(Identifier varIdentifier, bool isInc)
         {
-            this.varName = varName;
+            this.varIdentifier = varIdentifier;
             this.isInc = isInc;
         }
 
-        public IncDecExpression (string varName, Expression expression, bool isInc) : this(varName, isInc)
+        public IncDecExpression (Identifier varIdentifier, Expression expression, bool isInc) : this(varIdentifier, isInc)
         {
             this.expression = expression;
             AddContent (expression);
@@ -218,7 +218,7 @@ namespace Ink.Parsed
             // Reverse polish notation: (x 1 +) (assign to x)
 
             // 1.
-            container.AddContent (new Runtime.VariableReference (varName));
+            container.AddContent (new Runtime.VariableReference (varIdentifier?.name));
 
             // 2.
             // - Expression used in the form ~ x += y
@@ -232,7 +232,7 @@ namespace Ink.Parsed
             container.AddContent (Runtime.NativeFunctionCall.CallWithName (isInc ? "+" : "-"));
 
             // 4.
-            _runtimeAssignment = new Runtime.VariableAssignment(varName, false);
+            _runtimeAssignment = new Runtime.VariableAssignment(varIdentifier?.name, false);
             container.AddContent (_runtimeAssignment);
         }
 
@@ -240,9 +240,9 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            var varResolveResult = context.ResolveVariableWithName(varName, fromNode: this);
+            var varResolveResult = context.ResolveVariableWithName(varIdentifier?.name, fromNode: this);
             if (!varResolveResult.found) {
-                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varName+"' after searching: "+this.descriptionOfScope);
+                Error ("variable for "+incrementDecrementWord+" could not be found: '"+varIdentifier+"' after searching: "+this.descriptionOfScope);
             }
 
             _runtimeAssignment.isGlobal = varResolveResult.isGlobal;
@@ -264,9 +264,9 @@ namespace Ink.Parsed
         public override string ToString ()
         {
             if (expression)
-                return varName + (isInc ? " += " : " -= ") + expression.ToString ();
+                return varIdentifier + (isInc ? " += " : " -= ") + expression.ToString ();
             else
-                return varName + (isInc ? "++" : "--");
+                return varIdentifier + (isInc ? "++" : "--");
         }
 
         Runtime.VariableAssignment _runtimeAssignment;
@@ -302,6 +302,6 @@ namespace Ink.Parsed
             }
         }
     }
-        
+
 }
 
