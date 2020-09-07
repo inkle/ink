@@ -9,11 +9,7 @@ namespace Ink.Parsed
         // - Knot/stitch names for read counts are actual dot-separated paths
         //   (though this isn't actually used at time of writing)
         // - List names are dot separated: listName.itemName (or just itemName)
-        public string name {
-            get {
-                return string.Join (".", path.ToArray());
-            }
-        }
+        public string name { get; private set; }
 
         public Identifier identifier {
             get {
@@ -23,18 +19,20 @@ namespace Ink.Parsed
                     return null;
                 }
 
-                var name = string.Join (".", path.ToArray());
-                var firstDebugMetadata = pathIdentifiers.First().debugMetadata;
-                var debugMetadata = pathIdentifiers.Aggregate(firstDebugMetadata, (acc, id) => acc.Merge(id.debugMetadata));
-                return new Identifier { name = name, debugMetadata = debugMetadata };
+                if( _singleIdentifier == null ) {
+                    var name = string.Join (".", path.ToArray());
+                    var firstDebugMetadata = pathIdentifiers.First().debugMetadata;
+                    var debugMetadata = pathIdentifiers.Aggregate(firstDebugMetadata, (acc, id) => acc.Merge(id.debugMetadata));
+                    _singleIdentifier = new Identifier { name = name, debugMetadata = debugMetadata };
+                }
+                
+                return _singleIdentifier;
             }
         }
-
-        public List<string> path {
-            get { return pathIdentifiers.Select(id => id?.name).ToList(); }
-        }
+        Identifier _singleIdentifier;
 
         public List<Identifier> pathIdentifiers;
+        public List<string> path { get; private set; }
 
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
@@ -42,9 +40,11 @@ namespace Ink.Parsed
 
         public Runtime.VariableReference runtimeVarRef { get { return _runtimeVarRef; } }
 
-        public VariableReference (List<Identifier> path)
+        public VariableReference (List<Identifier> pathIdentifiers)
         {
-            this.pathIdentifiers = path;
+            this.pathIdentifiers = pathIdentifiers;
+            this.path = pathIdentifiers.Select(id => id?.name).ToList();
+            this.name = string.Join (".", pathIdentifiers);
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
