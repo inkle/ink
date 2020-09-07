@@ -1,4 +1,4 @@
-﻿
+
 namespace Ink
 {
 	public class StringParserState

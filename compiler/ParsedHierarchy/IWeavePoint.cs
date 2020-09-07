@@ -8,6 +8,7 @@ namespace Ink.Parsed
         Runtime.Container runtimeContainer { get; }
         List<Parsed.Object> content { get; }
         string name { get; }
+        Identifier identifier { get; }
 
     }
 }

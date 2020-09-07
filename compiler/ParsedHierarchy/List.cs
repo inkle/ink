@@ -2,24 +2,22 @@
 
 namespace Ink.Parsed
 {
-    using StrList = System.Collections.Generic.List<string>;
-
     public class List : Parsed.Expression
     {
-        public StrList itemNameList;
+        public List<Identifier> itemIdentifierList;
 
-        public List (StrList itemNameList)
+        public List (List<Identifier> itemIdentifierList)
         {
-            this.itemNameList = itemNameList;
+            this.itemIdentifierList = itemIdentifierList;
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
             var runtimeRawList = new Runtime.InkList ();
 
-            if (itemNameList != null) {
-                foreach (var itemName in itemNameList) {
-                    var nameParts = itemName.Split ('.');
+            if (itemIdentifierList != null) {
+                foreach (var itemIdentifier in itemIdentifierList) {
+                    var nameParts = itemIdentifier?.name.Split ('.');
 
                     string listName = null;
                     string listItemName = null;
@@ -33,17 +31,17 @@ namespace Ink.Parsed
                     var listItem = story.ResolveListItem (listName, listItemName, this);
                     if (listItem == null) {
                         if (listName == null)
-                            Error ("Could not find list definition that contains item '" + itemName + "'");
+                            Error ("Could not find list definition that contains item '" + itemIdentifier + "'");
                         else
-                            Error ("Could not find list item " + itemName);
+                            Error ("Could not find list item " + itemIdentifier);
                     } else {
                         if (listName == null)
-                            listName = ((ListDefinition)listItem.parent).name;
+                            listName = ((ListDefinition)listItem.parent).identifier?.name;
                         var item = new Runtime.InkListItem (listName, listItem.name);
 
                         if (runtimeRawList.ContainsKey (item))
-                            Warning ("Duplicate of item '"+itemName+"' in list.");
-                        else 
+                            Warning ("Duplicate of item '"+itemIdentifier+"' in list.");
+                        else
                             runtimeRawList [item] = listItem.seriesValue;
                     }
                 }

@@ -6,7 +6,7 @@ namespace Ink.Parsed
 {
     public class ListDefinition : Parsed.Object
     {
-        public string name;
+        public Identifier identifier;
         public List<ListElementDefinition> itemDefinitions;
 
         public VariableAssignment variableAssignment;
@@ -18,10 +18,10 @@ namespace Ink.Parsed
                     if( !allItems.ContainsKey(e.name) )
                         allItems.Add (e.name, e.seriesValue);
                     else
-                        Error("List '"+name+"' contains dupicate items called '"+e.name+"'");
+                        Error("List '"+identifier+"' contains dupicate items called '"+e.name+"'");
                 }
-                
-                return new Runtime.ListDefinition (name, allItems);
+
+                return new Runtime.ListDefinition (identifier?.name, allItems);
             }
         }
 
@@ -63,13 +63,13 @@ namespace Ink.Parsed
             var initialValues = new Runtime.InkList ();
             foreach (var itemDef in itemDefinitions) {
                 if (itemDef.inInitialList) {
-                    var item = new Runtime.InkListItem (this.name, itemDef.name);
+                    var item = new Runtime.InkListItem (this.identifier?.name, itemDef.name);
                     initialValues [item] = itemDef.seriesValue;
                 }
             }
 
-            // Set origin name, so 
-            initialValues.SetInitialOriginName (name);
+            // Set origin name, so
+            initialValues.SetInitialOriginName (identifier?.name);
 
             return new Runtime.ListValue (initialValues);
         }
@@ -78,7 +78,7 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            context.CheckForNamingCollisions (this, name, Story.SymbolType.List);
+            context.CheckForNamingCollisions (this, identifier, Story.SymbolType.List);
         }
 
         public override string typeName {
@@ -92,7 +92,11 @@ namespace Ink.Parsed
 
     public class ListElementDefinition : Parsed.Object
     {
-        public string name;
+        public string name
+        {
+            get { return identifier?.name; }
+        }
+        public Identifier identifier;
         public int? explicitValue;
         public int seriesValue;
         public bool inInitialList;
@@ -103,13 +107,13 @@ namespace Ink.Parsed
                 if (parentList == null)
                     throw new System.Exception ("Can't get full name without a parent list");
 
-                return parentList.name + "." + name;
+                return parentList.identifier + "." + name;
             }
         }
 
-        public ListElementDefinition (string name, bool inInitialList, int? explicitValue = null)
+        public ListElementDefinition (Identifier identifier, bool inInitialList, int? explicitValue = null)
         {
-            this.name = name;
+            this.identifier = identifier;
             this.inInitialList = inInitialList;
             this.explicitValue = explicitValue;
         }
@@ -123,7 +127,7 @@ namespace Ink.Parsed
         {
             base.ResolveReferences (context);
 
-            context.CheckForNamingCollisions (this, name, Story.SymbolType.ListItem);
+            context.CheckForNamingCollisions (this, identifier, Story.SymbolType.ListItem);
         }
 
         public override string typeName {

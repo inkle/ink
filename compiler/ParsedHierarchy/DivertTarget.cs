@@ -53,7 +53,7 @@ namespace Ink.Parsed
                         }
                     }
                     foundUsage = true;
-                } 
+                }
                 else if( usageParent is FunctionCall ) {
                     var funcCall = usageParent as FunctionCall;
                     if( !funcCall.isTurnsSince && !funcCall.isReadCount ) {
@@ -140,7 +140,7 @@ namespace Ink.Parsed
                     foreach(var arg in targetFlow.arguments) {
                         if(arg.isByReference)
                         {
-                            Error("Can't store a divert target to a knot or function that has by-reference arguments ('"+targetFlow.name+"' has 'ref "+arg.name+"').");
+                            Error("Can't store a divert target to a knot or function that has by-reference arguments ('"+targetFlow.identifier+"' has 'ref "+arg.identifier+"').");
                         }
                     }
                 }
@@ -164,7 +164,7 @@ namespace Ink.Parsed
             var targetStr = this.divert.target.dotSeparatedComponents;
             return targetStr.GetHashCode ();
         }
-            
+
         Runtime.DivertTargetValue _runtimeDivertTargetValue;
         Runtime.Divert _runtimeDivert;
     }

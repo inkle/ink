@@ -5,7 +5,7 @@ namespace Ink.Parsed
 {
 	public abstract class Object
 	{
-        public Runtime.DebugMetadata debugMetadata { 
+        public Runtime.DebugMetadata debugMetadata {
             get {
                 if (_debugMetadata == null) {
                     if (parent) {
@@ -101,13 +101,13 @@ namespace Ink.Parsed
                 else
                     break;
             }
-                
+
             FlowBase commonFlowAncestor = highestCommonAncestor as FlowBase;
             if (commonFlowAncestor == null)
                 commonFlowAncestor = highestCommonAncestor.ClosestFlowBase ();
 
 
-            var pathComponents = new List<string> ();
+            var pathComponents = new List<Identifier> ();
             bool hasWeavePoint = false;
             FlowLevel baseFlow = FlowLevel.WeavePoint;
 
@@ -119,8 +119,8 @@ namespace Ink.Parsed
 
                 if (!hasWeavePoint) {
                     var weavePointAncestor = ancestor as IWeavePoint;
-                    if (weavePointAncestor != null && weavePointAncestor.name != null) {
-                        pathComponents.Add (weavePointAncestor.name);
+                    if (weavePointAncestor != null && weavePointAncestor.identifier != null) {
+                        pathComponents.Add (weavePointAncestor.identifier);
                         hasWeavePoint = true;
                         continue;
                     }
@@ -128,7 +128,7 @@ namespace Ink.Parsed
 
                 var flowAncestor = ancestor as FlowBase;
                 if (flowAncestor) {
-                    pathComponents.Add (flowAncestor.name);
+                    pathComponents.Add (flowAncestor.identifier);
                     baseFlow = flowAncestor.flowLevel;
                 }
 
@@ -169,8 +169,8 @@ namespace Ink.Parsed
                 Parsed.Object ancestor = this;
                 while (ancestor) {
                     var ancestorFlow = ancestor as FlowBase;
-                    if (ancestorFlow && ancestorFlow.name != null) {
-                        locationNames.Add ("'" + ancestorFlow.name + "'");
+                    if (ancestorFlow && ancestorFlow.identifier != null) {
+                        locationNames.Add ("'" + ancestorFlow.identifier + "'");
                     }
                     ancestor = ancestor.parent;
                 }
@@ -194,7 +194,7 @@ namespace Ink.Parsed
             if (content == null) {
                 content = new List<Parsed.Object> ();
             }
-               
+
             // Make resilient to content not existing, which can happen
             // in the case of parse errors where we've already reported
             // an error but still want a valid structure so we can
@@ -236,7 +236,7 @@ namespace Ink.Parsed
 
             if (content == null)
                 return null;
-            
+
             foreach (var obj in content) {
                 var nestedResult = obj.Find (queryFunc);
                 if (nestedResult != null)

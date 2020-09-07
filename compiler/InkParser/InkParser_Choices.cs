@@ -18,9 +18,9 @@ namespace Ink
 
                 onceOnlyChoice = false;
             }
-                
+
             // Optional name for the choice
-            string optionalName = Parse(BracketedName);
+            Identifier optionalName = Parse(BracketedName);
 
             Whitespace ();
 
@@ -34,7 +34,7 @@ namespace Ink
             // never be able to nest choices within choice content, it's fine here.
             Debug.Assert(_parsingChoice == false, "Already parsing a choice - shouldn't have nested choices");
             _parsingChoice = true;
-                
+
             ContentList startContent = null;
             var startTextAndLogic = Parse (MixedTextAndLogic);
             if (startTextAndLogic != null)
@@ -52,7 +52,7 @@ namespace Ink
                 var optionOnlyTextAndLogic = Parse (MixedTextAndLogic);
                 if (optionOnlyTextAndLogic != null)
                     optionOnlyContent = new ContentList (optionOnlyTextAndLogic);
-                
+
 
                 Expect (String("]"), "closing ']' for weave-style option");
 
@@ -91,7 +91,7 @@ namespace Ink
             if (diverts != null) {
                 foreach (var divObj in diverts) {
                     // may be TunnelOnwards
-                    var div = divObj as Divert; 
+                    var div = divObj as Divert;
 
                     // Empty divert serves no purpose other than to say
                     // "this choice is intentionally left blank"
@@ -108,7 +108,7 @@ namespace Ink
             innerContent.AddContent (new Text ("\n"));
 
             var choice = new Choice (startContent, optionOnlyContent, innerContent);
-            choice.name = optionalName;
+            choice.identifier = optionalName;
             choice.indentationDepth = bullets.Count;
             choice.hasWeaveStyleInlineBrackets = hasWeaveStyleInlineBrackets;
             choice.condition = conditionExpr;
@@ -118,7 +118,7 @@ namespace Ink
             return choice;
 
 		}
-            
+
         protected Expression ChoiceCondition()
         {
             var conditions = Interleave<Expression> (ChoiceSingleCondition, ChoiceConditionsSpace);
@@ -130,12 +130,12 @@ namespace Ink
                 return new MultipleConditionExpression (conditions);
             }
         }
-    
+
         protected object ChoiceConditionsSpace()
         {
             // Both optional
             // Newline includes initial end of line whitespace
-            Newline (); 
+            Newline ();
             Whitespace ();
             return ParseSuccess;
         }
@@ -163,7 +163,7 @@ namespace Ink
             int gatherDashCount = (int)gatherDashCountObj;
 
             // Optional name for the gather
-            string optionalName = Parse(BracketedName);
+            Identifier optionalName = Parse(BracketedName);
 
             var gather = new Gather (optionalName, gatherDashCount);
 
@@ -201,14 +201,14 @@ namespace Ink
             }
         }
 
-        protected string BracketedName()
+        protected Identifier BracketedName()
         {
             if (ParseString ("(") == null)
                 return null;
 
             Whitespace ();
 
-            string name = Parse(Identifier);
+            Identifier name = Parse(IdentifierWithMetadata);
             if (name == null)
                 return null;
 

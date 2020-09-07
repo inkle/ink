@@ -32,14 +32,14 @@ namespace Ink
 
             Whitespace ();
 
-            string varName = null;
+            Identifier varIdentifier = null;
             if (isNewDeclaration) {
-                varName = (string)Expect (Identifier, "variable name");
+                varIdentifier = (Identifier)Expect (IdentifierWithMetadata, "variable name");
             } else {
-                varName = Parse(Identifier);
+                varIdentifier = Parse(IdentifierWithMetadata);
             }
 
-            if (varName == null) {
+            if (varIdentifier == null) {
                 return null;
             }
 
@@ -59,10 +59,10 @@ namespace Ink
             Expression assignedExpression = (Expression)Expect (Expression, "value expression to be assigned");
 
             if (isIncrement || isDecrement) {
-                var result = new IncDecExpression (varName, assignedExpression, isIncrement);
+                var result = new IncDecExpression (varIdentifier, assignedExpression, isIncrement);
                 return result;
             } else {
-                var result = new VariableAssignment (varName, assignedExpression);
+                var result = new VariableAssignment (varIdentifier, assignedExpression);
                 result.isNewTemporaryDeclaration = isNewDeclaration;
                 return result;
             }
@@ -86,7 +86,7 @@ namespace Ink
                 return false;
             }
         }
-            
+
         protected Parsed.Return ReturnStatement()
         {
             Whitespace ();
@@ -176,9 +176,9 @@ namespace Ink
 
             var prefixOp = (string) OneOf (String ("-"), String ("!"));
 
-            // Don't parse like the string rules above, in case its actually 
+            // Don't parse like the string rules above, in case its actually
             // a variable that simply starts with "not", e.g. "notable".
-            // This rule uses the Identifer rule, which will scan as much text
+            // This rule uses the Identifier rule, which will scan as much text
             // as possible before returning.
             if (prefixOp == null) {
                 prefixOp = Parse(ExpressionNot);
@@ -213,8 +213,9 @@ namespace Ink
 
                     // Drop down and succeed without the increment after reporting error
                 } else {
+                    // TODO: Language Server - (Identifier combined into one vs. list of Identifiers)
                     var varRef = (VariableReference)expr;
-                    expr = new IncDecExpression(varRef.name, isInc);
+                    expr = new IncDecExpression(varRef.identifier, isInc);
                 }
 
             }
@@ -314,7 +315,7 @@ namespace Ink
 
         protected Expression ExpressionFunctionCall()
         {
-            var iden = Parse(Identifier);
+            var iden = Parse(IdentifierWithMetadata);
             if (iden == null)
                 return null;
 
@@ -349,11 +350,11 @@ namespace Ink
 
         protected Expression ExpressionVariableName()
         {
-            List<string> path = Interleave<string> (Identifier, Exclude (Spaced (String ("."))));
-            
-            if (path == null || Story.IsReservedKeyword (path[0]) )
+            List<Identifier> path = Interleave<Identifier> (IdentifierWithMetadata, Exclude (Spaced (String ("."))));
+
+            if (path == null || Story.IsReservedKeyword (path[0].name) )
                 return null;
-            
+
             return new VariableReference (path);
         }
 
@@ -429,7 +430,7 @@ namespace Ink
             //    identifier expression in brackets, but this is a useless thing
             //    to do, so we reserve that syntax for a list with one item.
             //  - 2 or more elements - normal!
-            List<string> memberNames = SeparatedList (ListMember, Spaced (String (",")));
+            List<Identifier> memberNames = SeparatedList (ListMember, Spaced (String (",")));
 
             Whitespace ();
 
@@ -441,23 +442,23 @@ namespace Ink
             return new List (memberNames);
         }
 
-        protected string ListMember ()
+        protected Identifier ListMember ()
         {
             Whitespace ();
 
-            string name = Parse (Identifier);
-            if (name == null)
+            Identifier identifier = Parse (IdentifierWithMetadata);
+            if (identifier == null)
                 return null;
 
             var dot = ParseString (".");
             if (dot != null) {
-                string name2 = Expect (Identifier, "element name within the set " + name) as string;
-                name = name + "." + name2;
+                Identifier identifier2 = Expect (IdentifierWithMetadata, "element name within the set " + identifier) as Identifier;
+                identifier.name = identifier.name + "." + identifier2?.name;
             }
 
             Whitespace ();
 
-            return name;
+            return identifier;
         }
 
 		void RegisterExpressionOperators()

@@ -35,7 +35,7 @@ namespace Ink
 
             if (annotation == null)
                 return null;
-                
+
             switch (annotation.Value)
             {
                 case SequenceType.Once:
@@ -102,21 +102,24 @@ namespace Ink
         {
             SequenceType? seqType = null;
 
-            var word = Parse(Identifier);
-            switch (word)
+            var word = Parse(IdentifierWithMetadata);
+            if (word != null)
             {
-                case "once":
-                    seqType = SequenceType.Once;
-                    break;
-                case "cycle":
-                    seqType = SequenceType.Cycle;
-                    break;
-                case "shuffle":
-                    seqType = SequenceType.Shuffle;
-                    break;
-                case "stopping":
-                    seqType = SequenceType.Stopping;
-                    break;
+                switch (word.name)
+                {
+                    case "once":
+                        seqType = SequenceType.Once;
+                        break;
+                    case "cycle":
+                        seqType = SequenceType.Cycle;
+                        break;
+                    case "shuffle":
+                        seqType = SequenceType.Shuffle;
+                        break;
+                    case "stopping":
+                        seqType = SequenceType.Stopping;
+                        break;
+                }
             }
 
             if (seqType == null)
@@ -163,7 +166,7 @@ namespace Ink
                     }
 
                     justHadContent = false;
-                } 
+                }
 
                 // Real content
                 else {
@@ -182,7 +185,7 @@ namespace Ink
             // Ended in a pipe? Need to insert final blank content
             if (!justHadContent)
                 result.Add (new ContentList ());
-                
+
             return result;
         }
 

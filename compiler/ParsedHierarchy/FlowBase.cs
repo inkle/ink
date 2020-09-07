@@ -7,12 +7,16 @@ namespace Ink.Parsed
 	{
         public class Argument
         {
-            public string name;
+            public Identifier identifier;
             public bool isByReference;
             public bool isDivertTarget;
         }
 
-		public string name { get; set; }
+        public string name
+        {
+            get { return identifier?.name; }
+        }
+        public Identifier identifier { get; set; }
         public List<Argument> arguments { get; protected set; }
         public bool hasParameters { get { return arguments != null && arguments.Count > 0; } }
         public Dictionary<string, VariableAssignment> variableDeclarations;
@@ -20,9 +24,9 @@ namespace Ink.Parsed
         public abstract FlowLevel flowLevel { get; }
         public bool isFunction { get; protected set; }
 
-        public FlowBase (string name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null, bool isFunction = false, bool isIncludedStory = false)
+        public FlowBase (Identifier name = null, List<Parsed.Object> topLevelObjects = null, List<Argument> arguments = null, bool isFunction = false, bool isIncludedStory = false)
 		{
-			this.name = name;
+			this.identifier = name;
 
 			if (topLevelObjects == null) {
 				topLevelObjects = new List<Parsed.Object> ();
@@ -55,7 +59,7 @@ namespace Ink.Parsed
                         _firstChildFlow = subFlow;
 
                     subFlowObjs.Add (obj);
-                    _subFlowsByName [subFlow.name] = subFlow;
+                    _subFlowsByName [subFlow.identifier?.name] = subFlow;
                 } else {
                     weaveObjs.Add (obj);
                 }
@@ -64,7 +68,7 @@ namespace Ink.Parsed
             // Implicit final gather in top level story for ending without warning that you run out of content
             if (isRootStory) {
             	weaveObjs.Add (new Gather (null, 1));
-            	weaveObjs.Add (new Divert (new Path ("DONE")));
+            	weaveObjs.Add (new Divert (new Path (Identifier.Done)));
             }
 
             var finalContent = new List<Parsed.Object> ();
@@ -105,7 +109,7 @@ namespace Ink.Parsed
             // Argument
             if (ownerFlow.arguments != null ) {
                 foreach (var arg in ownerFlow.arguments) {
-                    if (arg.name.Equals (varName)) {
+                    if (arg.identifier.name.Equals (varName)) {
                         result.found = true;
                         result.isArgument = true;
                         result.ownerFlow = ownerFlow;
@@ -166,24 +170,24 @@ namespace Ink.Parsed
                 }
             }
         }
-            
+
         public override Runtime.Object GenerateRuntimeObject ()
         {
             Return foundReturn = null;
             if (isFunction) {
                 CheckForDisallowedFunctionFlowControl ();
-            } 
+            }
 
             // Non-functon: Make sure knots and stitches don't attempt to use Return statement
             else if( flowLevel == FlowLevel.Knot || flowLevel == FlowLevel.Stitch ) {
                 foundReturn = Find<Return> ();
                 if (foundReturn != null) {
-                    Error ("Return statements can only be used in knots that are declared as functions: == function " + this.name + " ==", foundReturn);
+                    Error ("Return statements can only be used in knots that are declared as functions: == function " + this.identifier + " ==", foundReturn);
                 }
             }
 
             var container = new Runtime.Container ();
-            container.name = name;
+            container.name = identifier?.name;
 
             if( this.story.countAllVisits ) {
                 container.visitsShouldBeCounted = true;
@@ -198,7 +202,7 @@ namespace Ink.Parsed
             //    the others are only accessible by an explicit divert
             //       - The exception to this rule is if the knot/stitch takes
             //         parameters, in which case it can't be auto-entered.
-            //  - Any Choices and Gathers (i.e. IWeavePoint) found are 
+            //  - Any Choices and Gathers (i.e. IWeavePoint) found are
             //    processsed by GenerateFlowContent.
             int contentIdx = 0;
             while (content != null && contentIdx < content.Count) {
@@ -214,7 +218,7 @@ namespace Ink.Parsed
 
                     // First inner stitch - automatically step into it
                     // 20/09/2016 - let's not auto step into knots
-                    if (contentIdx == 0 && !childFlow.hasParameters 
+                    if (contentIdx == 0 && !childFlow.hasParameters
                         && this.flowLevel == FlowLevel.Knot) {
                         _startingSubFlowDivert = new Runtime.Divert ();
                         container.AddContent(_startingSubFlowDivert);
@@ -225,11 +229,11 @@ namespace Ink.Parsed
                     var namedChild = (Runtime.INamedContent)childFlowRuntime;
                     Runtime.INamedContent existingChild = null;
                     if (container.namedContent.TryGetValue(namedChild.name, out existingChild) ) {
-                        var errorMsg = string.Format ("{0} already contains flow named '{1}' (at {2})", 
-                            this.GetType().Name, 
-                            namedChild.name, 
+                        var errorMsg = string.Format ("{0} already contains flow named '{1}' (at {2})",
+                            this.GetType().Name,
+                            namedChild.name,
                             (existingChild as Runtime.Object).debugMetadata);
-                        
+
                         Error (errorMsg, childFlow);
                     }
 
@@ -256,7 +260,7 @@ namespace Ink.Parsed
             if (flowLevel != FlowLevel.Story && !this.isFunction && _rootWeave != null && foundReturn == null) {
                 _rootWeave.ValidateTermination (WarningInTermination);
             }
-                
+
             return container;
         }
 
@@ -270,24 +274,24 @@ namespace Ink.Parsed
             // No need to generate EvalStart and EvalEnd since there's nothing being pushed
             // back onto the evaluation stack.
             for (int i = arguments.Count - 1; i >= 0; --i) {
-                var paramName = arguments [i].name;
+                var paramName = arguments [i].identifier?.name;
 
                 var assign = new Runtime.VariableAssignment (paramName, isNewDeclaration:true);
                 container.AddContent (assign);
             }
         }
-            
+
         public Parsed.Object ContentWithNameAtLevel(string name, FlowLevel? level = null, bool deepSearch = false)
         {
             // Referencing self?
             if (level == this.flowLevel || level == null) {
-                if (name == this.name) {
+                if (name == this.identifier?.name) {
                     return this;
                 }
             }
 
             if ( level == FlowLevel.WeavePoint || level == null ) {
-                
+
                 Parsed.Object weavePointResult = null;
 
                 if (_rootWeave) {
@@ -343,16 +347,16 @@ namespace Ink.Parsed
 
             // Check validity of parameter names
             if (arguments != null) {
-                
+
                 foreach (var arg in arguments)
-                    context.CheckForNamingCollisions (this, arg.name, Story.SymbolType.Arg, "argument");
+                    context.CheckForNamingCollisions (this, arg.identifier, Story.SymbolType.Arg, "argument");
 
                 // Separately, check for duplicate arugment names, since they aren't Parsed.Objects,
                 // so have to be checked independently.
                 for (int i = 0; i < arguments.Count; i++) {
                     for (int j = i + 1; j < arguments.Count; j++) {
-                        if (arguments [i].name == arguments [j].name) {
-                            Error ("Multiple arguments with the same name: '" + arguments [i].name + "'");
+                        if (arguments [i].identifier?.name == arguments [j].identifier?.name) {
+                            Error ("Multiple arguments with the same name: '" + arguments [i].identifier + "'");
                         }
                     }
                 }
@@ -362,8 +366,8 @@ namespace Ink.Parsed
             if (flowLevel != FlowLevel.Story) {
                 // Weave points aren't FlowBases, so this will only be knot or stitch
                 var symbolType = flowLevel == FlowLevel.Knot ? Story.SymbolType.Knot : Story.SymbolType.SubFlowAndWeave;
-                context.CheckForNamingCollisions (this, name, symbolType);
-            }                
+                context.CheckForNamingCollisions (this, identifier, symbolType);
+            }
         }
 
         void CheckForDisallowedFunctionFlowControl()
@@ -376,7 +380,7 @@ namespace Ink.Parsed
             foreach (var subFlowAndName in _subFlowsByName) {
                 var name = subFlowAndName.Key;
                 var subFlow = subFlowAndName.Value;
-                Error ("Functions may not contain stitches, but saw '"+name+"' within the function '"+this.name+"'", subFlow);
+                Error ("Functions may not contain stitches, but saw '"+name+"' within the function '"+this.identifier+"'", subFlow);
             }
 
             var allDiverts = _rootWeave.FindAll<Divert> ();
@@ -395,7 +399,7 @@ namespace Ink.Parsed
         {
             string message = "Apparent loose end exists where the flow runs out. Do you need a '-> DONE' statement, choice or divert?";
             if (terminatingObject.parent == _rootWeave && _firstChildFlow) {
-                message = message + " Note that if you intend to enter '"+_firstChildFlow.name+"' next, you need to divert to it explicitly.";
+                message = message + " Note that if you intend to enter '"+_firstChildFlow.identifier+"' next, you need to divert to it explicitly.";
             }
 
             var terminatingDivert = terminatingObject as Divert;
@@ -421,7 +425,7 @@ namespace Ink.Parsed
 
         public override string ToString ()
         {
-            return typeName+" '" + name + "'";
+            return typeName+" '" + identifier + "'";
         }
 
         Weave _rootWeave;
@@ -429,7 +433,7 @@ namespace Ink.Parsed
         Runtime.Divert _startingSubFlowDivert;
         Runtime.Object _startingSubFlowRuntime;
         FlowBase _firstChildFlow;
-            
+
 	}
 }
 

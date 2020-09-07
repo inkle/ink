@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Ink.Parsed
 {
@@ -8,13 +9,30 @@ namespace Ink.Parsed
         // - Knot/stitch names for read counts are actual dot-separated paths
         //   (though this isn't actually used at time of writing)
         // - List names are dot separated: listName.itemName (or just itemName)
-        public string name { 
+        public string name { get; private set; }
+
+        public Identifier identifier {
             get {
-                return string.Join (".", path.ToArray());
-            } 
+                // Merging the list of identifiers into a single identifier.
+                // Debug metadata is also merged.
+                if (pathIdentifiers == null || pathIdentifiers.Count == 0) {
+                    return null;
+                }
+
+                if( _singleIdentifier == null ) {
+                    var name = string.Join (".", path.ToArray());
+                    var firstDebugMetadata = pathIdentifiers.First().debugMetadata;
+                    var debugMetadata = pathIdentifiers.Aggregate(firstDebugMetadata, (acc, id) => acc.Merge(id.debugMetadata));
+                    _singleIdentifier = new Identifier { name = name, debugMetadata = debugMetadata };
+                }
+                
+                return _singleIdentifier;
+            }
         }
-        
-        public List<string> path;
+        Identifier _singleIdentifier;
+
+        public List<Identifier> pathIdentifiers;
+        public List<string> path { get; private set; }
 
         // Only known after GenerateIntoContainer has run
         public bool isConstantReference;
@@ -22,9 +40,11 @@ namespace Ink.Parsed
 
         public Runtime.VariableReference runtimeVarRef { get { return _runtimeVarRef; } }
 
-        public VariableReference (List<string> path)
+        public VariableReference (List<Identifier> pathIdentifiers)
         {
-            this.path = path;
+            this.pathIdentifiers = pathIdentifiers;
+            this.path = pathIdentifiers.Select(id => id?.name).ToList();
+            this.name = string.Join (".", pathIdentifiers);
         }
 
         public override void GenerateIntoContainer (Runtime.Container container)
@@ -72,9 +92,9 @@ namespace Ink.Parsed
             if (isConstantReference || isListItemReference) {
                 return;
             }
-                
+
             // Is it a read count?
-            var parsedPath = new Path (path);
+            var parsedPath = new Path (pathIdentifiers);
             Parsed.Object targetForCount = parsedPath.ResolveFromContext (this);
             if (targetForCount) {
 
@@ -99,7 +119,7 @@ namespace Ink.Parsed
 
                     // Is parent context content rather than logic?
                     if ( parent is Weave || parent is ContentList || parent is FlowBase) {
-                        Warning ("'" + targetFlow.name + "' being used as read count rather than being called as function. Perhaps you intended to write " + targetFlow.name + "()");
+                        Warning ("'" + targetFlow.identifier + "' being used as read count rather than being called as function. Perhaps you intended to write " + targetFlow.name + "()");
                     }
                 }
 
