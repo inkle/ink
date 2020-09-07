@@ -2,13 +2,11 @@
 
 namespace Ink.Parsed
 {
-    using StrIdentifier = System.Collections.Generic.List<Identifier>;
-
     public class List : Parsed.Expression
     {
-        public StrIdentifier itemIdentifierList;
+        public List<Identifier> itemIdentifierList;
 
-        public List (StrIdentifier itemIdentifierList)
+        public List (List<Identifier> itemIdentifierList)
         {
             this.itemIdentifierList = itemIdentifierList;
         }
