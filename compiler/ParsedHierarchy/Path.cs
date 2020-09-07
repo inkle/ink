@@ -23,55 +23,54 @@ namespace Ink.Parsed
 
         public string firstComponent {
             get {
-                if (_components == null || _components.Count == 0)
+                if (components == null || components.Count == 0)
                     return null;
 
-                return _components [0];
+                return components [0].name;
             }
         }
 
         public int numberOfComponents {
             get {
-                return _components.Count;
+                return components.Count;
             }
         }
 
         public string dotSeparatedComponents {
             get {
-                return string.Join (".", _components.ToArray());
+                if( _dotSeparatedComponents == null ) {
+                    _dotSeparatedComponents = string.Join(".", components.Select(c => c?.name));
+                }
+
+                return _dotSeparatedComponents;
             }
         }
+        string _dotSeparatedComponents;
 
-        public List<Identifier> identifiableComponents { get; }
-
-        List<string> _components {
-            get {
-                 return identifiableComponents.Select(id => id?.name).ToList();
-            }
-        }
+        public List<Identifier> components { get; }
 
         public Path(FlowLevel baseFlowLevel, List<Identifier> components)
         {
             _baseTargetLevel = baseFlowLevel;
-            identifiableComponents = components;
+            this.components = components;
         }
 
         public Path(List<Identifier> components)
         {
             _baseTargetLevel = null;
-            identifiableComponents = components;
+            this.components = components;
         }
 
         public Path(Identifier ambiguousName)
         {
             _baseTargetLevel = null;
-            identifiableComponents = new List<Identifier> ();
-            identifiableComponents.Add (ambiguousName);
+            components = new List<Identifier> ();
+            components.Add (ambiguousName);
         }
 
 		public override string ToString ()
 		{
-            if (_components == null || _components.Count == 0) {
+            if (components == null || components.Count == 0) {
                 if (baseTargetLevel == FlowLevel.WeavePoint)
                     return "-> <next gather point>";
                 else
@@ -83,7 +82,7 @@ namespace Ink.Parsed
 
         public Parsed.Object ResolveFromContext(Parsed.Object context)
         {
-            if (_components == null || _components.Count == 0) {
+            if (components == null || components.Count == 0) {
                 return null;
             }
 
@@ -97,7 +96,7 @@ namespace Ink.Parsed
 
             // Given base of path, resolve final target by working deeper into hierarchy
             //  e.g. ==> base.mid.FINAL
-            if (_components.Count > 1) {
+            if (components.Count > 1) {
                 return ResolveTailComponents (baseTargetObject);
             }
 
@@ -139,8 +138,8 @@ namespace Ink.Parsed
         Parsed.Object ResolveTailComponents(Parsed.Object rootTarget)
         {
             Parsed.Object foundComponent = rootTarget;
-            for (int i = 1; i < _components.Count; ++i) {
-                var compName = _components [i];
+            for (int i = 1; i < components.Count; ++i) {
+                var compName = components [i].name;
 
                 FlowLevel minimumExpectedLevel;
                 var foundFlow = foundComponent as FlowBase;
