@@ -42,7 +42,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 
 ## Writing with Unity
 
-* Download the latest [ink-unity-integration package](https://github.com/inkle/ink/releases), or grab it from the Unity AssetStore, and place in your project.
+* Download the latest [ink-unity-integration package](https://github.com/inkle/ink-unity-integration), or grab it from the Unity AssetStore, and place in your project.
 * Create a `.ink` text file such as `myStory.ink`, containing the text `Hello, world!`.
 * Select the file in Unity, and you should see a *Play* button in the file's inspector.
 * Click it, and you should get an Editor window that lets you play (preview) your story.
@@ -75,7 +75,7 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 
 Ink comes with a C#-based (or [JavaScript-based](https://www.github.com/y-lohse/inkjs) runtime engine that can load and run a compiled ink story in JSON format.
 
-To compile the ink, either export from Inky (File -> Export to JSON). Or if you're using Unity, you can use the [ink-Unity-integration package](https://github.com/inkle/ink-unity-integration) which will automatically compile your ink for you whenever you edit it either in Inky or in an editor of your choice.
+To compile the ink, either export from Inky (File -> Export to JSON). Or if you're using Unity, you can use the [ink-unity-integration package](https://github.com/inkle/ink-unity-integration) which will automatically compile your ink for you whenever you edit it either in Inky or in an editor of your choice.
 
 *Advanced: You can also use the inklecate command line tool to compile ink stories, or you can call the compiler from C# code yourself.*
 
