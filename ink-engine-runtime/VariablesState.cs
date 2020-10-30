@@ -137,7 +137,7 @@ namespace Ink.Runtime
             foreach (var varVal in _defaultGlobalVariables) {
                 object loadedToken;
                 if( jToken.TryGetValue(varVal.Key, out loadedToken) ) {
-                    _globalVariables[varVal.Key] = Json.JTokenToRuntimeObject(loadedToken);
+                    SetGlobal(varVal.Key, Json.JTokenToRuntimeObject(loadedToken));
                 } else {
                     _globalVariables[varVal.Key] = varVal.Value;
                 }
