@@ -90,7 +90,7 @@
             - [Advanced: numerical types are implicit](#advanced-numerical-types-are-implicit)
             - [Advanced: INT, FLOOR and FLOAT](#advanced-int-floor-and-float)
         - [String queries](#string-queries)
-    - [Conditional blocks if/else](#conditional-blocks-ifelse)
+    - [Conditional blocks if/else](#3-conditional-blocks-ifelse)
         - [A simple 'if'](#a-simple-if)
         - [Extended if/else if/else blocks](#extended-ifelse-ifelse-blocks)
         - [Switch blocks](#switch-blocks)
