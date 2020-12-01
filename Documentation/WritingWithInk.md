@@ -208,7 +208,7 @@ Text on separate lines produces new paragraphs. The script:
 produces output that looks the same.
 
 
-### Comments
+### Comments 
 
 By default, all text in your file will appear in the output content, unless specially marked up. 
 
@@ -229,7 +229,7 @@ and there's the kind used for reminding the author what they need to do, that th
 	
 	TODO: Write this section properly!
 
-### Tags
+### Tags 
 
 Text content from the game will appear 'as is' when the engine runs. However, it can sometimes be useful to mark up a line of content with extra information to tell the game what to do with that content. 
 
@@ -240,7 +240,7 @@ Text content from the game will appear 'as is' when the engine runs. However, it
 These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [RunningYourInk](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
 
  
-## 2) Choices
+## 2) Choices 
 
 Input is offered to the player via text choices. A text choice is indicated by an `*` character. 
 
@@ -261,7 +261,7 @@ This produces the following game:
 
 By default, the text of a choice appears again, in the output. 
 	
-### Suppressing choice text
+### Suppressing choice text 
 
 Some games separate the text of a choice from its outcome. In **ink**, if the choice text is given in square brackets, the text of the choice will not be printed into response.
 
@@ -335,7 +335,7 @@ The above syntax is enough to write a single set of choices. In a real game, we'
 
 ## 3) Knots
 
-### Pieces of content are called knots
+### Pieces of content are called knots 
 
 To allow the game to branch we need to mark up sections of content with names (as an old-fashioned gamebook does with its 'Paragraph 18', and the like.) 
 
@@ -480,7 +480,7 @@ Using diverts, the writer can branch the flow, and join it back up again, withou
 	<> as fast as we could.
 
 
-### The story flow
+### The story flow 
 
 Knots and diverts combine to create the basic story flow of the game. This flow is "flat" - there's no call-stack, and diverts aren't "returned" from. 
 
@@ -520,7 +520,7 @@ Knots can include sub-sections called "stitches". These are marked using a singl
 
 One could use a knot for a scene, for instance, and stitches for the events within the scene.
 		
-### Stitches have unique names
+### Stitches have unique names		
 
 A stitch can be diverted to using its "address".
 
@@ -560,7 +560,7 @@ You can also include content at the top of a knot outside of any stitch. However
 		...
 
 
-### Local diverts
+### Local diverts 
 
 From inside a knot, you don't need to use the full address for a stitch.
 
@@ -592,7 +592,7 @@ Include statements should always go at the top of a file, and not inside knots.
 There are no rules about what file a knot must be in to be diverted to. (In other words, separating files has no effect on the game's namespacing).
 
 
-## 7) Varying Choices
+## 7) Varying Choices 
 
 ### Choices can only be used once
 
@@ -621,7 +621,7 @@ produces:
 
 ... and on the next loop you'll have no options left.
 
-#### Fallback choices
+#### Fallback choices 
 
 The above example stops where it does, because the next choice ends up in an "out of content" run-time error. 
 	
@@ -715,7 +715,7 @@ You can use several logical tests on an option; if you do, *all* the tests must 
 	+ 	{ visit_paris } { not bored_of_paris } 
 		[Return to Paris] -> visit_paris 
 
-#### Logical operators: AND and OR
+#### Logical operators: AND and OR 
 
 The above "multiple conditions" are really just conditions with an the usual programming AND operator. Ink supports `and` (also written as `&&`) and `or` (also written as `||`) in the usual way, as well as brackets. 
 
@@ -784,7 +784,7 @@ Shuffles produce randomised output.
 	
 	I tossed the coin. {~Heads|Tails}.
 
-#### Features of Alternatives
+#### Features of Alternatives 
 
 Alternatives can contain blank elements.
 
@@ -976,7 +976,7 @@ This format is called "weave", and its built out of the basic content/option syn
 
 ## 1) Gathers
 
-### Gather points gather the flow back together
+### Gather points gather the flow back together 
 
 Let's go back to the first multi-choice example at the top of this document. 
 
@@ -1034,7 +1034,7 @@ We can string these gather-and-branch sections together to make branchy sequence
 
 This is the most basic kind of weave. The rest of this section details  additional features that allow weaves to nest, contain side-tracks and diversions, divert within themselves, and above all, reference earlier choices to influence later ones.
 
-#### The weave philsophy
+#### The weave philsophy 
 
 Weaves are more than just a convenient encapsulation of branching flow; they're also a way to author more robust content. The `escape` example above has already four possible routes through, and a more complex sequence might have lots and lots more. Using normal diverts, one has to check the links by chasing the diverts from point to point and it's easy for errors to creep in. 
 
@@ -1477,7 +1477,7 @@ and the following will test conditions:
 If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced). 
 
 
-#### RANDOM(min, max)
+#### RANDOM(min, max) 
 
 Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pendants, we said *a dice*), so the min and max values are both inclusive. 
 
@@ -1499,7 +1499,7 @@ Results of operations - in particular, for division - are typed based on the typ
 	
 assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
 
-#### Advanced: INT(), FLOOR() and FLOAT()
+#### Advanced: INT(), FLOOR() and FLOAT() 
 
 In cases where you don't want implicit types, or you want to round off a variable, you can cast it directly. 
 
@@ -1657,7 +1657,7 @@ There's one other class of multiline block, which expands on the alternatives sy
 		- Could I win the hand?
 	}
 
-#### Advanced: modified shuffles
+#### Advanced: modified shuffles 
 
 The shuffle block above is really a "shuffled cycle"; in that it'll shuffle the content, play through it, then reshuffle and go again. 
 
@@ -1970,7 +1970,7 @@ Wrapping up simple operations in function can also provide a simple place to put
 
 
 
-##  6) Consta
+##  6) Constants
 
 
 ### Global Constants
@@ -2019,7 +2019,7 @@ And sometimes the numbers are useful in other ways:
 	
 Constants are simply a way to allow you to give story states easy-to-understand names.  
 
-## 7) Advanced: Game-side logic
+## 7) Advanced: Game-side logic 
 
 There are two core ways to provide game hooks in the **ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
 
@@ -2069,7 +2069,7 @@ But what if the section of story being called is more complex - what if it sprea
 
 So instead, **ink** integrates this into the language with a new kind of divert, that functions rather like a subroutine, and is called a 'tunnel'.
 
-### Tunnels run sub-stories
+### Tunnels run sub-stories 
 
 The tunnel syntax looks like a divert, with another divert on the end:
 
@@ -2263,7 +2263,7 @@ Note that we don't need a `-> DONE` if the flow ends with options that fail thei
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
 
 
-#### Example: adding the same choice to several places
+#### Example: adding the same choice to several places 
 
 Threads can be used to add the same choice into lots of different places. When using them this way, it's normal to pass a divert as a parameter, to tell the story where to go after the choice is done. 
 
@@ -2314,7 +2314,7 @@ might do exactly the same thing as:
 but as soon as the option being threaded in includes multiple choices, or conditional logic on choices (or any text content, of course!), the thread version becomes more practical. 
 
 
-#### Example: organisation of wide choice points
+#### Example: organisation of wide choice points 
 
 A game which uses ink as a script rather than a literal output might often generate very large numbers of parallel choices, intended to be filtered by the player via some other in-game interaction - such as walking around an environment. Threads can be useful in these cases simply to divide up choices.
 
@@ -2394,7 +2394,7 @@ The above example is fine for the kettle, but what if we have a pot on the stove
 	VAR today = Monday
 	VAR tomorrow = Tuesday
 
-### States can be used repeatedly
+### States can be used repeatedly 
 
 This allows us to use the same state machine in multiple places.
 
@@ -2522,7 +2522,7 @@ The numerical value, if needed, can be got explicitly using the LIST_VALUE funct
 
 	The lecturer has {LIST_VALUE(deafening) - LIST_VALUE(lecturersVolume)} notches still available to him.
 	
-### Converting numbers to values
+### Converting numbers to values 
 
 You can go the other way by using the list's name as a function:
 
@@ -2541,11 +2541,11 @@ If you specify a value, but not the next value, ink will assume an increment of 
 	LIST primeNumbers = two = 2, three, five = 5
 	
 	
-## 4) Multivalued Lists
+## 4) Multivalued Lists	
 
 The following examples have all included one deliberate untruth, which we'll now remove. Lists - and variables containing list values - do not have to contain only one value. 
 
-### Lists are boolean sets
+### Lists are boolean sets  
 
 A list variable is not a variable containing a number. Rather, a list is like the in/out nameboard in an accommodation block. It contains a list of names, each of which has a room-number associated with it, and a slider to say "in" or "out". 
 
@@ -2567,7 +2567,7 @@ Note that if you're defining your own values, you can place the brackets around 
 
 	LIST primeNumbers = (two = 2), (three) = 3, (five = 5)
 
-#### Assiging multiple values
+#### Assiging multiple values 
 
 We can assign all the values of the list at once as follows:
 
@@ -2579,7 +2579,7 @@ We can assign the empty list to clear a list out:
 	~ DoctorsInSurgery = ()
 	
 
-#### Adding and removing entries
+#### Adding and removing entries 
 
 List entries can be added and removed, singly or collectively. 
 
@@ -2734,7 +2734,7 @@ And to be pendantic:
 	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
 
-#### Lists don't need to have multiple entries
+#### Lists don't need to have multiple entries 
 
 Lists don't *have* to contain multiple values. If you want to use a list as a state-machine, the examples above will all work - set values using `=`, `++` and `--`; test them using `==`, `<`, `<=`, `>` and `>=`. These will all work as expected. 
 	
@@ -2773,7 +2773,7 @@ You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` fu
 
 	LIST_RANGE(list_name, min_value, max_value) 
 
-### Example: Tower of Hanoi
+### Example: Tower of Hanoi 
 
 To demonstrate a few of these ideas, here's a functional Tower of Hanoi example, written so no one else has to write it.
 
@@ -2874,7 +2874,7 @@ The above section covers basic comparisons. There are a few more powerful featur
 
 A lot of the features in this section won't be necessary for most games.
 
-### Comparing lists
+### Comparing lists 
 
 We can compare lists less than exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
 
@@ -2894,7 +2894,7 @@ Note that `LIST_A > LIST_B` implies `LIST_A != LIST_B`, and `LIST_A >= LIST_B` a
 
 The moral is, don't use these unless you have a clear picture in your mind.
 
-### Inverting lists
+### Inverting lists 
 
 A list can be "inverted", which is the equivalent of going through the accommodation in/out name-board and flipping every switch to the opposite of what it was before. 
 
@@ -2942,7 +2942,7 @@ The result is a new list, so you can test it:
 
 
 
-## 6) Multi-list Lists
+## 6) Multi-list Lists	
 
 
 So far, all of our examples have included one large simplification, again - that the values in a list variable have to all be from the same list family. But they don't.
@@ -2992,7 +2992,7 @@ And we could have options based on combinations of things:
 	*	{ currentRoomState ? (Batman, Alfred) } [Talk to Alfred and Batman] 
 		'Say, do you two know each other?' 
 		
-### Lists to track multiple states
+### Lists to track multiple states 
 
 We can model devices with multiple states. Back to the kettle again...
 
@@ -3373,7 +3373,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	    }
 	    -> END
 	    
-## 8) Summary
+## 8) Summary 
 
 To summarise a difficult section, **ink**'s list construction provides:
 
@@ -3401,7 +3401,7 @@ Example:
 	{ PancakeState < ready_to_eat }
 	~ PancakeState++
 
-### Properties
+### Properties 
 *	Each list is a different property, with values for the states that property can take (on or off, lit or unlit, etc) 
 * 	Change state by removing the old state, then adding in the new
 *  Test using `?` and `!?`
