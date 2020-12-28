@@ -25,7 +25,7 @@ Here's a taster [from the tutorial](https://github.com/inkle/ink/blob/master/Doc
     *   ... but I said nothing[] and <> 
     - we passed the day in silence.
     - -> END
-    
+
 
 
 # Getting started
@@ -82,18 +82,18 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
 **ink** isn't designed as an end-to-end narrative game engine. Rather, it's designed to be flexible, so that it can slot into your own game and UI with ease. Here's a taster of the code you need to get started:
 
     using Ink.Runtime;
-
+    
     // 1) Load story
     _story = new Story(sourceJsonString);
-
+    
     // 2) Game content, line by line
     while(_story.canContinue)
         Debug.Log(story.Continue());
-
+    
     // 3) Display story.currentChoices list, allow player to choose one
     Debug.Log(_story.currentChoices[0].choiceText);
     _story.ChooseChoiceIndex(0);
-
+    
     // 4) Back to 2
     ...
 
@@ -112,7 +112,7 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
     
  * [Visual Studio](https://www.visualstudio.com/) (e.g. Community edition); required to build nuget package with multi-targeting of .NET Framework 3.5
  * [Xamarin](https://xamarin.com/download), or Unity's own version of MonoDevelop
-    
+   
 **Mac (Optional):**
     
  * [Visual Studio for Mac](https://www.visualstudio.com/)
@@ -154,3 +154,5 @@ See the [architectural overview documentation](https://github.com/inkle/ink/blob
 # Support us!
 
 **ink** is free forever, but represents multiple years of thought, design, development and testing. Please consider supporting us via [Patreon](http://www.patreon.com/inkle). Thank you, and have fun!
+
+![](Epic_MegaGrants_Recipient_logo_horizontal.png)
