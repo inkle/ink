@@ -3294,7 +3294,11 @@ Below is a listing of the currently supported identifier ranges.
 
  - **Latin Extended B**
  
-   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.  
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.
+
+- **Latin 1 Supplement**
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin 1 Supplement* unicode range `\u0080` - `\u00FF`.  
 
 
 **NOTE!** ink files should be saved in UTF-8 format, which ensures that the above character ranges are supported.
