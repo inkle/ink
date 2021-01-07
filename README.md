@@ -141,7 +141,7 @@ We’d of course appreciate any bug fixes you might find!
 
 We're using GitHub issues both as a discussion forum and as a bug tracker, so [create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature, and please label appropriately. Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
 
-We also have a [Discord server](https://discord.gg/MUXj7Md), where you may find other people using ink to chat with (as well as inklers!)
+We also have a [Discord server](https://discord.gg/inkle), where you may find other people using ink to chat with (as well as inklers!)
 
 ## Architectural overview
 
