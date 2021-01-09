@@ -646,8 +646,10 @@ Here's a one-knot version of whack-a-mole. Note we use once-only options, and a 
 		*  [{&Blast|Hammer} middle] -> whack_a_mole
 		*  [{&Clobber|Bosh} bottom-left] 	-> whack_a_mole
 		*  [{&Nail|Thump} bottom-right] 	-> whack_a_mole
-		*  [] Then you collapse from hunger. The mole has defeated you! 
-			-> END
+		*   ->
+        	    Then you collapse from hunger. The mole has defeated you! 
+	            -> END
+
 
 produces the following 'game':
 
