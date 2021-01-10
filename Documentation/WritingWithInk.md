@@ -2251,7 +2251,8 @@ But what if we add a microwave as well? We might want start generalising our fun
 	*	{kettleState == cold} [Turn on kettle] 
 		{boilSomething(kettleState, "kettle")}
 	*	{potState == cold} [Light stove] 
-		{boilSomething(potState, "pot")}		*	{microwaveState == cold} [Turn on microwave] 
+		{boilSomething(potState, "pot")}		
+	*	{microwaveState == cold} [Turn on microwave] 
 		{boilSomething(microwaveState, "microwave")}
 
 or even... 
