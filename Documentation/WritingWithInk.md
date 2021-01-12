@@ -2507,7 +2507,7 @@ To demonstrate a few of these ideas, here's a functional Tower of Hanoi example,
 	=== gameloop 
 	    Staring down from the heavens you see your followers finishing construction of the last of the great temples, ready to begin the work.
 	- (top) 
-	    +  (describe) {true || TURNS_SINCE(-> describe) >= 2 || !describe} [ Regard the temples]
+	    +  [ Regard the temples]
 	        You regard each of the temples in turn. On each is stacked the rings of stone. {describe_pillar(1)} {describe_pillar(2)} {describe_pillar(3)}
 	    <- move_post(1, 2, post1, post2)   
 	    <- move_post(2, 1, post2, post1)  
