@@ -2,7 +2,7 @@
 
 namespace Ink.Runtime
 {
-    internal class ListDefinition
+    public class ListDefinition
     {
         public string name { get { return _name; } }
 
@@ -57,18 +57,6 @@ namespace Ink.Runtime
         public bool TryGetValueForItem (InkListItem item, out int intVal)
         {
             return _itemNameToValues.TryGetValue (item.itemName, out intVal);
-        }
-
-        public ListValue ListRange (int min, int max)
-        {
-            var rawList = new InkList ();
-            foreach (var nameAndValue in _itemNameToValues) {
-                if (nameAndValue.Value >= min && nameAndValue.Value <= max) {
-                    var item = new InkListItem (name, nameAndValue.Key);
-                    rawList [item] = nameAndValue.Value;
-                }
-            }
-            return new ListValue(rawList);
         }
 
         public ListDefinition (string name, Dictionary<string, int> items)

@@ -1,127 +1,39 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{D10ED1A8-CF83-4E58-B505-3714B3A16215}</ProjectGuid>
     <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Ink</RootNamespace>
     <AssemblyName>inklecate</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
-    <PlatformTarget>anycpu</PlatformTarget>
-    <ExternalConsole>true</ExternalConsole>
+
+  <PropertyGroup>
+    <Company>inkle Ltd</Company>
+    <Authors>InkleStudios</Authors>
+    <Copyright>inkle Ltd</Copyright>
+    <RepositoryUrl>https://github.com/inkle/ink</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/inkle/ink</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/inkle/ink/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Test|x86' ">
-    <Optimize>false</Optimize>
-    <OutputPath>bin\x86\Test</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>-tpc</Commandlineparameters>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <Externalconsole>true</Externalconsole>
-    <ExternalConsole>true</ExternalConsole>
-  </PropertyGroup>
+
+  <!-- PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup -->
+
   <ItemGroup>
-    <Reference Include="System" />
+    <ProjectReference Include="..\compiler\ink_compiler.csproj" />
+    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CommandLineTool.cs" />
-    <Compile Include="CharacterSet.cs" />
-    <Compile Include="StressTestContentGenerator.cs" />
-    <Compile Include="ParsedHierarchy\Choice.cs" />
-    <Compile Include="ParsedHierarchy\Conditional.cs" />
-    <Compile Include="ParsedHierarchy\ConditionalSingleBranch.cs" />
-    <Compile Include="ParsedHierarchy\ContentList.cs" />
-    <Compile Include="ParsedHierarchy\Divert.cs" />
-    <Compile Include="ParsedHierarchy\DivertTarget.cs" />
-    <Compile Include="ParsedHierarchy\Expression.cs" />
-    <Compile Include="ParsedHierarchy\FlowBase.cs" />
-    <Compile Include="ParsedHierarchy\FlowLevel.cs" />
-    <Compile Include="ParsedHierarchy\FunctionCall.cs" />
-    <Compile Include="ParsedHierarchy\Gather.cs" />
-    <Compile Include="ParsedHierarchy\INamedContent.cs" />
-    <Compile Include="ParsedHierarchy\IncludedFile.cs" />
-    <Compile Include="ParsedHierarchy\IWeavePoint.cs" />
-    <Compile Include="ParsedHierarchy\Knot.cs" />
-    <Compile Include="ParsedHierarchy\Number.cs" />
-    <Compile Include="ParsedHierarchy\Object.cs" />
-    <Compile Include="ParsedHierarchy\Path.cs" />
-    <Compile Include="ParsedHierarchy\Return.cs" />
-    <Compile Include="ParsedHierarchy\Sequence.cs" />
-    <Compile Include="ParsedHierarchy\Stitch.cs" />
-    <Compile Include="ParsedHierarchy\Story.cs" />
-    <Compile Include="ParsedHierarchy\Text.cs" />
-    <Compile Include="ParsedHierarchy\VariableAssignment.cs" />
-    <Compile Include="ParsedHierarchy\VariableReference.cs" />
-    <Compile Include="ParsedHierarchy\Weave.cs" />
-    <Compile Include="ParsedHierarchy\Wrap.cs" />
-    <Compile Include="StringParser\StringParser.cs" />
-    <Compile Include="StringParser\StringParserState.cs" />
-    <Compile Include="InkParser\InkParser.cs" />
-    <Compile Include="InkParser\InkParser_Knot.cs" />
-    <Compile Include="InkParser\InkParser_Whitespace.cs" />
-    <Compile Include="InkParser\InkParser_Choices.cs" />
-    <Compile Include="InkParser\InkParser_Expressions.cs" />
-    <Compile Include="InkParser\CommentEliminator.cs" />
-    <Compile Include="InkParser\InkParser_Logic.cs" />
-    <Compile Include="InkParser\InkParser_CommandLineInput.cs" />
-    <Compile Include="InkParser\InkParser_Conditional.cs" />
-    <Compile Include="InkParser\InkParser_Divert.cs" />
-    <Compile Include="InkParser\InkParser_Content.cs" />
-    <Compile Include="InkParser\InkParser_Sequences.cs" />
-    <Compile Include="InkParser\InkParser_Statements.cs" />
-    <Compile Include="ParsedHierarchy\TunnelOnwards.cs" />
-    <Compile Include="InkParser\InkParser_AuthorWarning.cs" />
-    <Compile Include="ParsedHierarchy\AuthorWarning.cs" />
-    <Compile Include="ParsedHierarchy\ConstantDeclaration.cs" />
-    <Compile Include="ParsedHierarchy\StringExpression.cs" />
-    <Compile Include="ParsedHierarchy\ExternalDeclaration.cs" />
-    <Compile Include="Plugins\Plugin.cs" />
-    <Compile Include="Plugins\PluginManager.cs" />
-    <Compile Include="Plugins\ChoiceListPlugin.cs" />
-    <Compile Include="Error.cs" />
-    <Compile Include="InkParser\InkParser_Include.cs" />
-    <Compile Include="CommandLinePlayer.cs" />
-    <Compile Include="InkParser\InkParser_Tags.cs" />
-    <Compile Include="ParsedHierarchy\ListDefinition.cs" />
-    <Compile Include="ParsedHierarchy\List.cs" />
+    <!-- this is planned for the future sdk versions
+      <InternalsVisibleTo Include="ink-tests"/>
+    -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ink-tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <None Include="test.ink">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file.ink">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="test_included_file2.ink">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Plugins\Readme.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ink-engine-runtime\ink-engine-runtime.csproj">
-      <Project>{F68D0EE2-1831-4A06-8FFA-CBD0315EFD0E}</Project>
-      <Name>ink-engine-runtime</Name>
-    </ProjectReference>
-  </ItemGroup>
+
 </Project>

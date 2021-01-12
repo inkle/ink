@@ -8,8 +8,12 @@ namespace Ink.Runtime
     // they're coerced to the same type, downward.
     // Higher value types "infect" an operation.
     // (This may not be the most sensible thing to do, but it's worked so far!)
-    internal enum ValueType
+    public enum ValueType
     {
+        // Bool is new addition, keep enum values the same, with Int==0, Float==1 etc,
+        // but for coersion rules, we want to keep bool with a lower value than Int
+        // so that it converts in the right direction
+        Bool = -1, 
         // Used in coersion
         Int,
         Float,
@@ -21,7 +25,7 @@ namespace Ink.Runtime
         VariablePointer
     }
 
-    internal abstract class Value : Runtime.Object
+    public abstract class Value : Runtime.Object
     {
         public abstract ValueType valueType { get; }
         public abstract bool isTruthy { get; }
@@ -38,13 +42,9 @@ namespace Ink.Runtime
                 val = (float)doub;
             }
 
-            // Implicitly convert bools into ints
-            if (val is bool) {
-                bool b = (bool)val;
-                val = (int)(b ? 1 : 0);
-            }
-
-            if (val is int) {
+            if( val is bool ) {
+                return new BoolValue((bool)val);
+            } else if (val is int) {
                 return new IntValue ((int)val);
             } else if (val is long) {
                 return new IntValue ((int)(long)val);
@@ -63,13 +63,18 @@ namespace Ink.Runtime
             return null;
         }
 
-        internal override Object Copy()
+        public override Object Copy()
         {
             return Create (valueObject);
         }
+
+        protected StoryException BadCastException (ValueType targetType)
+        {
+            return new StoryException ("Can't cast "+this.valueObject+" from " + this.valueType+" to "+targetType);
+        }
     }
 
-    internal abstract class Value<T> : Value
+    public abstract class Value<T> : Value
     {
         public T value { get; set; }
 
@@ -90,7 +95,46 @@ namespace Ink.Runtime
         }
     }
 
-    internal class IntValue : Value<int>
+    public class BoolValue : Value<bool>
+    {
+        public override ValueType valueType { get { return ValueType.Bool; } }
+        public override bool isTruthy { get { return value; } }
+
+        public BoolValue(bool boolVal) : base(boolVal)
+        {
+        }
+
+        public BoolValue() : this(false) {}
+
+        public override Value Cast(ValueType newType)
+        {
+            if (newType == valueType) {
+                return this;
+            }
+
+            if (newType == ValueType.Int) {
+                return new IntValue (this.value ? 1 : 0);
+            }
+
+            if (newType == ValueType.Float) {
+                return new FloatValue (this.value ? 1.0f : 0.0f);
+            }
+
+            if (newType == ValueType.String) {
+                return new StringValue(this.value ? "true" : "false");
+            }
+
+            throw BadCastException (newType);
+        }
+
+        public override string ToString ()
+        {
+            // Instead of C# "True" / "False"
+            return value ? "true" : "false";
+        }
+    }
+
+    public class IntValue : Value<int>
     {
         public override ValueType valueType { get { return ValueType.Int; } }
         public override bool isTruthy { get { return value != 0; } }
@@ -107,6 +151,10 @@ namespace Ink.Runtime
                 return this;
             }
 
+            if (newType == ValueType.Bool) {
+                return new BoolValue (this.value == 0 ? false : true);
+            }
+
             if (newType == ValueType.Float) {
                 return new FloatValue ((float)this.value);
             }
@@ -115,11 +163,11 @@ namespace Ink.Runtime
                 return new StringValue("" + this.value);
             }
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
     }
 
-    internal class FloatValue : Value<float>
+    public class FloatValue : Value<float>
     {
         public override ValueType valueType { get { return ValueType.Float; } }
         public override bool isTruthy { get { return value != 0.0f; } }
@@ -136,6 +184,10 @@ namespace Ink.Runtime
                 return this;
             }
 
+            if (newType == ValueType.Bool) {
+                return new BoolValue (this.value == 0.0f ? false : true);
+            }
+
             if (newType == ValueType.Int) {
                 return new IntValue ((int)this.value);
             }
@@ -144,11 +196,11 @@ namespace Ink.Runtime
                 return new StringValue("" + this.value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
     }
 
-    internal class StringValue : Value<string>
+    public class StringValue : Value<string>
     {
         public override ValueType valueType { get { return ValueType.String; } }
         public override bool isTruthy { get { return value.Length > 0; } }
@@ -201,11 +253,11 @@ namespace Ink.Runtime
                 }
             }
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
     }
 
-    internal class DivertTargetValue : Value<Path>
+    public class DivertTargetValue : Value<Path>
     {
         public Path targetPath { get { return this.value; } set { this.value = value; } }
         public override ValueType valueType { get { return ValueType.DivertTarget; } }
@@ -223,7 +275,7 @@ namespace Ink.Runtime
             if (newType == valueType)
                 return this;
             
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
 
         public override string ToString ()
@@ -234,7 +286,7 @@ namespace Ink.Runtime
 
     // TODO: Think: Erm, I get that this contains a string, but should
     // we really derive from Value<string>? That seems a bit misleading to me.
-    internal class VariablePointerValue : Value<string>
+    public class VariablePointerValue : Value<string>
     {
         public string variableName { get { return this.value; } set { this.value = value; } }
         public override ValueType valueType { get { return ValueType.VariablePointer; } }
@@ -260,7 +312,7 @@ namespace Ink.Runtime
             if (newType == valueType)
                 return this;
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
 
         public override string ToString ()
@@ -268,13 +320,13 @@ namespace Ink.Runtime
             return "VariablePointerValue(" + variableName + ")";
         }
 
-        internal override Object Copy()
+        public override Object Copy()
         {
             return new VariablePointerValue (variableName, contextIndex);
         }
     }
 
-    internal class ListValue : Value<InkList>
+    public class ListValue : Value<InkList>
     {
         public override ValueType valueType {
             get {
@@ -282,15 +334,10 @@ namespace Ink.Runtime
             }
         }
 
-        // Truthy if it contains any non-zero items
+        // Truthy if it is non-empty
         public override bool isTruthy {
             get {
-                foreach (var kv in value) {
-                    int listItemIntValue = kv.Value;
-                    if (listItemIntValue != 0)
-                        return true;
-                }
-                return false;
+                return value.Count > 0;
             }
         }
                 
@@ -324,7 +371,7 @@ namespace Ink.Runtime
             if (newType == valueType)
                 return this;
 
-            throw new System.Exception ("Unexpected type cast of Value to new ValueType");
+            throw BadCastException (newType);
         }
 
         public ListValue () : base(null) {

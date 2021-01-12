@@ -1,1 +1,0 @@
-﻿This is a convenience ink file where you can test out changes in the compiler code.

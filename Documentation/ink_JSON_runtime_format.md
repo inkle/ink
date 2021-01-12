@@ -1,4 +1,4 @@
-# ink's JSON runtime format
+# ink's JSON runtime format
 
 When ink is compiled to JSON, it is converted to a low level format for use by the runtime, and is made up of smaller, simpler building blocks. For an overview of the full pipeline, including a description of the runtime itself see the [Architecture and Development documentation](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md).
 
@@ -15,7 +15,7 @@ Broadly speaking, the entire format is composed of Containers, and individual su
 
 ## Containers
 
-There is only one type of generalised collection, and this is the **Container** - it's used throughout the engine. In JSON it's representated as an array type.
+There is only one type of generalised collection, and this is the **Container** - it's used throughout the engine. In JSON it's represented as an array type.
 
 The root of a story is a container, and as a story is evaluated, the engine steps through the sub-elements of containers.
 
@@ -73,20 +73,20 @@ Represented by `"void"`, this is used to place an object on the evaluation stack
 
 Control commands are special instructions to the text engine to perform various actions. They are all represented by a particular text string:
 
-* `"ev"` - Begin logical evaluation mode. In evaluation mode, objects that are encounted are added to an evaluation stack, rather than simply echoed into the main text output stream. As they're pushed onto the stack, they may be processed by other commands, functions, etc.
+* `"ev"` - Begin logical evaluation mode. In evaluation mode, objects that are encountered are added to an evaluation stack, rather than simply echoed into the main text output stream. As they're pushed onto the stack, they may be processed by other commands, functions, etc.
 * `"/ev"` - End logical evaluation mode. Future objects will be appended to the output stream rather than to the evaluation stack.
 * `"out"` - The topmost object on the evaluation stack is popped and appended to the output stream (main story output).
 * `"pop"` - Pops a value from the evaluation stack, *without* appending to the output stream.
 * `"->->"` and `"~ret"` pop the callstack - used for returning from a tunnel or function respectively. They are specified independently for error checking, since the callstack is aware of whether each element was pushed as a tunnel or function in the first place.
 * `"du"` - Duplicate the topmost object on the evaluation stack. Useful since some commands consume objects on the evaluation stack.
-* `"str"` - Begin string evaluation mode. Adds a marker to the output stream, and goes into content mode (from evaluation mode). Must have already been in evaluation mode when this is encounted. See below for explanation.
+* `"str"` - Begin string evaluation mode. Adds a marker to the output stream, and goes into content mode (from evaluation mode). Must have already been in evaluation mode when this is encountered. See below for explanation.
 * `"/str"` - End string evaluation mode. All content after the previous Begin marker is concatenated together, removed from the output stream, and appended as a string value to the evaluation stack. Re-enters evaluation mode immediately afterwards.
 * `"nop"` - No-operation. Does nothing, but is useful as an addressable piece of content to divert to.
 * `"choiceCnt"` - Pushes an integer with the current number of choices to the evaluation stack.
 * `"turns"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of turns since that target was last visited by the story engine.
-* `"visit"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of visits to that target by the story engine.
+* `"visit"` - Pushes an integer with the number of visits to the current container by the story engine.
 * `"seq"` - Pops an integer, expected to be the number of elements in a sequence that's being entered. In return, it pushes an integer with the next sequence shuffle index to the evaluation stack. This shuffle index is derived from the number of elements in the sequence, the number of elements in it, and the story's random seed from when it was first begun.
-* `"thread"` - Clones/starts a new thread, as used with the `<- knot` syntax in ink. This esssentially clones the entire callstack, branching it.
+* `"thread"` - Clones/starts a new thread, as used with the `<- knot` syntax in ink. This essentially clones the entire callstack, branching it.
 * `"done"` - Tries to close/pop the active thread, otherwise marks the story flow safe to exit without a loose end warning.
 * `"end"` - Ends the story flow immediately, closes all active threads, unwinds the callstack, and removes any choices that were previously created.
 
@@ -94,7 +94,7 @@ Control commands are special instructions to the text engine to perform various 
 
 These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. The following operators are supported:
 
-`"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"~"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
+`"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"_"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
         
 Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
 
@@ -138,7 +138,7 @@ Example:
 
 ## ChoicePoint
 
-Generates an instance of a `Choice`. Its exact behaviour depends on its flags. It doesn't contain any text itself, since choice text is generated at runtime and added to the evaluation stack. When a ChoicePoint is enounted, it pops content off the evaluation stack according to its flags, which indicate which texts are needed.
+Generates an instance of a `Choice`. Its exact behaviour depends on its flags. It doesn't contain any text itself, since choice text is generated at runtime and added to the evaluation stack. When a ChoicePoint is encountered, it pops content off the evaluation stack according to its flags, which indicate which texts are needed.
 
 A ChoicePoint object's structure in JSON is:
 
@@ -153,7 +153,7 @@ The `flg` field is a bitfield of flags:
 
  * **0x1 - Has condition?**: Set if the story should pop a value from the evaluation stack in order to determine whether a choice instance should be created at all.
  * **0x2 - Has start content?** - According to square bracket notation, is there any leading content before any square brackets? If so, this content should be popped from the evaluation stack.
- * **0x4 - Has choice-only content?** - According to square bracket notation, is there any content between the square brackets? If so, this content shoud be popped from the evaluation stack.
+ * **0x4 - Has choice-only content?** - According to square bracket notation, is there any content between the square brackets? If so, this content should be popped from the evaluation stack.
  * **0x8 - Is invisible default?** - When this is enabled, the choice isn't provided to the game (isn't presented to the player), and instead is automatically followed if there are no other choices generated.
  * **0x10 - Once only?** - Defaults to true. This is the difference between the `*` and `+` choice bullets in ink. If once only (`*`), the choice is only displayed if its target container's read count is zero.
 

@@ -4,50 +4,27 @@ using System.Diagnostics;
 
 namespace Ink.Runtime
 {
-    internal class CallStack
+    public class CallStack
     {
-        internal class Element
+        public class Element
         {
-            public Container currentContainer;
-            public int currentContentIndex;
+            public Pointer currentPointer;
 
             public bool inExpressionEvaluation;
             public Dictionary<string, Runtime.Object> temporaryVariables;
             public PushPopType type;
 
-            public Runtime.Object currentObject {
-                get {
-                    if (currentContainer && currentContentIndex < currentContainer.content.Count) {
-                        return currentContainer.content [currentContentIndex];
-                    }
+            // When this callstack element is actually a function evaluation called from the game,
+            // we need to keep track of the size of the evaluation stack when it was called
+            // so that we know whether there was any return value.
+            public int evaluationStackHeightWhenPushed;
 
-                    return null;
-                }
-                set {
-                    var currentObj = value;
-                    if (currentObj == null) {
-                        currentContainer = null;
-                        currentContentIndex = 0;
-                        return;
-                    }
+            // When functions are called, we trim whitespace from the start and end of what
+            // they generate, so we make sure know where the function's start and end are.
+            public int functionStartInOuputStream;
 
-                    currentContainer = currentObj.parent as Container;
-                    if (currentContainer != null)
-                        currentContentIndex = currentContainer.content.IndexOf (currentObj);
-
-                    // Two reasons why the above operation might not work:
-                    //  - currentObj is already the root container
-                    //  - currentObj is a named container rather than being an object at an index
-                    if (currentContainer == null || currentContentIndex == -1) {
-                        currentContainer = currentObj as Container;
-                        currentContentIndex = 0;
-                    }
-                }
-            }
-
-            public Element(PushPopType type, Container container, int contentIndex, bool inExpressionEvaluation = false) {
-                this.currentContainer = container;
-                this.currentContentIndex = contentIndex;
+            public Element(PushPopType type, Pointer pointer, bool inExpressionEvaluation = false) {
+                this.currentPointer = pointer;
                 this.inExpressionEvaluation = inExpressionEvaluation;
                 this.temporaryVariables = new Dictionary<string, Object>();
                 this.type = type;
@@ -55,17 +32,19 @@ namespace Ink.Runtime
 
             public Element Copy()
             {
-                var copy = new Element (this.type, this.currentContainer, this.currentContentIndex, this.inExpressionEvaluation);
+                var copy = new Element (this.type, currentPointer, this.inExpressionEvaluation);
                 copy.temporaryVariables = new Dictionary<string,Object>(this.temporaryVariables);
+                copy.evaluationStackHeightWhenPushed = evaluationStackHeightWhenPushed;
+                copy.functionStartInOuputStream = functionStartInOuputStream;
                 return copy;
             }
         }
 
-        internal class Thread
+        public class Thread
         {
             public List<Element> callstack;
             public int threadIndex;
-            public Runtime.Object previousContentObject;
+            public Pointer previousPointer;
 
             public Thread() {
                 callstack = new List<Element>();
@@ -81,23 +60,33 @@ namespace Ink.Runtime
 
                     PushPopType pushPopType = (PushPopType)(int)jElementObj ["type"];
 
-					Container currentContainer = null;
-					int contentIndex = 0;
+                    Pointer pointer = Pointer.Null;
 
 					string currentContainerPathStr = null;
 					object currentContainerPathStrToken;
 					if (jElementObj.TryGetValue ("cPath", out currentContainerPathStrToken)) {
 						currentContainerPathStr = currentContainerPathStrToken.ToString ();
-						currentContainer = storyContext.ContentAtPath (new Path(currentContainerPathStr)) as Container;
-                        contentIndex = (int) jElementObj ["idx"];
+
+                        var threadPointerResult = storyContext.ContentAtPath (new Path (currentContainerPathStr));
+                        pointer.container = threadPointerResult.container;
+                        pointer.index = (int)jElementObj ["idx"];
+
+                        if (threadPointerResult.obj == null)
+                            throw new System.Exception ("When loading state, internal story location couldn't be found: " + currentContainerPathStr + ". Has the story changed since this save data was created?");
+                        else if (threadPointerResult.approximate)
+                            storyContext.Warning ("When loading state, exact internal story location couldn't be found: '" + currentContainerPathStr + "', so it was approximated to '"+pointer.container.path.ToString()+"' to recover. Has the story changed since this save data was created?");
 					}
 
                     bool inExpressionEvaluation = (bool)jElementObj ["exp"];
 
-					var el = new Element (pushPopType, currentContainer, contentIndex, inExpressionEvaluation);
+					var el = new Element (pushPopType, pointer, inExpressionEvaluation);
 
-					var jObjTemps = (Dictionary<string, object>) jElementObj ["temp"];
-					el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs (jObjTemps);
+                    object temps;
+                    if ( jElementObj.TryGetValue("temp", out temps) ) {
+                        el.temporaryVariables = Json.JObjectToDictionaryRuntimeObjs((Dictionary<string, object>)temps);
+                    } else {
+                        el.temporaryVariables.Clear();
+                    }					
 
 					callstack.Add (el);
 				}
@@ -105,7 +94,7 @@ namespace Ink.Runtime
 				object prevContentObjPath;
 				if( jThreadObj.TryGetValue("previousContentObject", out prevContentObjPath) ) {
 					var prevPath = new Path((string)prevContentObjPath);
-                    previousContentObject = storyContext.ContentAtPath(prevPath);
+                    previousPointer = storyContext.PointerAtPath(prevPath);
                 }
 			}
 
@@ -115,36 +104,49 @@ namespace Ink.Runtime
                 foreach(var e in callstack) {
                     copy.callstack.Add(e.Copy());
                 }
-                copy.previousContentObject = previousContentObject;
+                copy.previousPointer = previousPointer;
                 return copy;
             }
 
-			public Dictionary<string, object> jsonToken {
-				get {
-					var threadJObj = new Dictionary<string, object> ();
+            public void WriteJson(SimpleJson.Writer writer)
+            {
+                writer.WriteObjectStart();
 
-					var jThreadCallstack = new List<object> ();
-					foreach (CallStack.Element el in callstack) {
-						var jObj = new Dictionary<string, object> ();
-						if (el.currentContainer) {
-							jObj ["cPath"] = el.currentContainer.path.componentsString;
-							jObj ["idx"] = el.currentContentIndex;
-						}
-						jObj ["exp"] = el.inExpressionEvaluation;
-						jObj ["type"] = (int) el.type;
-						jObj ["temp"] = Json.DictionaryRuntimeObjsToJObject (el.temporaryVariables);
-						jThreadCallstack.Add (jObj);
-					}
+                // callstack
+                writer.WritePropertyStart("callstack");
+                writer.WriteArrayStart();
+                foreach (CallStack.Element el in callstack)
+                {
+                    writer.WriteObjectStart();
+                    if(!el.currentPointer.isNull) {
+                        writer.WriteProperty("cPath", el.currentPointer.container.path.componentsString);
+                        writer.WriteProperty("idx", el.currentPointer.index);
+                    }
 
-					threadJObj ["callstack"] = jThreadCallstack;
-					threadJObj ["threadIndex"] = threadIndex;
+                    writer.WriteProperty("exp", el.inExpressionEvaluation);
+                    writer.WriteProperty("type", (int)el.type);
 
-                    if (previousContentObject != null)
-                        threadJObj ["previousContentObject"] = previousContentObject.path.ToString();
+                    if(el.temporaryVariables.Count > 0) {
+                        writer.WritePropertyStart("temp");
+                        Json.WriteDictionaryRuntimeObjs(writer, el.temporaryVariables);
+                        writer.WritePropertyEnd();
+                    }
 
-					return threadJObj;
-				}
-			}
+                    writer.WriteObjectEnd();
+                }
+                writer.WriteArrayEnd();
+                writer.WritePropertyEnd();
+
+                // threadIndex
+                writer.WriteProperty("threadIndex", threadIndex);
+
+                if (!previousPointer.isNull)
+                {
+                    writer.WriteProperty("previousContentObject", previousPointer.Resolve().path.ToString());
+                }
+
+                writer.WriteObjectEnd();
+            }
         }
 
         public List<Element> elements {
@@ -160,8 +162,10 @@ namespace Ink.Runtime
 		}
 
         public Element currentElement { 
-            get { 
-                return callStack [callStack.Count - 1];
+            get {
+                var thread = _threads [_threads.Count - 1];
+                var cs = thread.callstack;
+                return cs [cs.Count - 1];
             } 
         }
 
@@ -189,13 +193,12 @@ namespace Ink.Runtime
             }
         }
 
-        public CallStack (Container rootContentContainer)
+        public CallStack (Story storyContext)
         {
-            _threads = new List<Thread> ();
-            _threads.Add (new Thread ());
-
-            _threads [0].callstack.Add (new Element (PushPopType.Tunnel, rootContentContainer, 0));
+            _startOfRoot = Pointer.StartOf(storyContext.rootContentContainer);
+            Reset();
         }
+
 
         public CallStack(CallStack toCopy)
         {
@@ -203,8 +206,19 @@ namespace Ink.Runtime
             foreach (var otherThread in toCopy._threads) {
                 _threads.Add (otherThread.Copy ());
             }
+            _threadCounter = toCopy._threadCounter;
+            _startOfRoot = toCopy._startOfRoot;
         }
-            
+
+        public void Reset() 
+        {
+            _threads = new List<Thread>();
+            _threads.Add(new Thread());
+
+            _threads[0].callstack.Add(new Element(PushPopType.Tunnel, _startOfRoot));
+        }
+
+
         // Unfortunately it's not possible to implement jsonToken since
         // the setter needs to take a Story as a context in order to
         // look up objects from paths for currentContainer within elements.
@@ -221,22 +235,33 @@ namespace Ink.Runtime
             }
 
             _threadCounter = (int)jObject ["threadCounter"];
+            _startOfRoot = Pointer.StartOf(storyContext.rootContentContainer);
         }
-            
-        // See above for why we can't implement jsonToken
-        public Dictionary<string, object> GetJsonToken() {
 
-            var jObject = new Dictionary<string, object> ();
+        public void WriteJson(SimpleJson.Writer w)
+        {
+            w.WriteObject(writer =>
+            {
+                writer.WritePropertyStart("threads");
+                {
+                    writer.WriteArrayStart();
 
-            var jThreads = new List<object> ();
-            foreach (CallStack.Thread thread in _threads) {
-				jThreads.Add (thread.jsonToken);
-            }
+                    foreach (CallStack.Thread thread in _threads)
+                    {
+                        thread.WriteJson(writer);
+                    }
 
-            jObject ["threads"] = jThreads;
-            jObject ["threadCounter"] = _threadCounter;
+                    writer.WriteArrayEnd();
+                }
+                writer.WritePropertyEnd();
 
-            return jObject;
+                writer.WritePropertyStart("threadCounter");
+                {
+                    writer.Write(_threadCounter);
+                }
+                writer.WritePropertyEnd();
+            });
+        
         }
 
         public void PushThread()
@@ -245,6 +270,14 @@ namespace Ink.Runtime
             _threadCounter++;
             newThread.threadIndex = _threadCounter;
             _threads.Add (newThread);
+        }
+
+        public Thread ForkThread()
+        {
+            var forkedThread = currentThread.Copy();
+            _threadCounter++;
+            forkedThread.threadIndex = _threadCounter;
+            return forkedThread;
         }
 
         public void PopThread()
@@ -259,14 +292,30 @@ namespace Ink.Runtime
         public bool canPopThread
         {
             get {
-                return _threads.Count > 1;
+				return _threads.Count > 1 && !elementIsEvaluateFromGame;
             }
         }
 
-        public void Push(PushPopType type)
+		public bool elementIsEvaluateFromGame
+		{
+			get {
+				return currentElement.type == PushPopType.FunctionEvaluationFromGame;
+			}
+		}
+
+        public void Push(PushPopType type, int externalEvaluationStackHeight = 0, int outputStreamLengthWithPushed = 0)
         {
             // When pushing to callstack, maintain the current content path, but jump out of expressions by default
-            callStack.Add (new Element(type, currentElement.currentContainer, currentElement.currentContentIndex, inExpressionEvaluation: false));
+            var element = new Element (
+                type, 
+                currentElement.currentPointer,
+                inExpressionEvaluation: false
+            );
+
+            element.evaluationStackHeightWhenPushed = externalEvaluationStackHeight;
+            element.functionStartInOuputStream = outputStreamLengthWithPushed;
+
+            callStack.Add (element);
         }
 
         public bool CanPop(PushPopType? type = null) {
@@ -315,7 +364,7 @@ namespace Ink.Runtime
             var contextElement = callStack [contextIndex-1];
             
             if (!declareNew && !contextElement.temporaryVariables.ContainsKey(name)) {
-                throw new StoryException ("Could not find temporary variable to set: " + name);
+                throw new System.Exception ("Could not find temporary variable to set: " + name);
             }
 
             Runtime.Object oldValue;
@@ -355,8 +404,40 @@ namespace Ink.Runtime
             }
         }
 
+		public string callStackTrace {
+			get {
+				var sb = new System.Text.StringBuilder();
+
+				for(int t=0; t<_threads.Count; t++) {
+
+					var thread = _threads[t];
+					var isCurrent = (t == _threads.Count-1);
+					sb.AppendFormat("=== THREAD {0}/{1} {2}===\n", (t+1), _threads.Count, (isCurrent ? "(current) ":""));
+
+					for(int i=0; i<thread.callstack.Count; i++) {
+
+						if( thread.callstack[i].type == PushPopType.Function )
+							sb.Append("  [FUNCTION] ");
+						else
+							sb.Append("  [TUNNEL] ");
+
+						var pointer = thread.callstack[i].currentPointer;
+						if( !pointer.isNull ) {
+							sb.Append("<SOMEWHERE IN ");
+							sb.Append(pointer.container.path.ToString());
+							sb.AppendLine(">");
+						}
+					}
+				}
+
+
+				return sb.ToString();
+			}
+		}
+
         List<Thread> _threads;
         int _threadCounter;
+        Pointer _startOfRoot;
     }
 }
 

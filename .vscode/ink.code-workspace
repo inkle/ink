@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/bin": true,
+			"**/obj": true,
+			"packages/": true,
+			"ReleaseBinary/": true
+		},
+		"files.watcherExclude": {
+			"**/bin/**": true,
+			"**/obj/**": true
+		},
+		"omnisharp.enableRoslynAnalyzers": true
+	}
+}

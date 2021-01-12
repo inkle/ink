@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
@@ -9,10 +10,12 @@ namespace Ink.Runtime
     /// </summary>
 	public class VariablesState : IEnumerable<string>
     {
-        internal delegate void VariableChanged(string variableName, Runtime.Object newValue);
-        internal event VariableChanged variableChangedEvent;
+        public delegate void VariableChanged(string variableName, Runtime.Object newValue);
+        public event VariableChanged variableChangedEvent;
 
-        internal bool batchObservingVariableChanges 
+        public StatePatch patch;
+
+        public bool batchObservingVariableChanges 
         { 
             get {
                 return _batchObservingVariableChanges;
@@ -20,20 +23,20 @@ namespace Ink.Runtime
             set { 
                 _batchObservingVariableChanges = value;
                 if (value) {
-                    _changedVariables = new HashSet<string> ();
+                    _changedVariablesForBatchObs = new HashSet<string> ();
                 } 
 
                 // Finished observing variables in a batch - now send 
                 // notifications for changed variables all in one go.
                 else {
-                    if (_changedVariables != null) {
-                        foreach (var variableName in _changedVariables) {
+                    if (_changedVariablesForBatchObs != null) {
+                        foreach (var variableName in _changedVariablesForBatchObs) {
                             var currentValue = _globalVariables [variableName];
                             variableChangedEvent (variableName, currentValue);
                         }
                     }
 
-                    _changedVariables = null;
+                    _changedVariablesForBatchObs = null;
                 }
             }
         }
@@ -41,7 +44,7 @@ namespace Ink.Runtime
 
         // Allow StoryState to change the current callstack, e.g. for
         // temporary function evaluation.
-        internal CallStack callStack {
+        public CallStack callStack {
             get {
                 return _callStack;
             }
@@ -61,24 +64,31 @@ namespace Ink.Runtime
         {
             get {
                 Runtime.Object varContents;
-                if ( _globalVariables.TryGetValue (variableName, out varContents) )
+
+                if (patch != null && patch.TryGetGlobal(variableName, out varContents))
                     return (varContents as Runtime.Value).valueObject;
-                else
+
+                // Search main dictionary first.
+                // If it's not found, it might be because the story content has changed,
+                // and the original default value hasn't be instantiated.
+                // Should really warn somehow, but it's difficult to see how...!
+                if ( _globalVariables.TryGetValue (variableName, out varContents) || 
+                     _defaultGlobalVariables.TryGetValue(variableName, out varContents) )
+                    return (varContents as Runtime.Value).valueObject;
+                else {
                     return null;
+                }
             }
             set {
-
-                // This is the main 
-                if (!_globalVariables.ContainsKey (variableName)) {
-                    throw new StoryException ("Variable '" + variableName + "' doesn't exist, so can't be set.");
-                }
-
+                if (!_defaultGlobalVariables.ContainsKey (variableName))
+                    throw new StoryException ("Cannot assign to a variable ("+variableName+") that hasn't been declared in the story");
+                
                 var val = Runtime.Value.Create(value);
                 if (val == null) {
                     if (value == null) {
-                        throw new StoryException ("Cannot pass null to VariableState");
+                        throw new Exception ("Cannot pass null to VariableState");
                     } else {
-                        throw new StoryException ("Invalid value passed to VariableState: "+value.ToString());
+                        throw new Exception ("Invalid value passed to VariableState: "+value.ToString());
                     }
                 }
 
@@ -99,45 +109,126 @@ namespace Ink.Runtime
 			return _globalVariables.Keys.GetEnumerator();
 		}
 
-        internal VariablesState (CallStack callStack, ListDefinitionsOrigin listDefsOrigin)
+        public VariablesState (CallStack callStack, ListDefinitionsOrigin listDefsOrigin)
         {
             _globalVariables = new Dictionary<string, Object> ();
             _callStack = callStack;
             _listDefsOrigin = listDefsOrigin;
         }
 
-        internal void CopyFrom (VariablesState toCopy)
+        public void ApplyPatch()
         {
-            _globalVariables = new Dictionary<string, Object> (toCopy._globalVariables);
+            foreach(var namedVar in patch.globals) {
+                _globalVariables[namedVar.Key] = namedVar.Value;
+            }
 
-            variableChangedEvent = toCopy.variableChangedEvent;
+            if(_changedVariablesForBatchObs != null ) {
+                foreach (var name in patch.changedVariables)
+                    _changedVariablesForBatchObs.Add(name);
+            }
 
-            if (toCopy.batchObservingVariableChanges != batchObservingVariableChanges) {
+            patch = null;
+        }
 
-                if (toCopy.batchObservingVariableChanges) {
-                    _batchObservingVariableChanges = true;
-                    _changedVariables = new HashSet<string> (toCopy._changedVariables);
+        public void SetJsonToken(Dictionary<string, object> jToken)
+        {
+            _globalVariables.Clear();
+
+            foreach (var varVal in _defaultGlobalVariables) {
+                object loadedToken;
+                if( jToken.TryGetValue(varVal.Key, out loadedToken) ) {
+                    _globalVariables[varVal.Key] = Json.JTokenToRuntimeObject(loadedToken);
                 } else {
-                    _batchObservingVariableChanges = false;
-                    _changedVariables = null;
+                    _globalVariables[varVal.Key] = varVal.Value;
                 }
             }
         }
-            
-        internal Dictionary<string, object> jsonToken
+
+        /// <summary>
+        /// When saving out JSON state, we can skip saving global values that
+        /// remain equal to the initial values that were declared in ink.
+        /// This makes the save file (potentially) much smaller assuming that
+        /// at least a portion of the globals haven't changed. However, it
+        /// can also take marginally longer to save in the case that the 
+        /// majority HAVE changed, since it has to compare all globals.
+        /// It may also be useful to turn this off for testing worst case
+        /// save timing.
+        /// </summary>
+        public static bool dontSaveDefaultValues = true;
+
+        public void WriteJson(SimpleJson.Writer writer)
         {
-            get {
-                return Json.DictionaryRuntimeObjsToJObject(_globalVariables);
+            writer.WriteObjectStart();
+            foreach (var keyVal in _globalVariables)
+            {
+                var name = keyVal.Key;
+                var val = keyVal.Value;
+
+                if(dontSaveDefaultValues) {
+                    // Don't write out values that are the same as the default global values
+                    Runtime.Object defaultVal;
+                    if (_defaultGlobalVariables.TryGetValue(name, out defaultVal))
+                    {
+                        if (RuntimeObjectsEqual(val, defaultVal))
+                            continue;
+                    }
+                }
+
+
+                writer.WritePropertyStart(name);
+                Json.WriteRuntimeObject(writer, val);
+                writer.WritePropertyEnd();
             }
-            set {
-                _globalVariables = Json.JObjectToDictionaryRuntimeObjs (value);
-            }
+            writer.WriteObjectEnd();
         }
 
-        internal Runtime.Object GetVariableWithName(string name)
+        public bool RuntimeObjectsEqual(Runtime.Object obj1, Runtime.Object obj2)
+        {
+            if (obj1.GetType() != obj2.GetType()) return false;
+
+            // Perform equality on int/float/bool manually to avoid boxing
+            var boolVal = obj1 as BoolValue;
+            if( boolVal != null ) {
+                return boolVal.value == ((BoolValue)obj2).value;
+            }
+
+            var intVal = obj1 as IntValue;
+            if( intVal != null ) {
+                return intVal.value == ((IntValue)obj2).value;
+            }
+
+            var floatVal = obj1 as FloatValue;
+            if (floatVal != null)
+            {
+                return floatVal.value == ((FloatValue)obj2).value;
+            }
+
+            // Other Value type (using proper Equals: list, string, divert path)
+            var val1 = obj1 as Value;
+            var val2 = obj2 as Value;
+            if( val1 != null ) {
+                return val1.valueObject.Equals(val2.valueObject);
+            }
+
+            throw new System.Exception("FastRoughDefinitelyEquals: Unsupported runtime object type: "+obj1.GetType());
+        }
+
+        public Runtime.Object GetVariableWithName(string name)
         {
             return GetVariableWithName (name, -1);
         }
+
+        public Runtime.Object TryGetDefaultVariableValue (string name)
+        {
+            Runtime.Object val = null;
+            _defaultGlobalVariables.TryGetValue (name, out val);
+            return val;
+        }
+
+		public bool GlobalVariableExistsWithName(string name)
+		{
+			return _globalVariables.ContainsKey(name) || _defaultGlobalVariables != null && _defaultGlobalVariables.ContainsKey(name);
+		}
 
         Runtime.Object GetVariableWithName(string name, int contextIndex)
         {
@@ -158,8 +249,20 @@ namespace Ink.Runtime
 
             // 0 context = global
             if (contextIndex == 0 || contextIndex == -1) {
+                if (patch != null && patch.TryGetGlobal(name, out varValue))
+                    return varValue;
+
                 if ( _globalVariables.TryGetValue (name, out varValue) )
                     return varValue;
+
+                // Getting variables can actually happen during globals set up since you can do
+                //  VAR x = A_LIST_ITEM
+                // So _defaultGlobalVariables may be null.
+                // We need to do this check though in case a new global is added, so we need to
+                // revert to the default globals dictionary since an initial value hasn't yet been set.
+                if( _defaultGlobalVariables != null && _defaultGlobalVariables.TryGetValue(name, out varValue) ) {
+                    return varValue;
+                }
 
                 var listItemValue = _listDefsOrigin.FindSingleItemListWithName (name);
                 if (listItemValue)
@@ -169,18 +272,15 @@ namespace Ink.Runtime
             // Temporary
             varValue = _callStack.GetTemporaryVariableWithName (name, contextIndex);
 
-            if (varValue == null)
-                throw new System.Exception ("RUNTIME ERROR: Variable '"+name+"' could not be found in context '"+contextIndex+"'. This shouldn't be possible so is a bug in the ink engine. Please try to construct a minimal story that reproduces the problem and report to inkle, thank you!");
-
             return varValue;
         }
 
-        internal Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
+        public Runtime.Object ValueAtVariablePointer(VariablePointerValue pointer)
         {
             return GetVariableWithName (pointer.variableName, pointer.contextIndex);
         }
 
-        internal void Assign(VariableAssignment varAss, Runtime.Object value)
+        public void Assign(VariableAssignment varAss, Runtime.Object value)
         {
             var name = varAss.variableName;
             int contextIndex = -1;
@@ -190,7 +290,7 @@ namespace Ink.Runtime
             if (varAss.isNewDeclaration) {
                 setGlobal = varAss.isGlobal;
             } else {
-                setGlobal = _globalVariables.ContainsKey (name);
+                setGlobal = GlobalVariableExistsWithName (name);
             }
 
             // Constructing new variable pointer reference
@@ -227,6 +327,11 @@ namespace Ink.Runtime
             }
         }
 
+        public void SnapshotDefaultGlobals ()
+        {
+            _defaultGlobalVariables = new Dictionary<string, Object> (_globalVariables);
+        }
+
         void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
         {
             var oldList = oldValue as ListValue;
@@ -235,19 +340,26 @@ namespace Ink.Runtime
                 newList.value.SetInitialOriginNames (oldList.value.originNames);
         }
 
-        void SetGlobal(string variableName, Runtime.Object value)
+        public void SetGlobal(string variableName, Runtime.Object value)
         {
             Runtime.Object oldValue = null;
-            _globalVariables.TryGetValue (variableName, out oldValue);
+            if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )
+                _globalVariables.TryGetValue (variableName, out oldValue);
 
             ListValue.RetainListOriginsForAssignment (oldValue, value);
 
-            _globalVariables [variableName] = value;
+            if (patch != null)
+                patch.SetGlobal(variableName, value);
+            else
+                _globalVariables [variableName] = value;
 
             if (variableChangedEvent != null && !value.Equals (oldValue)) {
 
                 if (batchObservingVariableChanges) {
-                    _changedVariables.Add (variableName);
+                    if (patch != null)
+                        patch.AddChangedVariable(variableName);
+                    else if(_changedVariablesForBatchObs != null)
+                        _changedVariablesForBatchObs.Add (variableName);
                 } else {
                     variableChangedEvent (variableName, value);
                 }
@@ -286,7 +398,7 @@ namespace Ink.Runtime
         // 1+ if named variable is a temporary in a particular call stack element
         int GetContextIndexOfVariableNamed(string varName)
         {
-            if (_globalVariables.ContainsKey (varName))
+            if (GlobalVariableExistsWithName(varName))
                 return 0;
 
             return _callStack.currentElementIndex;
@@ -294,9 +406,11 @@ namespace Ink.Runtime
 
         Dictionary<string, Runtime.Object> _globalVariables;
 
+        Dictionary<string, Runtime.Object> _defaultGlobalVariables;
+
         // Used for accessing temporary variables
         CallStack _callStack;
-        HashSet<string> _changedVariables;
+        HashSet<string> _changedVariablesForBatchObs;
         ListDefinitionsOrigin _listDefsOrigin;
     }
 }

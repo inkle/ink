@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
-    internal enum PushPopType 
+    public enum PushPopType 
     {
         Tunnel,
-        Function
+        Function,
+        FunctionEvaluationFromGame
     }
 }
 

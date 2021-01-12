@@ -1,27 +1,16 @@
 cd "`dirname "$0"`"
 
-# Ensure we have latest packages
-mono NuGet.exe restore ink.sln
+# Build the release code; this will create self-sufficient single binary
+#dotnet build -c Release inklecate/inklecate.csproj
+dotnet publish -c Release -r win-x86 /p:PublishTrimmed=true /p:PublishSingleFile=true -o ReleaseBinary/inklecate/win32 inklecate/inklecate.csproj
+dotnet publish -c Release -r linux-x64 /p:PublishTrimmed=true /p:PublishSingleFile=true -o ReleaseBinary/inklecate/lin64 inklecate/inklecate.csproj
+dotnet publish -c Release -r osx-x64 /p:PublishTrimmed=true /p:PublishSingleFile=true -o ReleaseBinary/inklecate/osx64 inklecate/inklecate.csproj
 
-# Build the release code
-xbuild /p:Configuration=Release ink.sln
+# Simply zip up inklecate executable and the DLLs together for each platform
+runtimeAndCompilerDLLs="ink-engine-runtime/bin/Release/netstandard2.0/ink-engine-runtime.dll compiler/bin/Release/netstandard2.0/ink_compiler.dll"
+zip --junk-paths ReleaseBinary/inklecate_windows.zip ReleaseBinary/inklecate/win32/inklecate.exe $runtimeAndCompilerDLLs
+zip --junk-paths ReleaseBinary/inklecate_linux.zip  ReleaseBinary/inklecate/lin64/inklecate $runtimeAndCompilerDLLs
+zip --junk-paths ReleaseBinary/inklecate_mac.zip  ReleaseBinary/inklecate/osx64/inklecate $runtimeAndCompilerDLLs
 
-# Create folders
-mkdir -p ReleaseBinary
-
-# Windows: Simply zip up inklecate.exe and the runtime together
-# We rely on a compatible version of .NET being installed on Windows
-zip --junk-paths ReleaseBinary/inklecate_windows_and_linux.zip inklecate/bin/Release/inklecate.exe ink-engine-runtime/bin/Release/ink-engine-runtime.dll ink-engine-runtime/bin/Release/ink-engine-runtime.xml
-
-# Mac: Make a native binary that includes the mono runtime
-# Prepare to bundle up compiled binary
-export PATH=/Library/Frameworks/Mono.framework/Commands:$PATH
-export AS="as -arch i386"
-export CC="cc -arch i386 -framework CoreFoundation -lobjc -liconv"
-
-# "Bundles in addition support a –static flag. The –static flag causes mkbundle to generate a static executable that statically links the Mono runtime. Be advised that this option will trigger the LGPL requirement that you still distribute the independent pieces to your user so he can manually upgrade his Mono runtime if he chooses to do so. Alternatively, you can obtain a proprietary license of Mono by contacting Xamarin."
-# http://www.mono-project.com/archived/guiderunning_mono_applications/
-mkbundle ./inklecate/bin/Release/inklecate.exe ./inklecate/bin/Release/ink-engine-runtime.dll --deps --static --sdk /Library/Frameworks/Mono.framework/Versions/Current -o ./ReleaseBinary/inklecate
-zip --junk-paths ReleaseBinary/inklecate_mac.zip ReleaseBinary/inklecate ink-engine-runtime/bin/Release/ink-engine-runtime.dll
-
-rm ReleaseBinary/inklecate
+# Clean up
+rm -rf ReleaseBinary/inklecate

@@ -1,0 +1,154 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        // subtasks that are not shown in GUI
+        {
+            "label": "Create inklecate build for Windows",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--configuration", "Release",
+                "--runtime", "win-x86",
+                "/p:PublishTrimmed=true",
+                "/p:PublishSingleFile=true",
+                "--output", "${workspaceFolder}/ReleaseBinary/inklecate-win32",
+                "${workspaceFolder}/inklecate/inklecate.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        {
+            "label": "Create inklecate build for Linux",
+            "dependsOn": [ "Create inklecate build for Windows" ],
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--configuration", "Release",
+                "--runtime", "linux-x64",
+                "/p:PublishTrimmed=true",
+                "/p:PublishSingleFile=true",
+                "--output", "${workspaceFolder}/ReleaseBinary/inklecate-lin64",
+                "${workspaceFolder}/inklecate/inklecate.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        {
+            "label": "Create inklecate build for OSX",
+            "dependsOn": [ "Create inklecate build for Linux" ],
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "publish",
+                "--configuration", "Release",
+                "--runtime", "osx-x64",
+                "/p:PublishTrimmed=true",
+                "/p:PublishSingleFile=true",
+                "--output", "${workspaceFolder}/ReleaseBinary/inklecate-osx64",
+                "${workspaceFolder}/inklecate/inklecate.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        {
+            "label": "Build ink-engine-runtime",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "build",
+                "--configuration", "Release",
+                "${workspaceFolder}/ink-engine-runtime/ink-engine-runtime.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "none"
+        },
+        // use Ctrl+Shift+B to select a build task
+        {
+            "label": "Create inklecate release",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "group": "build",
+            // build executables for every platform
+            "dependsOn": [ "Create inklecate build for OSX" ],
+            // rebuild project for current platform so that intellisense won't complain
+            "windows": {
+                "command": "dotnet",
+                "args": [
+                    "publish",
+                    "--configuration", "Release",
+                    "--runtime", "win-x64",
+                    "/p:PublishTrimmed=true",
+                    "/p:PublishSingleFile=true",
+                    "--output", "${workspaceFolder}/ReleaseBinary/inklecate",
+                    "${workspaceFolder}/inklecate/inklecate.csproj"
+                ]
+            },
+            "linux": {
+                "command": "dotnet",
+                "args": [
+                    "publish",
+                    "--configuration", "Release",
+                    "--runtime", "linux-x64",
+                    "/p:PublishTrimmed=true",
+                    "/p:PublishSingleFile=true",
+                    "--output", "${workspaceFolder}/ReleaseBinary/inklecate",
+                    "${workspaceFolder}/inklecate/inklecate.csproj"
+                ]
+            },
+            "osx": {
+                "command": "dotnet",
+                "args": [
+                    "publish",
+                    "--configuration", "Release",
+                    "--runtime", "osx-x64",
+                    "/p:PublishTrimmed=true",
+                    "/p:PublishSingleFile=true",
+                    "--output", "${workspaceFolder}/ReleaseBinary/inklecate",
+                    "${workspaceFolder}/inklecate/inklecate.csproj"
+                ]
+            }
+        },
+        {
+            "label": "Create ink-engine-runtime NuGet package",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "group": "build",
+            "dependsOn": [ "Build ink-engine-runtime" ],
+            "command": "dotnet",
+            "args": [
+                "pack",
+                "--configuration", "Release",
+                "--output", "${workspaceFolder}/ReleaseBinary",
+                "${workspaceFolder}/ink-engine-runtime/ink-engine-runtime.csproj"
+            ]
+        },
+        {
+            "label": "Run tests",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "test",
+                "${workspaceFolder}/tests/tests.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build InkTestBed",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "--configuration", "Debug",
+                "${workspaceFolder}/InkTestBed/InkTestBed.csproj"
+            ],
+            "group": "none"
+        },
+    ]
+}

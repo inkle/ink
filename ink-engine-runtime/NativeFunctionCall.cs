@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Ink.Runtime
 {
-    internal class NativeFunctionCall : Runtime.Object
+    public class NativeFunctionCall : Runtime.Object
     {
         public const string Add      = "+";
         public const string Subtract = "-";
@@ -27,6 +27,12 @@ namespace Ink.Runtime
 
         public const string Min      = "MIN";
         public const string Max      = "MAX";
+
+        public const string Pow      = "POW";
+        public const string Floor    = "FLOOR";
+        public const string Ceiling  = "CEILING";
+        public const string Int      = "INT";
+        public const string Float    = "FLOAT";
 
         public const string Has      = "?";
         public const string Hasnt    = "!?";
@@ -175,8 +181,8 @@ namespace Ink.Runtime
             // And/or with any other type requires coerscion to bool (int)
             if ((name == "&&" || name == "||") && (v1.valueType != ValueType.List || v2.valueType != ValueType.List)) {
                 var op = _operationFuncs [ValueType.Int] as BinaryOp<int>;
-                var result = (int)op (v1.isTruthy ? 1 : 0, v2.isTruthy ? 1 : 0);
-                return new IntValue (result);
+                var result = (bool)op (v1.isTruthy ? 1 : 0, v2.isTruthy ? 1 : 0);
+                return new BoolValue (result);
             }
 
             // Normal (list • list) operation
@@ -294,17 +300,32 @@ namespace Ink.Runtime
         }
 
         // Only called internally to generate prototypes
-        NativeFunctionCall (string name, int numberOfParamters)
+        NativeFunctionCall (string name, int numberOfParameters)
         {
             _isPrototype = true;
             this.name = name;
-            this.numberOfParameters = numberOfParamters;
+            this.numberOfParameters = numberOfParameters;
         }
-            
+
+        // For defining operations that do nothing to the specific type
+        // (but are still supported), such as floor/ceil on int and float
+        // cast on float.
+        static object Identity<T>(T t) {
+            return t;
+        }
+
         static void GenerateNativeFunctionsIfNecessary()
         {
             if (_nativeFunctions == null) {
                 _nativeFunctions = new Dictionary<string, NativeFunctionCall> ();
+
+                // Why no bool operations?
+                // Before evaluation, all bools are coerced to ints in
+                // CoerceValuesToSingleType (see default value for valType at top).
+                // So, no operations are ever directly done in bools themselves.
+                // This also means that 1 == true works, since true is always converted
+                // to 1 first.
+                // However, many operations return a "native" bool (equals, etc).
 
                 // Int operations
                 AddIntBinaryOp(Add,      (x, y) => x + y);
@@ -314,19 +335,26 @@ namespace Ink.Runtime
                 AddIntBinaryOp(Mod,      (x, y) => x % y); 
                 AddIntUnaryOp (Negate,   x => -x); 
 
-                AddIntBinaryOp(Equal,    (x, y) => x == y ? 1 : 0);
-                AddIntBinaryOp(Greater,  (x, y) => x > y  ? 1 : 0);
-                AddIntBinaryOp(Less,     (x, y) => x < y  ? 1 : 0);
-                AddIntBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? 1 : 0);
-                AddIntBinaryOp(LessThanOrEquals, (x, y) => x <= y ? 1 : 0);
-                AddIntBinaryOp(NotEquals, (x, y) => x != y ? 1 : 0);
-                AddIntUnaryOp (Not,       x => (x == 0) ? 1 : 0); 
+                AddIntBinaryOp(Equal,    (x, y) => x == y);
+                AddIntBinaryOp(Greater,  (x, y) => x > y);
+                AddIntBinaryOp(Less,     (x, y) => x < y);
+                AddIntBinaryOp(GreaterThanOrEquals, (x, y) => x >= y);
+                AddIntBinaryOp(LessThanOrEquals, (x, y) => x <= y);
+                AddIntBinaryOp(NotEquals, (x, y) => x != y);
+                AddIntUnaryOp (Not,       x => x == 0); 
 
-                AddIntBinaryOp(And,      (x, y) => x != 0 && y != 0 ? 1 : 0);
-                AddIntBinaryOp(Or,       (x, y) => x != 0 || y != 0 ? 1 : 0);
+                AddIntBinaryOp(And,      (x, y) => x != 0 && y != 0);
+                AddIntBinaryOp(Or,       (x, y) => x != 0 || y != 0);
 
                 AddIntBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddIntBinaryOp(Min,      (x, y) => Math.Min(x, y));
+
+                // Have to cast to float since you could do POW(2, -1)
+                AddIntBinaryOp (Pow,      (x, y) => (float) Math.Pow(x, y));
+                AddIntUnaryOp(Floor,      Identity);
+                AddIntUnaryOp(Ceiling,    Identity);
+                AddIntUnaryOp(Int,        Identity);
+                AddIntUnaryOp (Float,     x => (float)x);
 
                 // Float operations
                 AddFloatBinaryOp(Add,      (x, y) => x + y);
@@ -336,41 +364,49 @@ namespace Ink.Runtime
                 AddFloatBinaryOp(Mod,      (x, y) => x % y); // TODO: Is this the operation we want for floats?
                 AddFloatUnaryOp (Negate,   x => -x); 
 
-                AddFloatBinaryOp(Equal,    (x, y) => x == y ? (int)1 : (int)0);
-                AddFloatBinaryOp(Greater,  (x, y) => x > y  ? (int)1 : (int)0);
-                AddFloatBinaryOp(Less,     (x, y) => x < y  ? (int)1 : (int)0);
-                AddFloatBinaryOp(GreaterThanOrEquals, (x, y) => x >= y ? (int)1 : (int)0);
-                AddFloatBinaryOp(LessThanOrEquals, (x, y) => x <= y ? (int)1 : (int)0);
-                AddFloatBinaryOp(NotEquals, (x, y) => x != y ? (int)1 : (int)0);
-                AddFloatUnaryOp (Not,       x => (x == 0.0f) ? (int)1 : (int)0); 
+                AddFloatBinaryOp(Equal,    (x, y) => x == y);
+                AddFloatBinaryOp(Greater,  (x, y) => x > y);
+                AddFloatBinaryOp(Less,     (x, y) => x < y);
+                AddFloatBinaryOp(GreaterThanOrEquals, (x, y) => x >= y);
+                AddFloatBinaryOp(LessThanOrEquals, (x, y) => x <= y);
+                AddFloatBinaryOp(NotEquals, (x, y) => x != y);
+                AddFloatUnaryOp (Not,       x => (x == 0.0f)); 
 
-                AddFloatBinaryOp(And,      (x, y) => x != 0.0f && y != 0.0f ? (int)1 : (int)0);
-                AddFloatBinaryOp(Or,       (x, y) => x != 0.0f || y != 0.0f ? (int)1 : (int)0);
+                AddFloatBinaryOp(And,      (x, y) => x != 0.0f && y != 0.0f);
+                AddFloatBinaryOp(Or,       (x, y) => x != 0.0f || y != 0.0f);
 
                 AddFloatBinaryOp(Max,      (x, y) => Math.Max(x, y));
                 AddFloatBinaryOp(Min,      (x, y) => Math.Min(x, y));
 
+                AddFloatBinaryOp (Pow,      (x, y) => (float)Math.Pow(x, y));
+                AddFloatUnaryOp(Floor,      x => (float)Math.Floor(x));
+                AddFloatUnaryOp(Ceiling,    x => (float)Math.Ceiling(x));
+                AddFloatUnaryOp(Int,        x => (int)x);
+                AddFloatUnaryOp(Float,      Identity);
+
                 // String operations
                 AddStringBinaryOp(Add,     (x, y) => x + y); // concat
-                AddStringBinaryOp(Equal,   (x, y) => x.Equals(y) ? (int)1 : (int)0);
-                AddStringBinaryOp (NotEquals, (x, y) => !x.Equals (y) ? (int)1 : (int)0);
+                AddStringBinaryOp(Equal,   (x, y) => x.Equals(y));
+                AddStringBinaryOp (NotEquals, (x, y) => !x.Equals (y));
+                AddStringBinaryOp (Has,    (x, y) => x.Contains(y));
+                AddStringBinaryOp (Hasnt,   (x, y) => !x.Contains(y));
 
                 // List operations
                 AddListBinaryOp (Add, (x, y) => x.Union (y));
                 AddListBinaryOp (Subtract, (x, y) => x.Without(y));
-                AddListBinaryOp (Has, (x, y) => x.Contains (y) ? (int)1 : (int)0);
-                AddListBinaryOp (Hasnt, (x, y) => x.Contains (y) ? (int)0 : (int)1);
+                AddListBinaryOp (Has, (x, y) => x.Contains (y));
+                AddListBinaryOp (Hasnt, (x, y) => !x.Contains (y));
                 AddListBinaryOp (Intersect, (x, y) => x.Intersect (y));
 
-                AddListBinaryOp (Equal, (x, y) => x.Equals(y) ? (int)1 : (int)0);
-                AddListBinaryOp (Greater, (x, y) => x.GreaterThan(y) ? (int)1 : (int)0);
-                AddListBinaryOp (Less, (x, y) => x.LessThan(y) ? (int)1 : (int)0);
-                AddListBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y) ? (int)1 : (int)0);
-                AddListBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y) ? (int)1 : (int)0);
-                AddListBinaryOp (NotEquals, (x, y) => !x.Equals(y) ? (int)1 : (int)0);
+                AddListBinaryOp (Equal, (x, y) => x.Equals(y));
+                AddListBinaryOp (Greater, (x, y) => x.GreaterThan(y));
+                AddListBinaryOp (Less, (x, y) => x.LessThan(y));
+                AddListBinaryOp (GreaterThanOrEquals, (x, y) => x.GreaterThanOrEquals(y));
+                AddListBinaryOp (LessThanOrEquals, (x, y) => x.LessThanOrEquals(y));
+                AddListBinaryOp (NotEquals, (x, y) => !x.Equals(y));
 
-                AddListBinaryOp (And, (x, y) => x.Count > 0 && y.Count > 0 ? (int)1 : (int)0);
-                AddListBinaryOp (Or,  (x, y) => x.Count > 0 || y.Count > 0 ? (int)1 : (int)0);
+                AddListBinaryOp (And, (x, y) => x.Count > 0 && y.Count > 0);
+                AddListBinaryOp (Or,  (x, y) => x.Count > 0 || y.Count > 0);
 
                 AddListUnaryOp (Not, x => x.Count == 0 ? (int)1 : (int)0);
 
@@ -383,11 +419,15 @@ namespace Ink.Runtime
                 AddListUnaryOp (Count,  (x) => x.Count);
                 AddListUnaryOp (ValueOfList,  (x) => x.maxItem.Value);
 
-                // Special case: The only operation you can do on divert target values
+                // Special case: The only operations you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
-                    return d1.Equals (d2) ? 1 : 0;
+                    return d1.Equals (d2);
+                };
+                BinaryOp<Path> divertTargetsNotEqual = (Path d1, Path d2) => {
+                	return d1.Equals (d2);
                 };
                 AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
+                AddOpToNativeFunc (NotEquals, 2, ValueType.DivertTarget, divertTargetsNotEqual);
 
             }
         }

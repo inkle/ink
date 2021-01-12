@@ -4,21 +4,20 @@ using Ink.Runtime;
 
 namespace Ink
 {
-	internal class CommandLinePlayer
+	public class CommandLinePlayer
 	{
 		public Story story { get; protected set; }
 		public bool autoPlay { get; set; }
-        public Parsed.Story parsedStory { get; set; }
         public bool keepOpenAfterStoryFinish { get; set; }
 
-        public CommandLinePlayer (Story story, bool autoPlay = false, Parsed.Story parsedStory = null, bool keepOpenAfterStoryFinish = false)
+        public CommandLinePlayer (Story story, bool autoPlay = false, Compiler compiler = null, bool keepOpenAfterStoryFinish = false, bool jsonOutput = false)
 		{
 			this.story = story;
+            this.story.onError += OnStoryError;
 			this.autoPlay = autoPlay;
-            this.parsedStory = parsedStory;
+            _compiler = compiler;
+            _jsonOutput = jsonOutput;
             this.keepOpenAfterStoryFinish = keepOpenAfterStoryFinish;
-
-            _debugSourceRanges = new List<DebugSourceRange> ();
 		}
 
 		public void Begin()
@@ -32,7 +31,7 @@ namespace Ink
 				
                 var choiceIdx = 0;
                 bool choiceIsValid = false;
-                Runtime.Path userDivertedPath = null;
+                string userDivertedPath = null;
 
 				// autoPlay: Pick random choice
 				if (autoPlay) {
@@ -41,102 +40,91 @@ namespace Ink
 
 				// Normal: Ask user for choice number
 				else {
+                    
+                    if( !_jsonOutput ) {
+                        Console.ForegroundColor = ConsoleColor.Blue;
 
-                    Console.ForegroundColor = ConsoleColor.Blue;
+                        // Add extra newline to ensure that the choice is
+                        // on a separate line.
+                        Console.WriteLine ();
 
-                    // Add extra newline to ensure that the choice is
-                    // on a separate line.
-                    Console.WriteLine ();
+                        int i = 1;
+                        foreach (Choice choice in choices) {
+                            Console.WriteLine ("{0}: {1}", i, choice.text);
+                            i++;
+                        }
+                    }
 
-					int i = 1;
-					foreach (Choice choice in choices) {
-						Console.WriteLine ("{0}: {1}", i, choice.text);
-						i++;
-					}
+                    else {
+                        var writer = new Runtime.SimpleJson.Writer();
+                        writer.WriteObjectStart();
+                        writer.WritePropertyStart("choices");
+                        writer.WriteArrayStart();
+                        foreach(var choice in choices) {
+                            writer.Write(choice.text);
+                        }
+                        writer.WriteArrayEnd();
+                        writer.WritePropertyEnd();
+                        writer.WriteObjectEnd();
+                        Console.WriteLine(writer.ToString());
+                    }
 
 
                     do {
-                        // Prompt
-                        Console.Write("?> ");
+                        if( !_jsonOutput ) {
+                            // Prompt
+                            Console.Write("?> ");
+                        }
+                        
+                        else {
+                            // Johnny Five, he's alive!
+                            Console.Write("{\"needInput\": true}");
+                        }
+
                         string userInput = Console.ReadLine ();
 
-                        var inputParser = new InkParser (userInput);
-                        var input = inputParser.CommandLineUserInput();
-
-                        // Choice
-                        if (input.choiceInput != null) {
-
-                            choiceIdx = ((int)input.choiceInput) - 1;
-
-                            if (choiceIdx < 0 || choiceIdx >= choices.Count) {
-                                Console.WriteLine ("Choice out of range");
+                        // If we have null user input, it means that we're
+                        // "at the end of the stream", or in other words, the input
+                        // stream has closed, so there's nothing more we can do.
+                        // We return immediately, since otherwise we get into a busy
+                        // loop waiting for user input.
+                        if (userInput == null) {
+                            if( _jsonOutput ) {
+                                Console.WriteLine ("{\"close\": true}");
                             } else {
-                                choiceIsValid = true;
+                                Console.WriteLine ("<User input stream closed.>");
                             }
-                        }
-
-                        // Help
-                        else if (input.isHelp) {
-                            Console.WriteLine ("Type a choice number, a divert (e.g. '-> myKnot'), an expression, or a variable assignment (e.g. 'x = 5')");
-                        }
-
-                        // Quit
-                        else if (input.isExit) {
                             return;
                         }
 
-                        // Request for debug source line number
-                        else if (input.debugSource != null) {
-                            var offset = (int)input.debugSource;
-                            var dm = DebugMetadataForContentAtOffset (offset);
-                            if (dm != null)
-                                Console.WriteLine ("DebugSource: "+dm.ToString ());
-                            else
-                                Console.WriteLine ("DebugSource: Unknown source");
-                        }
+                        var result = _compiler.ReadCommandLineInput (userInput);
 
-                        // User entered some ink
-                        else if (input.userImmediateModeStatement != null ) {
-
-                            var parsedObj = input.userImmediateModeStatement as Parsed.Object;
-
-                            // Variable assignment: create in Parsed.Story as well as the Runtime.Story
-                            // so that we don't get an error message during reference resolution
-                            if( parsedObj is Parsed.VariableAssignment ) {
-                                var varAssign = (Parsed.VariableAssignment) parsedObj;
-                                if( varAssign.isNewTemporaryDeclaration ) {
-                                    parsedStory.TryAddNewVariableDeclaration(varAssign);
-                                }
-                            }
-
-                            parsedObj.parent = parsedStory;
-                            var runtimeObj = parsedObj.runtimeObject;
-
-                            parsedObj.ResolveReferences(parsedStory);
-
-                            if( !parsedStory.hadError ) {
-
-                                // Divert
-                                if( parsedObj is Parsed.Divert ) {
-                                    var parsedDivert = parsedObj as Parsed.Divert;
-                                    userDivertedPath = parsedDivert.runtimeDivert.targetPath;
-                                }
-
-                                // Expression or variable assignment
-                                else if( parsedObj is Parsed.Expression || parsedObj is Parsed.VariableAssignment ) {
-                                    var result = story.EvaluateExpression((Container)runtimeObj);
-                                    if( result != null ) {
-                                        Console.WriteLine(result.ToString());
-                                    }
-                                }
+                        if (result.output != null) {
+                            if( _jsonOutput ) {
+                                var writer = new Runtime.SimpleJson.Writer();
+                                writer.WriteObjectStart();
+                                writer.WriteProperty("cmdOutput", result.output);
+                                writer.WriteObjectEnd();
+                                Console.WriteLine(writer.ToString());
                             } else {
-                                parsedStory.ResetError();
+                                Console.WriteLine (result.output);
                             }
-
                         }
 
-                        else {
-                            Console.WriteLine ("Unexpected input. Type 'help' or a choice number.");
+                        if (result.requestsExit)
+                            return;
+
+                        if (result.divertedPath != null)
+                            userDivertedPath = result.divertedPath;
+
+                        if (result.choiceIdx >= 0) {
+                            if (result.choiceIdx >= choices.Count) {
+                                if( !_jsonOutput ) // fail silently in json mode
+                                    Console.WriteLine ("Choice out of range");
+                            } else {
+                                choiceIdx = result.choiceIdx;
+                                choiceIsValid = true;
+                            }
                         }
 
                     } while(!choiceIsValid && userDivertedPath == null);
@@ -148,7 +136,7 @@ namespace Ink
                 if (choiceIsValid) {
                     story.ChooseChoiceIndex (choiceIdx);
                 } else if (userDivertedPath != null) {
-                    story.ChoosePath (userDivertedPath);
+                    story.ChoosePathString (userDivertedPath);
                     userDivertedPath = null;
                 }
                     
@@ -156,74 +144,105 @@ namespace Ink
 			}
 		}
 
+
         void EvaluateStory ()
         {
             while (story.canContinue) {
 
                 story.Continue ();
 
-                LogDebugSourceForLine ();
+                _compiler.RetrieveDebugSourceForLatestContent ();
 
-                Console.Write (story.currentText);
+                if( _jsonOutput ) {
+                    var writer = new Runtime.SimpleJson.Writer();
+                    writer.WriteObjectStart();
+                    writer.WriteProperty("text", story.currentText);
+                    writer.WriteObjectEnd();
+                    Console.WriteLine (writer.ToString());
+                } else {
+                    Console.Write (story.currentText);
+                }
 
-                var tags = story.state.currentTags;
-                if (tags.Count > 0)
-                    Console.WriteLine ("# tags: " + string.Join (", ", tags));
+                var tags = story.currentTags;
+                if (tags.Count > 0) {
+                    if( _jsonOutput ) {
+                        var writer = new Runtime.SimpleJson.Writer();
+                        writer.WriteObjectStart();
+                        writer.WritePropertyStart("tags");
+                        writer.WriteArrayStart();
+                        foreach(var tag in tags) {
+                            writer.Write(tag);
+                        }
+                        writer.WriteArrayEnd();
+                        writer.WritePropertyEnd();
+                        writer.WriteObjectEnd();
+                        Console.WriteLine(writer.ToString());
+                    } else {
+                        Console.WriteLine ("# tags: " + string.Join (", ", tags));
+                    }
+                }
 
-                if (story.hasError) {
-                    foreach (var errorMsg in story.currentErrors) {
+                Runtime.SimpleJson.Writer issueWriter = null;
+                if( _jsonOutput && (_errors.Count > 0 || _warnings.Count > 0) ) {
+                    issueWriter = new Runtime.SimpleJson.Writer();
+                    issueWriter.WriteObjectStart();
+                    issueWriter.WritePropertyStart("issues");
+                    issueWriter.WriteArrayStart();
+
+                    if( _errors.Count > 0 ) {
+                        foreach (var errorMsg in _errors) {
+                            issueWriter.Write (errorMsg);
+                        }
+                    }
+                    if( _warnings.Count > 0 ) {
+                        foreach (var warningMsg in _warnings) {
+                            issueWriter.Write (warningMsg);
+                        }
+                    }
+
+                    issueWriter.WriteArrayEnd();
+                    issueWriter.WritePropertyEnd();
+                    issueWriter.WriteObjectEnd();
+                    Console.WriteLine(issueWriter.ToString());
+                }
+
+                if (_errors.Count > 0 && !_jsonOutput ) {
+                    foreach (var errorMsg in _errors) {
                         Console.WriteLine (errorMsg, ConsoleColor.Red);
                     }
                 }
+
+                if (_warnings.Count > 0 && !_jsonOutput) {
+                    foreach (var warningMsg in _warnings) {
+                        Console.WriteLine (warningMsg, ConsoleColor.Blue);
+                    }
+                }
+
+                _errors.Clear();
+                _warnings.Clear();
             }
 
             if (story.currentChoices.Count == 0 && keepOpenAfterStoryFinish) {
-                Console.WriteLine ("--- End of story ---");
-            }
-
-            story.ResetErrors ();
-        }
-
-        void LogDebugSourceForLine ()
-        {
-            foreach (var outputObj in story.state.outputStream) {
-                var textContent = outputObj as StringValue;
-                if (textContent != null) {
-                    var range = new DebugSourceRange ();
-                    range.length = textContent.value.Length;
-                    range.debugMetadata = textContent.debugMetadata;
-                    range.text = textContent.value;
-                    _debugSourceRanges.Add (range);
+                if( _jsonOutput ) {
+                    Console.WriteLine("{\"end\": true}");
+                } else {
+                    Console.WriteLine ("--- End of story ---");
                 }
             }
         }
 
-        DebugMetadata DebugMetadataForContentAtOffset (int offset)
+        void OnStoryError(string msg, ErrorType type)
         {
-            int currOffset = 0;
-
-            DebugMetadata lastValidMetadata = null;
-            foreach (var range in _debugSourceRanges) {
-                if (range.debugMetadata != null)
-                    lastValidMetadata = range.debugMetadata;
-                
-                if (offset >= currOffset && offset < currOffset + range.length)
-                    return lastValidMetadata;
-
-                currOffset += range.length;
-            }
-
-            return null;
+            if( type == ErrorType.Error )
+                _errors.Add(msg);
+            else
+                _warnings.Add(msg);
         }
 
-        internal struct DebugSourceRange
-        {
-            public int length;
-            public DebugMetadata debugMetadata;
-            public string text;
-        }
-
-        List<DebugSourceRange> _debugSourceRanges;
+        Compiler _compiler;
+        bool _jsonOutput;
+        List<string> _errors = new List<string>();
+        List<string> _warnings = new List<string>();
 	}
 
 

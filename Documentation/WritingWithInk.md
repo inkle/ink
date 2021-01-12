@@ -56,12 +56,11 @@ and there's the kind used for reminding the author what they need to do, that th
 
 ### Tags 
 
-Text content from the game will appear 'as is' when the engine runs. However, it can sometimes we useful to mark up a line of content with extra information to tell the game what to do with that content. 
+Text content from the game will appear 'as is' when the engine runs. However, it can sometimes be useful to mark up a line of content with extra information to tell the game what to do with that content. 
 
 **ink** provides a simple system for tagging lines of content, with hashtags. 
 
-	=== content 
-		A line of normal game-text. # colour it blue
+	A line of normal game-text. # colour it blue
 
 These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [RunningYourInk](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
 
@@ -137,7 +136,7 @@ produces:
 
 To make choices really choices, we need to provide alternatives. We can do this simply by listing them:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	*	"I am somewhat tired[."]," I repeated.
 		"Really," he responded. "How deleterious."
 	*	"Nothing, Monsieur!"[] I replied.
@@ -147,7 +146,7 @@ To make choices really choices, we need to provide alternatives. We can do this 
  
 This produces the following game:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	
 	1: "I am somewhat tired."
 	2: "Nothing, Monsieur!"
@@ -264,7 +263,7 @@ You can't use too much glue: multiple glues next to each other have no additiona
 
 Combining knots, options and diverts gives us the basic structure of a choose-your-own game.
 
-	== paragraph_1 === 
+	=== paragraph_1 === 
 	You stand by the wall of Analand, sword in hand.
 	* [Open the gate] -> paragraph_2 
 	* [Smash down the gate] -> paragraph_3
@@ -418,7 +417,7 @@ Include statements should always go at the top of a file, and not inside knots.
 There are no rules about what file a knot must be in to be diverted to. (In other words, separating files has no effect on the game's namespacing).
 
 
-## 8) Varying Choices 
+## 7) Varying Choices 
 
 ### Choices can only be used once
 
@@ -463,9 +462,10 @@ A fallback choice is simply a "choice without choice text":
 
 	*	-> out_of_options
 
-We can use the square-bracket notation here as well:
+And, in a slight abuse of syntax, we can make a default choice with content in it, using an "choice then arrow":
 
-	* [] Mulder never could explain how he got out of that burning box car. -> season_2
+	* 	-> 
+		Mulder never could explain how he got out of that burning box car. -> season_2
 
 #### Example of a fallback choice
 
@@ -476,7 +476,8 @@ Adding this into the previous example gives us:
 		You search desperately for a friendly face in the crowd. 
 		*	The woman in the hat[?] pushes you roughly aside. -> find_help
 		*	The man with the briefcase[?] looks disgusted as you stumble past him. -> find_help 
-		*	[] But it is too late: you collapse onto the station platform. This is the end.
+		*	->
+			But it is too late: you collapse onto the station platform. This is the end.
 			-> END
 	
 and produces:
@@ -508,6 +509,13 @@ The 'once-only' behaviour is not always what we want, of course, so we have a se
 		*	[Get off the couch] 
 			You struggle up off the couch to go and compose epic poetry.
 			-> END
+	
+Default choices can be sticky too.
+
+	=== conversation_loop 
+		*	[Talk about the weather] -> chat_weather 
+		*	[Talk about the children] -> chat_children 
+		+	-> sit_in_silence_again
 
 ### Conditional Choices
 
@@ -530,9 +538,17 @@ You can use several logical tests on an option; if you do, *all* the tests must 
 
 	*	{ not visit_paris } 	[Go to Paris] -> visit_paris
 	+ 	{ visit_paris } { not bored_of_paris } 
-								[Return to Paris] -> visit_paris 
+		[Return to Paris] -> visit_paris 
 
+#### Logical operators: AND and OR 
 
+The above "multiple conditions" are really just conditions with an the usual programming AND operator. Ink supports `and` (also written as `&&`) and `or` (also written as `||`) in the usual way, as well as brackets. 
+
+	*	{ not (visit_paris or visit_rome) && (visit_london || visit_new_york) } [ Wait. Go where? I'm confused. ] -> visit_someplace
+
+For non-programmers `X and Y` means both X and Y must be true. `X or Y` means either or both. We don't have a `xor`. 
+
+You can also use the standard `!` for `not`, though it'll sometimes confuse the compiler which thinks `{!text}` is a once-only list. We recommend using `not` because negated boolean tests are never that exciting. 
 
 #### Advanced: knot/stitch labels are actually read counts
 
@@ -546,28 +562,29 @@ If it's non-zero, it'll return true in a test like the one above, but you can al
 
 	* {seen_clue > 3} [Flat-out arrest Mr Jefferson]
 
+
 #### Advanced: more logic
 
 **ink** supports a lot more logic and conditionality than covered here - see the section on 'variables and logic'.
 
 
-## 9) Variable Text
+## 8) Variable Text
 
 ### Text can vary
 
 So far, all the content we've seen has been static, fixed pieces of text. But content can also vary at the moment of being printed. 
 
-### Sequences, cycles and other lists
+### Sequences, cycles and other alternatives
 
-The simplest variations of text are from lists, which are selected from depending on some kind of rule. **ink** supports several types. Lists are written inside `{`...`}` curly brackets, with elements separated by `|` symbols (vertical divider lines).
+The simplest variations of text are provided by alternatives, which are selected from depending on some kind of rule. **ink** supports several types. Alternatives are written inside `{`...`}` curly brackets, with elements separated by `|` symbols (vertical divider lines).
 
 These are only useful if a piece of content is visited more than once!
 
-#### List types
+#### Types of alternatives
 
 **Sequences** (the default):
 
-A sequence (or a "stopping list") is a list that tracks how many times its been seen, and each time, shows the next element along. When it runs out of new content it continues the show the final element.
+A sequence (or a "stopping block") is a set of alternatives that tracks how many times its been seen, and each time, shows the next element along. When it runs out of new content it continues the show the final element.
 
 	The radio hissed into life. {"Three!"|"Two!"|"One!"|There was the white noise racket of an explosion.|But it was just static.}
 
@@ -582,7 +599,7 @@ Cycles are like sequences, but they loop their content.
 
 **Once-only** (marked with a `!`):
 	
-Once-only lists are like sequences, but when they run out of new content to display, they display nothing. (You can think of a once-only list as a sequence with a blank last entry.)
+Once-only alternatives are like sequences, but when they run out of new content to display, they display nothing. (You can think of a once-only alternative as a sequence with a blank last entry.)
 	
 	He told me a joke. {!I laughed politely.|I smiled.|I grimaced.|I promised myself to not react again.}
 	
@@ -592,17 +609,17 @@ Shuffles produce randomised output.
 	
 	I tossed the coin. {~Heads|Tails}.
 
-#### Features of Lists 
+#### Features of Alternatives 
 
-Lists can contain blank elements.
+Alternatives can contain blank elements.
 
 	I took a step forward. {!||||Then the lights went out. -> eek}
 
-Lists can be nested.
+Alternatives can be nested.
 
 	The Ratbear {&{wastes no time and |}swipes|scratches} {&at you|into your {&leg|arm|cheek}}.
 
-Lists can include divert statements. 
+Alternatives can include divert statements. 
 
 	I {waited.|waited some more.|snoozed.|woke up and waited more.|gave up and left. -> leave_post_office}
 
@@ -612,9 +629,11 @@ They can also be used inside choice text:
 	
 (...with one caveat; you can't start an option's text with a `{`, as it'll look like a conditional.)
 
+(...but the caveat has a caveat, if you escape a whitespace `\ ` before your `{` ink will recognise it as text.)
+
 #### Examples
 
-Lists can be used inside loops to create the appearance of intelligent, state-tracking gameplay without particular effort.
+Alternatives can be used inside loops to create the appearance of intelligent, state-tracking gameplay without particular effort.
 
 Here's a one-knot version of whack-a-mole. Note we use once-only options, and a fallback, to ensure the mole doesn't move around, and the game will always end.
 
@@ -679,8 +698,8 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 
 
 
-#### Advanced: Multiline lists
-**ink** has another format for making lists of varying content blocks, too. See the section on "multiline blocks" for details.
+#### Sneak Preview: Multiline alternatives
+**ink** has another format for making alternatives of varying content blocks, too. See the section on "multiline blocks" for details.
 
 
 
@@ -710,13 +729,13 @@ or:
 
 	"I missed him. Was he particularly evil?"
 
-## 10) Game Queries
+## 9) Game Queries and Functions
 
 **ink** provides a few useful 'game level' queries about game state, for use in conditional logic. They're not quite parts of the language, but they're always available, and they can't be edited by the author. In a sense, they're the "standard library functions" of the language.
 
 The convention is to name these in capital letters.
 
-### CHOICE_COUNT
+### CHOICE_COUNT()
 
 `CHOICE_COUNT` returns the number of options created so far in the current chunk. So for instance.
 
@@ -726,7 +745,11 @@ The convention is to name these in capital letters.
 
 produces two options, B and C. This can be useful for controlling how many options a player gets on a turn. 
 
-### TURNS_SINCE
+### TURNS()
+
+This returns the number of game turns since the game began. 
+
+### TURNS_SINCE(-> knot)
 
 `TURNS_SINCE` returns the number of moves (formally, player inputs) since a particular knot/stitch was last visited.
 
@@ -738,6 +761,28 @@ A value of 0 means "was seen as part of the current chunk". A value of -1 means 
 Note that the parameter passed to `TURNS_SINCE` is a "divert target", not simply the knot address itself (because the knot address is a number - the read count - not a location in the story...)
 
 TODO: (requirement of passing `-c` to the compiler)
+
+#### Sneak preview: using TURNS_SINCE in a function
+
+The `TURNS_SINCE(->x) == 0` test is so useful it's often worth wrapping it up as an ink function.
+
+	=== function came_from(-> x) 
+		~ return TURNS_SINCE(x) == 0
+	
+The section on functions outlines the syntax here a bit more clearly but the above allows you to say things like:
+
+	* {came_from(->  nice_welcome)} 'I'm happy to be here!' 
+	* {came_from(->  nasty_welcome)} 'Let's keep this quick.' 
+
+... and have the game react to content the player saw *just now*.
+
+### SEED_RANDOM()
+
+For testing purposes, it's often useful to fix the random number generator so ink will produce the same outcomes every time you play. You can do this by "seeding" the random number system. 
+
+	~ SEED_RANDOM(235) 
+	
+The number you pass to the seed function is arbitrary, but providing different seeds will result in different sequences of outcomes. 
 
 #### Advanced: more queries
 
@@ -769,7 +814,7 @@ Let's go back to the first multi-choice example at the top of this document.
 		
 In a real game, all three of these options might well lead to the same conclusion - Monsieur Fogg leaves the room. We can do this using a gather, without the need to create any new knots, or add any diverts.
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 		*	"I am somewhat tired[."]," I repeated.
 			"Really," he responded. "How deleterious."
 		*	"Nothing, Monsieur!"[] I replied.
@@ -781,7 +826,7 @@ In a real game, all three of these options might well lead to the same conclusio
 
 This produces the following playthrough:
 
-	"What that's?" my master asked.
+	"What's that?" my master asked.
 	
 	1: "I am somewhat tired."
 	2: "Nothing, Monsieur!"
@@ -1075,7 +1120,7 @@ Labelling allows us to create loops inside weaves. Here's a standard pattern for
 
 	- (opts)
 		*	'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
-			'Sure. In the locker.' He grins. 'Don't think it'll fit you, thought.'
+			'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
 		*	'Tell me about the security system.'
 			'It's ancient,' the guard assures you. 'Old as coal.'
 		*	'Are there dogs?'
@@ -1197,9 +1242,34 @@ The value of a variable can be printed as content using an inline syntax similar
 	VAR friendly_name_of_player = "Jackie"
 	VAR age = 23
 
-	"My name is Jean Passepartout, but my friend's call me {friendly_name_of_player}. I'm {age} years old."
+	My name is Jean Passepartout, but my friend's call me {friendly_name_of_player}. I'm {age} years old.
 	
 This can be useful in debugging. For more complex printing based on logic and variables, see the section on functions.
+
+### Evaluating strings
+
+It might be noticed that above we refered to variables as being able to contain "content", rather than "strings". That was deliberate, because a string defined in ink can contain ink - although it will always evaluate to a string. (Yikes!)
+
+	VAR a_colour = ""
+
+	~ a_colour = "{~red|blue|green|yellow}" 
+	
+	{a_colour} 
+	
+... produces one of red, blue, green or yellow. 
+
+Note that once a piece of content like this is evaluated, its value is "sticky". (The quantum state collapses.) So the following:
+
+	The goon hits you, and sparks fly before you eyes, {a_colour} and {a_colour}.
+	
+... won't produce a very interesting effect. (If you really want this to work, use a text function to print the colour!)
+
+This is also why 
+
+	VAR a_colour = "{~red|blue|green|yellow}"
+
+is explicitly disallowed; it would be evaluated on the construction of the story, which probably isn't what you want.
+
 
 ## 2) Logic
 
@@ -1214,12 +1284,35 @@ The following statements all assign values to variables:
 		~ knows_about_wager = true	
 		~ x = (x * x) - (y * y) + c
 		~ y = 2 * x * y
+		
+and the following will test conditions:
 
+	{ x == 1.2 }
+	{ x / 2 > 4 }
+	{ y - 1 <= x * x }
+	
 ### Mathematics
 	
-**ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. 
+**ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. There's also POW for to-the-power-of: 
 
-If more complex operations are required, one can write functions (for recursive formulas and the like), or call out to external, game-code functions (for anything more advanced). 
+	{POW(3, 2)} is 9. 
+	{POW(16, 0.5)} is 4. 
+
+
+If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced). 
+
+
+#### RANDOM(min, max) 
+
+Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pendants, we said *a dice*), so the min and max values are both inclusive. 
+
+	~ temp dice_roll = RANDOM(1, 6) 
+	
+	~ temp lazy_grading_for_test_paper = RANDOM(30, 75)  
+	
+	~ temp number_of_heads_the_serpent_has = RANDOM(3, 8)
+
+The random number generator can be seeded for testing purposes, see the section of Game Queries and Functions section above. 
 
 #### Advanced: numerical types are implicit
 
@@ -1230,6 +1323,30 @@ Results of operations - in particular, for division - are typed based on the typ
 	~ z = 1.2 / 0.5
 	
 assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
+
+#### Advanced: INT(), FLOOR() and FLOAT() 
+
+In cases where you don't want implicit types, or you want to round off a variable, you can cast it directly. 
+
+	{INT(3.2)} is 3. 
+	{FLOOR(4.8)} is 4.
+	{INT(-4.8)} is -4. 
+	{FLOOR(-4.8)} is -5. 
+	
+	{FLOAT(4)} is, um, still 4. 
+
+
+
+### String queries
+
+Oddly for a text-engine, **ink** doesn't have much in the way of string-handling: it's assumed that any string conversion you need to do will be handled by the game code (and perhaps by external functions.) But we support three basic queries - equality, inequality, and substring (which we call ? for reasons that will become clear in a later chapter). 
+
+The following all return true:
+	
+	{ "Yes, please." == "Yes, please." }
+	{ "No, thank you." != "Yes, please." }
+	{ "Yes, please" ? "ease" }
+	
 
 ## 3) Conditional blocks (if/else)
 
@@ -1250,7 +1367,7 @@ Else conditions can be provided:
 	- else:
 		~ y = x + 1
 	}
-	
+
 ### Extended if/else if/else blocks
 
 The above syntax is actually a specific case of a more general structure, something like a "switch" statement of another language:
@@ -1274,6 +1391,17 @@ And using this form we can include 'else-if' conditions:
 	}
 
 (Note, as with everything else, the white-space is purely for readability and has no syntactic meaning.)
+
+### Switch blocks
+
+And there's also an actual switch statement: 
+
+	{ x:
+	- 0: 	zero 
+	- 1: 	one 
+	- 2: 	two 
+	- else: lots
+	}
 	
 #### Example: context-relevant content
 
@@ -1321,9 +1449,9 @@ You can even put options inside conditional blocks:
 
 ...but note that the lack of weave-syntax and nesting in the above example isn't accidental: to avoid confusing the various kinds of nesting at work, you aren't allowed to include gather points inside conditional blocks.
 
-### Multiline list blocks
+### Multiline blocks
 
-There's one other class of multiline block, which expands on the list functionality previous mentioned. The following are all valid and do what you might expect:
+There's one other class of multiline block, which expands on the alternatives system from above. The following are all valid and do what you might expect:
  
  	// Sequence: go through the alternatives, and stick on last 
 	{ stopping:
@@ -1338,8 +1466,7 @@ There's one other class of multiline block, which expands on the list functional
 		- 	Ace of Hearts.
 		- 	King of Spades.
 		- 	2 of Diamonds.
-			'You lose!' crowed the croupier.
-			-> leave_casino
+			'You lose this time!' crowed the croupier.
 	}
 	
 	// Cycle: show each in turn, and then cycle
@@ -1354,6 +1481,28 @@ There's one other class of multiline block, which expands on the list functional
 		- Would my luck hold?
 		- Could I win the hand?
 	}
+
+#### Advanced: modified shuffles 
+
+The shuffle block above is really a "shuffled cycle"; in that it'll shuffle the content, play through it, then reshuffle and go again. 
+
+There are two other versions of shuffle: 
+
+`shuffle once` which will shuffle the content, play through it, and then do nothing.
+
+	{ shuffle once: 
+	-	The sun was hot. 
+	- 	It was a hot day. 
+	}
+
+`shuffle stopping` will shuffle all the content (except the last entry), and once its been played, it'll stick on the last entry. 
+
+	{ shuffle stopping:
+	- 	A silver BMW roars past.
+	-	A bright yellow Mustang takes the turn. 
+	- 	There are like, cars, here. 
+	}
+	
 
 ## 4) Temporary Variables
 
@@ -1378,9 +1527,7 @@ Sometimes, a global variable is unwieldy. **ink** provides temporary variables f
 			That night I was colder than I have ever been.
 		}
 
-The value in a temporary variable is thrown away after the story leaves the knot in which it was defined. 
-
-TODO: check this is actually true
+The value in a temporary variable is thrown away after the story leaves the stitch in which it was defined. 
 
 ### Knots and stitches can take parameters
 
@@ -1399,7 +1546,7 @@ A particularly useful form of temporary variable is a parameter. Any knot or sti
 		"And why not?" Poirot shot back. 	
 		
 	
-	
+... and you'll need to use parameters if you want to pass a temporary value from one stitch to another!	
 
 #### Example: a recursive knot definition
 
@@ -1686,7 +1833,7 @@ And sometimes the numbers are useful in other ways:
 	VAR suitcase_location = HALLWAY
 	
 	=== report_progress ===
-	{  secret_agent_location = suitcase_location:
+	{  secret_agent_location == suitcase_location:
 		The secret agent grabs the suitcase!
 		~ suitcase_location = HELD_BY_AGENT  
 		
@@ -1728,7 +1875,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	=== outside_honolulu ===
 	We arrived at the large island of Honolulu.
 	- (postscript) 
-		{crossing_the_date_line(-> done)} 
+		-> crossing_the_date_line(-> done)
 	- (done)
 		-> END 
 
@@ -1737,7 +1884,7 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	=== outside_pitcairn_island ===
 	The boat sailed along the water towards the tiny island.
 	- (postscript) 
-		{crossing_the_date_line(-> done)} 
+		-> crossing_the_date_line(-> done)
 	- (done)
 		-> END 
 	
@@ -1878,7 +2025,7 @@ But for games with lots of independent moving parts, threads quickly become esse
 		}
 	
 	== hallway ==	
-		<- characters_present
+		<- characters_present(HALLWAY)
 		*	[Drawers]	-> examine_drawers
 		* 	[Wardrobe] -> examine_wardrobe
 		*  [Go to Office] 	-> go_office
@@ -1889,12 +2036,13 @@ But for games with lots of independent moving parts, threads quickly become esse
 	// Here's the thread, which mixes in dialogue for characters you share the room with at the moment.
 	
 	== characters_present(room)
-		{ generals_location == player_location:
+		{ generals_location == room:
 			<- general_conversation
 		}
 		{ doctors_location == room:
 			<- doctor_conversation
 		}
+		-> DONE
 		
 	== general_conversation 
 		*	[Ask the General about the bloodied knife]
@@ -1921,11 +2069,21 @@ If we didn't, the end of content might be a story-bug or a hanging story thread,
 
 ### Using `-> DONE`
 
-So cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here".
+In cases where we want to mark the end of a thread, we use `-> DONE`: meaning "the flow intentionally ends here". If we don't, we might end up with a warning message - we can still play the game, but it's a reminder that we have unfinished business. 
+
+The example at the start of this section will generate a warning; it can be fixed as follows:
+
+    == thread_example ==
+    I had a headache; threading is hard to get your head around.
+    <- conversation
+    <- walking
+    -> DONE 
+
+The extra DONE tells ink that the flow here has ended and it should rely on the threads for the next part of the story. 
 
 Note that we don't need a `-> DONE` if the flow ends with options that fail their conditions. The engine treats this as a valid, intentional, end of flow state.
 
-**You do not need a `-> DONE` in a thread after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
+**You do not need a `-> DONE` after an option has been chosen**. Once an option is chosen, a thread is no longer a thread - it is simply the normal story flow once more.
 
 Using `-> END` in this case will not end the thread, but the whole story flow. (And this is the real reason for having two different ways to end flow.)
 
@@ -2250,7 +2408,7 @@ We can assign the empty list to clear a list out:
 
 List entries can be added and removed, singly or collectively. 
 
-	~ DoctorsInSurgery = doctorsSurgery + Adams 	~ DoctorsInSurgery += Adams  // this is the same as the above
+	~ DoctorsInSurgery = DoctorsInSurgery + Adams 	~ DoctorsInSurgery += Adams  // this is the same as the above
 	~ DoctorsInSurgery -= Eamonn 
 	~ DoctorsInSurgery += (Eamonn, Denver) 
 	~ DoctorsInSurgery -= (Adams, Eamonn, Denver)
@@ -2267,6 +2425,7 @@ We have a few basic ways of getting information about what's in a list:
 	{LIST_COUNT(DoctorsInSurgery)} 	//  "2"
 	{LIST_MIN(DoctorsInSurgery)} 		//  "Adams"
 	{LIST_MAX(DoctorsInSurgery)} 		//  "Cartwright"
+	{LIST_RANDOM(DoctorsInSurgery)} 	//  "Adams" or "Cartwright"
 
 #### Testing for emptiness
 
@@ -2375,13 +2534,13 @@ The basic list print is not especially attractive for use in-game. The following
 	=== function listWithCommas(list, if_empty) 
 	    {LIST_COUNT(list): 
 	    - 2: 
-	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list))}
+	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list), if_empty)}
 	    - 1: 
 	        	{list}
 	    - 0: 
 				{if_empty}	        
 	    - else: 
-	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list))} 
+	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list), if_empty)} 
 	    }
 
 	LIST favouriteDinosaurs = (stegosaurs), brachiosaur, (anklyosaurus), (pleiosaur)
@@ -2397,7 +2556,7 @@ It's probably also useful to have an is/are function to hand:
 
 And to be pendantic:
 
-	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
+	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
 
 #### Lists don't need to have multiple entries 
@@ -2631,7 +2790,7 @@ We could then describe the contents of any room by testing its state:
 	
 	=== function describe_room(roomState)
 		{ roomState ? Alfred: Alfred is here, standing quietly in a corner. } { roomState ? Batman: Batman's presence dominates all. } { roomState ? Robin: Robin is all but forgotten. }
-		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBER ASSISTANT? }
+		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT? }
 		
 So then:
 
@@ -2641,7 +2800,7 @@ produces:
 	
 	Alfred is here, standing quietly in a corner. Batman's presence dominates all.
 
-	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBER ASSISTANT?
+	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT?
 
 While:	
 
@@ -2691,9 +2850,7 @@ These mixed states can make changing state a bit trickier, as the off/on above d
  which enables code like:
  
  	~ changeState(kettleState, on)
- 	~ changeState(kettleState, warm) 
- 
-			
+ 	~ changeState(kettleState, warm)
 	
 
 #### How does this affect queries?
@@ -2718,7 +2875,8 @@ The queries given above mostly generalise nicely to multi-valued lists
     
 	{ LIST_INVERT(mixedList) }            // one, b, two	
 
-## 6) Long example: crime scene
+
+## 7) Long example: crime scene
 
 Finally, here's a long example, demonstrating a lot of ideas from this section in action. You might want to try playing it before reading through to better understand the various moving parts. 
 	
@@ -2742,7 +2900,6 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	LIST Inventory = (none), cane, knife
 	
 	=== function get(x) 
-	    ~ move_to_supporter(x, held) 
 	    ~ Inventory += x
 
 	//
@@ -2752,10 +2909,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	
 	LIST Supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
 	
-	=== function move_to_supporter(ref item_state, new_supporter) === 
-	    { Inventory ? item_state && new_supporter != held:
-	        ~ Inventory -= item_state
-	    }
+	=== function move_to_supporter(ref item_state, new_supporter) ===
 	    ~ item_state -= LIST_ALL(Supporters)
 	    ~ item_state += new_supporter
 	
@@ -3044,7 +3198,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	    }
 	    -> END
 	    
-## 7) Summary 
+## 8) Summary 
 
 To summarise a difficult section, **ink**'s list construction provides:
 
@@ -3091,3 +3245,62 @@ Example:
 	*	{ PhoneState ? (on, charged) } [ Call my mother ]
 		
 	
+ 
+ 
+# Part 6: International character support in identifiers
+
+By default, ink has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exsits
+on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements (a.k.a. *identifiers*).
+
+Sometimes it is inconvenient for a writer using a non-ASCII language to write a story because they have to constantly switch to naming identifiers in ASCII and then switching back to whatever language they are using for the story. In addition, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
+
+In an effort to assist in the above scenario, ink *automatically* supports a list of pre-defined non-ASCII character ranges that can be used as identifiers. In general, those ranges have been selected to include the alpha-numeric subset of the official unicode character range, which would suffice for naming identifiers. The below section gives more detailed information on the non-ASCII characters that ink automatically supports.
+
+### Supported Identifier Characters
+
+The support for the additional character ranges in ink is currently limited to a predefined set of character ranges.
+
+Below is a listing of the currently supported identifier ranges.
+
+ - **Arabic**
+   
+   Enables characters for languages of the Arabic family and is a subset of the official *Arabic* unicode range `\u0600`-`\u06FF`.
+
+
+ - **Armenian**
+   
+   Enables characters for the Armenian language and is a subset of the official *Armenian* unicode range `\u0530`-`\u058F`.
+
+
+ - **Cyrillic**
+   
+   Enables characters for languages using the Cyrillic alphabet and is a subset of the official *Cyrillic* unicode range `\u0400`-`\u04FF`.
+
+
+ - **Greek**  
+ 
+   Enables characters for languages using the Greek alphabet and is a subset of the official *Greek and Coptic* unicode range `\u0370`-`\u03FF`.
+
+
+ - **Hebrew**  
+ 
+   Enables characters in Hebrew using the Hebrew alphabet and is a subset of the official *Hebrew* unicode range `\u0590`-`\u05FF`.
+
+
+ - **Latin Extended A**  
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-A* unicode range `\u0100`-`\u017F`.
+
+
+ - **Latin Extended B**
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.
+
+- **Latin 1 Supplement**
+ 
+   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin 1 Supplement* unicode range `\u0080` - `\u00FF`.  
+
+
+**NOTE!** ink files should be saved in UTF-8 format, which ensures that the above character ranges are supported.
+
+If a particular character range that you would like to use within identifiers isn't supported, feel free to open an [issue](https://github.com/inkle/ink/issues/new) or [pull request](https://github.com/inkle/ink/pulls) on the main ink repo.

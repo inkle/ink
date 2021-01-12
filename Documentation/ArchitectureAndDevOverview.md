@@ -10,7 +10,7 @@ The ink pipeline broadly consists of 3 stages:
 
 The following is a fairly brief tour of these 3 stages, hopefully enough to give you a foundation for exploring the codebase yourself.
 
-## Ink parser
+## Ink parser
 
 The parser takes a root ink file (which may reference other ink files), and constructs a hierarchy of `Parsed.Object` objects that closely resemble the structure within the original ink files, as closely as possible to how it was written.
 
@@ -33,7 +33,7 @@ Crucially however, parse rules are wrapped in either `ParseObject(rule)` or `Par
         
 If a rule isn't wrapped in a `Parse` method, then it's an indication that rewinding definitely isn't strictly necessary within the scope, for example if a sub-rule is both optional and atomic. Or, when success and failure of the rule is handled manually.
         
-## StringParser structuring
+## StringParser structuring
 
 The base class `StringParser` contains a number of helper methods to help with parsing.
 
@@ -95,7 +95,7 @@ Each `Parsed.Object` can implement:
         runtimeDivert.targetPath = targetContent.runtimePath;
     }
 
-## Runtime ink engine
+## Runtime ink engine
 
 As mentioned above, the runtime code is built out of smaller, simpler, objects compared to the ink as it's parsed directly.
 
@@ -107,11 +107,11 @@ This structure is loaded by the ink engine in a [JSON based format](https://gith
 
 The `Runtime.Container` is general purpose, and can work as either than array or a dictionary, or both. Therefore, it can have ordered (indexed content) that's designed to be iterated through sequentially, and can also have named content, that's designed to be accessed by a string key.
 
-For example, a `Parsed.Choice` compiles down to a `Runtime.Container` that contains, amongst other things, the initial sequential content that forms the text of the choice, the minimal `Runtime.Choice` itself, as well as a named sub-container that contains the content that is run when the choice is picked by the player.
+For example, a `Parsed.Choice` compiles down to a `Runtime.Container` that contains, amongst other things, the initial sequential content that forms the text of the choice, the minimal `Runtime.ChoicePoint` itself, as well as a named sub-container that contains the content that is run when the choice is picked by the player.
 
 ### Content
 
-As with ink itself, the runtime engine's fundamental unit is content, rather than code. As such, a simple "Hello world" ink file would be compiled down to a single `Runtime.Container` with a single `Runtime.Text` in it (as well as a terminator).
+As with ink itself, the runtime engine's fundamental unit is content, rather than code. As such, a simple "Hello world" ink file would be compiled down to a single `Runtime.Container` with a single `Runtime.StringValue` in it (as well as a terminator).
 
 Each piece of content that is encountered is appended to the `outputStream` within the `Runtime.Story`.
 
@@ -127,20 +127,34 @@ Alongside the content that's designed to be seen by the player, additional comma
 
 Some important and useful features of the main runtime engine in `Story.cs`:
 
- * `Continue()` is the top level point where iteration of the content happens:
+ * `Continue()` is the top level point where iteration of the content happens, and has this rough structure internally:
 
         while( Step () || TryFollowDefaultInvisibleChoice() ) {}
         
  * `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
- * `PerformLogicAndFlowControl(contentObject, out endFlow)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
-
-### Callstack and threads
-
-TODO
+ * `PerformLogicAndFlowControl(contentObject)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
 
 ## Compiler development and debugging tips
 
-While testing modifications to the compiler, it's useful to put a test program in `test.ink`, and it will be used when building and running in the *Test* configuration.
+While testing modifications to the compiler, it's useful to run the **InkTestBed** project. Inside this project `InkTestBed.cs` contains a suite of useful tools.
+
+The main entry point is `Run()`. By default it simply calls `Play()`, which will load up a pre-existing `test.ink` (that you can put your test ink in). `Play()` has a basic choice loop that also serves as a good introduction to some of the built in convenience functions.
+
+However if you want to automatate the testing of a particular flow, you could write something like:
+
+    void Run ()
+    {
+        CompileFile();
+
+        ContinueMaximally ();
+        Choose(0);
+
+        ContinueMaximally ();
+        Choose(1);
+
+        ContinueMaximally ();
+    }
+
 
 `BuildStringOfHierarchy()` is a method in `Runtime.Story` that's useful when debugging. If you add it as a Watch expression while debugging the ink engine, you can see a representation of the runtime hierarchy, as well as an arrow that points at where execution currently is in the hierarchy. For example, the following ink:
 
