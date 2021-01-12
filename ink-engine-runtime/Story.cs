@@ -2388,7 +2388,7 @@ namespace Ink.Runtime
 
             // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
             List<string> tags = null;
-            foreach (var c in flowContainer.content) {
+            foreach (var c in flowContainer.content.Where(item => item is Runtime.Tag)) {
                 var tag = c as Runtime.Tag;
                 if (tag) {
                     if (tags == null) tags = new List<string> ();
