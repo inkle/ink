@@ -97,7 +97,7 @@ namespace Ink
                             return;
                         }
 
-                        var result = _compiler.ReadCommandLineInput (userInput);
+                        var result = ReadCommandLineInput (userInput);
 
                         if (result.output != null) {
                             if( _jsonOutput ) {
@@ -151,7 +151,8 @@ namespace Ink
 
                 story.Continue ();
 
-                _compiler.RetrieveDebugSourceForLatestContent ();
+                if (_compiler != null)
+                  _compiler.RetrieveDebugSourceForLatestContent ();
 
                 if( _jsonOutput ) {
                     var writer = new Runtime.SimpleJson.Writer();
@@ -237,6 +238,42 @@ namespace Ink
                 _errors.Add(msg);
             else
                 _warnings.Add(msg);
+        }
+
+        Compiler.CommandLineInputResult ReadCommandLineInput (string userInput) {
+            var inputParser = new InkParser (userInput);
+            var inputResult = inputParser.CommandLineUserInput ();
+            var result = new Compiler.CommandLineInputResult ();
+
+            // Choice
+            if (inputResult.choiceInput != null) {
+                result.choiceIdx = ((int)inputResult.choiceInput) - 1;
+                return result;
+            }
+
+            // Help
+            if (inputResult.isHelp) {
+                result.output = "Type a choice number, a divert (e.g. '-> myKnot'), an expression, or a variable assignment (e.g. 'x = 5')";
+                return result;
+            }
+
+            // Quit
+            if (inputResult.isExit) {
+                result.requestsExit = true;
+                return result;
+            }
+
+            // If the compiler is available give it a chance to handle
+            // the input.
+            if (_compiler != null) {
+                var compilerResult = _compiler.HandleInput(inputResult);
+                if (compilerResult != null) {
+                    return compilerResult;
+                }
+            }
+
+            result.output = "Unexpected input. Type 'help' or a choice number.";
+            return result;
         }
 
         Compiler _compiler;
