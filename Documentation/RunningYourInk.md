@@ -84,11 +84,11 @@ If you made a mistake in your ink that the compiler can't catch, then the story 
 
     _inkStory = new Story(inkAsset.text);
     
-    _inkStory.onError = (msg, type) => {
-        if( type == ErrorType.Warning )
-            Debug.LogWarning(errorMessage);
+    _inkStory.onError += (msg, type) => {
+        if( type == Ink.ErrorType.Warning )
+            Debug.LogWarning(msg);
         else
-            Debug.LogError(errorMessage);
+            Debug.LogError(msg);
     };
 
 ### Is that it?
