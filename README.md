@@ -48,6 +48,33 @@ To keep up to date with the latest news about ink [sign up for the mailing list]
 * Click it, and you should get an Editor window that lets you play (preview) your story.
 * Follow the tutorial: [Writing with Ink](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md).
 
+## Ink, Inky, ink-unity-integration, inkjs, inklecate, inkle oh my!
+
+* [Ink](https://www.inklestudios.com/ink) is the core narrative engine itself, written in C#. It includes the code for the compiler. If you're not technical, you don't need to worry about this.
+* [Inky](https://www.github.com/inkle/inky) is our ink editor, which is a text editor with support for playing as you write. If you're just starting out with ink, this is all you need.
+* [ink-unity-integration](https://www.github.com/inkle/ink-unity-integration) is a plugin to allow you integrate the ink engine with a Unity game. It includes the full Ink engine source.
+* **inklecate** is a command-line compiler for ink. Inky uses it behind the scenes.
+* [inkjs](https://github.com/y-lohse/inkjs) is a JavaScript port of the ink engine, useful for powering web-based game. This is included when you export a story for web within Inky.
+* [inkle](https://www.inklestudios.com) is the game development studio that created ink
+* [inklewriter](https://www.inklewriter.com) is an unrelated interactive story creation tool that designed to be easy to use, but is far less powerful. It's possible to export inklewriter stories to ink, but not vice versa.
+
+### What you need if you are a:
+
+* **Writer**: Inky
+* **Unity game developer**: ink-unity-integration plugin. Optionally, Inky if you're reading/writing the ink too.
+* **Web-game author**: Inky
+
+### Versioning
+
+The intention is the following:
+
+- Each latest ink/inky/ink-unity-integration release on each Github release page should work together. Ink and Inky version *numbering* are separate though. You can see which version of the ink engine Inky has in the About box.
+- ink / ink-unity-integration should effectively have the same version of the same engine, except that the integration might have additional Unity-specific extra minor releases. Their X.0.0 and 0.Y.0 version numbers should match. The 0.0.Z version number in ink-unity-integration may diverge to reflect Unity-specific changes.
+- inkjs is maintained by the community (primarily @y-lohse and @ephread). It's usually one major version behind the main ink engine, but they work hard to catch up after each release!
+- The ink engine also has story-format and save-format versions that are internal to the code (see Story.cs and StoryState.cs).
+
+
+
 ## Advanced: Using inklecate on the command line
 
  * [Download the latest version of **inklecate**](https://github.com/inkle/ink/releases) (or build it yourself, see below.)
