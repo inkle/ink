@@ -424,7 +424,7 @@ namespace Ink.Runtime
                     return d1.Equals (d2);
                 };
                 BinaryOp<Path> divertTargetsNotEqual = (Path d1, Path d2) => {
-                	return d1.Equals (d2);
+                	return !d1.Equals (d2);
                 };
                 AddOpToNativeFunc (Equal, 2, ValueType.DivertTarget, divertTargetsEqual);
                 AddOpToNativeFunc (NotEquals, 2, ValueType.DivertTarget, divertTargetsNotEqual);
