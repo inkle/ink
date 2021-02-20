@@ -534,34 +534,6 @@ namespace Ink.Runtime
         {
             writer.WriteObjectStart();
 
-
-            bool hasChoiceThreads = false;
-            #warning TODO: Write all choice threads across all flows
-            foreach (Choice c in _currentFlow.currentChoices)
-            {
-                c.originalThreadIndex = c.threadAtGeneration.threadIndex;
-
-                if (callStack.ThreadWithIndex(c.originalThreadIndex) == null)
-                {
-                    if (!hasChoiceThreads)
-                    {
-                        hasChoiceThreads = true;
-                        writer.WritePropertyStart("choiceThreads");
-                        writer.WriteObjectStart();
-                    }
-
-                    writer.WritePropertyStart(c.originalThreadIndex);
-                    c.threadAtGeneration.WriteJson(writer);
-                    writer.WritePropertyEnd();
-                }
-            }
-
-            if (hasChoiceThreads)
-            {
-                writer.WriteObjectEnd();
-                writer.WritePropertyEnd();
-            }
-
             // Flows
             writer.WritePropertyStart("flows");
             writer.WriteObjectStart();
@@ -664,6 +636,10 @@ namespace Ink.Runtime
                 _currentFlow.callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
                 _currentFlow.outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
                 _currentFlow.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+
+                object jChoiceThreadsObj = null;
+                jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
+                _currentFlow.LoadFlowChoiceThreads((Dictionary<string, object>)jChoiceThreadsObj, story);
             }
 
             OutputStreamDirty();
@@ -693,20 +669,6 @@ namespace Ink.Runtime
             } else {
                 previousRandom = 0;
             }
-
-			object jChoiceThreadsObj = null;
-			jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
-			var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
-
-			foreach (var c in _currentFlow.currentChoices) {
-				var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
-				if( foundActiveThread != null ) {
-                    c.threadAtGeneration = foundActiveThread.Copy ();
-				} else {
-					var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[c.originalThreadIndex.ToString()];
-					c.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
-				}
-			}
         }
             
         public void ResetErrors()

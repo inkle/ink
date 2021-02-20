@@ -21,6 +21,11 @@ namespace Ink.Runtime
             this.callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstack"], story);
             this.outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
 			this.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+
+            // choiceThreads is optional
+            object jChoiceThreadsObj;
+            jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
+            LoadFlowChoiceThreads((Dictionary<string, object>)jChoiceThreadsObj, story);
         }
 
         public void WriteJson(SimpleJson.Writer writer)
@@ -37,7 +42,49 @@ namespace Ink.Runtime
                 w.WriteArrayEnd();
             });
 
+
+            // choiceThreads: optional
+            bool hasChoiceThreads = false;
+            foreach (Choice c in currentChoices)
+            {
+                c.originalThreadIndex = c.threadAtGeneration.threadIndex;
+
+                if (callStack.ThreadWithIndex(c.originalThreadIndex) == null)
+                {
+                    if (!hasChoiceThreads)
+                    {
+                        hasChoiceThreads = true;
+                        writer.WritePropertyStart("choiceThreads");
+                        writer.WriteObjectStart();
+                    }
+
+                    writer.WritePropertyStart(c.originalThreadIndex);
+                    c.threadAtGeneration.WriteJson(writer);
+                    writer.WritePropertyEnd();
+                }
+            }
+
+            if (hasChoiceThreads)
+            {
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+            }
+
             writer.WriteObjectEnd();
+        }
+
+        // Used both to load old format and current
+        public void LoadFlowChoiceThreads(Dictionary<string, object> jChoiceThreads, Story story)
+        {
+            foreach (var choice in currentChoices) {
+				var foundActiveThread = callStack.ThreadWithIndex(choice.originalThreadIndex);
+				if( foundActiveThread != null ) {
+                    choice.threadAtGeneration = foundActiveThread.Copy ();
+				} else {
+					var jSavedChoiceThread = (Dictionary <string, object>) jChoiceThreads[choice.originalThreadIndex.ToString()];
+					choice.threadAtGeneration = new CallStack.Thread(jSavedChoiceThread, story);
+				}
+			}
         }
     }
 }
