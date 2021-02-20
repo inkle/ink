@@ -623,7 +623,7 @@ namespace Ink.Runtime
                     }
                 }
 
-                if( _namedFlows.Count > 1 ) {
+                if( _namedFlows != null && _namedFlows.Count > 1 ) {
                     var currFlowName = (string)jObject["currentFlowName"];
                     _currentFlow = _namedFlows[currFlowName];
                 }
