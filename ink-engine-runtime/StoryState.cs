@@ -18,7 +18,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 8;
+        public const int kInkSaveStateVersion = 9; // new: multi-flows, but backward compatible
         const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
@@ -185,7 +185,6 @@ namespace Ink.Runtime
         public CallStack callStack { get; set; }
         public List<Runtime.Object> evaluationStack { get; private set; }
         public Pointer divertedPointer { get; set; }
-
 
         public int currentTurnIndex { get; private set; }
         public int storySeed { get; set; }
@@ -366,6 +365,46 @@ namespace Ink.Runtime
             callStack.currentElement.currentPointer = Pointer.StartOf (story.mainContentContainer);
         }
 
+        internal void SwitchFlow_Internal(string flowName)
+        {
+            if(flowName == null) throw new System.Exception("Must pass a non-null string to Story.SwitchFlow");
+            
+            if( _namedFlows == null ) {
+                _namedFlows = new Dictionary<string, CallStack>();
+                _namedFlows[kDefaultFlowName] = callStack;
+            }
+
+            if( flowName == _currentFlowName ) {
+                return;
+            }
+
+            CallStack flowCallstack;
+            if( !_namedFlows.TryGetValue(flowName, out flowCallstack) )
+                flowCallstack = new CallStack(story);
+
+            callStack = flowCallstack;
+            variablesState.callStack = flowCallstack;
+            _currentFlowName = flowName;
+        }
+
+        internal void SwitchToDefaultFlow_Internal()
+        {
+            if( _namedFlows == null ) return;
+            SwitchFlow_Internal(kDefaultFlowName);
+        }
+
+        internal void DestroyFlow_Internal(string flowName)
+        {
+            if(flowName == null) throw new System.Exception("Must pass a non-null string to Story.DestroyFlow");
+            if(flowName == kDefaultFlowName) throw new System.Exception("Cannot destroy default flow");
+
+            if( _currentFlowName == flowName ) {
+                SwitchToDefaultFlow_Internal();
+            }
+
+            _namedFlows.Remove(flowName);
+        }
+
         // Warning: Any Runtime.Object content referenced within the StoryState will
         // be re-referenced rather than cloned. This is generally okay though since
         // Runtime.Objects are treated as immutable after they've been set up.
@@ -483,7 +522,27 @@ namespace Ink.Runtime
                 writer.WritePropertyEnd();
             }
 
-            writer.WriteProperty("callstackThreads", callStack.WriteJson);
+            // Multi-flow
+            if( _namedFlows != null ) {
+                writer.WritePropertyStart("namedFlows");
+                writer.WriteObjectStart();
+
+                foreach(var namedFlow in _namedFlows) {
+                    var name = namedFlow.Key;
+                    var namedCallstack = namedFlow.Value;
+                    writer.WriteProperty(name, namedCallstack.WriteJson);
+                }
+
+                writer.WriteObjectEnd();
+                writer.WritePropertyEnd();
+
+                writer.WriteProperty("currentFlowName", _currentFlowName);
+            }
+
+            // Single flow
+            else {
+                writer.WriteProperty("callstackThreads", callStack.WriteJson);
+            }
 
             writer.WriteProperty("variablesState", variablesState.WriteJson);
 
@@ -527,8 +586,42 @@ namespace Ink.Runtime
             else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
                 throw new Exception("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
             }
+            
+            // Multi-flow is active?
+            object namedFlowsObj = null;
+            if (jObject.TryGetValue("namedFlows", out namedFlowsObj)) {
+                var namedFlowsDict = (Dictionary<string, object>) namedFlowsObj;
+                
+                if( _namedFlows == null ) {
+                    _namedFlows = new Dictionary<string, CallStack>();
+                } else {
+                    _namedFlows.Clear();
+                }
 
-            callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+                foreach(var namedFlow in namedFlowsDict) {
+                    var name = namedFlow.Key;
+                    var callstackObj = namedFlow.Value;
+                    
+                    var flowCallStack = new CallStack(story);
+                    flowCallStack.SetJsonToken((Dictionary<string, object>)callstackObj, story);
+
+                    _namedFlows[name] = flowCallStack;
+                }
+
+                var currentFlowName = (string)jObject["currentFlowName"];
+
+                // Force flow switch
+                _currentFlowName = null;
+                SwitchFlow_Internal(currentFlowName);
+            }
+
+            // Single flow
+            else {
+                callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+            }
+
+
+
             variablesState.SetJsonToken((Dictionary < string, object> )jObject["variablesState"]);
 
             evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
@@ -1141,6 +1234,10 @@ namespace Ink.Runtime
 		List<Choice> _currentChoices;
 
         StatePatch _patch;
+
+        Dictionary<string, CallStack> _namedFlows;
+        string _currentFlowName;
+        const string kDefaultFlowName = "<DEFAULT_FLOW>";
     }
 }
 

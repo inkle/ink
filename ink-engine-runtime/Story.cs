@@ -332,6 +332,25 @@ namespace Ink.Runtime
             state.variablesState.SnapshotDefaultGlobals ();
         }
 
+        public void SwitchFlow(string flowName)
+        {
+            IfAsyncWeCant("switch flow");
+            if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't switch flow to "+flowName);
+
+            state.SwitchFlow_Internal(flowName);
+        }
+
+        public void DestroyFlow(string flowName)
+        {
+            state.DestroyFlow_Internal(flowName);
+        }
+
+        public void SwitchToDefaultFlow()
+        {
+            state.SwitchToDefaultFlow_Internal();
+        }
+
+
         /// <summary>
         /// Continue the story for one line of content, if possible.
         /// If you're not sure if there's more content available, for example if you
