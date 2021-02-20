@@ -536,6 +536,7 @@ namespace Ink.Runtime
 
 
             bool hasChoiceThreads = false;
+            #warning TODO: Write all choice threads across all flows
             foreach (Choice c in _currentFlow.currentChoices)
             {
                 c.originalThreadIndex = c.threadAtGeneration.threadIndex;
@@ -561,40 +562,31 @@ namespace Ink.Runtime
                 writer.WritePropertyEnd();
             }
 
+            // Flows
+            writer.WritePropertyStart("flows");
+            writer.WriteObjectStart();
+
             // Multi-flow
-            // if( _namedFlows != null ) {
-            //     writer.WritePropertyStart("namedFlows");
-            //     writer.WriteObjectStart();
+            if( _namedFlows != null ) {
+                foreach(var namedFlow in _namedFlows) {
+                    writer.WriteProperty(namedFlow.Key, namedFlow.Value.WriteJson);
+                }
+            } 
+            
+            // Single flow
+            else {
+                writer.WriteProperty(_currentFlow.name, _currentFlow.WriteJson);
+            }
 
-            //     foreach(var namedFlow in _namedFlows) {
-            //         var name = namedFlow.Key;
-            //         var namedCallstack = namedFlow.Value;
-            //         writer.WriteProperty(name, namedCallstack.WriteJson);
-            //     }
+            writer.WriteObjectEnd();
+            writer.WritePropertyEnd(); // end of flows
 
-            //     writer.WriteObjectEnd();
-            //     writer.WritePropertyEnd();
-
-            //     writer.WriteProperty("currentFlowName", _currentFlowName);
-            // }
-
-            // // Single flow
-            // else {
-            //     writer.WriteProperty("callstackThreads", callStack.WriteJson);
-            // }
+            writer.WriteProperty("currentFlowName", _currentFlow.name);
 
             writer.WriteProperty("variablesState", variablesState.WriteJson);
 
             writer.WriteProperty("evalStack", w => Json.WriteListRuntimeObjs(w, evaluationStack));
 
-            // writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, outputStream));
-
-            // writer.WriteProperty("currentChoices", w => {
-            //     w.WriteArrayStart();
-            //     foreach (var c in _currentFlow.currentChoices)
-            //         Json.WriteChoice(w, c);
-            //     w.WriteArrayEnd();
-            // });
 
             if (!divertedPointer.isNull)
                 writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
@@ -625,50 +617,62 @@ namespace Ink.Runtime
             else if ((int)jSaveVersion < kMinCompatibleLoadVersion) {
                 throw new Exception("Ink save format isn't compatible with the current version (saw '"+jSaveVersion+"', but minimum is "+kMinCompatibleLoadVersion+"), so can't load.");
             }
-            
-            // Multi-flow is active?
-            // object namedFlowsObj = null;
-            // if (jObject.TryGetValue("namedFlows", out namedFlowsObj)) {
-            //     var namedFlowsDict = (Dictionary<string, object>) namedFlowsObj;
+
+            // Flows: Always exists in latest format (even if there's just one default)
+            // but this dictionary doesn't exist in prev format
+            object flowsObj = null;
+            if (jObject.TryGetValue("flows", out flowsObj)) {
+                var flowsObjDict = (Dictionary<string, object>)flowsObj;
                 
-            //     if( _namedFlows == null ) {
-            //         _namedFlows = new Dictionary<string, CallStack>();
-            //     } else {
-            //         _namedFlows.Clear();
-            //     }
+                // Single default flow
+                if( flowsObjDict.Count == 1 )
+                    _namedFlows = null;
 
-            //     foreach(var namedFlow in namedFlowsDict) {
-            //         var name = namedFlow.Key;
-            //         var callstackObj = namedFlow.Value;
-                    
-            //         var flowCallStack = new CallStack(story);
-            //         flowCallStack.SetJsonToken((Dictionary<string, object>)callstackObj, story);
+                // Multi-flow, need to create flows dict
+                else if( _namedFlows == null )
+                    _namedFlows = new Dictionary<string, Flow>();
 
-            //         _namedFlows[name] = flowCallStack;
-            //     }
+                // Multi-flow, already have a flows dict
+                else
+                    _namedFlows.Clear();
 
-            //     var currentFlowName = (string)jObject["currentFlowName"];
+                // Load up each flow (there may only be one)
+                foreach(var namedFlowObj in flowsObjDict) {
+                    var name = namedFlowObj.Key;
+                    var flowObj = (Dictionary<string, object>)namedFlowObj.Value;
 
-            //     // Force flow switch
-            //     _currentFlowName = null;
-            //     SwitchFlow_Internal(currentFlowName);
-            // }
+                    // Load up this flow using JSON data
+                    var flow = new Flow(name, story, flowObj);
 
-            // // Single flow
-            // else {
-            //     callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
-            // }
+                    if( flowsObjDict.Count == 1 ) {
+                        _currentFlow = new Flow(name, story, flowObj);
+                    } else {
+                        _namedFlows[name] = flow;
+                    }
+                }
 
+                if( _namedFlows.Count > 1 ) {
+                    var currFlowName = (string)jObject["currentFlowName"];
+                    _currentFlow = _namedFlows[currFlowName];
+                }
+            }
 
+            // Old format: individually load up callstack, output stream, choices in current/default flow
+            else {
+                _namedFlows = null;
+                _currentFlow.name = kDefaultFlowName;
+                _currentFlow.callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+                _currentFlow.outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
+                _currentFlow.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+            }
+
+            OutputStreamDirty();
 
             variablesState.SetJsonToken((Dictionary < string, object> )jObject["variablesState"]);
+            variablesState.callStack = _currentFlow.callStack;
 
             evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 
-            // outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
-			// OutputStreamDirty();
-
-			// _currentFlow.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
 			object currentDivertTargetPath;
 			if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
