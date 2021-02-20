@@ -159,19 +159,26 @@ namespace Ink.Runtime
         // When adding state, update the Copy method, and serialisation.
         // REMEMBER! REMEMBER! REMEMBER!
 
-        public List<Runtime.Object> outputStream { get { return _outputStream; } }
+        public List<Runtime.Object> outputStream { 
+            get { 
+                return _currentFlow.outputStream; 
+            } 
+        }
+
+        
+
 		public List<Choice> currentChoices { 
 			get { 
 				// If we can continue generating text content rather than choices,
 				// then we reflect the choice list as being empty, since choices
 				// should always come at the end.
 				if( canContinue ) return new List<Choice>();
-				return _currentChoices;
+				return _currentFlow.currentChoices;
 			} 
 		}
 		public List<Choice> generatedChoices {
 			get {
-				return _currentChoices;
+				return _currentFlow.currentChoices;
 			}
 		}
 
@@ -182,7 +189,15 @@ namespace Ink.Runtime
         public List<string> currentErrors { get; private set; }
         public List<string> currentWarnings { get; private set; }
         public VariablesState variablesState { get; private set; }
-        public CallStack callStack { get; set; }
+        public CallStack callStack { 
+            get { 
+                return _currentFlow.callStack;
+            }
+            // set {
+            //     _currentFlow.callStack = value;
+            // } 
+        }
+
         public List<Runtime.Object> evaluationStack { get; private set; }
         public Pointer divertedPointer { get; set; }
 
@@ -250,7 +265,7 @@ namespace Ink.Runtime
 				if( _outputStreamTextDirty ) {
 					var sb = new StringBuilder ();
 
-					foreach (var outputObj in _outputStream) {
+					foreach (var outputObj in outputStream) {
 						var textContent = outputObj as StringValue;
 						if (textContent != null) {
 							sb.Append(textContent.value);
@@ -309,7 +324,7 @@ namespace Ink.Runtime
 				if( _outputStreamTagsDirty ) {
 					_currentTags = new List<string>();
 
-					foreach (var outputObj in _outputStream) {
+					foreach (var outputObj in outputStream) {
 						var tag = outputObj as Tag;
 						if (tag != null) {
 							_currentTags.Add (tag.text);
@@ -324,6 +339,12 @@ namespace Ink.Runtime
         }
 		List<string> _currentTags;
 
+        public string currentFlowName {
+            get {
+                return _currentFlow.name;
+            }
+        }
+
         public bool inExpressionEvaluation {
             get {
                 return callStack.currentElement.inExpressionEvaluation;
@@ -337,12 +358,12 @@ namespace Ink.Runtime
         {
             this.story = story;
 
-            _outputStream = new List<Runtime.Object> ();
+            _currentFlow = new Flow(kDefaultFlowName, story);
+            
 			OutputStreamDirty();
 
             evaluationStack = new List<Runtime.Object> ();
 
-            callStack = new CallStack (story);
             variablesState = new VariablesState (callStack, story.listDefinitions);
 
             _visitCounts = new Dictionary<string, int> ();
@@ -355,7 +376,7 @@ namespace Ink.Runtime
             storySeed = (new Random (timeSeed)).Next () % 100;
             previousRandom = 0;
 
-			_currentChoices = new List<Choice> ();
+			
 
             GoToStart();
         }
@@ -370,21 +391,25 @@ namespace Ink.Runtime
             if(flowName == null) throw new System.Exception("Must pass a non-null string to Story.SwitchFlow");
             
             if( _namedFlows == null ) {
-                _namedFlows = new Dictionary<string, CallStack>();
-                _namedFlows[kDefaultFlowName] = callStack;
+                _namedFlows = new Dictionary<string, Flow>();
+                _namedFlows[kDefaultFlowName] = _currentFlow;
             }
 
-            if( flowName == _currentFlowName ) {
+            if( flowName == _currentFlow.name ) {
                 return;
             }
 
-            CallStack flowCallstack;
-            if( !_namedFlows.TryGetValue(flowName, out flowCallstack) )
-                flowCallstack = new CallStack(story);
+            Flow flow;
+            if( !_namedFlows.TryGetValue(flowName, out flow) ) {
+                flow = new Flow(flowName, story);
+                _namedFlows[flowName] = flow;
+            }
 
-            callStack = flowCallstack;
-            variablesState.callStack = flowCallstack;
-            _currentFlowName = flowName;
+            _currentFlow = flow;
+            variablesState.callStack = _currentFlow.callStack;
+
+            // Cause text to be regenerated from output stream if necessary
+            OutputStreamDirty();
         }
 
         internal void SwitchToDefaultFlow_Internal()
@@ -393,12 +418,13 @@ namespace Ink.Runtime
             SwitchFlow_Internal(kDefaultFlowName);
         }
 
-        internal void DestroyFlow_Internal(string flowName)
+        internal void RemoveFlow_Internal(string flowName)
         {
             if(flowName == null) throw new System.Exception("Must pass a non-null string to Story.DestroyFlow");
             if(flowName == kDefaultFlowName) throw new System.Exception("Cannot destroy default flow");
 
-            if( _currentFlowName == flowName ) {
+            // If we're currently in the flow that's being removed, switch back to default
+            if( _currentFlow.name == flowName ) {
                 SwitchToDefaultFlow_Internal();
             }
 
@@ -416,10 +442,24 @@ namespace Ink.Runtime
 
             copy._patch = new StatePatch(_patch);
 
-            copy.outputStream.AddRange(_outputStream);
+            // Hijack the new default flow to become a copy of our current one
+            // If the patch is applied, then this new flow will replace the old one in _namedFlows
+            copy._currentFlow.name = _currentFlow.name;
+            copy._currentFlow.callStack = new CallStack (_currentFlow.callStack);
+            copy._currentFlow.currentChoices.AddRange(_currentFlow.currentChoices);
+            copy._currentFlow.outputStream.AddRange(_currentFlow.outputStream);
             copy.OutputStreamDirty();
 
-			copy._currentChoices.AddRange(_currentChoices);
+            // The copy of the state has its own copy of the named flows dictionary,
+            // except with the current flow replaced with the copy above
+            // (Assuming we're in multi-flow mode at all. If we're not then
+            // the above copy is simply the default flow copy and we're done)
+            if( _namedFlows != null ) {
+                copy._namedFlows = new Dictionary<string, Flow>();
+                foreach(var namedFlow in _namedFlows)
+                    copy._namedFlows[namedFlow.Key] = namedFlow.Value;
+                copy._namedFlows[_currentFlow.name] = copy._currentFlow;
+            }
 
             if (hasError) {
                 copy.currentErrors = new List<string> ();
@@ -430,8 +470,7 @@ namespace Ink.Runtime
                 copy.currentWarnings.AddRange (currentWarnings); 
             }
 
-            copy.callStack = new CallStack (callStack);
-
+            
             // ref copy - exactly the same variables state!
             // we're expecting not to read it only while in patch mode
             // (though the callstack will be modified)
@@ -497,7 +536,7 @@ namespace Ink.Runtime
 
 
             bool hasChoiceThreads = false;
-            foreach (Choice c in _currentChoices)
+            foreach (Choice c in _currentFlow.currentChoices)
             {
                 c.originalThreadIndex = c.threadAtGeneration.threadIndex;
 
@@ -523,39 +562,39 @@ namespace Ink.Runtime
             }
 
             // Multi-flow
-            if( _namedFlows != null ) {
-                writer.WritePropertyStart("namedFlows");
-                writer.WriteObjectStart();
+            // if( _namedFlows != null ) {
+            //     writer.WritePropertyStart("namedFlows");
+            //     writer.WriteObjectStart();
 
-                foreach(var namedFlow in _namedFlows) {
-                    var name = namedFlow.Key;
-                    var namedCallstack = namedFlow.Value;
-                    writer.WriteProperty(name, namedCallstack.WriteJson);
-                }
+            //     foreach(var namedFlow in _namedFlows) {
+            //         var name = namedFlow.Key;
+            //         var namedCallstack = namedFlow.Value;
+            //         writer.WriteProperty(name, namedCallstack.WriteJson);
+            //     }
 
-                writer.WriteObjectEnd();
-                writer.WritePropertyEnd();
+            //     writer.WriteObjectEnd();
+            //     writer.WritePropertyEnd();
 
-                writer.WriteProperty("currentFlowName", _currentFlowName);
-            }
+            //     writer.WriteProperty("currentFlowName", _currentFlowName);
+            // }
 
-            // Single flow
-            else {
-                writer.WriteProperty("callstackThreads", callStack.WriteJson);
-            }
+            // // Single flow
+            // else {
+            //     writer.WriteProperty("callstackThreads", callStack.WriteJson);
+            // }
 
             writer.WriteProperty("variablesState", variablesState.WriteJson);
 
             writer.WriteProperty("evalStack", w => Json.WriteListRuntimeObjs(w, evaluationStack));
 
-            writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, _outputStream));
+            // writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, outputStream));
 
-            writer.WriteProperty("currentChoices", w => {
-                w.WriteArrayStart();
-                foreach (var c in _currentChoices)
-                    Json.WriteChoice(w, c);
-                w.WriteArrayEnd();
-            });
+            // writer.WriteProperty("currentChoices", w => {
+            //     w.WriteArrayStart();
+            //     foreach (var c in _currentFlow.currentChoices)
+            //         Json.WriteChoice(w, c);
+            //     w.WriteArrayEnd();
+            // });
 
             if (!divertedPointer.isNull)
                 writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
@@ -588,37 +627,37 @@ namespace Ink.Runtime
             }
             
             // Multi-flow is active?
-            object namedFlowsObj = null;
-            if (jObject.TryGetValue("namedFlows", out namedFlowsObj)) {
-                var namedFlowsDict = (Dictionary<string, object>) namedFlowsObj;
+            // object namedFlowsObj = null;
+            // if (jObject.TryGetValue("namedFlows", out namedFlowsObj)) {
+            //     var namedFlowsDict = (Dictionary<string, object>) namedFlowsObj;
                 
-                if( _namedFlows == null ) {
-                    _namedFlows = new Dictionary<string, CallStack>();
-                } else {
-                    _namedFlows.Clear();
-                }
+            //     if( _namedFlows == null ) {
+            //         _namedFlows = new Dictionary<string, CallStack>();
+            //     } else {
+            //         _namedFlows.Clear();
+            //     }
 
-                foreach(var namedFlow in namedFlowsDict) {
-                    var name = namedFlow.Key;
-                    var callstackObj = namedFlow.Value;
+            //     foreach(var namedFlow in namedFlowsDict) {
+            //         var name = namedFlow.Key;
+            //         var callstackObj = namedFlow.Value;
                     
-                    var flowCallStack = new CallStack(story);
-                    flowCallStack.SetJsonToken((Dictionary<string, object>)callstackObj, story);
+            //         var flowCallStack = new CallStack(story);
+            //         flowCallStack.SetJsonToken((Dictionary<string, object>)callstackObj, story);
 
-                    _namedFlows[name] = flowCallStack;
-                }
+            //         _namedFlows[name] = flowCallStack;
+            //     }
 
-                var currentFlowName = (string)jObject["currentFlowName"];
+            //     var currentFlowName = (string)jObject["currentFlowName"];
 
-                // Force flow switch
-                _currentFlowName = null;
-                SwitchFlow_Internal(currentFlowName);
-            }
+            //     // Force flow switch
+            //     _currentFlowName = null;
+            //     SwitchFlow_Internal(currentFlowName);
+            // }
 
-            // Single flow
-            else {
-                callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
-            }
+            // // Single flow
+            // else {
+            //     callStack.SetJsonToken ((Dictionary < string, object > )jObject ["callstackThreads"], story);
+            // }
 
 
 
@@ -626,10 +665,10 @@ namespace Ink.Runtime
 
             evaluationStack = Json.JArrayToRuntimeObjList ((List<object>)jObject ["evalStack"]);
 
-            _outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
-			OutputStreamDirty();
+            // outputStream = Json.JArrayToRuntimeObjList ((List<object>)jObject ["outputStream"]);
+			// OutputStreamDirty();
 
-			_currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
+			// _currentFlow.currentChoices = Json.JArrayToRuntimeObjList<Choice>((List<object>)jObject ["currentChoices"]);
 
 			object currentDivertTargetPath;
 			if (jObject.TryGetValue("currentDivertTarget", out currentDivertTargetPath)) {
@@ -655,7 +694,7 @@ namespace Ink.Runtime
 			jObject.TryGetValue("choiceThreads", out jChoiceThreadsObj);
 			var jChoiceThreads = (Dictionary<string, object>)jChoiceThreadsObj;
 
-			foreach (var c in _currentChoices) {
+			foreach (var c in _currentFlow.currentChoices) {
 				var foundActiveThread = callStack.ThreadWithIndex(c.originalThreadIndex);
 				if( foundActiveThread != null ) {
                     c.threadAtGeneration = foundActiveThread.Copy ();
@@ -674,8 +713,8 @@ namespace Ink.Runtime
             
         public void ResetOutput(List<Runtime.Object> objs = null)
         {
-            _outputStream.Clear ();
-            if( objs != null ) _outputStream.AddRange (objs);
+            outputStream.Clear ();
+            if( objs != null ) outputStream.AddRange (objs);
 			OutputStreamDirty();
         }
 
@@ -823,8 +862,8 @@ namespace Ink.Runtime
                 // If we're in string eval within the current function, we
                 // don't want to trim back further than the length of the current string.
                 int glueTrimIndex = -1;
-                for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                    var o = _outputStream [i];
+                for (int i = outputStream.Count - 1; i >= 0; i--) {
+                    var o = outputStream [i];
                     var c = o as ControlCommand;
                     var g = o as Glue;
 
@@ -891,7 +930,7 @@ namespace Ink.Runtime
             }
 
             if (includeInOutput) {
-                _outputStream.Add (obj);
+                outputStream.Add (obj);
                 OutputStreamDirty();
             }
         }
@@ -906,9 +945,9 @@ namespace Ink.Runtime
             // e.g. This is the content   \n   \n\n
             //                            ^---------^ whitespace to remove
             //                        ^--- first while loop stops here
-            int i = _outputStream.Count-1;
+            int i = outputStream.Count-1;
             while (i >= 0) {
-                var obj = _outputStream [i];
+                var obj = outputStream [i];
                 var cmd = obj as ControlCommand;
                 var txt = obj as StringValue;
 
@@ -924,10 +963,10 @@ namespace Ink.Runtime
             // Remove the whitespace
             if (removeWhitespaceFrom >= 0) {
                 i=removeWhitespaceFrom;
-                while(i < _outputStream.Count) {
-                    var text = _outputStream [i] as StringValue;
+                while(i < outputStream.Count) {
+                    var text = outputStream [i] as StringValue;
                     if (text) {
-                        _outputStream.RemoveAt (i);
+                        outputStream.RemoveAt (i);
                     } else {
                         i++;
                     }
@@ -940,10 +979,10 @@ namespace Ink.Runtime
         // Only called when non-whitespace is appended
         void RemoveExistingGlue()
         {
-            for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                var c = _outputStream [i];
+            for (int i = outputStream.Count - 1; i >= 0; i--) {
+                var c = outputStream [i];
                 if (c is Glue) {
-                    _outputStream.RemoveAt (i);
+                    outputStream.RemoveAt (i);
                 } else if( c is ControlCommand ) { // e.g. BeginString
                     break;
                 }
@@ -954,13 +993,13 @@ namespace Ink.Runtime
 
         public bool outputStreamEndsInNewline {
             get {
-                if (_outputStream.Count > 0) {
+                if (outputStream.Count > 0) {
 
-                    for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                        var obj = _outputStream [i];
+                    for (int i = outputStream.Count - 1; i >= 0; i--) {
+                        var obj = outputStream [i];
                         if (obj is ControlCommand) // e.g. BeginString
                             break;
-                        var text = _outputStream [i] as StringValue;
+                        var text = outputStream [i] as StringValue;
                         if (text) {
                             if (text.isNewline)
                                 return true;
@@ -976,7 +1015,7 @@ namespace Ink.Runtime
 
         public bool outputStreamContainsContent {
             get {
-                foreach (var content in _outputStream) {
+                foreach (var content in outputStream) {
                     if (content is StringValue)
                         return true;
                 }
@@ -986,8 +1025,8 @@ namespace Ink.Runtime
 
         public bool inStringEvaluation {
             get {
-                for (int i = _outputStream.Count - 1; i >= 0; i--) {
-                    var cmd = _outputStream [i] as ControlCommand;
+                for (int i = outputStream.Count - 1; i >= 0; i--) {
+                    var cmd = outputStream [i] as ControlCommand;
                     if (cmd && cmd.commandType == ControlCommand.CommandType.BeginString) {
                         return true;
                     }
@@ -1059,7 +1098,7 @@ namespace Ink.Runtime
         {
             callStack.Reset();
 
-			_currentChoices.Clear();
+			_currentFlow.currentChoices.Clear();
 
             currentPointer = Pointer.Null;
             previousPointer = Pointer.Null;
@@ -1084,15 +1123,15 @@ namespace Ink.Runtime
             }
 
             // Trim whitespace from END of function call
-            for (int i = _outputStream.Count - 1; i >= functionStartPoint; i--) {
-                var obj = _outputStream [i];
+            for (int i = outputStream.Count - 1; i >= functionStartPoint; i--) {
+                var obj = outputStream [i];
                 var txt = obj as StringValue;
                 var cmd = obj as ControlCommand;
                 if (!txt) continue;
                 if (cmd) break;
 
                 if (txt.isNewline || txt.isInlineWhitespace) {
-                    _outputStream.RemoveAt (i);
+                    outputStream.RemoveAt (i);
                     OutputStreamDirty ();
                 } else {
                     break;
@@ -1113,7 +1152,7 @@ namespace Ink.Runtime
         public void SetChosenPath(Path path, bool incrementingTurnIndex)
         {
             // Changing direction, assume we need to clear current set of choices
-			_currentChoices.Clear ();
+			_currentFlow.currentChoices.Clear ();
 
             var newPointer = story.PointerAtPath (path);
             if (!newPointer.isNull && newPointer.index == -1)
@@ -1226,18 +1265,14 @@ namespace Ink.Runtime
 
         Dictionary<string, int> _visitCounts;
         Dictionary<string, int> _turnIndices;
-
-        List<Runtime.Object> _outputStream;
 		bool _outputStreamTextDirty = true;
 		bool _outputStreamTagsDirty = true;
 
-		List<Choice> _currentChoices;
-
         StatePatch _patch;
 
-        Dictionary<string, CallStack> _namedFlows;
-        string _currentFlowName;
-        const string kDefaultFlowName = "<DEFAULT_FLOW>";
+        Flow _currentFlow;
+        Dictionary<string, Flow> _namedFlows;
+        const string kDefaultFlowName = "DEFAULT_FLOW";
     }
 }
 

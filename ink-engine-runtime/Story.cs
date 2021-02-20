@@ -90,6 +90,11 @@ namespace Ink.Runtime
         public List<string> currentWarnings { get { return state.currentWarnings; } }
 
         /// <summary>
+        /// The current flow name if using multi-flow funtionality - see SwitchFlow
+        /// </summary>
+        public string currentFlowName => state.currentFlowName;
+
+        /// <summary>
         /// Whether the currentErrors list contains any errors.
         /// THIS MAY BE REMOVED - you should be setting an error handler directly
         /// using Story.onError.
@@ -340,9 +345,9 @@ namespace Ink.Runtime
             state.SwitchFlow_Internal(flowName);
         }
 
-        public void DestroyFlow(string flowName)
+        public void RemoveFlow(string flowName)
         {
-            state.DestroyFlow_Internal(flowName);
+            state.RemoveFlow_Internal(flowName);
         }
 
         public void SwitchToDefaultFlow()
