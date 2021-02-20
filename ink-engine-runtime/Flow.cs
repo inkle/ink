@@ -35,15 +35,9 @@ namespace Ink.Runtime
             writer.WriteProperty("callstack", callStack.WriteJson);
             writer.WriteProperty("outputStream", w => Json.WriteListRuntimeObjs(w, outputStream));
 
-            writer.WriteProperty("currentChoices", w => {
-                w.WriteArrayStart();
-                foreach (var c in currentChoices)
-                    Json.WriteChoice(w, c);
-                w.WriteArrayEnd();
-            });
-
-
             // choiceThreads: optional
+            // Has to come BEFORE the choices themselves are written out
+            // since the originalThreadIndex of each choice needs to be set
             bool hasChoiceThreads = false;
             foreach (Choice c in currentChoices)
             {
@@ -69,6 +63,15 @@ namespace Ink.Runtime
                 writer.WriteObjectEnd();
                 writer.WritePropertyEnd();
             }
+
+
+            writer.WriteProperty("currentChoices", w => {
+                w.WriteArrayStart();
+                foreach (var c in currentChoices)
+                    Json.WriteChoice(w, c);
+                w.WriteArrayEnd();
+            });
+
 
             writer.WriteObjectEnd();
         }
