@@ -120,7 +120,7 @@ class InkTestBed
         compiler = CreateCompiler(filename);
 
         story = compiler.Compile ();
-        //story.onError += OnError;
+        story.onError += OnError;
 
         return story;
     }
@@ -311,6 +311,9 @@ class InkTestBed
         Console.ForegroundColor = color;
         Console.WriteLine (message);
         Console.ResetColor ();
+
+        // Throw an exception so we can get a callstack right here
+        throw new SystemException(errorType.ToString()+": "+message);
     }
 }
 
