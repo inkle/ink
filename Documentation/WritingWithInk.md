@@ -646,8 +646,10 @@ Here's a one-knot version of whack-a-mole. Note we use once-only options, and a 
 		*  [{&Blast|Hammer} middle] -> whack_a_mole
 		*  [{&Clobber|Bosh} bottom-left] 	-> whack_a_mole
 		*  [{&Nail|Thump} bottom-right] 	-> whack_a_mole
-		*  [] Then you collapse from hunger. The mole has defeated you! 
-			-> END
+		*   ->
+        	    Then you collapse from hunger. The mole has defeated you! 
+	            -> END
+
 
 produces the following 'game':
 
@@ -2249,7 +2251,8 @@ But what if we add a microwave as well? We might want start generalising our fun
 	*	{kettleState == cold} [Turn on kettle] 
 		{boilSomething(kettleState, "kettle")}
 	*	{potState == cold} [Light stove] 
-		{boilSomething(potState, "pot")}		*	{microwaveState == cold} [Turn on microwave] 
+		{boilSomething(potState, "pot")}		
+	*	{microwaveState == cold} [Turn on microwave] 
 		{boilSomething(microwaveState, "microwave")}
 
 or even... 
