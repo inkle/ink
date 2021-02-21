@@ -18,12 +18,12 @@ The main runtime code is included in the `ink-engine.dll`.
 We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
 
 	using Ink.Runtime;
-
+	
 	public class Script : MonoBehaviour {
-
+	
 		// Set this file to your compiled json asset
 		public TextAsset inkAsset;
-
+	
 		// The ink story that we're wrapping
 		Story _inkStory;
 
@@ -34,14 +34,14 @@ As mentioned above, your `.ink` file(s) are compiled to a single `.json` file. T
 The API for loading and running your story is very straightforward. Construct a new `Story` object, passing in the JSON string from the TextAsset. For example, in Unity:
 
     using Ink.Runtime;
-
+    
     ...
-
+    
     void Awake()
     {
         _inkStory = new Story(inkAsset.text);
     }
-    
+
 From there, you make calls to the story in a loop. There are two repeating stages:
 
  1. **Present content:** You repeatedly call `Continue()` on it, which returns individual lines of string content, until the `canContinue` property becomes false. For example:
@@ -49,9 +49,9 @@ From there, you make calls to the story in a loop. There are two repeating stage
         while (_inkStory.canContinue) {
             Debug.Log (_inkStory.Continue ());
         }
-        
+     
     A simpler way to achieve the above is through one call to `_inkStory.ContinueMaximally()`. However, in many stories it's useful to pause the story at each line, for example when stepping through dialogue. Also, in such games, there may be state changes that should be reflected in the UI, such as resource counters.
- 
+
  2. **Make choice:** When there isn't any more content, you should check to see whether there any choices to present to the player. To do so, use something like:
 
         if( _inkStory.currentChoices.Count > 0 ) 
@@ -61,11 +61,11 @@ From there, you make calls to the story in a loop. There are two repeating stage
                 Debug.Log("Choice " + (i + 1) + ". " + choice.text);
             }
         }
-        
+     
     ...and when the player provides input:
     
         _inkStory.ChooseChoiceIndex (index);
-        
+    
     And now you're ready to return to step 1, and present content again.
     
 ### Saving and loading
@@ -92,7 +92,7 @@ If you made a mistake in your ink that the compiler can't catch, then the story 
     };
 
 ### Is that it?
-    
+
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.
 
 For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
@@ -109,13 +109,13 @@ Additionally, since the **ink** engine outputs lines of plain text, it can be ef
         Joe:  I think he jumped over the garden fence.
         * *   Lisa: Let's take a look.
         * *   Lisa: So he's gone for good?
-    
+
 As far as the **ink** engine is concerned, the `:` characters are just text. But as the lines of text and choices are produced by the game, you can do some simple text parsing of your own to turn the string `Joe: What's up?` into a game-specific dialog object that references the speaker and the text (or even audio).
 
 This approach can be taken even further to text that flexibly indicates non-content directives. Again, these directives come out of the engine as text, but can parsed by your game for a specific purpose:
 
     PROPLIST table, chair, apple, orange
-    
+
 The above approach is used in our current game for the writer to declare the props that they expect to be in the scene. These might be picked up in the game editor in order to automatically fill a scene with placeholder objects, or just to validate that the level designer has populated the scene correctly.
 
 To mark up content more explicitly, you may want to use *tags* or *external functions* - see below. At inkle, we find that we use a mixture, but we actually find the above approach useful for a very large portion of our interaction with the game - it's very flexible.
@@ -130,13 +130,13 @@ Tags can be used to add metadata to your game content that isn't intended to app
 One use case is for a graphic adventure that has different art for characters depending on their facial expression. So, you could do:
 
     Passepartout: Really, Monsieur. # surly
-    
+
 On the game side, every time you get content with `_inkStory.Continue()`, you can get a list of tags with `_inkStory.currentTags`, which will return a `List<string>`, in the above case with just one element: `"surly"`.
 
 To add more than one tag, simply delimit them with more `#` characters:
     
     Passepartout: Really, Monsieur. # surly # really_monsieur.ogg
-    
+
 The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames. 
 
 Tags for a line can be written above it, or on the end of the line:
@@ -156,7 +156,7 @@ Any tags that you include at the very top of a knot:
     # overview: munich.ogg
     # require: Train ticket
     First line of content in the knot.
-    
+
 ...are accessible by calling `_inkStory.TagsForContentAtPath("your_knot")`, which is useful for getting metadata from a knot before you actually want the game to go there.
 
 Note that these tags will also appear in the `currentTags` list for the first line of content in the knot.
@@ -169,7 +169,7 @@ We suggest the following by convention, if you wish to share your ink stories pu
 
     # author: Joseph Humfrey
     # title: My Wonderful Ink Story
-    
+
 Note that [Inky](https://github.com/inkle/inky) will use the title tag in this format as the `<h1>` tag in a story exported for web.
 
 ## Jumping to a particular "scene"
@@ -183,7 +183,7 @@ And then call `Continue()` as usual.
 To jump directly to a stitch within a knot, use a `.` as a separator:
 
     _inkStory.ChoosePathString("myKnotName.theStitchWithin");
-    
+
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
 
 ## Setting/getting ink variables
@@ -193,13 +193,13 @@ The state of the variables in the **ink** engine is, appropriately enough, store
     _inkStory.variablesState["player_health"] = 100
     
     int health = (int) _inkStory.variablesState["player_health"]
-    
+
 ## Read/Visit counts
 
 To find out the number of times that a knot or stitch has been visited by the ink engine, you can use this API:
 
     _inkStory.state.VisitCountAtPathString("...");
-    
+
 The path string is in the form `"yourKnot"` for knots, and `"yourKnot.yourStitch"` for stitches.
 
 ## Variable observers
@@ -271,6 +271,19 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 ~ return 1 
 ```
 
+### Multiple parallel flows
+
+It is possible to have multiple parallel "flows" - allowing the following examples:
+
+- A background conversation between two characters while the protagonist talks to someone else. The protagonist could then leave and interject in the background conversation.
+- Non-blocking interactions: you could interact with an object with generates a bunch of choices, but "pause" them, and go and interact with something else. The original object's choices won't block you from interacting with something new, and you can resume them later.
+
+The API is relatively simple:
+
+- `story.SwitchFlow("Your flow name")` - create a new Flow context, or switch to an existing one. The name can be anything you like, though you may choose to use the same name as an entry knot that you would go on to choose with `story.ChoosePathString("knotName")`.
+- `story.SwitchToDefaultFlow()` - before you start switching Flows there's an implicit default Flow. To return to it, call this method.
+- `story.RemoveFlow("Your flow name")` - destroy a previously created Flow. If the Flow is already active, it returns to the default flow.
+
 ## Working with LISTs
 
 Ink lists are a more complex type used in the ink engine, so interacting with them is a bit more involved than with ints, floats and strings.
@@ -278,7 +291,7 @@ Ink lists are a more complex type used in the ink engine, so interacting with th
 Lists always need to know the origin of their items. For example, in ink you can do:
 
     ~ myList = (Orange, House)
-    
+
 ...even though `Orange` may have come from a list called `fruit` and `House` may have come from a list called `places`. In ink these *origin* lists are automatically resolved for you when writing. However when work in game code, you have to be more explicit, and tell the engine which origin lists your items belong to.
 
 To create a list with items from a single origin, and assign it to a variable in the game:
@@ -287,17 +300,18 @@ To create a list with items from a single origin, and assign it to a variable in
 	newList.AddItem("Orange");
 	newList.AddItem("Apple");
 	story.variablesState["myList"] = newList;
-    
-	
+
+
+​	
 If you're modifying a list, and you know that it has/had elements from a particular origin already:
 
 	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
 	fruit.AddItem("Apple");
-	
+
 Note that single list items in ink, such as:
 
 	VAR lunch = Apple
-	
+
 ...are actually just lists with single items in them rather than a different type. So to create them on the game side, just use the techniques above to create a list with just one item.
 	
 You can also create lists from items if you explicitly know all the metadata for the items - i.e. the origin name as as well as the int value assigned to it. This is useful if you're building a list out of existing lists. Note that InkLists actually derive from `Dictionary`, where the key is an `InkListItem` (which in turn has `originName` and `itemName` strings), and the value is the int value:
@@ -319,7 +333,7 @@ To test if your list contains a particular item:
 	if( fruit.ContainsItemNamed("Apple") ) {
 	    // We're eating apple's tonight!
 	}
-	
+
 Lists also expose many of the operations you can do in ink:
 
 	list.minItem 	// equivalent to calling LIST_MIN(list) in ink
@@ -358,7 +372,7 @@ The **ink** engine is still in a nascent stage (alpha!), and you may well encoun
 We recommend we debug the compiler so that you get a breakpoint in its code when compiling and/or playing your ink file. To do so, open **ink.sln** in Xamarin or Visual Studio, and run the compiler code in the Test configuration. You should supply command line parameters in the project settings. (In Xamarin, right-click on *inklecate*, click *Options*, and in *Run > General* and modify the parameters field.) You could use something like:
 
     -p path/to/yourMainFile.ink
-    
+
 The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
 
 When your story hits an assertion, you may be able to glean a little more information from the state of the ink engine. See the [Architecture and Development](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) document for help understanding and debugging the engine code.
