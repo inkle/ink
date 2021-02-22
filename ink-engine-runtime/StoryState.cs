@@ -22,6 +22,11 @@ namespace Ink.Runtime
         const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
+        /// Callback for when a state is loaded
+        /// </summary>
+        public event Action onDidLoadState;
+
+        /// <summary>
         /// Exports the current state to json format, in order to save the game.
         /// </summary>
         /// <returns>The save state in json format.</returns>
@@ -48,6 +53,7 @@ namespace Ink.Runtime
         {
             var jObject = SimpleJson.TextToDictionary (json);
             LoadJsonObj(jObject);
+            if(onDidLoadState != null) onDidLoadState();
         }
 
         /// <summary>
