@@ -219,46 +219,65 @@ You can define game-side functions in C# that can be called directly from **ink*
 
 1. Declare an external function using something like this at the top of one of your **ink** files, in global scope:
 
-        EXTERNAL multiply(x,y)
+        EXTERNAL playSound(soundName)
 
 2. Bind your C# function. For example:
 
-        _inkStory.BindExternalFunction ("multiply", (int arg1, float arg2) => {
-            return arg1 * arg2;
+        _inkStory.BindExternalFunction ("playSound", (string name) => {
+            _audioController.Play(name);
         });  
 
-   There are convenience overloads for BindExternalFunction, for up to three parameters, for both generic `System.Func` and `System.Action`. There is also a general purpose `BindExternalFunctionGeneral` that takes an object array for more than 3 parameters.
+   There are convenience overloads for BindExternalFunction, for up to four parameters, for both generic `System.Func` and `System.Action`. There is also a general purpose `BindExternalFunctionGeneral` that takes an object array for more than 4 parameters.
 
 3. You can then call that function within the **ink**:
 
-        3 times 4 is {multiply(3, 4)}.
+        ~ playSound("whack")
 
 The types you can use as parameters and return values are int, float, bool (automatically converted from **ink**’s internal ints) and string.
 
-### Important notes on the usage of external functions
+#### Alternatives to external functions
 
-EXTERNAL functions should generally be *pure* or almost pure - that's computer science lingo to mean - they shouldn't be used to cause side effects (e.g. print a message) in the game. The reason is that [due to way the ink engine works](https://github.com/inkle/ink/issues/253#issuecomment-272395950), they can end up being called multiple times when you expect them to be called just once. They can also end up being called ahead of time, before the game should've reached a particular line. So, some examples of when external functions work well:
-
-* Relatively complex calculations that would be slow in an ink function (ink will always be slower than a native C# function)
-* **Getting** values from your game state
-
-Some examples of when external functions **shouldn't** be used:
-
-* **Setting** values in your game state
-* To show a dialog box or create a piece of UI
-* To print a message for the player
-
-... since these may often end up being called twice, or called when you don't expect. Also, it's not great practice to be doing UI stuff or complex code while the ink is in the middle of being evaluated anyway - if you run some code that would end up calling back into the ink engine, you'll get some very nasty bugs!
-
-So, what's the workaround? There are 3 possible approaches, depending on what you're trying to achieve:
+Remember that in addition to external functions, there are other good ways to communicate between your ink and your game:
 
 * You can set up a variable observer if you just want the game to know when some state has changed. This is perfect for say, changing the score in the UI.
+
 * You can use [tags](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
+
 * In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
 
-    `>>> SHOT: view_over_bridge`
+  `>>> SHOT: view_over_bridge`
 
-We understand though that this isn't ideal for everyone's use case, so we plan to find a good solution to the problem in future!
+#### Actions  v.s. Pure functions
+
+**Warning:** The following section is subtly complex! However, don't worry - you can probably ignore it and use default behaviour. If you find a situation where glue isn't working the way you expect and there's an external function in there somewhere, or if you're just plain curious, read on...
+
+There are two kinds of external functions:
+
+* **Actions** - for example, to play sounds, show images, etc. Generally, these may change game state in some way.
+* **Pure functions** - those that don't cause side effects. Specifically 1) **it should be harmless to call them more than once**, and 2) **they shouldn't affect game state**. For example, a mathematical calculation, or pure inspection of game state.
+
+By default, external functions are treated as Actions, since we think this is the primary use-case for most people. However, the distinction can be important for subtle reasons to do with the way that glue works.
+
+When the engine looks at content, it may look ahead further than you would expect *just in case* there is glue in future content that would turn two separate lines into one.
+
+However, external functions that are intended to be run as actions, you don't want them to be run prospectively, since the player is likely to notice, so for this kind we cancel any attempt to glue content together. If it was in the middle of prospectively looking ahead and it sees an action, it'll stop before running it.
+
+Conversely, if all you're doing is a mathematical calculation for example, you don't want your glue to break. For example:
+
+```
+The square root of 9
+~ temp x = sqrt(9)
+<> is {x}.
+```
+
+You can define how you want your function to behave when you bind it, using the `lookaheadSafe` parameter:
+
+```
+public void BindExternalFunction(string funcName, Func<object> func, bool lookaheadSafe=false)
+```
+
+* **Actions** should have `lookaheadSafe = false`
+* **Pure functions** should have `lookaheadSafe = true`
 
 ### Fallbacks for external functions
 
@@ -271,9 +290,7 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 ~ return 1 
 ```
 
-
-
-## Multiple parallel flows
+## Multiple parallel flows (BETA)
 
 It is possible to have multiple parallel "flows" - allowing the following examples:
 
