@@ -271,7 +271,9 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 ~ return 1 
 ```
 
-### Multiple parallel flows
+
+
+## Multiple parallel flows
 
 It is possible to have multiple parallel "flows" - allowing the following examples:
 
@@ -355,7 +357,7 @@ Precompiling your stories is more efficient than loading .ink at runtime. That s
 	Ink.Runtime.Story story = compiler.Compile();
 	Debug.Log(story.Continue());
 
-Note that if your story is broken up into several ink files using the INCLUDE keyword, that you will need to use:
+Note that if your story is broken up into several ink files using `INCLUDE`, that you will need to use:
 
 	var compiler = new Ink.Compiler(inkFileContents, new Compiler.Options
 	{
@@ -364,15 +366,3 @@ Note that if your story is broken up into several ink files using the INCLUDE ke
 	});
 	Ink.Runtime.Story story = compiler.Compile();
 	Debug.Log(story.Continue());
-
-## Debugging ink engine issues
-
-The **ink** engine is still in a nascent stage (alpha!), and you may well encounter bugs, or unhelpful error messages and exceptions.
-
-We recommend we debug the compiler so that you get a breakpoint in its code when compiling and/or playing your ink file. To do so, open **ink.sln** in Xamarin or Visual Studio, and run the compiler code in the Test configuration. You should supply command line parameters in the project settings. (In Xamarin, right-click on *inklecate*, click *Options*, and in *Run > General* and modify the parameters field.) You could use something like:
-
-    -p path/to/yourMainFile.ink
-
-The `-p` switch puts the compiler in Play mode, so that it will execute your story immediately.
-
-When your story hits an assertion, you may be able to glean a little more information from the state of the ink engine. See the [Architecture and Development](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) document for help understanding and debugging the engine code.
