@@ -162,13 +162,14 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
 
 To run the binaries, you need to install [.NET Core Runtime 2.2]((https://dotnet.microsoft.com/download)) or newer (included in SDK).
 
+## Need help?
+
+* [Discord](https://discord.gg/inkle) - we have an active community of ink users who would be happy to help you out. Discord is probably the best place to find the answer to your question.
+* [GitHub Discussions](https://github.com/inkle/ink/discussions) - Or, you can ask a question here on GitHub. (Note: we used to use Issues for general Q&A, but we have now migrated.)
+
 ## How to contribute
 
-We’d of course appreciate any bug fixes you might find!
-
-We're using GitHub issues both as a discussion forum and as a bug tracker, so [create a GitHub issue](https://github.com/inkle/ink/issues/new) if you want to start a discussion or request a feature, and please label appropriately. Or if you want to get in touch with us directly, [email us](mailto:info@inklestudios.com).
-
-We also have a [Discord server](https://discord.gg/inkle), where you may find other people using ink to chat with (as well as inklers!)
+We’d of course appreciate any bug fixes you might find - feel free to submit a pull request. However, usually we're actively working on a game, so it might take a little while for us to take a look at a non-trivial pull request. Apologies in advance if it takes a while to get a response!
 
 ## Architectural overview
 
