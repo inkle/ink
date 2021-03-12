@@ -90,9 +90,20 @@ namespace Ink.Runtime
         public List<string> currentWarnings { get { return state.currentWarnings; } }
 
         /// <summary>
-        /// The current flow name if using multi-flow funtionality - see SwitchFlow
+        /// The current flow name if using multi-flow functionality - see SwitchFlow
         /// </summary>
         public string currentFlowName => state.currentFlowName;
+
+        /// <summary>
+        /// Is the default flow currently active? By definition, will also return true if not using multi-flow functionality - see SwitchFlow
+        /// </summary>
+        public bool currentFlowIsDefaultFlow { get { return state.currentFlowIsDefaultFlow; } }
+
+        /// <summary>
+        /// Names of currently alive flows (not including the default flow)
+        /// </summary>
+
+        public List<string> aliveFlowNames { get { return state.aliveFlowNames; } }
 
         /// <summary>
         /// Whether the currentErrors list contains any errors.
