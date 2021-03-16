@@ -510,7 +510,7 @@ The 'once-only' behaviour is not always what we want, of course, so we have a se
 			You struggle up off the couch to go and compose epic poetry.
 			-> END
 	
-Default choices can be sticky too.
+Fallback choices can be sticky too.
 
 	=== conversation_loop 
 		*	[Talk about the weather] -> chat_weather 
