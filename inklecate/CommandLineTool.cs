@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Ink
 {
@@ -17,6 +18,7 @@ namespace Ink
             public string outputFile;
             public bool countAllVisits;
             public bool keepOpenAfterStoryFinish;
+            public bool useExternalFunctions;
 		}
 
 		public static int ExitCodeError = 1;
@@ -38,6 +40,8 @@ namespace Ink
                 "   -s:              Print stats about story including word count in JSON format\n" +
                 "   -v:              Verbose mode - print compilation timings\n"+
                 "   -k:              Keep inklecate running in play mode even after story is complete\n");
+                "   -k:              Keep inklecate running in play mode even after story is complete\n" +
+                "   -e:				 Enable external functions in play mode."
             Environment.Exit (ExitCodeError);
         }
 
@@ -176,6 +180,15 @@ namespace Ink
             if (!compileSuccess)
 				Environment.Exit (ExitCodeError);
 
+            if (opts.useExternalFunctions && externals.Count == 0)
+            {
+                foreach (Match match in externalFunctionsRegex.Matches(inputString))
+                {
+                    var function = match.Value.Replace("EXTERNAL","").Replace("(", "").Trim();
+                    if (function == "") continue;
+                    externals.Add(function);
+                }
+            }
 			// Play mode
             if (opts.playMode) {
 
@@ -186,6 +199,13 @@ namespace Ink
 
                 var player = new CommandLinePlayer (story, false, compiler, opts.keepOpenAfterStoryFinish, opts.jsonOutput);
 
+                foreach (string function in externals)
+                {
+                    if (function == "") continue;
+                    story.BindExternalFunctionGeneral (function, (object[] args) => {
+                        return player.RequestExternalFunctionResult(function, args);
+                    }, false);
+                }
                 //Capture a CTRL+C key combo so we can restore the console's foreground color back to normal when exiting
                 Console.CancelKeyPress += OnExit;
 
@@ -305,9 +325,11 @@ namespace Ink
 
 			opts = new Options();
             pluginNames = new List<string> ();
+            externals = new List<string> ();
 
             bool nextArgIsOutputFilename = false;
             bool nextArgIsPlugin = false;
+            bool nextArgIsExternals = false;
 
 			// Process arguments
             int argIdx = 0;
@@ -353,6 +375,10 @@ namespace Ink
                         case 'k':
                             opts.keepOpenAfterStoryFinish = true;
                             break;
+                        case 'e':
+							nextArgIsExternals = true;
+                            opts.useExternalFunctions = true;
+                            break;                        
                         default:
                             Console.WriteLine ("Unsupported argument type: '{0}'", argChar);
                             break;
@@ -365,6 +391,15 @@ namespace Ink
                     opts.inputFile = arg;
                 }
 
+                else if (nextArgIsExternals)
+                {
+                    foreach (string f in arg.Replace(",", " ").Split(" "))
+                    {
+                        externals.Add(f);
+                    }
+                    nextArgIsExternals = (arg.EndsWith(","));
+                }
+
                 argIdx++;
 			}
 
@@ -373,11 +408,13 @@ namespace Ink
 
         Options opts;
         List<string> pluginNames;
+        List<string> externals;
 
         List<string> _errors = new List<string>();
         List<string> _warnings = new List<string>();
         List<string> _authorMessages = new List<string>();
 
+        Regex externalFunctionsRegex = new Regex("\\s*EXTERNAL\\s+(\\w|_)+(\\w|\\d|_)*\\s*\\(");
         bool _playing;
 	}
 }

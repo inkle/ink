@@ -276,6 +276,56 @@ namespace Ink
             return result;
         }
 
+        public string RequestExternalFunctionResult(string functionName, object[] args)
+        {
+            var arguments = "";
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (args[i] is string) args[i] = "\"" + args[i] + "\"";
+                arguments += args[i];
+                if (i + 1 < args.Length) arguments += ", ";
+            }
+
+            if( !_jsonOutput ) {
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write("Enter result for " + functionName + "("+ arguments + ") > ");
+                Console.ResetColor();
+            }
+            else{                
+                var writer = new Runtime.SimpleJson.Writer();
+                writer.WriteObjectStart();
+                writer.WriteProperty("external-function", functionName);
+                if (arguments != "")
+                {
+                    writer.WritePropertyStart("arguments");
+                    writer.WriteArrayStart();
+                    writer.Write(arguments);
+                    writer.WriteArrayEnd();
+                    writer.WritePropertyEnd();
+                }
+                writer.WriteObjectEnd();
+                Console.WriteLine(writer.ToString());
+            }
+
+            string userInput = Console.ReadLine ();
+
+            // If we have null user input, it means that we're
+            // "at the end of the stream", or in other words, the input
+            // stream has closed, so there's nothing more we can do.
+            // We return immediately, since otherwise we get into a busy
+            // loop waiting for user input.
+            if (userInput == null) {
+                if( _jsonOutput ) {
+                    Console.WriteLine ("{\"close\": true}");
+                } else {
+                    Console.WriteLine ("<User input stream closed.>");
+                }
+            }
+
+            return userInput;
+        }
+
+
         Compiler _compiler;
         bool _jsonOutput;
         List<string> _errors = new List<string>();
