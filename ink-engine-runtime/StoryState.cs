@@ -351,6 +351,36 @@ namespace Ink.Runtime
             }
         }
 
+        public bool currentFlowIsDefaultFlow {
+            get {
+                return _currentFlow.name == kDefaultFlowName;
+            }
+        }
+
+        public List<string> aliveFlowNames {
+            get {
+
+                if( _aliveFlowNamesDirty ) {
+					_aliveFlowNames = new List<string>();
+
+                    if (_namedFlows != null)
+                    {
+                        foreach (string flowName in _namedFlows.Keys) {
+                            if (flowName != kDefaultFlowName) {
+                                _aliveFlowNames.Add(flowName);
+                            }
+                        }
+                    }
+
+					_aliveFlowNamesDirty = false;
+				}
+
+				return _aliveFlowNames;
+            }
+        }
+
+        List<string> _aliveFlowNames;
+
         public bool inExpressionEvaluation {
             get {
                 return callStack.currentElement.inExpressionEvaluation;
@@ -367,6 +397,7 @@ namespace Ink.Runtime
             _currentFlow = new Flow(kDefaultFlowName, story);
             
 			OutputStreamDirty();
+            _aliveFlowNamesDirty = true;
 
             evaluationStack = new List<Runtime.Object> ();
 
@@ -409,6 +440,7 @@ namespace Ink.Runtime
             if( !_namedFlows.TryGetValue(flowName, out flow) ) {
                 flow = new Flow(flowName, story);
                 _namedFlows[flowName] = flow;
+                _aliveFlowNamesDirty = true;
             }
 
             _currentFlow = flow;
@@ -435,6 +467,7 @@ namespace Ink.Runtime
             }
 
             _namedFlows.Remove(flowName);
+            _aliveFlowNamesDirty = true;
         }
 
         // Warning: Any Runtime.Object content referenced within the StoryState will
@@ -465,6 +498,7 @@ namespace Ink.Runtime
                 foreach(var namedFlow in _namedFlows)
                     copy._namedFlows[namedFlow.Key] = namedFlow.Value;
                 copy._namedFlows[_currentFlow.name] = copy._currentFlow;
+                copy._aliveFlowNamesDirty = true;
             }
 
             if (hasError) {
@@ -649,6 +683,7 @@ namespace Ink.Runtime
             }
 
             OutputStreamDirty();
+            _aliveFlowNamesDirty = true;
 
             variablesState.SetJsonToken((Dictionary < string, object> )jObject["variablesState"]);
             variablesState.callStack = _currentFlow.callStack;
@@ -1245,6 +1280,7 @@ namespace Ink.Runtime
         Flow _currentFlow;
         Dictionary<string, Flow> _namedFlows;
         const string kDefaultFlowName = "DEFAULT_FLOW";
+        bool _aliveFlowNamesDirty = true;
     }
 }
 

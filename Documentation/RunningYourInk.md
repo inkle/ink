@@ -302,6 +302,10 @@ The API is relatively simple:
 - `story.SwitchFlow("Your flow name")` - create a new Flow context, or switch to an existing one. The name can be anything you like, though you may choose to use the same name as an entry knot that you would go on to choose with `story.ChoosePathString("knotName")`.
 - `story.SwitchToDefaultFlow()` - before you start switching Flows there's an implicit default Flow. To return to it, call this method.
 - `story.RemoveFlow("Your flow name")` - destroy a previously created Flow. If the Flow is already active, it returns to the default flow.
+- `story.aliveFlowNames` - the names of currently alive flows. A flow is alive if it's previously been switched to and hasn't been destroyed. Does not include default flow.
+- `story.currentFlowIsDefaultFlow` - true if the default flow is currently active. By definition, will also return true if not using flow functionality.
+- `story.currentFlowName` — a string containing the name of the currently active flow. May contain internal identifier for default flow, so use `currentFlowIsDefault` to check first.
+)
 
 ## Working with LISTs
 
