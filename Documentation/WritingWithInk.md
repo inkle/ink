@@ -39,6 +39,7 @@
 	 * [7) Long example: crime scene](#7-long-example-crime-scene)
 	 * [8) Summary](#8-summary)
    * [Part 6: International character support in identifiers](#part-6-international-character-support-in-identifiers)
+   * [Addendum: Ink + Engine Integration](#addendum-ink-engine-integration)
 </details>
 
 ## Introduction
@@ -3348,3 +3349,11 @@ Below is a listing of the currently supported identifier ranges.
 **NOTE!** ink files should be saved in UTF-8 format, which ensures that the above character ranges are supported.
 
 If a particular character range that you would like to use within identifiers isn't supported, feel free to open an [issue](https://github.com/inkle/ink/issues/new) or [pull request](https://github.com/inkle/ink/pulls) on the main ink repo.
+
+# Addendum: Ink + Engine Integration
+
+hey what's up sorry i'm very tired i'm not going to try to write professionally
+there's more documentation on how to use ink with an engine, and the code that ink provides to do that
+it's written for unity, but it can be sorta useful for working with inkjs?
+you can check it out [here](https://github.com/elliotherriman/ink/blob/master/Documentation/RunningYourInk.md)
+(that said, i can probably answer any questions you have so hit me up)
