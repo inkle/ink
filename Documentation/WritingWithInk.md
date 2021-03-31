@@ -39,7 +39,7 @@
 	 * [7) Long example: crime scene](#7-long-example-crime-scene)
 	 * [8) Summary](#8-summary)
    * [Part 6: International character support in identifiers](#part-6-international-character-support-in-identifiers)
-   * [Addendum: Ink + Engine Integration](#addendum-ink-engine-integration)
+   * [Addendum: Ink + Engine Integration](#addendum-ink--engine-integration)
 </details>
 
 ## Introduction
