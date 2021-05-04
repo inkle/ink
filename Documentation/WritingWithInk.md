@@ -672,6 +672,8 @@ They can also be used inside choice text:
 
 (...but the caveat has a caveat, if you escape a whitespace `\ ` before your `{` ink will recognise it as text.)
 
+	+\	{They|Once more they} headed South towards the desert.
+
 #### Examples
 
 Alternatives can be used inside loops to create the appearance of intelligent, state-tracking gameplay without particular effort.
