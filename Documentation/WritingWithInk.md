@@ -672,7 +672,7 @@ They can also be used inside choice text:
 
 (...but the caveat has a caveat, if you escape a whitespace `\ ` before your `{` ink will recognise it as text.)
 
-	+\	{They|Once more they} headed South towards the desert.
+	+\	{&They headed towards the Sandlands|They set off for the desert|The party followed the old road South}
 
 #### Examples
 
