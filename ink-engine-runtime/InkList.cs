@@ -373,6 +373,19 @@ namespace Ink.Runtime
         }
 
         /// <summary>
+        /// Fast test for the existence of any intersection between the current list and another
+        /// </summary>
+        public bool HasIntersection(InkList otherList)
+        {
+            foreach (var kv in this)
+            {
+                if (otherList.ContainsKey(kv.Key))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Returns a new list that's the same as the current one, except with the given items
         /// removed that are in the passed in list. Equivalent to calling (list1 - list2) in ink.
         /// </summary>
@@ -396,6 +409,18 @@ namespace Ink.Runtime
                 if (!this.ContainsKey (kv.Key)) return false;
             }
             return true;
+        }
+        /// <summary>
+        /// Returns true if the current list contains an item matching the given name.
+        /// </summary>
+        /// <param name="otherList">Other list.</param>
+        public bool Contains(string listItemName)
+        {
+            foreach (var kv in this)
+            {
+                if (kv.Key.itemName == listItemName) return true;
+            }
+            return false;
         }
 
         /// <summary>
