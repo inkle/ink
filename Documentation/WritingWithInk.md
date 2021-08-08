@@ -358,7 +358,7 @@ The very loose structure means writers can get on and write, branching and rejoi
 
 You absolutely can use diverts to create looped content, and **ink** has several features to exploit this, including ways to make the content vary itself, and ways to control how often options can be chosen. 
 
-See the sections on Varying Text and Conditional Options for more information.
+See the sections on Varying Text and [Conditional Choices](#conditional-choices) for more information.
 
 Oh, and the following is legal and not a great idea:
 
@@ -606,7 +606,7 @@ If it's non-zero, it'll return true in a test like the one above, but you can al
 
 #### Advanced: more logic
 
-**ink** supports a lot more logic and conditionality than covered here - see the section on 'variables and logic'.
+**ink** supports a lot more logic and conditionality than covered here - see the section on ['variables and logic'](part-3-variables-and-logic).
 
 
 ## 8) Variable Text
@@ -744,7 +744,7 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 
 
 #### Sneak Preview: Multiline alternatives
-**ink** has another format for making alternatives of varying content blocks, too. See the section on "multiline blocks" for details.
+**ink** has another format for making alternatives of varying content blocks, too. See the section on "[multiline blocks](multiline-blocks)" for details.
 
 
 
@@ -814,7 +814,7 @@ The `TURNS_SINCE(->x) == 0` test is so useful it's often worth wrapping it up as
 	=== function came_from(-> x) 
 		~ return TURNS_SINCE(x) == 0
 	
-The section on functions outlines the syntax here a bit more clearly but the above allows you to say things like:
+The section on [functions](5-functions) outlines the syntax here a bit more clearly but the above allows you to say things like:
 
 	* {came_from(->  nice_welcome)} 'I'm happy to be here!' 
 	* {came_from(->  nasty_welcome)} 'Let's keep this quick.' 
@@ -831,7 +831,7 @@ The number you pass to the seed function is arbitrary, but providing different s
 
 #### Advanced: more queries
 
-You can make your own external functions, though the syntax is a bit different: see the section on functions below.
+You can make your own external functions, though the syntax is a bit different: see the section on [functions](5-functions) below.
 
 
 # Part 2: Weave
@@ -1657,7 +1657,7 @@ A function:
 - can return a value of any type
 - can recurse safely
 
-(Some of these may seem quite limiting, but for more story-oriented call-stack-style features, see the section of Tunnels.)
+(Some of these may seem quite limiting, but for more story-oriented call-stack-style features, see the section on [Tunnels](1-tunnels).)
 
 Return values are provided via the `~ return` statement. 
 
