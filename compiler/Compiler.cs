@@ -41,7 +41,7 @@ namespace Ink
             Parse();
 
             if( _pluginManager != null )
-                _pluginManager.PostParse(_parsedStory);
+                _parsedStory = _pluginManager.PostParse(_parsedStory);
 
             if (_parsedStory != null && !_hadParseError) {
 
@@ -50,7 +50,7 @@ namespace Ink
                 _runtimeStory = _parsedStory.ExportRuntime (_options.errorHandler);
 
                 if( _pluginManager != null )
-                    _pluginManager.PostExport (_parsedStory, _runtimeStory);
+                    _runtimeStory = _pluginManager.PostExport (_parsedStory, _runtimeStory);
             } else {
                 _runtimeStory = null;
             }
