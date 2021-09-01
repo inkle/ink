@@ -26,17 +26,17 @@ namespace Ink
             }
         }
 
-        public string PreParse(string storyContent)
-        {
-            object[] args = new object[] { storyContent };
+		public string PreParse(string storyContent)
+		{
+			object[] args = new object[] { storyContent };
 
             foreach (var plugin in _plugins) 
             {
                 typeof(IPlugin).InvokeMember("PreParse", BindingFlags.InvokeMethod, null, plugin, args);
             }
 
-            return (string)args[0];
-        }
+			return (string)args[0];
+		}
 
         public Parsed.Story PostParse(Parsed.Story parsedStory)
         {
@@ -47,7 +47,7 @@ namespace Ink
                 typeof(IPlugin).InvokeMember("PostParse", BindingFlags.InvokeMethod, null, plugin, args);
             }
 
-            return (Parsed.Story)args[0];
+			return (Parsed.Story)args[0];
         }
 
         public Runtime.Story PostExport(Parsed.Story parsedStory, Runtime.Story runtimeStory)
@@ -59,7 +59,7 @@ namespace Ink
                 typeof(IPlugin).InvokeMember("PostExport", BindingFlags.InvokeMethod, null, plugin, args);
             }
 
-            return (Runtime.Story)args[1];
+			return (Runtime.Story)args[1];
         }
 
         List<IPlugin> _plugins;

@@ -38,6 +38,9 @@ namespace Ink
 
         public Runtime.Story Compile ()
         {
+            if( _pluginManager != null )
+                _inputString = _pluginManager.PreParse(_inputString);
+
             Parse();
 
             if( _pluginManager != null )
