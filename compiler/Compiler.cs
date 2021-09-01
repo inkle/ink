@@ -9,7 +9,7 @@ namespace Ink
         public class Options
         {
             public string sourceFilename;
-            public List<string> pluginNames;
+            public List<string> pluginDirectories;
             public bool countAllVisits;
             public Ink.ErrorHandler errorHandler;
             public Ink.IFileHandler fileHandler;
@@ -25,8 +25,8 @@ namespace Ink
         {
             _inputString = inkSource;
             _options = options ?? new Options();
-            if( _options.pluginNames != null )
-                _pluginManager = new PluginManager (_options.pluginNames);
+            if( _options.pluginDirectories != null )
+                _pluginManager = new PluginManager (_options.pluginDirectories);
         }
 
         public Parsed.Story Parse()
