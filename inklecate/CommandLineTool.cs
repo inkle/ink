@@ -37,7 +37,8 @@ namespace Ink
                 "   -j:              Output in JSON format (for communication with tools like Inky)\n"+
                 "   -s:              Print stats about story including word count in JSON format\n" +
                 "   -v:              Verbose mode - print compilation timings\n"+
-                "   -k:              Keep inklecate running in play mode even after story is complete\n");
+                "   -k:              Keep inklecate running in play mode even after story is complete\n" +
+                "   -x <directory>:              Import plugins for the compiler.");
             Environment.Exit (ExitCodeError);
         }
 
