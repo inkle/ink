@@ -904,7 +904,7 @@ We can string these gather-and-branch sections together to make branchy sequence
 
 This is the most basic kind of weave. The rest of this section details  additional features that allow weaves to nest, contain side-tracks and diversions, divert within themselves, and above all, reference earlier choices to influence later ones.
 
-#### The weave philsophy 
+#### The weave philosophy 
 
 Weaves are more than just a convenient encapsulation of branching flow; they're also a way to author more robust content. The `escape` example above has already four possible routes through, and a more complex sequence might have lots and lots more. Using normal diverts, one has to check the links by chasing the diverts from point to point and it's easy for errors to creep in. 
 
