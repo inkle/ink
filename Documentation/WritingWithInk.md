@@ -606,7 +606,7 @@ If it's non-zero, it'll return true in a test like the one above, but you can al
 
 #### Advanced: more logic
 
-**ink** supports a lot more logic and conditionality than covered here - see the section on ['variables and logic'](#part-3-variables-and-logic).
+**ink** supports a lot more logic and conditionality than covered here - see the section on [variables and logic](#part-3-variables-and-logic).
 
 
 ## 8) Variable Text
@@ -744,7 +744,7 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 
 
 #### Sneak Preview: Multiline alternatives
-**ink** has another format for making alternatives of varying content blocks, too. See the section on "[multiline blocks](multiline-blocks)" for details.
+**ink** has another format for making alternatives of varying content blocks, too. See the section on [multiline blocks](#multiline-blocks) for details.
 
 
 
