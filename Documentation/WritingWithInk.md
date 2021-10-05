@@ -1349,7 +1349,7 @@ If more complex operations are required, one can write functions (using recursio
 
 #### RANDOM(min, max) 
 
-Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pendants, we said *a dice*), so the min and max values are both inclusive. 
+Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pedants, we said *a dice*), so the min and max values are both inclusive. 
 
 	~ temp dice_roll = RANDOM(1, 6) 
 	
@@ -2601,7 +2601,7 @@ It's probably also useful to have an is/are function to hand:
 		
 	My favourite dinosaurs {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
-And to be pendantic:
+And to be pedantic:
 
 	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
