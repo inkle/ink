@@ -20,19 +20,21 @@ Within `Parse()`, rules evaluated, each of which may contain more rules. Rules a
 
 Crucially however, parse rules are wrapped in either `ParseObject(rule)` or `Parse<T>(rule)`. These methods know how to rewind the state of the parser when a rule fails. This is important, since the rule may get part way through before it realises that it's not parsing what it wanted. By way of illustration, here's the start of the parse rule for a stitch:
 
-    protected object StitchDefinition()
-    {
-        // Wrap the 'StitchDeclaration' rule in a Parse(...) call,
-        // so that it will return to the correct point in the ink
-        // file if parsing fails.
-        var decl = Parse(StitchDeclaration);
-        if (decl == null)
-            return null;
-            
-        ... (continue parsing the StitchDefinition)
-        
+```csharp
+protected object StitchDefinition()
+{
+    // Wrap the 'StitchDeclaration' rule in a Parse(...) call,
+    // so that it will return to the correct point in the ink
+    // file if parsing fails.
+    var decl = Parse(StitchDeclaration);
+    if (decl == null)
+        return null;
+
+    //... (continue parsing the StitchDefinition)
+```
+
 If a rule isn't wrapped in a `Parse` method, then it's an indication that rewinding definitely isn't strictly necessary within the scope, for example if a sub-rule is both optional and atomic. Or, when success and failure of the rule is handled manually.
-        
+
 ## StringParser structuring
 
 The base class `StringParser` contains a number of helper methods to help with parsing.
@@ -41,19 +43,25 @@ Methods like `ParseString`, `ParseSingleCharacter`, `ParseInt`, etc can be used 
 
 Higher level structuring methods can be used to compose rules together. For example:
 
-	public List<object> OneOrMore(ParseRule rule)
-	
+```csharp
+public List<object> OneOrMore(ParseRule rule)
+```
+
 ...acts a bit like the `+` operator in regular expressions. So for example, in multiline conditionals, we have:
 
-	List<object> multipleConditions = OneOrMore (SingleMultilineCondition)
-	
+```csharp
+List<object> multipleConditions = OneOrMore (SingleMultilineCondition)
+```
+
 Similarly, but even more powerfully, the `Interleave` method patterns of the form ABABA etc. Frequently, this is used to interleave some core content with whitespace. Here's an example that parses the arguments to a flow (e.g. knot, stitch or function), that is a series of identifiers separated by commas:
 
-    var flowArguments = Interleave<FlowBase.Argument>(
-        Spaced(FlowDeclArgument), 
-        Exclude (String(",")) 
-    );
-    
+```csharp
+var flowArguments = Interleave<FlowBase.Argument>(
+    Spaced(FlowDeclArgument),
+    Exclude (String(","))
+);
+```
+
 The above example also demonstrates another concept: rule transformers and builders. In the above example, `Spaced` takes a rule, and produces a new rule that also allows for optional whitespace on either side of the content that is parsed.
 
 The `Exclude` transformer takes a rule, and if it succeeds, prevents its result from being included in the `Interleave`'s returned list (to remove the commas from the parsed results).
@@ -77,23 +85,31 @@ Instead, the hard work of converting the parsed hierarchy into runtime code is s
 
 In most cases, a single `Parsed.Object` is converted to one or more `Runtime.Object`, through the following method:
 
-    public override Runtime.Object GenerateRuntimeObject () {...}
-    
+```csharp
+public override Runtime.Object GenerateRuntimeObject () {...}
+```
+
 At the top level, this code generation process is kicked off by the `Parsed.Story` in:
 
-    public Runtime.Story ExportRuntime()
+```csharp
+public Runtime.Story ExportRuntime()
+```
 
 Once the full runtime hierarchy has been constructed, references are resolved. This has to be done in a separate pass, since the target of references (such as divert targets - knot names etc) may not exist yet until the full hierarchy exists.
 
 Each `Parsed.Object` can implement:
 
-    public override void ResolveReferences(Story context)
-    
+```csharp
+public override void ResolveReferences(Story context)
+```
+
 ...in order to participate in this process. For example in `Divert.cs`, the method contains this (as well as other things):
 
-    if (targetContent) {
-        runtimeDivert.targetPath = targetContent.runtimePath;
-    }
+```csharp
+if (targetContent) {
+    runtimeDivert.targetPath = targetContent.runtimePath;
+}
+```
 
 ## Runtime ink engine
 
@@ -119,9 +135,9 @@ Each piece of content that is encountered is appended to the `outputStream` with
 
 Alongside the content that's designed to be seen by the player, additional commands are used to control the flow and evaluation of the content. Some examples, all of which are in the enum `Runtime.ControlCommand.CommandType`:
 
- * `EvalStart` and `EvalEnd`: the content objects between are appended to the `evaluationStack` rather than the `outputStream`. As functions and operators are encountered, they pop values off the stack, process them, and push a value back on the stack. Meanwhile, `EvalOutput` pops a value off the evaluation stack, and pushes it onto the output stream.
- * `ChoiceCount`: how many choices have been produced in the current turn? Push the value to the output stream (or evaluation stack if in evaluation mode).
- * `Done`: Indicates that the current flow is safe to end.
+* `EvalStart` and `EvalEnd`: the content objects between are appended to the `evaluationStack` rather than the `outputStream`. As functions and operators are encountered, they pop values off the stack, process them, and push a value back on the stack. Meanwhile, `EvalOutput` pops a value off the evaluation stack, and pushes it onto the output stream.
+* `ChoiceCount`: how many choices have been produced in the current turn? Push the value to the output stream (or evaluation stack if in evaluation mode).
+* `Done`: Indicates that the current flow is safe to end.
 
 ### Story
 
@@ -129,10 +145,12 @@ Some important and useful features of the main runtime engine in `Story.cs`:
 
  * `Continue()` is the top level point where iteration of the content happens, and has this rough structure internally:
 
-        while( Step () || TryFollowDefaultInvisibleChoice() ) {}
-        
- * `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
- * `PerformLogicAndFlowControl(contentObject)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
+```csharp
+while( Step () || TryFollowDefaultInvisibleChoice() ) {}
+```
+
+* `Step()` iterates through a single element of content, and returns `false` if it runs out of content.
+* `PerformLogicAndFlowControl(contentObject)` is called from `Step`, and handles the majority of the non-content objects such Diverts, Control Commands, etc.
 
 ## Compiler development and debugging tips
 
@@ -142,19 +160,20 @@ The main entry point is `Run()`. By default it simply calls `Play()`, which will
 
 However if you want to automatate the testing of a particular flow, you could write something like:
 
-    void Run ()
-    {
-        CompileFile();
+```csharp
+void Run ()
+{
+    CompileFile();
 
-        ContinueMaximally ();
-        Choose(0);
+    ContinueMaximally ();
+    Choose(0);
 
-        ContinueMaximally ();
-        Choose(1);
+    ContinueMaximally ();
+    Choose(1);
 
-        ContinueMaximally ();
-    }
-
+    ContinueMaximally ();
+}
+```
 
 `BuildStringOfHierarchy()` is a method in `Runtime.Story` that's useful when debugging. If you add it as a Watch expression while debugging the ink engine, you can see a representation of the runtime hierarchy, as well as an arrow that points at where execution currently is in the hierarchy. For example, the following ink:
 
@@ -189,7 +208,7 @@ However if you want to automatate the testing of a particular flow, you could wr
         ],
         End
     ]
-    
+
 The `<---` is the pointer to the current object being evaluated.
 
 In this representation, containers are represented as:
