@@ -103,7 +103,7 @@ Text content from the game will appear 'as is' when the engine runs. However, it
 
 	A line of normal game-text. # colour it blue
 
-These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [RunningYourInk](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
+These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [Running Your Ink](RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
 
  
 ## 2) Choices 
@@ -1891,7 +1891,7 @@ Constants are simply a way to allow you to give story states easy-to-understand 
 
 ## 7) Advanced: Game-side logic 
 
-There are two core ways to provide game hooks in the **ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md).
+There are two core ways to provide game hooks in the **ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](RunningYourInk.md).
 
 # Part 4: Advanced Flow Control
 
@@ -3350,4 +3350,4 @@ Below is a listing of the currently supported identifier ranges.
 
 **NOTE!** ink files should be saved in UTF-8 format, which ensures that the above character ranges are supported.
 
-If a particular character range that you would like to use within identifiers isn't supported, feel free to open an [issue](https://github.com/inkle/ink/issues/new) or [pull request](https://github.com/inkle/ink/pulls) on the main ink repo.
+If a particular character range that you would like to use within identifiers isn't supported, feel free to open an [issue](/inkle/ink/issues/new) or [pull request](/inkle/ink/pulls) on the main ink repo.

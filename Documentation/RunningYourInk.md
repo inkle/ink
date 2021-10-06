@@ -4,7 +4,7 @@
 
 *Note that although these instructions are written with Unity in mind, it's possible (and straightforward) to run your ink in a non-Unity C# environment.*
 
-* Download the [latest version of the ink-unity-integration Unity package](https://github.com/inkle/ink-unity-integration/releases), and add to your project.
+* Download the [latest version of the ink-unity-integration Unity package](/inkle/ink-unity-integration/releases), and add to your project.
 * Select your `.ink` file in Unity, and you should see a *Play* button in the file's inspector.
 * Click it, and you should get an Editor window that lets you play (preview) your story.
 * To integrate into your game, see **Getting started with the runtime API**, below.
@@ -174,7 +174,7 @@ Note that [Inky](https://github.com/inkle/inky) will use the title tag in this f
 
 ## Jumping to a particular "scene"
 
-Top level named sections in **ink** are called knots (see [the writing tutorial](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md)). You can tell the runtime engine to jump to a particular named knot:
+Top level named sections in **ink** are called knots (see [the writing tutorial](WritingWithInk.md)). You can tell the runtime engine to jump to a particular named knot:
 
     _inkStory.ChoosePathString("myKnotName");
 
@@ -241,7 +241,7 @@ Remember that in addition to external functions, there are other good ways to co
 
 * You can set up a variable observer if you just want the game to know when some state has changed. This is perfect for say, changing the score in the UI.
 
-* You can use [tags](https://github.com/inkle/ink/blob/master/Documentation/RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
+* You can use [tags](RunningYourInk.md#marking-up-your-ink-content-with-tags) to add invisible metadata to a line in ink.
 
 * In inkle's games such as [Heaven's Vault](https://www.inklestudios.com/heavensvault), we use the text itself to write instructions to the game, and then have a game-specific text parser decide what to do with it. This is a very flexible approach, and allows us to have a different style of writing on each project. For example, we use the following syntax to ask the game to set up a particular camera shot:
 
@@ -281,7 +281,7 @@ public void BindExternalFunction(string funcName, Func<object> func, bool lookah
 
 ### Fallbacks for external functions
 
-When testing your story, either in [Inky](https://github.com/inkle/inky) or in the [ink-unity integration](https://github.com/inkle/ink-unity-integration/) player window, you don't get an opportunity to bind a game function before running the story. To get around this, you can define a *fallback function* within ink, which is run if the `EXTERNAL` function can't be found. To do so, simply create an ink function with the same name and parameters. For example, for the above `multiply` example, create the ink function:
+When testing your story, either in [Inky](/inkle/inky) or in the [ink-unity integration](/inkle/ink-unity-integration/) player window, you don't get an opportunity to bind a game function before running the story. To get around this, you can define a *fallback function* within ink, which is run if the `EXTERNAL` function can't be found. To do so, simply create an ink function with the same name and parameters. For example, for the above `multiply` example, create the ink function:
 
 ```
 === function multiply(x,y) ===
