@@ -6,11 +6,13 @@ When ink is compiled to JSON, it is converted to a low level format for use by t
 
 At the top level of the JSON file are two properties. `inkVersion` is an integer that denotes the format version, and `root`, which is the outer-most Container for the entire story.
 
-    {
-        "inkVersion": 10,
-        "root": <root container>
-    }
-    
+```json
+{
+    "inkVersion": 10,
+    "root": <root container>
+}
+```
+
 Broadly speaking, the entire format is composed of Containers, and individual sub-elements of the Story, within those Containers.
 
 ## Containers
@@ -52,15 +54,15 @@ Supported types:
 * **divert target**: represents a variable divert target, for example as used in the following ink:
 
         VAR x = -> somewhere
-        
+
     Represented in runtime JSON as an object of the form: `{"^->": "path.to.target"}`
 
 * **variable pointer**: used for references to variables, for example when declaring a function with the following ink:
 
         == function myFunction(ref x) ==
-        
+
     Represented in runtime JSON as an object of the form: `{"^var": "varname", "ci": 0}`. Where `ci` is "context index", with the following possible values:
-    
+
     * **-1** - default value, context yet to be determined.
     * **0**  - Variable is a global
     * **1 or more** - variable is a local/temporary in the callstack element with the given index.
@@ -95,7 +97,7 @@ Control commands are special instructions to the text engine to perform various 
 These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. The following operators are supported:
 
 `"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"_"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
-        
+
 Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
 
 ## Divert
@@ -142,10 +144,12 @@ Generates an instance of a `Choice`. Its exact behaviour depends on its flags. I
 
 A ChoicePoint object's structure in JSON is:
 
-    {
-        "*": "path.when.chosen",
-        "flg": 18
-    }
+```json
+{
+    "*": "path.when.chosen",
+    "flg": 18
+}
+```
 
 The path when chosen is the target path of a Container of content, and is assigned when calling `ChooseChoiceIndex`.
 
@@ -158,71 +162,72 @@ The `flg` field is a bitfield of flags:
  * **0x10 - Once only?** - Defaults to true. This is the difference between the `*` and `+` choice bullets in ink. If once only (`*`), the choice is only displayed if its target container's read count is zero.
 
 Example of the full JSON output, including the ChoicePoint object, when generating an actual ink choice from `* Hello[.], world.`. Most of the complexity is derived from the fact that content can be dynamic, and the square bracket notation that requires repetition.
-    
-    // Outer container
-    [
-    
-      // Evaluate choice text.
-      // Starts by calling a "function" labelled
-      // 's', which is the start content for the choice.
-      // We use a small Container so that it can be
-      // be re-used, and so the visit counts will be correct.
-      "ev",
-      "str",
+
+```jsonc
+// Outer container
+[
+
+  // Evaluate choice text.
+  // Starts by calling a "function" labelled
+  // 's', which is the start content for the choice.
+  // We use a small Container so that it can be
+  // be re-used, and so the visit counts will be correct.
+  "ev",
+  "str",
+  {
+    "f()": ".^.s"
+  },
+  "/str",
+
+  // Evaluate content inside square brackets (simply '.')
+  "str",
+  "^.",
+  "/str",
+
+  // Evaluation of choice text complete
+  "/ev",
+
+  // ChoicePoint object itself:
+  //  - linked to own container named 'c'
+  //  - Flags 22 are:
+  //     * 0x2  - has start content
+  //     * 0x4  - has choice-only content
+  //     * 0x10 - once only
+  {
+    "*": ".^.c",
+    "flg": 22
+  },
+
+  // Named content from outer container - 's' and 'c'
+  {
+    // Inner container for start content is labelled 's'
+    "s": [
+      "^Hello",
+      null
+    ],
+
+    // Inner container for content when choice is chosen
+    // First repeats the start content ('s'),
+    // before continuing.
+    "c": [
       {
-        "f()": ".^.s"
+        "f()": "0.0.s"
       },
-      "/str",
-      
-      // Evaluate content inside square brackets (simply '.')
-      "str",
-      "^.",
-      "/str",
-      
-      // Evaluation of choice text complete
-      "/ev",
-      
-      // ChoicePoint object itself:
-      //  - linked to own container named 'c'
-      //  - Flags 22 are:
-      //     * 0x2  - has start content
-      //     * 0x4  - has choice-only content
-      //     * 0x10 - once only
+      "^, world.",
+      "\n",
+      "\n",
+
+      // Container has all three counting flags:
+      //  - Visits are counted
+      //  - Turns-since is counted
+      //  - Counted from start only
       {
-        "*": ".^.c",
-        "flg": 22
-      },
-      
-      // Named content from outer container - 's' and 'c'
-      {
-        // Inner container for start content is labelled 's'
-        "s": [
-          "^Hello",
-          null
-        ],
-        
-        // Inner container for content when choice is chosen
-        // First repeats the start content ('s'),
-        // before continuing.
-        "c": [
-          {
-            "f()": "0.0.s"
-          },
-          "^, world.",
-          "\n",
-          "\n",
-          
-          // Container has all three counting flags:
-          //  - Visits are counted
-          //  - Turns-since is counted
-          //  - Counted from start only
-          {
-            "#f": 7
-          }
-        ]
+        "#f": 7
       }
     ]
-
+  }
+]
+```
 
 ## Paths
 
@@ -231,7 +236,7 @@ Paths won't ever appear on their own in a Container, but are used by various obj
 Paths are a dot-separated syntax:
 
     path.to.target
-    
+
 Where each element of the path references a sub-object, drilling down into the hierarchy.
 
 However, paths can have several element types between the dots:

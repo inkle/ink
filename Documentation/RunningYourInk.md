@@ -17,15 +17,17 @@ The main runtime code is included in the `ink-engine.dll`.
 
 We recommend that you create a wrapper MonoBehaviour component for the **ink** `Story`. Here, we'll call the component "Script" - in the "film script" sense, rather than the "Unity script" sense!
 
-	using Ink.Runtime;
-	
-	public class Script : MonoBehaviour {
-	
-		// Set this file to your compiled json asset
-		public TextAsset inkAsset;
-	
-		// The ink story that we're wrapping
-		Story _inkStory;
+```csharp
+using Ink.Runtime;
+
+public class Script : MonoBehaviour {
+
+	// Set this file to your compiled json asset
+	public TextAsset inkAsset;
+
+	// The ink story that we're wrapping
+	Story _inkStory;
+```
 
 ## Getting started with the runtime API
 
@@ -33,41 +35,45 @@ As mentioned above, your `.ink` file(s) are compiled to a single `.json` file. T
 
 The API for loading and running your story is very straightforward. Construct a new `Story` object, passing in the JSON string from the TextAsset. For example, in Unity:
 
-    using Ink.Runtime;
-    
-    ...
-    
-    void Awake()
-    {
-        _inkStory = new Story(inkAsset.text);
-    }
+```csharp
+using Ink.Runtime;
 
+...
+
+void Awake()
+{
+    _inkStory = new Story(inkAsset.text);
+}
+```
 From there, you make calls to the story in a loop. There are two repeating stages:
 
  1. **Present content:** You repeatedly call `Continue()` on it, which returns individual lines of string content, until the `canContinue` property becomes false. For example:
-    
-        while (_inkStory.canContinue) {
-            Debug.Log (_inkStory.Continue ());
-        }
-     
+
+```csharp
+while (_inkStory.canContinue) {
+    Debug.Log (_inkStory.Continue ());
+}
+```
+
     A simpler way to achieve the above is through one call to `_inkStory.ContinueMaximally()`. However, in many stories it's useful to pause the story at each line, for example when stepping through dialogue. Also, in such games, there may be state changes that should be reflected in the UI, such as resource counters.
 
  2. **Make choice:** When there isn't any more content, you should check to see whether there any choices to present to the player. To do so, use something like:
 
-        if( _inkStory.currentChoices.Count > 0 ) 
-        {
-            for (int i = 0; i < _inkStory.currentChoices.Count; ++i) {
-                Choice choice = _inkStory.currentChoices [i];
-                Debug.Log("Choice " + (i + 1) + ". " + choice.text);
-            }
+```csharp
+    if( _inkStory.currentChoices.Count > 0 )
+    {
+        for (int i = 0; i < _inkStory.currentChoices.Count; ++i) {
+            Choice choice = _inkStory.currentChoices [i];
+            Debug.Log("Choice " + (i + 1) + ". " + choice.text);
         }
-     
-    ...and when the player provides input:
-    
+    }
+
+    //...and when the player provides input:
+
         _inkStory.ChooseChoiceIndex (index);
-    
-    And now you're ready to return to step 1, and present content again.
-    
+
+    //And now you're ready to return to step 1, and present content again.
+```
 ### Saving and loading
 
 To save the state of your story within your game, call:
@@ -82,15 +88,16 @@ To save the state of your story within your game, call:
 
 If you made a mistake in your ink that the compiler can't catch, then the story will throw an exception. To avoid this and get standard Unity errors instead, you can use an error handler that you should assign when you create your story:
 
-    _inkStory = new Story(inkAsset.text);
-    
-    _inkStory.onError += (msg, type) => {
-        if( type == Ink.ErrorType.Warning )
-            Debug.LogWarning(msg);
-        else
-            Debug.LogError(msg);
-    };
+```csharp
+_inkStory = new Story(inkAsset.text);
 
+_inkStory.onError += (msg, type) => {
+    if( type == Ink.ErrorType.Warning )
+        Debug.LogWarning(msg);
+    else
+        Debug.LogError(msg);
+};
+```
 ### Is that it?
 
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.
@@ -134,10 +141,10 @@ One use case is for a graphic adventure that has different art for characters de
 On the game side, every time you get content with `_inkStory.Continue()`, you can get a list of tags with `_inkStory.currentTags`, which will return a `List<string>`, in the above case with just one element: `"surly"`.
 
 To add more than one tag, simply delimit them with more `#` characters:
-    
+
     Passepartout: Really, Monsieur. # surly # really_monsieur.ogg
 
-The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames. 
+The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames.
 
 Tags for a line can be written above it, or on the end of the line:
 
@@ -176,13 +183,17 @@ Note that [Inky](https://github.com/inkle/inky) will use the title tag in this f
 
 Top level named sections in **ink** are called knots (see [the writing tutorial](https://github.com/inkle/ink/blob/master/Documentation/WritingWithInk.md)). You can tell the runtime engine to jump to a particular named knot:
 
-    _inkStory.ChoosePathString("myKnotName");
+```csharp
+_inkStory.ChoosePathString("myKnotName");
+```
 
 And then call `Continue()` as usual.
 
 To jump directly to a stitch within a knot, use a `.` as a separator:
 
-    _inkStory.ChoosePathString("myKnotName.theStitchWithin");
+```csharp
+_inkStory.ChoosePathString("myKnotName.theStitchWithin");
+```
 
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
 
@@ -190,15 +201,19 @@ To jump directly to a stitch within a knot, use a `.` as a separator:
 
 The state of the variables in the **ink** engine is, appropriately enough, stored within the `variablesState` object within the `story`. You can both get and set variables directly on this object:
 
-    _inkStory.variablesState["player_health"] = 100
-    
-    int health = (int) _inkStory.variablesState["player_health"]
+```csharp
+_inkStory.variablesState["player_health"] = 100
+
+int health = (int) _inkStory.variablesState["player_health"]
+```
 
 ## Read/Visit counts
 
 To find out the number of times that a knot or stitch has been visited by the ink engine, you can use this API:
 
-    _inkStory.state.VisitCountAtPathString("...");
+```csharp
+_inkStory.state.VisitCountAtPathString("...");
+```
 
 The path string is in the form `"yourKnot"` for knots, and `"yourKnot.yourStitch"` for stitches.
 
@@ -206,9 +221,11 @@ The path string is in the form `"yourKnot"` for knots, and `"yourKnot.yourStitch
 
 You can register a delegate function to be called whenever a particular variable changes. This can be useful to reflect the state of certain **ink** variables directly in the UI. For example:
 
-    _inkStory.ObserveVariable ("health", (string varName, object newValue) => {
-        SetHealthInUI((int)newValue);
-    });
+```csharp
+_inkStory.ObserveVariable ("health", (string varName, object newValue) => {
+    SetHealthInUI((int)newValue);
+});
+```
 
 The reason that the variable name is passed in is so that you can have a single observer function that observes multiple different variables.
 
@@ -223,9 +240,11 @@ You can define game-side functions in C# that can be called directly from **ink*
 
 2. Bind your C# function. For example:
 
+```csharp
         _inkStory.BindExternalFunction ("playSound", (string name) => {
             _audioController.Play(name);
-        });  
+        });
+```
 
    There are convenience overloads for BindExternalFunction, for up to four parameters, for both generic `System.Func` and `System.Action`. There is also a general purpose `BindExternalFunctionGeneral` that takes an object array for more than 4 parameters.
 
@@ -272,7 +291,7 @@ The square root of 9
 
 You can define how you want your function to behave when you bind it, using the `lookaheadSafe` parameter:
 
-```
+```csharp
 public void BindExternalFunction(string funcName, Func<object> func, bool lookaheadSafe=false)
 ```
 
@@ -287,7 +306,7 @@ When testing your story, either in [Inky](https://github.com/inkle/inky) or in t
 === function multiply(x,y) ===
 // Usually external functions can only return placeholder
 // results, otherwise they'd be defined in ink!
-~ return 1 
+~ return 1
 ```
 
 ## Multiple parallel flows (BETA)
@@ -319,71 +338,82 @@ Lists always need to know the origin of their items. For example, in ink you can
 
 To create a list with items from a single origin, and assign it to a variable in the game:
 
-	var newList = new Ink.Runtime.InkList("fruit", story);
-	newList.AddItem("Orange");
-	newList.AddItem("Apple");
-	story.variablesState["myList"] = newList;
+```csharp
+var newList = new Ink.Runtime.InkList("fruit", story);
+newList.AddItem("Orange");
+newList.AddItem("Apple");
+story.variablesState["myList"] = newList;
+```
 
-
-​	
 If you're modifying a list, and you know that it has/had elements from a particular origin already:
 
-	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
-	fruit.AddItem("Apple");
+```csharp
+var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+fruit.AddItem("Apple");
+```
 
 Note that single list items in ink, such as:
 
 	VAR lunch = Apple
 
 ...are actually just lists with single items in them rather than a different type. So to create them on the game side, just use the techniques above to create a list with just one item.
-	
+
 You can also create lists from items if you explicitly know all the metadata for the items - i.e. the origin name as as well as the int value assigned to it. This is useful if you're building a list out of existing lists. Note that InkLists actually derive from `Dictionary`, where the key is an `InkListItem` (which in turn has `originName` and `itemName` strings), and the value is the int value:
 
-	var newList = new Ink.Runtime.InkList();
-	var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
-	var places = story.variablesState["places"] as Ink.Runtime.InkList;
-	foreach(var item in fruit) {
-	    newList.Add(item.Key, item.Value);
-	}
-	foreach (var item in places) {
-	    newList.Add(item.Key, item.Value);
-	}
-	story.variablesState["myList"] = newList;
+```csharp
+var newList = new Ink.Runtime.InkList();
+var fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+var places = story.variablesState["places"] as Ink.Runtime.InkList;
+foreach(var item in fruit) {
+    newList.Add(item.Key, item.Value);
+}
+foreach (var item in places) {
+    newList.Add(item.Key, item.Value);
+}
+story.variablesState["myList"] = newList;
+```
 
 To test if your list contains a particular item:
 
-	fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
-	if( fruit.ContainsItemNamed("Apple") ) {
-	    // We're eating apple's tonight!
-	}
+```csharp
+fruit = story.variablesState["fruit"] as Ink.Runtime.InkList;
+if( fruit.ContainsItemNamed("Apple") ) {
+    // We're eating apple's tonight!
+}
+```
 
 Lists also expose many of the operations you can do in ink:
 
-	list.minItem 	// equivalent to calling LIST_MIN(list) in ink
-	list.maxItem 	// equivalent to calling LIST_MAX(list) in ink
-	list.inverse 	// equivalent to calling LIST_INVERT(list) in ink
-	list.all 	// equivalent to calling LIST_ALL(list) in ink
-	list.Union(otherList)      // equivalent to (list + otherList) in ink
-	list.Intersect(otherList)  // equivalent to (list ^ otherList) in ink
-	list.Without(otherList)    // equivalent to (list - otherList) in ink
-	list.Contains(otherList)   // equivalent to (list ? otherList) in ink
-
+```csharp
+list.minItem 	// equivalent to calling LIST_MIN(list) in ink
+list.maxItem 	// equivalent to calling LIST_MAX(list) in ink
+list.inverse 	// equivalent to calling LIST_INVERT(list) in ink
+list.all 	// equivalent to calling LIST_ALL(list) in ink
+list.Union(otherList)      // equivalent to (list + otherList) in ink
+list.Intersect(otherList)  // equivalent to (list ^ otherList) in ink
+list.Without(otherList)    // equivalent to (list - otherList) in ink
+list.Contains(otherList)   // equivalent to (list ? otherList) in ink
+```
 
 ## Using the compiler
 
 Precompiling your stories is more efficient than loading .ink at runtime. That said, it's a useful approach for some situations, and can be done with the following code:
 
-	// inkFileContents: linked TextAsset, or Resources.Load, or even StreamingAssets
-	var compiler = new Ink.Compiler(inkFileContents);
-	Ink.Runtime.Story story = compiler.Compile();
-	Debug.Log(story.Continue());
+```csharp
+// inkFileContents: linked TextAsset, or Resources.Load, or even StreamingAssets
+var compiler = new Ink.Compiler(inkFileContents);
+Ink.Runtime.Story story = compiler.Compile();
+Debug.Log(story.Continue());
+```
 
 Note that if your story is broken up into several ink files using `INCLUDE`, that you will need to use:
 
-	var compiler = new Ink.Compiler(inkFileContents, new Compiler.Options
-	{
-		countAllVisits = true,
-		fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(inkAbsoluteFilePath))
-	});
-	Ink.Runtime.Story story = compiler.Compile();
-	Debug.Log(story.Continue());
+```csharp
+var compiler = new Ink.Compiler(inkFileContents, new Compiler.Options
+{
+	countAllVisits = true,
+	fileHandler = new UnityInkFileHandler(Path.GetDirectoryName(inkAbsoluteFilePath))
+});
+Ink.Runtime.Story story = compiler.Compile();
+Debug.Log(story.Continue());
+```
