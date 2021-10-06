@@ -1,6 +1,6 @@
 # ink's JSON runtime format
 
-When ink is compiled to JSON, it is converted to a low level format for use by the runtime, and is made up of smaller, simpler building blocks. For an overview of the full pipeline, including a description of the runtime itself see the [Architecture and Development documentation](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md).
+When ink is compiled to JSON, it is converted to a low level format for use by the runtime, and is made up of smaller, simpler building blocks. For an overview of the full pipeline, including a description of the runtime itself see the [Architecture and Development documentation](ArchitectureAndDevOverview.md).
 
 ## Top level
 
