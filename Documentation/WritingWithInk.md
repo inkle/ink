@@ -182,7 +182,7 @@ To make choices really choices, we need to provide alternatives. We can do this 
 		"Really," he responded. "How deleterious."
 	*	"Nothing, Monsieur!"[] I replied.
 		"Very good, then."
-	*  "I said, this journey is appalling[."] and I want no more of it."
+	*	"I said, this journey is appalling[."] and I want no more of it."
 		"Ah," he replied, not unkindly. "I see you are feeling frustrated. Tomorrow, things will improve."
 
 This produces the following game:
@@ -684,14 +684,14 @@ Here's a one-knot version of whack-a-mole. Note we use once-only options, and a 
 		{I heft the hammer.|{~Missed!|Nothing!|No good. Where is he?|Ah-ha! Got him! -> END}}
 		The {&mole|{&nasty|blasted|foul} {&creature|rodent}} is {in here somewhere|hiding somewhere|still at large|laughing at me|still unwhacked|doomed}. <>
 		{!I'll show him!|But this time he won't escape!}
-		* 	[{&Hit|Smash|Try} top-left] 	-> whack_a_mole
+		*  [{&Hit|Smash|Try} top-left]        -> whack_a_mole
 		*  [{&Whallop|Splat|Whack} top-right] -> whack_a_mole
-		*  [{&Blast|Hammer} middle] -> whack_a_mole
-		*  [{&Clobber|Bosh} bottom-left] 	-> whack_a_mole
-		*  [{&Nail|Thump} bottom-right] 	-> whack_a_mole
+		*  [{&Blast|Hammer} middle]           -> whack_a_mole
+		*  [{&Clobber|Bosh} bottom-left]      -> whack_a_mole
+		*  [{&Nail|Thump} bottom-right]       -> whack_a_mole
 		*   ->
-        	    Then you collapse from hunger. The mole has defeated you!
-	            -> END
+		    Then you collapse from hunger. The mole has defeated you!
+		    -> END
 
 
 produces the following 'game':
@@ -735,8 +735,8 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 
 	=== turn_on_television ===
 	I turned on the television {for the first time|for the second time|again|once more}, but there was {nothing good on, so I turned it off again|still nothing worth watching|even less to hold my interest than before|nothing but rubbish|a program about sharks and I don't like sharks|nothing on}.
-	+	[Try it again]	 		-> turn_on_television
-	*	[Go outside instead]	-> go_outside_instead
+	+	[Try it again]       -> turn_on_television
+	*	[Go outside instead] -> go_outside_instead
 
     === go_outside_instead ===
     -> END
@@ -785,8 +785,8 @@ The convention is to name these in capital letters.
 `CHOICE_COUNT` returns the number of options created so far in the current chunk. So for instance.
 
 	*	{false} Option A
-	* 	{true} Option B
-	*  {CHOICE_COUNT() == 1} Option C
+	*	{true} Option B
+	*	{CHOICE_COUNT() == 1} Option C
 
 produces two options, B and C. This can be useful for controlling how many options a player gets on a turn.
 
@@ -854,7 +854,7 @@ Let's go back to the first multi-choice example at the top of this document.
 		*	"I am somewhat tired[."]," I repeated.
 			"Really," he responded. "How deleterious."
 		*	"Nothing, Monsieur!"[] I replied.
-		*  "I said, this journey is appalling[."] and I want no more of it."
+		*	"I said, this journey is appalling[."] and I want no more of it."
 			"Ah," he replied, not unkindly. "I see you are feeling frustrated. Tomorrow, things will improve."
 
 In a real game, all three of these options might well lead to the same conclusion - Monsieur Fogg leaves the room. We can do this using a gather, without the need to create any new knots, or add any diverts.
@@ -864,7 +864,7 @@ In a real game, all three of these options might well lead to the same conclusio
 			"Really," he responded. "How deleterious."
 		*	"Nothing, Monsieur!"[] I replied.
 			"Very good, then."
-		*  "I said, this journey is appalling[."] and I want no more of it."
+		*	"I said, this journey is appalling[."] and I want no more of it."
 		"Ah," he replied, not unkindly. "I see you are feeling frustrated. Tomorrow, things will improve."
 
 	-	With that Monsieur Fogg left the room.
@@ -889,16 +889,16 @@ We can string these gather-and-branch sections together to make branchy sequence
 	=== escape ===
 	I ran through the forest, the dogs snapping at my heels.
 
-		* 	I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
+		*	I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
 
-		*  I did not pause for breath[] but kept on running. <>
+		*	I did not pause for breath[] but kept on running. <>
 
 		*	I cheered with joy. <>
 
-	- 	The road could not be much further! Mackie would have the engine running, and then I'd be safe.
+	-	The road could not be much further! Mackie would have the engine running, and then I'd be safe.
 
 		*	I reached the road and looked about[]. And would you believe it?
-		* 	I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
+		*	I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
 
 	-	The road was empty. Mackie was nowhere to be seen.
 
@@ -957,7 +957,7 @@ And should we want to add new sub-options to the other route, we do that in simi
 		* 	"Suicide!"
 			"Really, Poirot? Are you quite sure?"
 			* * 	"Quite sure."
-			* *		"It is perfectly obvious."
+			* * 	"It is perfectly obvious."
 		-	Mrs. Christie lowered her manuscript a moment. The rest of the writing group sat, open-mouthed.
 
 Now, that initial choice of accusation will lead to specific follow-up questions - but either way, the flow will come back together at the gather point, for Mrs. Christie's cameo appearance.
@@ -976,11 +976,11 @@ Sometimes, it's not a question of expanding the number of options, but having mo
 				* * 	"Myself!"
 				- - 	"You must be joking!"
 				* * 	"Mon ami, I am deadly serious."
-				* *		"If only..."
+				* * 	"If only..."
 			* 	"Suicide!"
 				"Really, Poirot? Are you quite sure?"
 				* * 	"Quite sure."
-				* *		"It is perfectly obvious."
+				* * 	"It is perfectly obvious."
 			-	Mrs. Christie lowered her manuscript a moment. The rest of the writing group sat, open-mouthed.
 
 If the player chooses the "murder" option, they'll have two choices in a row on their sub-branch - a whole flat weave, just for them.
@@ -1131,7 +1131,7 @@ Inside the same block of weave, you can simply use the label name; from outside 
 	= stitch_one
 		- (gatherpoint) Some content.
 	= stitch_two
-		*	{stitch_one.gatherpoint} Option
+		* {stitch_one.gatherpoint} Option
 
 or pointing into another knot:
 
@@ -1142,7 +1142,7 @@ or pointing into another knot:
 	=== knot_two ===
 	= stitch_two
 		- (gather_two)
-			*	{knot_one.gather_one} Option
+			* {knot_one.gather_one} Option
 
 
 #### Advanced: all options can be labelled
@@ -1500,7 +1500,7 @@ There's one other class of multiline block, which expands on the alternatives sy
 
  	// Sequence: go through the alternatives, and stick on last
 	{ stopping:
-		-	I entered the casino.
+		-  I entered the casino.
 		-  I entered the casino again.
 		-  Once more, I went inside.
 	}
@@ -1624,7 +1624,7 @@ Knot/stitch addresses are a type of value, indicated by a `->` character, and ca
 		You lie down and close your eyes.
 		-> generic_sleep (-> waking_in_the_hut)
 
-	===	 generic_sleep (-> waking)
+	=== generic_sleep (-> waking)
 		You sleep perchance to dream etc. etc.
 		-> waking
 
@@ -1906,8 +1906,8 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	*	"Monsieur!"[] I declared with sudden horror. "I have just realised. We have crossed the international date line!"
 	-	Monsieur Fogg barely lifted an eyebrow. "I have adjusted for it."
 	*	I mopped the sweat from my brow[]. A relief!
-	* 	I nodded, becalmed[]. Of course he had!
-	*  I cursed, under my breath[]. Once again, I had been belittled!
+	*	I nodded, becalmed[]. Of course he had!
+	*	I cursed, under my breath[]. Once again, I had been belittled!
 
 ...but it can happen at several different places in the story. We don't want to have to write copies of the content for each different place, but when the content is finished it needs to know where to return to. We can do this using parameters:
 
@@ -2072,8 +2072,8 @@ But for games with lots of independent moving parts, threads quickly become esse
 	== hallway ==
 		<- characters_present(HALLWAY)
 		*	[Drawers]	-> examine_drawers
-		* 	[Wardrobe] -> examine_wardrobe
-		*  [Go to Office] 	-> go_office
+		*	[Wardrobe] -> examine_wardrobe
+		*	[Go to Office] 	-> go_office
 		-	-> run_player_location
 	= examine_drawers
 		// etc...
@@ -2171,7 +2171,7 @@ Note this is different than a tunnel, which runs the same block of content but d
 	<- childhood_memories(-> next)
 	*	[Look out of the window]
 	 	I daydreamed as we rolled along...
-	 - (next) Then the whistle blew...
+	-	(next) Then the whistle blew...
 
 might do exactly the same thing as:
 
@@ -2179,7 +2179,7 @@ might do exactly the same thing as:
 		-> think_back ->
 	*	[Look out of the window]
 		I daydreamed as we rolled along...
-	- 	(next) Then the whistle blew...
+	-	(next) Then the whistle blew...
 
 but as soon as the option being threaded in includes multiple choices, or conditional logic on choices (or any text content, of course!), the thread version becomes more practical.
 
@@ -2469,10 +2469,10 @@ We have a few basic ways of getting information about what's in a list:
 
 	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn
 
-	{LIST_COUNT(DoctorsInSurgery)} 	//  "2"
-	{LIST_MIN(DoctorsInSurgery)} 		//  "Adams"
-	{LIST_MAX(DoctorsInSurgery)} 		//  "Cartwright"
-	{LIST_RANDOM(DoctorsInSurgery)} 	//  "Adams" or "Cartwright"
+	{LIST_COUNT(DoctorsInSurgery)}  //  "2"
+	{LIST_MIN(DoctorsInSurgery)}    //  "Adams"
+	{LIST_MAX(DoctorsInSurgery)}    //  "Cartwright"
+	{LIST_RANDOM(DoctorsInSurgery)} //  "Adams" or "Cartwright"
 
 #### Testing for emptiness
 
@@ -2668,7 +2668,7 @@ To demonstrate a few of these ideas, here's a functional Tower of Hanoi example,
 	        // the moving disc is bigger than the smallest of the discs on the new tower
 	        ~ return false
 	    -   else:
-	    	 // nothing stands in your way!
+	        // nothing stands in your way!
 	        ~ return true
 
 	    }
@@ -2909,7 +2909,7 @@ The queries given above mostly generalise nicely to multi-valued lists
 
     VAR mixedList = (a, three, c)
 
-	{LIST_ALL(mixedList)}   // a, one, b, two, c, three
+    {LIST_ALL(mixedList)}   // a, one, b, two, c, three
     {LIST_COUNT(mixedList)} // 3
     {LIST_MIN(mixedList)}   // a
     {LIST_MAX(mixedList)}   // three or c, albeit unpredictably
@@ -2920,7 +2920,7 @@ The queries given above mostly generalise nicely to multi-valued lists
     { mixedList >= (one, a) }   // true
     { mixedList < (three) }     // false
 
-	{ LIST_INVERT(mixedList) }            // one, b, two
+    { LIST_INVERT(mixedList) }  // one, b, two
 
 
 ## 7) Long example: crime scene
@@ -2930,8 +2930,8 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	-> murder_scene
 
 	//
-	// 	System: items can have various states
-	//	Some are general, some specific to particular items
+	// System: items can have various states
+	// Some are general, some specific to particular items
 	//
 
 	LIST OffOn = off, on
@@ -2967,7 +2967,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 
 
 	LIST BedKnowledge = (none), neatly_made, crumpled_duvet, hastily_remade, body_on_bed, murdered_in_bed, murdered_while_asleep
-	LIST KnifeKnowledge = (none), prints_on_knife, joe_seen_prints_on_knife,joe_wants_better_prints, joe_got_better_prints
+	LIST KnifeKnowledge = (none), prints_on_knife, joe_seen_prints_on_knife, joe_wants_better_prints, joe_got_better_prints
 	LIST WindowKnowledge = (none), steam_on_glass, fingerprints_on_glass, fingerprints_on_glass_match_knife
 
 	VAR knowledgeState = ()
