@@ -1320,7 +1320,7 @@ is explicitly disallowed; it would be evaluated on the construction of the story
 
 Obviously, our global variables are not intended to be constants, so we need a syntax for altering them.
 
-Since by default, any text in an **ink** script is printed out directly to the screen, we use a markup symbol to indicate that a line of content is intended meant to be doing some numerical work, we use the `~` mark.
+Since by default, any text in an **ink** script is printed out directly to the screen, we use a markup symbol to indicate that a line of content is meant to be doing some numerical work, we use the `~` mark.
 
 The following statements all assign values to variables:
 
@@ -1835,7 +1835,7 @@ which are slightly easier to read, and (more usefully) can be done inline for ma
 	* 	I gave a biscuit to Monsieur Fogg[] and he wolfed it down most undecorously. {alter(foggs_health, 1)}
 	-	<> Then we continued on our way.
 
-Wrapping up simple operations in function can also provide a simple place to put debugging information, if required.
+Wrapping up simple operations in functions can also provide a simple place to put debugging information, if required.
 
 
 
@@ -2007,7 +2007,7 @@ So far, everything in ink has been entirely linear, despite all the branching an
 
 We call this 'threading', though it's not really threading in the sense that computer scientists mean it: it's more like stitching in new content from various places.
 
-Note that this is definitely an advanced feature: the engineering stories becomes somewhat more complex once threads are involved!
+Note that this is definitely an advanced feature: engineering stories becomes somewhat more complex once threads are involved!
 
 ### Threads join multiple sections together
 
@@ -2163,7 +2163,7 @@ Threads can be used to add the same choice into lots of different places. When u
 	+	{not done || TURNS_SINCE(-> done) > 10}
 		[Review my case notes]
 		// the conditional ensures you don't get the option to check repeatedly
-	 	{I|Once again, I} flicked through the notes I'd made so far. Still not obvious suspects.
+	 	{I|Once again, I} flicked through the notes I'd made so far. Still no obvious suspects.
 	- 	(done) -> go_back_to
 
 Note this is different than a tunnel, which runs the same block of content but doesn't give a player a choice. So a layout like:
@@ -2176,7 +2176,7 @@ Note this is different than a tunnel, which runs the same block of content but d
 might do exactly the same thing as:
 
 	*	[Remember my childhood]
-		-> think_back ->
+		-> think_back(-> next) ->
 	*	[Look out of the window]
 		I daydreamed as we rolled along...
 	-	(next) Then the whistle blew...
@@ -2414,7 +2414,7 @@ If you specify a value, but not the next value, ink will assume an increment of 
 
 ## 4) Multivalued Lists
 
-The following examples have all included one deliberate untruth, which we'll now remove. Lists - and variables containing list values - do not have to contain only one value.
+The previous examples have all included one deliberate untruth, which we'll now remove. Lists - and variables containing list values - do not have to contain only one value.
 
 ### Lists are boolean sets
 
@@ -2962,7 +2962,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 
 	//
 	// System: Incremental knowledge.
-	// Each list is a chains of facts. Each fact supercedes the fact before it.
+	// Each list is a chain of facts. Each fact supercedes the fact before it.
 	//
 
 
