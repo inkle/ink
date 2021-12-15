@@ -75,13 +75,22 @@ namespace Ink.Runtime
         /// </summary>
         public override bool Equals (object obj)
         {
-            if (obj is InkListItem) {
-                var otherItem = (InkListItem)obj;
-                return otherItem.itemName   == itemName 
-                    && otherItem.originName == originName;
-            }
-
+            if (obj is InkListItem) 
+                return Equals((InkListItem)obj);
             return false;
+        }
+
+        public bool Equals (InkListItem otherItem)
+        {
+            return otherItem.itemName == itemName && otherItem.originName == originName;
+        }
+
+        public static bool operator == (InkListItem left, InkListItem right) {
+            return left.Equals(right);
+        }
+    
+        public static bool operator != (InkListItem left, InkListItem right) {
+            return !(left == right);
         }
 
         /// <summary>
@@ -138,6 +147,16 @@ namespace Ink.Runtime
             else
                 throw new System.Exception ("InkList origin could not be found in story when constructing new list: " + singleOriginListName);
         }
+        
+        /// <summary>
+        /// Creates a new list with this item as the only member.
+        /// The origin Story is needed in order to be able to look up that definition.
+        /// </summary>
+		/// <returns>InkList created from this list item</returns>
+		/// <param name="originStory">Origin story.</param>
+        public InkList (InkListItem inkListItem, Story originStory) : this (inkListItem.originName, originStory) {
+            AddItem(inkListItem);
+        }
 
         public InkList (KeyValuePair<InkListItem, int> singleElement)
         {
@@ -157,7 +176,6 @@ namespace Ink.Runtime
 			else 
                 throw new System.Exception ("Could not find the InkListItem from the string '" + myListItem + "' to create an InkList because it doesn't exist in the original list definition in ink.");
 		}
-
 
         /// <summary>
         /// Adds the given item to the ink list. Note that the item must come from a list definition that
@@ -190,30 +208,44 @@ namespace Ink.Runtime
         /// <summary>
         /// Adds the given item to the ink list, attempting to find the origin list definition that it belongs to.
         /// The item must therefore come from a list definition that is already "known" to this list, so that the
-        /// item's value can be looked up. By "known", we mean that it already has items in it from that source, or
+        /// item's value can be looked up.
+        /// By "known", we mean that it already has items in it from that source, or
         /// it did at one point - it can't be a completely fresh empty list, or a list that only contains items from
         /// a different list definition.
+        /// You can also provide the Story object, so in the case of an unknown element, it can be created fresh
         /// </summary>
-        public void AddItem (string itemName)
+        public void AddItem(string itemName, Story storyObject = null)
         {
             ListDefinition foundListDef = null;
 
-            foreach (var origin in origins) {
-                if (origin.ContainsItemWithName (itemName)) {
-                    if (foundListDef != null) {
-                        throw new System.Exception ("Could not add the item " + itemName + " to this list because it could come from either " + origin.name + " or " + foundListDef.name);
-                    } else {
-                        foundListDef = origin;
+            if (origins != null) { 
+                foreach (var origin in origins) {
+                    if (origin.ContainsItemWithName(itemName)) {
+                        if (foundListDef != null) {
+                            throw new System.Exception("Could not add the item " + itemName + " to this list because it could come from either " + origin.name + " or " + foundListDef.name);
+                        } else {
+                            foundListDef = origin;
+                        }
                     }
                 }
             }
 
             if (foundListDef == null)
-                throw new System.Exception ("Could not add the item " + itemName + " to this list because it isn't known to any list definitions previously associated with this list.");
-
-            var item = new InkListItem (foundListDef.name, itemName);
-            var itemVal = foundListDef.ValueForItem(item);
-            this [item] = itemVal;
+            {
+                if (storyObject == null)
+                    throw new System.Exception("Could not add the item " + itemName + " to this list because it isn't known to any list definitions previously associated with this list, and no ink Story object was provided to create it from.");
+                else
+                {
+                    var newItem = FromString(itemName, storyObject).orderedItems[0];
+                    this[newItem.Key] = newItem.Value;
+                }
+            }
+            else
+            {
+                var item = new InkListItem(foundListDef.name, itemName);
+                var itemVal = foundListDef.ValueForItem(item);
+                this[item] = itemVal;
+            }
         }
 
         /// <summary>
@@ -373,7 +405,8 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Fast test for the existence of any intersection between the current list and another
+        /// Returns a boolean declaring if two lists have an intersection
+        /// Loops through the FIRST list, so for speed, test small.HasIntersection(larger)
         /// </summary>
         public bool HasIntersection(InkList otherList)
         {

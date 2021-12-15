@@ -227,12 +227,22 @@ namespace Ink.Runtime
             }
         }
 
+        /// <summary>
+        // String representation of the container (knot/stitch/function etc) location where the story currently is. 
+        // This resolves some practical use issues with currentPathString. Key differences are:
+        // This doesn't contain the line index/choice index of the path, and only returns the container, ie: "knot.stitch"
+        // This returns a valid path when the story cannot continue, ie: at a choice point/story end.
+        /// </summary>
+        public string currentContainerPathString { get; set; }
+
         public Runtime.Pointer currentPointer {
             get {
                 return callStack.currentElement.currentPointer;
             }
             set {
                 callStack.currentElement.currentPointer = value;
+                if(!value.isNull)
+                    currentContainerPathString = value.path.containerString;
             }
         }
 
@@ -603,6 +613,9 @@ namespace Ink.Runtime
             if (!divertedPointer.isNull)
                 writer.WriteProperty("currentDivertTarget", divertedPointer.path.componentsString);
                 
+            if(currentContainerPathString != null)
+                writer.WriteProperty("currentContainerPathString", currentContainerPathString);
+            
             writer.WriteProperty("visitCounts", w => Json.WriteIntDictionary(w, _visitCounts));
             writer.WriteProperty("turnIndices", w => Json.WriteIntDictionary(w, _turnIndices));
 
@@ -697,6 +710,14 @@ namespace Ink.Runtime
                 divertedPointer = story.PointerAtPath (divertPath);
             }
                 
+            object _currentContainerPathString;
+            if(jObject.TryGetValue("currentContainerPathString", out _currentContainerPathString)) {
+                currentContainerPathString = _currentContainerPathString.ToString();
+            } else {
+                currentContainerPathString = null;
+            }
+            
+
             _visitCounts = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["visitCounts"]);
             _turnIndices = Json.JObjectToIntDictionary((Dictionary<string, object>)jObject["turnIndices"]);
 

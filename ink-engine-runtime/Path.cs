@@ -240,6 +240,28 @@ namespace Ink.Runtime
             }
         }
 		string _componentsString;
+        
+        // Path to the container that includes this path
+        public string containerString {
+            get {
+				if( _containerString == null ) {
+                    var sb = new System.Text.StringBuilder ();
+                    for (int i = 0; i < _components.Count; i++) {
+                        Component component = _components[i];
+                        if ( !component.isIndex ) {
+                            if (i > 0) sb.Append ('.');
+                            sb.Append(component.name);
+                        } else {
+                            break;
+                        }
+                    }
+					if (isRelative) sb.Insert(0, ".");
+                    _containerString = sb.ToString();
+				}
+				return _containerString;
+            }
+        }
+		string _containerString;
 
 		public override string ToString()
 		{
