@@ -1995,6 +1995,53 @@ Tunnels can be nested, so the following is valid:
 ... and so on.
 
 
+#### Advanced: Tunnels can return elsewhere
+
+Sometimes, in a story, things happen. So sometimes a tunnel can't guarantee that it will always want to go back to where it came from. **ink** supplies a syntax to allow you to "returning from a tunnel but actually go somewhere else" but it should be used with caution as the possibility of getting very confused is very high indeed.
+
+Still, there are cases where it's indispensable:
+
+	=== fall_down_cliff 
+	-> hurt(5) -> 
+	You're still alive! You pick yourself up and walk on.
+	
+	=== hurt(x)
+		~ stamina -= x 
+		{ stamina <= 0:
+			->-> youre_dead
+		}
+	
+	=== youre_dead
+	Suddenly, there is a white light all around you. Fingers lift an eyepiece from your forehead. 'You lost, buddy. Out of the chair.'
+	 
+And even in less drastic situations, we might want to break up the structure:
+ 
+	-> talk_to_jim ->
+ 
+	 === talk_to_jim
+	 - (opts) 	
+		*	[ Ask about the warp lacelles ] 
+			-> warp_lacells ->
+		*	[ Ask about the shield generators ] 
+			-> shield_generators ->	
+		* 	[ Stop talking ]
+			->->
+	 - -> opts 
+
+	 = warp_lacells
+		{ shield_generators : ->-> argue }
+		"Don't worry about the warp lacelles. They're fine."
+		->->
+
+	 = shield_generators
+		{ warp_lacells : ->-> argue }
+		"Forget about the shield generators. They're good."
+		->->
+	 
+	 = argue 
+	 	"What's with all these questions?" Jim demands, suddenly. 
+	 	...
+	 	->->
 
 #### Advanced: Tunnels use a call-stack
 
