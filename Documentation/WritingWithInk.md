@@ -2688,9 +2688,23 @@ You'll then be able to do:
 
 #### Advanced: a portion of the "full" list
 
-You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` function.
+You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` function. There are two formulations, both valid:
+
+	LIST_RANGE(list_name, min_integer_value, max_integer_value)
+
+and
 
 	LIST_RANGE(list_name, min_value, max_value)
+	
+Min and max values here are inclusive. If the game can’t find the values, it’ll get as close as it can, but never go outside the range. So for example:
+
+	{LIST_RANGE(LIST_ALL(primeNumbers), 10, 20)} 
+
+will produce 
+	
+	11, 13, 17, 19
+
+
 
 ### Example: Tower of Hanoi
 
