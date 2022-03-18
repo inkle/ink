@@ -3113,6 +3113,30 @@ Unreachable
 
 
         [Test ()]
+        public void TestTunnelOnwardsToVariableDivertTarget ()
+        {
+            var storyStr =
+@"
+-> outer ->
+
+== outer
+This is outer
+-> cut_to(-> the_esc)
+
+=== cut_to(-> escape) 
+    ->-> escape
+    
+== the_esc
+This is the_esc
+-> END
+";
+
+            var story = CompileString (storyStr);
+            Assert.AreEqual ("This is outer\nThis is the_esc\n", story.ContinueMaximally ());
+        }
+
+
+        [Test ()]
         public void TestReadCountVariableTarget ()
         {
             var storyStr =
