@@ -270,3 +270,6 @@ paket-files/
 .idea/
 *.sln.iml
 .ionide/
+
+# Ignore nuget packages
+*.nupkg
