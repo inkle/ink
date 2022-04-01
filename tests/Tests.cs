@@ -2873,6 +2873,23 @@ LIST list = a, b
             Assert.AreEqual ("a, b\n", story.ContinueMaximally ());
         }
 
+
+                [Test ()]
+        public void TestContainsEmptyListAlwaysFalse ()
+        {
+            var storyStr =
+                @"
+LIST list = (a), b
+{list ? ()}
+{() ? ()}
+{() ? list}
+";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("false\nfalse\nfalse\n", story.ContinueMaximally ());
+        }
+
+
         [Test ()]
         public void TestEmptyListOriginAfterAssignment ()
         {

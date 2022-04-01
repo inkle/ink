@@ -405,11 +405,13 @@ namespace Ink.Runtime
         /// <param name="otherList">Other list.</param>
         public bool Contains (InkList otherList)
         {
+            if( otherList.Count == 0 || this.Count == 0 )  return false;
             foreach (var kv in otherList) {
                 if (!this.ContainsKey (kv.Key)) return false;
             }
             return true;
         }
+
         /// <summary>
         /// Returns true if the current list contains an item matching the given name.
         /// </summary>
