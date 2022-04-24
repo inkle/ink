@@ -113,6 +113,9 @@ if (targetContent) {
 
 ## Runtime ink engine
 
+
+_Note: This section of the documentation is incomplete. We're working on a formal specification for the runtime ink engine, stay tuned!_
+
 As mentioned above, the runtime code is built out of smaller, simpler, objects compared to the ink as it's parsed directly.
 
 All the higher level structures, including the story itself, any knots and stitches, and even choices, are built out of containers. Within the containers, content is iterated through sequentially, and appended to the output.
