@@ -6,7 +6,7 @@ _A glossary of terms used by the runtime_
 : the base element of JSON compiled stories. A Container may be __named__. A Container may contain other Containers (named or anonymous).
 
 * __Control Command__
-: a built-in instruction destined to be read and executed by the interpreter
+: a built-in instruction destined to be read and executed by the interpreter. See [Control Commands](control-commands.md)
 
 * __Choice Point__
 : the generator for a single choice. Its content (text) and behaviour are defined at runtime
