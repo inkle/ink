@@ -30,8 +30,10 @@ jobs:
         with:
           # Used to specify a package manager for caching in the default directory. Supported values: pip, pipenv, poetry.
           cache: pip
+          working-directory: ./Documentation/runtime-specification
 
       - name: Install dependencies
+        working-directory: ./Documentation/runtime-specification
         run: pip install mkdocs
       
       - name: Build site
