@@ -4,6 +4,7 @@ nav:
   - "General Documentation":
     - architecture.md
     - glossary.md
+    - testing.md
 
   - "Components":
     - diverts.md
