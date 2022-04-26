@@ -1,5 +1,21 @@
 site_name: "Ink Runtime Specification: 1.0.0"
 nav:
-  - architecture.md
-  - bytecode-reference.md
-  - glossary.md
+  - index.md
+  - "General Documentation":
+    - architecture.md
+    - glossary.md
+
+  - "Components":
+    - diverts.md
+    - lists.md
+    - variables.md
+
+  - "In Action":
+    - state-saving-and-restoration.md
+    - native-functions.md
+
+  - "Reference Tables":
+    - bytecode-reference.md
+    - control-commands.md
+markdown_extensions:
+  - footnotes
