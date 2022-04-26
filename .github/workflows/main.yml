@@ -27,15 +27,11 @@ jobs:
 
       - name: Setup Python
         uses: actions/setup-python@v3.1.2
-        with:
-          # Used to specify a package manager for caching in the default directory. Supported values: pip, pipenv, poetry.
-          cache: pip
-          working-directory: ./Documentation/runtime-specification
 
       - name: Install dependencies
         working-directory: ./Documentation/runtime-specification
-        run: pip install mkdocs
-      
+        run: pip install -r requirements.txt
+
       - name: Build site
         working-directory: ./Documentation/runtime-specification
         run: mkdocs build
@@ -43,5 +39,5 @@ jobs:
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: $
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./Documentation/runtime-specification/site
