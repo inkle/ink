@@ -4,8 +4,15 @@
 
 _Explanation how the runtime is structured_
 
-## Table of Contents ##
+## General documentation
 - [Architecture](architecture)
 - [Glossary](glossary)
+
+## In action
+- [Runtime implementation](runtime-implementation)
+- [State saving and restoration](state-saving-and-restoration)
+
+## Reference Tables
 - [ByteCode reference](bytecode-reference)
 - [Native functions](native-functions)
+- [Control commands](control-commands)
