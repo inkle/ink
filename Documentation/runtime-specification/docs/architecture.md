@@ -6,7 +6,7 @@ The general form of a compiled JSON story is an object that *must* contain :
 
 ``inkVersion`` : number : the ink version number. Current version is ``20``.
 
-``root`` : array : the main story [Container](glossary#container)
+``root`` : array : the main story [Container](glossary.md#container)
 
 ``listDef`` : object (optional): a ListDefinition
 
