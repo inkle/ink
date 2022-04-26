@@ -1,17 +1,18 @@
-# Welcome to MkDocs
+# Ink Runtime Specification
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+**Note: This version of the specification is based on version 1.0.0 of ink: https://github.com/inkle/ink/releases/tag/v1.0.0**
 
-## Commands
+_Explanation how the runtime is structured_
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+## General documentation
+- [Architecture](architecture)
+- [Glossary](glossary)
 
-## Project layout
+## In action
+- [Runtime implementation](runtime-implementation)
+- [State saving and restoration](state-saving-and-restoration)
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+## Reference Tables
+- [ByteCode reference](bytecode-reference)
+- [Native functions](native-functions)
+- [Control commands](control-commands)
