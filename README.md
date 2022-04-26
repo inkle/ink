@@ -171,6 +171,8 @@ To run the binaries, you need to install [.NET Core Runtime 2.2]((https://dotnet
 
 We’d of course appreciate any bug fixes you might find - feel free to submit a pull request. However, usually we're actively working on a game, so it might take a little while for us to take a look at a non-trivial pull request. Apologies in advance if it takes a while to get a response!
 
+**For the Runtime Specification, please see: [Documentation/runtime-specification/CONTRIBUTING.md](Documentation/runtime-specification/CONTRIBUTING.md)**
+
 ## Architectural overview
 
 See the [architectural overview documentation](https://github.com/inkle/ink/blob/master/Documentation/ArchitectureAndDevOverview.md) for information about the pipeline of the **ink** engine, and a birds-eye view of the project's code structure.
