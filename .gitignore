@@ -270,3 +270,7 @@ paket-files/
 .idea/
 *.sln.iml
 .ionide/
+
+
+# Mkdocs build artifact
+Documentation/runtime-specification/site
