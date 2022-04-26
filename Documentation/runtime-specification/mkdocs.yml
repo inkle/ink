@@ -1,1 +1,5 @@
 site_name: "Ink Runtime Specification: 1.0.0"
+nav:
+  - architecture.md
+  - bytecode-reference.md
+  - glossary.md
