@@ -3,3 +3,5 @@ nav:
   - architecture.md
   - bytecode-reference.md
   - glossary.md
+markdown_extensions:
+  - footnotes
