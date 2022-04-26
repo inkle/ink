@@ -72,7 +72,7 @@ Other transformers and structuring concepts exist, but hopefully this should giv
 
 ## Runtime code generation
 
-The parsed hierarchy closely resembles the ink as it was originally written. However, the data that's loaded by the ink engine at runtime is very different. It's built out of smaller, more fundamental units, sort of like byte code, though not that low level. This content is exported to a JSON based format ready to be loaded by the runtime engine within the game. For more information on this format, [see the documentation](ink_JSON_runtime_format.md).
+The parsed hierarchy closely resembles the ink as it was originally written. However, the data that's loaded by the ink engine at runtime is very different. It's built out of smaller, more fundamental units, sort of like byte code, though not that low level. This content is exported to a JSON based format ready to be loaded by the runtime engine within the game. For more information on this format, [see the documentation](archive/ink_JSON_runtime_format.md).
 
 In the runtime, there's no concept of Knots, Stitches, Weave, or other high level ink structures. Instead, the runtime consists mainly of general purpose `Runtime.Container` objects and content, inheriting from `Runtime.Object`.
 
@@ -113,11 +113,14 @@ if (targetContent) {
 
 ## Runtime ink engine
 
+
+_Note: This section of the documentation is incomplete. We're working on a formal specification for the runtime ink engine, stay tuned!_
+
 As mentioned above, the runtime code is built out of smaller, simpler, objects compared to the ink as it's parsed directly.
 
 All the higher level structures, including the story itself, any knots and stitches, and even choices, are built out of containers. Within the containers, content is iterated through sequentially, and appended to the output.
 
-This structure is loaded by the ink engine in a [JSON based format](ink_JSON_runtime_format.md).
+This structure is loaded by the ink engine in a [JSON based format](archive/ink_JSON_runtime_format.md).
 
 ### Containers
 
