@@ -9,7 +9,7 @@ The [root container](architecture.md) should be parsed as a tree and each elemen
 * the special string `<>` is a __Glue__.
 * strings matching exactly a __Control Command__ is such.
 * strings matching exactly a __Native Function Call__ is such.
-    * Exception : `L^` matches `^` (list intersect/has operation)
+    * Exception : `L^` matches `^` (list intersect operation)
 * `"void"` is the special Value __Void__
 * __TODO__ : named/flagged content
 * any array is a __Container__ to be parsed recursively.
