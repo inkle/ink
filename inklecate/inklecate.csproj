@@ -5,6 +5,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Ink</RootNamespace>
     <AssemblyName>inklecate</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>inklecate</ToolCommandName>
+    <Version>1.0.1</Version>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
