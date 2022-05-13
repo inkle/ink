@@ -1053,18 +1053,7 @@ namespace Ink.Runtime
             if (listValue) {
                 
                 // Update origin when list is has something to indicate the list origin
-                var rawList = listValue.value;
-				if (rawList.originNames != null) {
-					if( rawList.origins == null ) rawList.origins = new List<ListDefinition>();
-					rawList.origins.Clear();
-
-					foreach (var n in rawList.originNames) {
-                        ListDefinition def = null;
-                        story.listDefinitions.TryListGetDefinition (n, out def);
-						if( !rawList.origins.Contains(def) )
-							rawList.origins.Add (def);
-                    }
-                }
+                listValue.value.RefreshOrigins(story.listDefinitions);
             }
 
             evaluationStack.Add(obj);

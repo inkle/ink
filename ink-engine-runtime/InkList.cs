@@ -233,6 +233,26 @@ namespace Ink.Runtime
         // Only the story has access to the full set of lists, so that
         // the origin can be resolved from the originListName.
         public List<ListDefinition> origins;
+
+        public void RefreshOrigins(ListDefinitionsOrigin listDefsOrigin)
+        {
+            if (listDefsOrigin == null) return;
+
+            if (originNames != null)
+            {
+                if (origins == null) origins = new List<ListDefinition>();
+                origins.Clear();
+
+                foreach (var n in originNames)
+                {
+                    ListDefinition def = null;
+                    listDefsOrigin.TryListGetDefinition(n, out def);
+                    if (!origins.Contains(def))
+                        origins.Add(def);
+                }
+            }
+        }
+
         public ListDefinition originOfMaxItem {
             get {
                 if (origins == null) return null;
