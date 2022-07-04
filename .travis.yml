@@ -6,7 +6,7 @@ addons:
 language: csharp
 solution: ink.sln
 mono: none
-dotnet: 3.1
+dotnet: 6.0
 cache:
   directories:
     - /home/travis/.nuget/packages/

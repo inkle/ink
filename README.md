@@ -131,7 +131,7 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
 ## Build Requirements
 
 **All Environments:**
- * [.NET Core SDK 3.1](https://dotnet.microsoft.com/download) or newer
+ * [.NET SDK 6.0](https://dotnet.microsoft.com/download) or newer
  * Optionally [Visual Studio Code](https://code.visualstudio.com/)
 
 
@@ -156,11 +156,11 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
 1. `cd` to the project you want to build (e.g., `cd inklecate`)
 2. Build using dotnet: `dotnet build -c Release`
 3. To run console apps: `dotnet run -c Release`
-    * To produce self-contained executable: `dotnet publish -r win-x64 -c Release --self-contained false`
+    * To produce self-contained executable: `dotnet publish -r win-x64 -c Release --self-contained`
     * [Recommended RIDs](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog) for the platform (`-r`) are: `win-x64`, `linux-x64`, and `osx-x64`
 
 
-To run the binaries, you need to install [.NET Core Runtime 2.2]((https://dotnet.microsoft.com/download)) or newer (included in SDK).
+To run the binaries, you need to install [.NET Runtime 6.0]((https://dotnet.microsoft.com/download)) or newer (included in SDK).
 
 ## Need help?
 

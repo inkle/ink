@@ -19,6 +19,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ink_compiler", "compiler\in
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InkTestBed", "InkTestBed\InkTestBed.csproj", "{714B52DE-576A-4760-BA2E-F8483DD2CAAA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C5E94A09-51F0-4936-896B-571A1BECDC2C}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+		build_for_inky.command = build_for_inky.command
+		build_release.command = build_release.command
+		cleanup-binobj.ps1 = cleanup-binobj.ps1
+		profiler.command = profiler.command
+		publish-nuget.ps1 = publish-nuget.ps1
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
