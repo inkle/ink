@@ -58,10 +58,13 @@ namespace Ink
 
             EndTagIfNecessary(result);
 
-            // TODO: In the previous static version tags, we used to check whether a line was
-            //       ONLY a tag, and if so we wouldn't append a newline.
-            //       We probably want to re-implent that?
-            result.Add (new Text ("\n"));
+            // If the line doens't actually contain any normal text content
+            // but is in fact entirely a tag, then let's not append
+            // a newline, since we want the tag (or tags) to be associated
+            // with the line below rather than being completely independent.
+            bool lineIsPureTag = result.Count > 0 && result[0] is Parsed.Tag && ((Parsed.Tag)result[0]).isStart;
+            if( !lineIsPureTag )
+                result.Add (new Text ("\n"));
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
 

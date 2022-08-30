@@ -6,23 +6,37 @@ namespace Ink
 {
     public partial class InkParser
     {
-        protected Parsed.ContentList StartTag ()
+        protected Parsed.Object StartTag ()
         {
             Whitespace ();
 
             if (ParseString ("#") == null)
                 return null;
 
-            var result = new Parsed.ContentList();
+            if( parsingStringExpression ) {
+                Error("Tags aren't allowed inside of strings. Please use \\# if you want a hash symbol.");
+                // but allow us to continue anyway...
+            }
+
+            var result = (Parsed.Object)null;
 
             // End previously active tag before starting new one
-            EndTagIfNecessary(result);
+            if( tagActive ) {
+                var contentList = new Parsed.ContentList();
+                contentList.AddContent(new Parsed.Tag { isStart = false, inChoice = false });
+                contentList.AddContent(new Parsed.Tag { isStart = true, inChoice = false });
+                result = contentList;
+            }
+            
+            // Otherwise, just start a tag, no need for a content list
+            else {
+                result = new Parsed.Tag { isStart = true, inChoice = false };
+            }
 
             tagActive = true;
 
             Whitespace ();
             
-            result.AddContent(new Parsed.Tag(isStart:true));
             return result;
         }
 
@@ -30,7 +44,7 @@ namespace Ink
         {
             if( tagActive ) {
                 if( outputContentList != null )
-                    outputContentList.Add(new Parsed.Tag(isStart:false));
+                    outputContentList.Add(new Parsed.Tag { isStart = false, inChoice = false });
                 tagActive = false;
             }
         }
@@ -39,7 +53,16 @@ namespace Ink
         {
             if( tagActive ) {
                 if( outputContentList != null )
-                    outputContentList.AddContent(new Parsed.Tag(isStart:false));
+                    outputContentList.AddContent(new Parsed.Tag { isStart = false, inChoice = false });
+                tagActive = false;
+            }
+        }
+
+        protected void EndChoiceTagIfNecessary(Parsed.ContentList outputContentList)
+        {
+            if( tagActive ) {
+                if( outputContentList != null )
+                    outputContentList.AddContent(new Parsed.Tag { isStart = false, inChoice = true });
                 tagActive = false;
             }
         }

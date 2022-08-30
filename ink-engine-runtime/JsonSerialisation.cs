@@ -708,6 +708,7 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.ListRandom] = "lrnd";
             _controlCommandNames [(int)ControlCommand.CommandType.BeginTag] = "#";
             _controlCommandNames [(int)ControlCommand.CommandType.EndTag] = "/#";
+            _controlCommandNames [(int)ControlCommand.CommandType.EndTagAndPushToStack] = "/#out";
 
             for (int i = 0; i < (int)ControlCommand.CommandType.TOTAL_VALUES; ++i) {
                 if (_controlCommandNames [i] == null)

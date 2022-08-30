@@ -4,17 +4,28 @@ namespace Ink.Parsed
     public class Tag : Parsed.Object
     {
 
-        public Tag (bool isStart)
-        {
-            _isStart = isStart;
-        }
-
+        public bool isStart;
+        public bool inChoice;
+        
         public override Runtime.Object GenerateRuntimeObject ()
         {
-            return _isStart ? Runtime.ControlCommand.BeginTag() : Runtime.ControlCommand.EndTag();
+            if( isStart )
+                return Runtime.ControlCommand.BeginTag();
+            else if( inChoice ) 
+                return Runtime.ControlCommand.EndTagAndPushToStack();
+            else
+                return Runtime.ControlCommand.EndTag();
         }
 
-        bool _isStart;
+        public override string ToString ()
+        {
+            if( isStart )
+                return "#StartTag";
+            else if( inChoice )
+                return "#EndChoiceTag";
+            else
+                return "#EndTag";
+        }
     }
 }
 

@@ -1023,6 +1023,19 @@ namespace Ink.Runtime
                 currentContainerAncestor = currentContainerAncestor.parent as Container;
             }
         }
+
+        string PopChoiceStringAndTags(ref List<string> tags)
+        {
+            var choiceOnlyStrVal = (StringValue) state.PopEvaluationStack ();
+
+            while( state.evaluationStack.Count > 0 && state.PeekEvaluationStack() is Tag ) {
+                if( tags == null ) tags = new List<string>();
+                var tag = (Tag)state.PopEvaluationStack ();
+                tags.Insert(0, tag.text); // popped in reverse order
+            }
+
+            return choiceOnlyStrVal.value;
+        }
             
         Choice ProcessChoice(ChoicePoint choicePoint)
         {
@@ -1038,15 +1051,14 @@ namespace Ink.Runtime
 
             string startText = "";
             string choiceOnlyText = "";
+            var tags = (List<string>)null;
 
             if (choicePoint.hasChoiceOnlyContent) {
-                var choiceOnlyStrVal = state.PopEvaluationStack () as StringValue;
-                choiceOnlyText = choiceOnlyStrVal.value;
+                choiceOnlyText = PopChoiceStringAndTags(ref tags);
             }
 
             if (choicePoint.hasStartContent) {
-                var startStrVal = state.PopEvaluationStack () as StringValue;
-                startText = startStrVal.value;
+                startText = PopChoiceStringAndTags(ref tags);
             }
 
             // Don't create choice if player has already read this content
@@ -1068,6 +1080,7 @@ namespace Ink.Runtime
             choice.targetPath = choicePoint.pathOnChoice;
             choice.sourcePath = choicePoint.path.ToString ();
             choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
+            choice.tags = tags;
 
             // We need to capture the state of the callstack at the point where
             // the choice was generated, since after the generation of this choice
@@ -1288,13 +1301,60 @@ namespace Ink.Runtime
                     state.PushToOutputStream (evalCommand);
                     break;
 
+                case ControlCommand.CommandType.EndTagAndPushToStack: {
+                    
+                    var contentStackForTag = new Stack<Runtime.Object> ();
+                    int outputCountConsumed = 0;
+
+                    for (int i = state.outputStream.Count - 1; i >= 0; --i) {
+                        var obj = state.outputStream [i];
+
+                        outputCountConsumed++;
+
+                        var command = obj as ControlCommand;
+                        if (command != null) {
+                            if( command.commandType == ControlCommand.CommandType.BeginTag ) {
+                                break;
+                            } else {
+                                Error("Unexpected ControlCommand while extracting tag from choice");
+                                break;
+                            }
+                            
+                        }
+
+                        if( obj is StringValue)
+                            contentStackForTag.Push (obj);
+                    }
+
+                    // Consume the content that was produced for this string
+                    state.PopFromOutputStream (outputCountConsumed);
+
+                    var sb = new StringBuilder();
+                    foreach(StringValue strVal in contentStackForTag) {
+                        sb.Append(strVal.value);
+                    }
+
+                    var choiceTag = new Tag(sb.ToString());
+
+                    // Pushing to the evaluation stack means it gets picked up
+                    // when a Choice is generated from the next Choice Point.
+                    state.PushEvaluationStack(choiceTag);
+
+                    // But we also push it to general output in case people
+                    // want to get the tag from there.
+                    state.PushToOutputStream (choiceTag);
+                    break;
+                }
+
+
                 // Dynamic strings and tags are built in the same way
-                case ControlCommand.CommandType.EndString:
+                case ControlCommand.CommandType.EndString: {
                     
                     // Since we're iterating backward through the content,
                     // build a stack so that when we build the string,
                     // it's in the right order
                     var contentStackForString = new Stack<Runtime.Object> ();
+                    var contentToRetain = new Stack<Runtime.Object>();
 
                     int outputCountConsumed = 0;
                     for (int i = state.outputStream.Count - 1; i >= 0; --i) {
@@ -1307,74 +1367,34 @@ namespace Ink.Runtime
                             break;
                         }
 
-                        if( obj is StringValue || obj is ControlCommand )
+                        if( obj is Tag )
+                            contentToRetain.Push(obj);
+
+                        if( obj is StringValue )
                             contentStackForString.Push (obj);
                     }
 
                     // Consume the content that was produced for this string
                     state.PopFromOutputStream (outputCountConsumed);
 
+                    // Rescue the tags that we want actually to keep on the output stack
+                    // rather than consume as part of the string we're building.
+                    // At the time of writing, this only applies to Tag objects generated
+                    // by choices, which are pushed to the stack during string generation.
+                    foreach(var rescuedTag in contentToRetain)
+                        state.PushToOutputStream(rescuedTag);
+
                     // Build string out of the content we collected
-                    // Unfortunately we also need to deal with tags here, flattening
-                    // them down if they're in the output stream, and separating them
-                    // out from the rest of the text content.
-                    //
-                    // This is necessary in case you write:
-                    // 
-                    //   ~ x = "hello # tag"
-                    //
-                    // This doesn't seem like an edge case we'd want to support,
-                    // except that it's used internally to generate the text for
-                    // choices. e.g.:
-                    //
-                    //   + one #one [two #two] three #three
-                    //
-                    // The text for one and two are generated as string values in
-                    // advance, so internally, it's as if they're like:
-                    // 
-                    //   ~ choicePointStart = "one #one"
-                    //   ~ choicePointMid   = "two #two"
-
-                    var inTag = false;
                     var sb = new StringBuilder ();
-                    var tagSb = (StringBuilder)null;
-                    bool tryAppendTag = false;
                     foreach (var c in contentStackForString) {
-                        var cmd = c as ControlCommand;
-                        if( cmd != null ) {
-                            if( cmd.commandType == ControlCommand.CommandType.BeginTag ) {
-                                inTag = true;
-                                tryAppendTag = true;
-                            } else if( cmd.commandType == ControlCommand.CommandType.EndTag ) {
-                                inTag = false;
-                                tryAppendTag = true;
-                            }
-                        }
-
-                        else if( c is StringValue ) {
-                            if( inTag ) {
-                                if( tagSb == null ) tagSb = new StringBuilder();
-                                tagSb.Append(c.ToString());
-                            } else {
-                                sb.Append (c.ToString ());
-                            }
-                        }
-
-                        if( tryAppendTag && tagSb != null && tagSb.Length > 0 ) {
-                            state.PushToOutputStream(new Tag(tagSb.ToString()));
-                            tagSb.Clear();
-                        }
-                    }
-
-                    if( tagSb != null && tagSb.Length > 0 ) {
-                        state.PushToOutputStream(new Tag(tagSb.ToString()));
-                        tagSb.Clear();
+                        sb.Append (c.ToString ());
                     }
 
                     // Return to expression evaluation (from content mode)
                     state.inExpressionEvaluation = true;
                     state.PushEvaluationStack (new StringValue (sb.ToString ()));
                     break;
+                }
 
                 case ControlCommand.CommandType.ChoiceCount:
 					var choiceCount = state.generatedChoices.Count;
