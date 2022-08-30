@@ -1307,7 +1307,7 @@ namespace Ink.Runtime
                             break;
                         }
 
-                        if( obj is StringValue )
+                        if( obj is StringValue || obj is ControlCommand )
                             contentStackForString.Push (obj);
                     }
 
@@ -1315,13 +1315,64 @@ namespace Ink.Runtime
                     state.PopFromOutputStream (outputCountConsumed);
 
                     // Build string out of the content we collected
+                    // Unfortunately we also need to deal with tags here, flattening
+                    // them down if they're in the output stream, and separating them
+                    // out from the rest of the text content.
+                    //
+                    // This is necessary in case you write:
+                    // 
+                    //   ~ x = "hello # tag"
+                    //
+                    // This doesn't seem like an edge case we'd want to support,
+                    // except that it's used internally to generate the text for
+                    // choices. e.g.:
+                    //
+                    //   + one #one [two #two] three #three
+                    //
+                    // The text for one and two are generated as string values in
+                    // advance, so internally, it's as if they're like:
+                    // 
+                    //   ~ choicePointStart = "one #one"
+                    //   ~ choicePointMid   = "two #two"
+
+                    var inTag = false;
                     var sb = new StringBuilder ();
+                    var tagSb = (StringBuilder)null;
+                    bool tryAppendTag = false;
                     foreach (var c in contentStackForString) {
-                        sb.Append (c.ToString ());
+                        var cmd = c as ControlCommand;
+                        if( cmd != null ) {
+                            if( cmd.commandType == ControlCommand.CommandType.BeginTag ) {
+                                inTag = true;
+                                tryAppendTag = true;
+                            } else if( cmd.commandType == ControlCommand.CommandType.EndTag ) {
+                                inTag = false;
+                                tryAppendTag = true;
+                            }
+                        }
+
+                        else if( c is StringValue ) {
+                            if( inTag ) {
+                                if( tagSb == null ) tagSb = new StringBuilder();
+                                tagSb.Append(c.ToString());
+                            } else {
+                                sb.Append (c.ToString ());
+                            }
+                        }
+
+                        if( tryAppendTag && tagSb != null && tagSb.Length > 0 ) {
+                            state.PushToOutputStream(new Tag(tagSb.ToString()));
+                            tagSb.Clear();
+                        }
+                    }
+
+                    if( tagSb != null && tagSb.Length > 0 ) {
+                        state.PushToOutputStream(new Tag(tagSb.ToString()));
+                        tagSb.Clear();
                     }
 
                     // Return to expression evaluation (from content mode)
-                        state.inExpressionEvaluation = true;
+                    state.inExpressionEvaluation = true;
                     state.PushEvaluationStack (new StringValue (sb.ToString ()));
                     break;
 
@@ -2433,7 +2484,7 @@ namespace Ink.Runtime
             // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
             List<string> tags = null;
             foreach (var c in flowContainer.content) {
-                var tag = c as Runtime.LegacyTag;
+                var tag = c as Runtime.Tag;
                 if (tag) {
                     if (tags == null) tags = new List<string> ();
                     tags.Add (tag.text);

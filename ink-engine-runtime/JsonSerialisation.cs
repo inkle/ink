@@ -243,7 +243,7 @@ namespace Ink.Runtime
             }
 
             // Legacy tag
-            var tag = obj as LegacyTag;
+            var tag = obj as Tag;
             if (tag)
             {
                 writer.WriteObjectStart();
@@ -478,7 +478,7 @@ namespace Ink.Runtime
 
                 // Legacy Tag with text
                 if (obj.TryGetValue ("#", out propValue)) {
-                    return new Runtime.LegacyTag((string)propValue);
+                    return new Runtime.Tag((string)propValue);
                 }
 
                 // List value

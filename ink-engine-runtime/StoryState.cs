@@ -374,7 +374,7 @@ namespace Ink.Runtime
                         }
 
                         else {
-                            var legacyTag = outputObj as LegacyTag;
+                            var legacyTag = outputObj as Tag;
                             if (legacyTag != null && legacyTag.text != null && legacyTag.text.Length > 0) {
                                 _currentTags.Add (legacyTag.text);
                             }
