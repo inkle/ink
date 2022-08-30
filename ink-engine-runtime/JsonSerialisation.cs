@@ -242,8 +242,8 @@ namespace Ink.Runtime
                 return;
             }
 
-            // Tag
-            var tag = obj as Tag;
+            // Legacy tag
+            var tag = obj as LegacyTag;
             if (tag)
             {
                 writer.WriteObjectStart();
@@ -476,9 +476,9 @@ namespace Ink.Runtime
                     return varAss;
                 }
 
-                // Tag
+                // Legacy Tag with text
                 if (obj.TryGetValue ("#", out propValue)) {
-                    return new Runtime.Tag ((string)propValue);
+                    return new Runtime.LegacyTag((string)propValue);
                 }
 
                 // List value
@@ -706,6 +706,8 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.ListFromInt] = "listInt";
             _controlCommandNames [(int)ControlCommand.CommandType.ListRange] = "range";
             _controlCommandNames [(int)ControlCommand.CommandType.ListRandom] = "lrnd";
+            _controlCommandNames [(int)ControlCommand.CommandType.BeginTag] = "#";
+            _controlCommandNames [(int)ControlCommand.CommandType.EndTag] = "/#";
 
             for (int i = 0; i < (int)ControlCommand.CommandType.TOTAL_VALUES; ++i) {
                 if (_controlCommandNames [i] == null)

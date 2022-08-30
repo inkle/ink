@@ -6,45 +6,44 @@ namespace Ink
 {
     public partial class InkParser
     {
-        protected Parsed.Tag Tag ()
+        protected Parsed.ContentList StartTag ()
         {
             Whitespace ();
 
             if (ParseString ("#") == null)
                 return null;
 
+            var result = new Parsed.ContentList();
+
+            // End previously active tag before starting new one
+            EndTagIfNecessary(result);
+
+            tagActive = true;
+
             Whitespace ();
-
-            var sb = new StringBuilder ();
-            do {
-                // Read up to another #, end of input or newline
-                string tagText = ParseUntilCharactersFromCharSet (_endOfTagCharSet);
-                sb.Append (tagText);
-
-                // Escape character
-                if (ParseString ("\\") != null) {
-                    char c = ParseSingleCharacter ();
-                    if( c != (char)0 ) sb.Append(c);
-                    continue;
-                }
-
-                break;
-            } while ( true );
-
-            var fullTagText = sb.ToString ().Trim();
-
-            return new Parsed.Tag (new Runtime.Tag (fullTagText));
+            
+            result.AddContent(new Parsed.Tag(isStart:true));
+            return result;
         }
 
-        protected List<Parsed.Tag> Tags ()
+        protected void EndTagIfNecessary(List<Parsed.Object> outputContentList)
         {
-            var tags = OneOrMore (Tag);
-            if (tags == null) return null;
-
-            return tags.Cast<Parsed.Tag>().ToList();
+            if( tagActive ) {
+                if( outputContentList != null )
+                    outputContentList.Add(new Parsed.Tag(isStart:false));
+                tagActive = false;
+            }
         }
 
-        CharacterSet _endOfTagCharSet = new CharacterSet ("#\n\r\\");
+        protected void EndTagIfNecessary(Parsed.ContentList outputContentList)
+        {
+            if( tagActive ) {
+                if( outputContentList != null )
+                    outputContentList.AddContent(new Parsed.Tag(isStart:false));
+                tagActive = false;
+            }
+        }
     }
-}
+    }
+
 

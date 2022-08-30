@@ -250,9 +250,9 @@ namespace Ink
             return result;
         }
 
-        protected Parsed.Object InlineLogicOrGlue()
+        protected Parsed.Object InlineLogicOrGlueOrStartTag()
         {
-            return (Parsed.Object) OneOf (InlineLogic, Glue);
+            return (Parsed.Object) OneOf (InlineLogic, Glue, StartTag);
         }
 
         protected Parsed.Glue Glue()
@@ -330,6 +330,8 @@ namespace Ink
                 InnerExpression,
             };
 
+            bool wasTagActiveAtStartOfScope = tagActive;
+
             // Adapted from "OneOf" structuring rule except that in
             // order for the rule to succeed, it has to maximally
             // cover the entire string within the { }. Used to
@@ -347,8 +349,9 @@ namespace Ink
                         FailRule (ruleId);
 
                     // Full parse of content within braces
-                    else
+                    else {
                         return (Parsed.Object) SucceedRule (ruleId, result);
+                    }
 
                 } else {
                     FailRule (ruleId);

@@ -1280,6 +1280,15 @@ namespace Ink.Runtime
                     state.inExpressionEvaluation = false;
                     break;
 
+                // Leave it to story.currentText and story.currentTags to sort out the text from the tags
+                // This is mostly because we can't rely on the existence of EndTag, and we don't want
+                // to try and flatten dynamic tags to strings every time \n is pushed to output
+                case ControlCommand.CommandType.BeginTag:
+                case ControlCommand.CommandType.EndTag:
+                    state.PushToOutputStream (evalCommand);
+                    break;
+
+                // Dynamic strings and tags are built in the same way
                 case ControlCommand.CommandType.EndString:
                     
                     // Since we're iterating backward through the content,
@@ -1312,7 +1321,7 @@ namespace Ink.Runtime
                     }
 
                     // Return to expression evaluation (from content mode)
-                    state.inExpressionEvaluation = true;
+                        state.inExpressionEvaluation = true;
                     state.PushEvaluationStack (new StringValue (sb.ToString ()));
                     break;
 
@@ -2424,7 +2433,7 @@ namespace Ink.Runtime
             // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
             List<string> tags = null;
             foreach (var c in flowContainer.content) {
-                var tag = c as Runtime.Tag;
+                var tag = c as Runtime.LegacyTag;
                 if (tag) {
                     if (tags == null) tags = new List<string> ();
                     tags.Add (tag.text);

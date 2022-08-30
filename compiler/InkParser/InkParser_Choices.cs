@@ -49,12 +49,16 @@ namespace Ink
             bool hasWeaveStyleInlineBrackets = ParseString("[") != null;
             if (hasWeaveStyleInlineBrackets) {
 
+                EndTagIfNecessary(startContent);
+
                 var optionOnlyTextAndLogic = Parse (MixedTextAndLogic);
                 if (optionOnlyTextAndLogic != null)
                     optionOnlyContent = new ContentList (optionOnlyTextAndLogic);
 
 
                 Expect (String("]"), "closing ']' for weave-style option");
+
+                EndTagIfNecessary(optionOnlyContent);
 
                 var innerTextAndLogic = Parse (MixedTextAndLogic);
                 if( innerTextAndLogic != null )
@@ -82,10 +86,7 @@ namespace Ink
 
             if (!innerContent) innerContent = new ContentList ();
 
-            var tags = Parse (Tags);
-            if (tags != null) {
-                innerContent.AddContent(tags);
-            }
+            EndTagIfNecessary(innerContent);
 
             // Normal diverts on the end of a choice - simply add to the normal content
             if (diverts != null) {

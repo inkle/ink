@@ -271,11 +271,21 @@ namespace Ink.Runtime
 				if( _outputStreamTextDirty ) {
 					var sb = new StringBuilder ();
 
+                    bool inTag = false;
 					foreach (var outputObj in outputStream) {
 						var textContent = outputObj as StringValue;
-						if (textContent != null) {
+						if (!inTag && textContent != null) {
 							sb.Append(textContent.value);
-						}
+						} else {
+                            var controlCommand = outputObj as ControlCommand;
+                            if( controlCommand != null ) {
+                                if( controlCommand.commandType == ControlCommand.CommandType.BeginTag ) {
+                                    inTag = true;
+                                } else if( controlCommand.commandType == ControlCommand.CommandType.EndTag ) {
+                                    inTag = false;
+                                }
+                            }
+                        }
 					}
 
                     _currentText = CleanOutputWhitespace (sb.ToString ());
@@ -330,12 +340,53 @@ namespace Ink.Runtime
 				if( _outputStreamTagsDirty ) {
 					_currentTags = new List<string>();
 
+                    bool inTag = false;
+                    var sb = new StringBuilder ();
+
 					foreach (var outputObj in outputStream) {
-						var tag = outputObj as Tag;
-						if (tag != null) {
-							_currentTags.Add (tag.text);
-						}
+                        var controlCommand = outputObj as ControlCommand;
+
+                        if( controlCommand != null ) {
+                            if( controlCommand.commandType == ControlCommand.CommandType.BeginTag ) {
+                                if( inTag && sb.Length > 0 ) {
+                                    var txt = CleanOutputWhitespace(sb.ToString());
+                                    _currentTags.Add(txt);
+                                    sb.Clear();
+                                }
+                                inTag = true;
+                            }
+
+                            else if( controlCommand.commandType == ControlCommand.CommandType.EndTag ) {
+                                if( sb.Length > 0 ) {
+                                    var txt = CleanOutputWhitespace(sb.ToString());
+                                    _currentTags.Add(txt);
+                                    sb.Clear();
+                                }
+                                inTag = false;
+                            }
+                        }
+
+                        else if( inTag ) {
+                            var strVal = outputObj as StringValue;
+                            if( strVal != null ) {
+                                sb.Append(strVal.value);
+                            }
+                        }
+
+                        else {
+                            var legacyTag = outputObj as LegacyTag;
+                            if (legacyTag != null && legacyTag.text != null && legacyTag.text.Length > 0) {
+                                _currentTags.Add (legacyTag.text);
+                            }
+                        }
+
 					}
+
+                    if( sb.Length > 0 ) {
+                        var txt = CleanOutputWhitespace(sb.ToString());
+                        _currentTags.Add(txt);
+                        sb.Clear();
+                    }
 
 					_outputStreamTagsDirty = false;
 				}
