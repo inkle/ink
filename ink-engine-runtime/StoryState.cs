@@ -301,7 +301,7 @@ namespace Ink.Runtime
         // Cleans inline whitespace in the following way:
         //  - Removes all whitespace from the start and end of line (including just before a \n)
         //  - Turns all consecutive space and tab runs into single spaces (HTML style)
-        string CleanOutputWhitespace(string str)
+        public string CleanOutputWhitespace(string str)
         {
             var sb = new StringBuilder(str.Length);
 
@@ -374,9 +374,9 @@ namespace Ink.Runtime
                         }
 
                         else {
-                            var legacyTag = outputObj as Tag;
-                            if (legacyTag != null && legacyTag.text != null && legacyTag.text.Length > 0) {
-                                _currentTags.Add (legacyTag.text);
+                            var tag = outputObj as Tag;
+                            if (tag != null && tag.text != null && tag.text.Length > 0) {
+                                _currentTags.Add (tag.text); // tag.text has whitespae already cleaned
                             }
                         }
 

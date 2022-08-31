@@ -1334,7 +1334,7 @@ namespace Ink.Runtime
                         sb.Append(strVal.value);
                     }
 
-                    var choiceTag = new Tag(sb.ToString());
+                    var choiceTag = new Tag(state.CleanOutputWhitespace(sb.ToString()));
 
                     // Pushing to the evaluation stack means it gets picked up
                     // when a Choice is generated from the next Choice Point.
