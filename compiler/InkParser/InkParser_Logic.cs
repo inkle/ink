@@ -273,11 +273,15 @@ namespace Ink
                 return null;
             }
 
+            var wasParsingString = parsingStringExpression;
+
             Whitespace ();
 
             var logic = (Parsed.Object) Expect(InnerLogic, "some kind of logic, conditional or sequence within braces: { ... }");
-            if (logic == null)
+            if (logic == null) {
+                parsingStringExpression = wasParsingString;
                 return null;
+            }
 
             DisallowIncrement (logic);
 
@@ -289,6 +293,8 @@ namespace Ink
             Whitespace ();
 
             Expect (String("}"), "closing brace '}' for inline logic");
+
+            parsingStringExpression = wasParsingString;
 
             return contentList;
         }
