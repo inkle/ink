@@ -2502,13 +2502,34 @@ namespace Ink.Runtime
             }
 
             // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
+            bool inTag = false;
             List<string> tags = null;
             foreach (var c in flowContainer.content) {
-                var tag = c as Runtime.Tag;
-                if (tag) {
-                    if (tags == null) tags = new List<string> ();
-                    tags.Add (tag.text);
-                } else break;
+
+                var command = c as Runtime.ControlCommand;
+                if( command != null ) {
+                    if( command.commandType == Runtime.ControlCommand.CommandType.BeginTag ) {
+                        inTag = true;
+                    } else if( command.commandType == Runtime.ControlCommand.CommandType.EndTag ) {
+                        inTag = false;
+                    }
+                }
+
+                else if( inTag ) {
+                    var str = c as Runtime.StringValue;
+                    if( str != null ) {
+                        if( tags == null ) tags = new List<string>();
+                        tags.Add(str.value);
+                    } else {
+                        Error("Tag contained non-text content. Only plain text is allowed when using globalTags or TagsAtContentPath. If you want to evaluate dynamic content, you need to use story.Continue().");
+                    }
+                }
+
+                // Any other content - we're done
+                // We only recognise initial text-only tags
+                else {
+                    break;
+                }
             }
 
             return tags;
