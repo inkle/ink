@@ -274,6 +274,7 @@ namespace Ink
             }
 
             var wasParsingString = parsingStringExpression;
+            var wasTagActive = tagActive;
 
             Whitespace ();
 
@@ -294,7 +295,18 @@ namespace Ink
 
             Expect (String("}"), "closing brace '}' for inline logic");
 
+            // Allow nested strings and logic
             parsingStringExpression = wasParsingString;
+
+            // Difference between:
+            //
+            //     1) A thing # {image}.jpg
+            //     2) A {red #red|blue #blue} sequence.
+            //
+            //  When logic ends in (1) we still want tag to continue.
+            //  When logic ends in (2) we want to auto-end the tag.
+            //  Side note: we simply disallow tags within strings.
+            if( !wasTagActive ) EndTagIfNecessary(contentList);
 
             return contentList;
         }
