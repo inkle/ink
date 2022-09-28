@@ -117,7 +117,7 @@ namespace Ink.Runtime
         /// </summary>
         public InkList(InkList otherList) : base(otherList)
         {
-            _originNames = otherList.originNames;
+            _originNames = new List<string>(otherList.originNames);
             if (otherList.origins != null)
             {
                 origins = new List<ListDefinition>(otherList.origins);
