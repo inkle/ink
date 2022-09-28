@@ -215,7 +215,7 @@ namespace Ink
                 var jsonStr = story.ToJson ();
 
                 try {
-                    File.WriteAllText (opts.outputFile, jsonStr, System.Text.Encoding.UTF8);
+                    File.WriteAllText (opts.outputFile, jsonStr, new System.Text.UTF8Encoding(false));
 
                     if( opts.jsonOutput )
                         Console.WriteLine("{\"export-complete\": true}");
