@@ -31,6 +31,9 @@ namespace Ink.Runtime
             ListFromInt,
             ListRange,
             ListRandom,
+            BeginTag,
+            EndTag,
+            EndTagAndPushToStack,
             //----
             TOTAL_VALUES
         }
@@ -159,6 +162,21 @@ namespace Ink.Runtime
         public static ControlCommand ListRandom ()
         {
             return new ControlCommand (CommandType.ListRandom);
+        }
+
+        public static ControlCommand BeginTag ()
+        {
+            return new ControlCommand (CommandType.BeginTag);
+        }
+
+        public static ControlCommand EndTag ()
+        {
+            return new ControlCommand (CommandType.EndTag);
+        }
+
+        public static ControlCommand EndTagAndPushToStack ()
+        {
+            return new ControlCommand (CommandType.EndTagAndPushToStack);
         }
 
         public override string ToString ()

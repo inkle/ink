@@ -38,21 +38,6 @@ namespace Ink
             Parse (Whitespace);
 
             var result = Parse(MixedTextAndLogic);
-
-            // Terminating tag
-            bool onlyTags = false;
-            var tags = Parse (Tags);
-            if (tags != null) {
-                if (result == null) {
-                    result = tags.Cast<Parsed.Object> ().ToList ();
-                    onlyTags = true;
-                } else {
-                    foreach (var tag in tags) {
-                        result.Add(tag);
-                    }
-                }
-            }
-
             if (result == null || result.Count == 0)
                 return null;
 
@@ -71,9 +56,14 @@ namespace Ink
                 TrimEndWhitespace (result, terminateWithSpace:false);
             }
 
-            // Add newline since it's the end of the line
-            // (so long as it's a line with only tags)
-            if( !onlyTags )
+            EndTagIfNecessary(result);
+
+            // If the line doens't actually contain any normal text content
+            // but is in fact entirely a tag, then let's not append
+            // a newline, since we want the tag (or tags) to be associated
+            // with the line below rather than being completely independent.
+            bool lineIsPureTag = result.Count > 0 && result[0] is Parsed.Tag && ((Parsed.Tag)result[0]).isStart;
+            if( !lineIsPureTag )
                 result.Add (new Text ("\n"));
 
             Expect(EndOfLine, "end of line", recoveryRule: SkipToNextLine);
@@ -89,7 +79,7 @@ namespace Ink
                 Error ("You shouldn't use a '~' here - tildas are for logic that's on its own line. To do inline logic, use { curly braces } instead");
 
             // Either, or both interleaved
-            var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlue));
+            var results = Interleave<Parsed.Object>(Optional (ContentText), Optional (InlineLogicOrGlueOrStartTag));
 
             // Terminating divert?
             // (When parsing content for the text of a choice, diverts aren't allowed.
@@ -102,6 +92,9 @@ namespace Ink
                     // May not have had any results at all if there's *only* a divert!
                     if (results == null)
                         results = new List<Parsed.Object> ();
+
+                    // End previously active tag if necessary
+                    EndTagIfNecessary(results);
 
                     TrimEndWhitespace (results, terminateWithSpace:true);
 

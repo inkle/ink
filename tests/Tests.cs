@@ -3200,25 +3200,49 @@ VAR x = ->place
         }
 
         [Test ()]
-        public void TestTagOnChoice ()
+        public void TestTagsInSeq()
         {
-            var storyStr =
+            var storyStr = 
 @"
-* [Hi] Hello -> END #hey
+-> knot -> knot ->
+== knot
+A {red #red|white #white|blue #blue|green #green} sequence.
+->->
 ";
+            var story = CompileString (storyStr);
 
+            Assert.AreEqual ("A red sequence.\n", story.Continue ());
+            Assert.AreEqual (new List<string> {"red"}, story.currentTags);
+
+            Assert.AreEqual ("A white sequence.\n", story.Continue ());
+            Assert.AreEqual (new List<string> {"white"}, story.currentTags);
+        }
+
+        [Test ()]
+        public void TestTagsInChoice()
+        {
+            var storyStr = @"+ one #one [two #two] three #three -> END";
             var story = CompileString (storyStr);
 
             story.Continue ();
+            Assert.AreEqual (new List<string> {"one", "two"}, story.currentTags);
+            Assert.AreEqual (1, story.currentChoices.Count);
+            Assert.AreEqual (new List<string> {"one", "two"}, story.currentChoices[0].tags);
 
-            story.ChooseChoiceIndex (0);
+            story.ChooseChoiceIndex(0);
 
-            var txt = story.Continue ();
-            var tags = story.currentTags;
+            Assert.AreEqual ("one three", story.Continue ());
+            Assert.AreEqual (new List<string> {"one", "three"}, story.currentTags);
+        }
 
-            Assert.AreEqual ("Hello", txt);
-            Assert.AreEqual (1, tags.Count);
-            Assert.AreEqual ("hey", tags[0]);
+        [Test ()]
+        public void TestTagsDynamicContent()
+        {
+            var storyStr = @"tag # pic{5+3}{red|blue}.jpg";
+            var story = CompileString (storyStr);
+
+            Assert.AreEqual ("tag\n", story.Continue ());
+            Assert.AreEqual (new List<string> {"pic8red.jpg"}, story.currentTags);
         }
 
         [Test ()]
