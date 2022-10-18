@@ -18,7 +18,11 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 9; // new: multi-flows, but backward compatible
+        //
+        // Backward compatible changes since v8:
+        // v10: dynamic tags
+        // v9:  multi-flows
+        public const int kInkSaveStateVersion = 10;
         const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
