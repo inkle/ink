@@ -67,7 +67,7 @@ namespace Ink
 
 			Whitespace ();
 
-            EndTagIfNecessary(startContent ?? innerContent);
+            EndTagIfNecessary(innerContent ?? startContent);
 
             // Finally, now we know we're at the end of the main choice body, parse
             // any diverts separately.
