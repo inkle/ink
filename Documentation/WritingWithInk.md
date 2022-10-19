@@ -2565,6 +2565,17 @@ We can also negate it, with `hasnt` or `!?` (not `?`). Note this starts to get a
 
 does not mean neither Adams nor Bernard is present, only that they are not *both* present (and arguing).
 
+#### Warning: no lists contain the empty list
+
+Note that the test 
+
+	SomeList ? ()
+
+will always return false, regardless of whether `SomeList` itself is empty. In practice this is the most useful default, as you'll often want to do tests like:
+
+	SilverWeapons ? best_weapon_to_use 
+	
+to fail if the player is empty-handed.
 
 #### Example: basic knowledge tracking
 
