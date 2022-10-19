@@ -23,14 +23,14 @@ namespace Ink
             // End previously active tag before starting new one
             if( tagActive ) {
                 var contentList = new Parsed.ContentList();
-                contentList.AddContent(new Parsed.Tag { isStart = false, inChoice = false });
-                contentList.AddContent(new Parsed.Tag { isStart = true, inChoice = false });
+                contentList.AddContent(new Parsed.Tag { isStart = false });
+                contentList.AddContent(new Parsed.Tag { isStart = true });
                 result = contentList;
             }
             
             // Otherwise, just start a tag, no need for a content list
             else {
-                result = new Parsed.Tag { isStart = true, inChoice = false };
+                result = new Parsed.Tag { isStart = true };
             }
 
             tagActive = true;
@@ -44,7 +44,7 @@ namespace Ink
         {
             if( tagActive ) {
                 if( outputContentList != null )
-                    outputContentList.Add(new Parsed.Tag { isStart = false, inChoice = false });
+                    outputContentList.Add(new Parsed.Tag { isStart = false });
                 tagActive = false;
             }
         }
@@ -53,16 +53,7 @@ namespace Ink
         {
             if( tagActive ) {
                 if( outputContentList != null )
-                    outputContentList.AddContent(new Parsed.Tag { isStart = false, inChoice = false });
-                tagActive = false;
-            }
-        }
-
-        protected void EndChoiceTagIfNecessary(Parsed.ContentList outputContentList)
-        {
-            if( tagActive ) {
-                if( outputContentList != null )
-                    outputContentList.AddContent(new Parsed.Tag { isStart = false, inChoice = true });
+                    outputContentList.AddContent(new Parsed.Tag { isStart = false });
                 tagActive = false;
             }
         }

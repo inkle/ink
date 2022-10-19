@@ -49,7 +49,7 @@ namespace Ink
             bool hasWeaveStyleInlineBrackets = ParseString("[") != null;
             if (hasWeaveStyleInlineBrackets) {
 
-                EndChoiceTagIfNecessary(startContent);
+                EndTagIfNecessary(startContent);
 
                 var optionOnlyTextAndLogic = Parse (MixedTextAndLogic);
                 if (optionOnlyTextAndLogic != null)
@@ -58,7 +58,7 @@ namespace Ink
 
                 Expect (String("]"), "closing ']' for weave-style option");
 
-                EndChoiceTagIfNecessary(optionOnlyContent);
+                EndTagIfNecessary(optionOnlyContent);
 
                 var innerTextAndLogic = Parse (MixedTextAndLogic);
                 if( innerTextAndLogic != null )
@@ -66,6 +66,8 @@ namespace Ink
             }
 
 			Whitespace ();
+
+            EndTagIfNecessary(startContent ?? innerContent);
 
             // Finally, now we know we're at the end of the main choice body, parse
             // any diverts separately.
@@ -86,7 +88,7 @@ namespace Ink
 
             if (!innerContent) innerContent = new ContentList ();
 
-            EndChoiceTagIfNecessary(innerContent);
+            EndTagIfNecessary(innerContent);
 
             // Normal diverts on the end of a choice - simply add to the normal content
             if (diverts != null) {

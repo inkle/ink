@@ -33,7 +33,6 @@ namespace Ink.Runtime
             ListRandom,
             BeginTag,
             EndTag,
-            EndTagAndPushToStack,
             //----
             TOTAL_VALUES
         }
@@ -172,11 +171,6 @@ namespace Ink.Runtime
         public static ControlCommand EndTag ()
         {
             return new ControlCommand (CommandType.EndTag);
-        }
-
-        public static ControlCommand EndTagAndPushToStack ()
-        {
-            return new ControlCommand (CommandType.EndTagAndPushToStack);
         }
 
         public override string ToString ()

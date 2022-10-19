@@ -11,8 +11,6 @@ namespace Ink.Parsed
         {
             if( isStart )
                 return Runtime.ControlCommand.BeginTag();
-            else if( inChoice ) 
-                return Runtime.ControlCommand.EndTagAndPushToStack();
             else
                 return Runtime.ControlCommand.EndTag();
         }
@@ -21,8 +19,6 @@ namespace Ink.Parsed
         {
             if( isStart )
                 return "#StartTag";
-            else if( inChoice )
-                return "#EndChoiceTag";
             else
                 return "#EndTag";
         }

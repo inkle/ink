@@ -678,7 +678,7 @@ namespace Ink.Runtime
         {
             // Simple case: nothing's changed, and we still have a newline
             // at the end of the current content
-            var newlineStillExists = currText.Length >= prevText.Length && currText [prevText.Length - 1] == '\n';
+            var newlineStillExists = currText.Length >= prevText.Length && prevText.Length > 0 && currText [prevText.Length - 1] == '\n';
             if (prevTagCount == currTagCount && prevText.Length == currText.Length 
                 && newlineStillExists)
                 return OutputStateChange.NoChange;
@@ -1294,55 +1294,86 @@ namespace Ink.Runtime
                     break;
 
                 // Leave it to story.currentText and story.currentTags to sort out the text from the tags
-                // This is mostly because we can't rely on the existence of EndTag, and we don't want
+                // This is mostly because we can't always rely on the existence of EndTag, and we don't want
                 // to try and flatten dynamic tags to strings every time \n is pushed to output
                 case ControlCommand.CommandType.BeginTag:
-                case ControlCommand.CommandType.EndTag:
                     state.PushToOutputStream (evalCommand);
                     break;
 
-                case ControlCommand.CommandType.EndTagAndPushToStack: {
+                case ControlCommand.CommandType.EndTag: {
                     
-                    var contentStackForTag = new Stack<Runtime.Object> ();
-                    int outputCountConsumed = 0;
+                    // EndTag has 2 modes:
+                    //  - When in string evaluation (for choices)
+                    //  - Normal
+                    //
+                    // The only way you could have an EndTag in the middle of
+                    // string evaluation is if we're currently generating text for a
+                    // choice, such as:
+                    //
+                    //   + choice # tag
+                    //
+                    // In the above case, the ink will be run twice:
+                    //  - First, to generate the choice text. String evaluation
+                    //    will be on, and the final string will be pushed to the
+                    //    evaluation stack, ready to be popped to make a Choice
+                    //    object.
+                    //  - Second, when ink generates text after choosing the choice.
+                    //    On this ocassion, it's not in string evaluation mode.
+                    //
+                    // On the writing side, we disallow manually putting tags within
+                    // strings like this:
+                    // 
+                    //   {"hello # world"}
+                    //
+                    // So we know that the tag must be being generated as part of
+                    // choice content. Therefore, when the tag has been generated,
+                    // we push it onto the evaluation stack in the exact same way
+                    // as the string for the choice content.
+                    if( state.inStringEvaluation ) {
+                    
+                        var contentStackForTag = new Stack<Runtime.Object> ();
+                        int outputCountConsumed = 0;
 
-                    for (int i = state.outputStream.Count - 1; i >= 0; --i) {
-                        var obj = state.outputStream [i];
+                        for (int i = state.outputStream.Count - 1; i >= 0; --i) {
+                            var obj = state.outputStream [i];
 
-                        outputCountConsumed++;
+                            outputCountConsumed++;
 
-                        var command = obj as ControlCommand;
-                        if (command != null) {
-                            if( command.commandType == ControlCommand.CommandType.BeginTag ) {
-                                break;
-                            } else {
-                                Error("Unexpected ControlCommand while extracting tag from choice");
-                                break;
+                            var command = obj as ControlCommand;
+                            if (command != null) {
+                                if( command.commandType == ControlCommand.CommandType.BeginTag ) {
+                                    break;
+                                } else {
+                                    Error("Unexpected ControlCommand while extracting tag from choice");
+                                    break;
+                                }
+                                
                             }
-                            
+
+                            if( obj is StringValue)
+                                contentStackForTag.Push (obj);
                         }
 
-                        if( obj is StringValue)
-                            contentStackForTag.Push (obj);
+                        // Consume the content that was produced for this string
+                        state.PopFromOutputStream (outputCountConsumed);
+
+                        var sb = new StringBuilder();
+                        foreach(StringValue strVal in contentStackForTag) {
+                            sb.Append(strVal.value);
+                        }
+
+                        var choiceTag = new Tag(state.CleanOutputWhitespace(sb.ToString()));
+
+                        // Pushing to the evaluation stack means it gets picked up
+                        // when a Choice is generated from the next Choice Point.
+                        state.PushEvaluationStack(choiceTag);
                     }
-
-                    // Consume the content that was produced for this string
-                    state.PopFromOutputStream (outputCountConsumed);
-
-                    var sb = new StringBuilder();
-                    foreach(StringValue strVal in contentStackForTag) {
-                        sb.Append(strVal.value);
+                    
+                    // Otherwise! Simply push EndTag, so that in the output stream we
+                    // have a structure of: [BeginTag, "the tag content", EndTag]
+                    else {
+                        state.PushToOutputStream (evalCommand);
                     }
-
-                    var choiceTag = new Tag(state.CleanOutputWhitespace(sb.ToString()));
-
-                    // Pushing to the evaluation stack means it gets picked up
-                    // when a Choice is generated from the next Choice Point.
-                    state.PushEvaluationStack(choiceTag);
-
-                    // But we also push it to general output in case people
-                    // want to get the tag from there.
-                    state.PushToOutputStream (choiceTag);
                     break;
                 }
 
