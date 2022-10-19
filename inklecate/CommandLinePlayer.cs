@@ -61,7 +61,24 @@ namespace Ink
                         writer.WritePropertyStart("choices");
                         writer.WriteArrayStart();
                         foreach(var choice in choices) {
+                            writer.WriteObjectStart();
+                            writer.WritePropertyStart("text");
                             writer.Write(choice.text);
+                            writer.WritePropertyEnd();
+                            if( choice.tags != null && choice.tags.Count > 0 ) {
+                                writer.WritePropertyStart("tags");
+                                writer.WriteArrayStart();
+                                foreach(var tag in choice.tags) {
+                                    writer.Write(tag);
+                                }
+                                writer.WriteArrayEnd();
+                                writer.WritePropertyEnd();
+
+                                writer.WritePropertyStart("tag_count");
+                                writer.Write(choice.tags.Count);
+                                writer.WritePropertyEnd();
+                            }
+                            writer.WriteObjectEnd();
                         }
                         writer.WriteArrayEnd();
                         writer.WritePropertyEnd();
