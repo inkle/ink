@@ -3225,7 +3225,7 @@ A {red #red|white #white|blue #blue|green #green} sequence.
             var story = CompileString (storyStr);
 
             story.Continue ();
-            Assert.AreEqual (new List<string> {"one", "two"}, story.currentTags);
+            Assert.AreEqual (0, story.currentTags.Count);
             Assert.AreEqual (1, story.currentChoices.Count);
             Assert.AreEqual (new List<string> {"one", "two"}, story.currentChoices[0].tags);
 
