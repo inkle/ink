@@ -1911,6 +1911,18 @@ namespace Ink.Runtime
         /// function, but you don't want it to fail to run.
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
+        
+        public bool TryGetExternalFunction(string functionName, out ExternalFunction externalFunction) {
+            ExternalFunctionDef externalFunctionDef;
+            if(_externals.TryGetValue (functionName, out externalFunctionDef)) {
+                externalFunction = externalFunctionDef.function;
+                return true;
+            } else {
+                externalFunction = null;
+                return false;
+            }
+        }
+
 
         public void CallExternalFunction(string funcName, int numberOfArguments)
         {
