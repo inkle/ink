@@ -24,6 +24,9 @@ namespace Ink
 
             Whitespace ();
 
+            // Allow optional newline right after a choice name
+            if( optionalName != null ) Newline ();
+
             // Optional condition for whether the choice should be shown to the player
             Expression conditionExpr = Parse(ChoiceCondition);
 
