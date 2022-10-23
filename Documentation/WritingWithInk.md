@@ -1289,7 +1289,7 @@ The value of a variable can be printed as content using an inline syntax similar
 
 	My name is Jean Passepartout, but my friend's call me {friendly_name_of_player}. I'm {age} years old.
 
-This can be useful in debugging. For more complex printing based on logic and variables, see the section on functions.
+This can be useful in debugging. For more complex printing based on logic and variables, see the section on [functions](#5-functions).
 
 ### Evaluating strings
 
