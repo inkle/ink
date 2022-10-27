@@ -252,6 +252,19 @@ _inkStory.ObserveVariable ("health", (string varName, object newValue) => {
 The reason that the variable name is passed in is so that you can have a single observer function that observes multiple different variables.
 
 
+## Running functions
+
+You can run ink functions directly from C# using `EvaluationFunction`.
+
+You can pass the expected arguments for the ink function, if any.
+
+If the ink function has a return value, it will be returned by EvaluationFunction.
+You do not need to Continue() over any text lines that may exist in the function; it runs to the end. Any content is written to the textOutput parameter, with a line break between each line.
+
+```csharp
+var returnValue = _inkStory.EvaluationFunction("myFunctionName", out textOutput, params);
+```
+
 ## External functions
 
 You can define game-side functions in C# that can be called directly from **ink**. To do so:
