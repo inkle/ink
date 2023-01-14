@@ -7,7 +7,7 @@ dotnet publish -c Release -r linux-x64 --self-contained /p:PublishTrimmed=false 
 dotnet publish -c Release -r osx-x64 --self-contained /p:PublishTrimmed=false /p:PublishSingleFile=true -o ReleaseBinary/inklecate/osx64 inklecate/inklecate.csproj
 
 # Simply zip up inklecate executable and the DLLs together for each platform
-runtimeAndCompilerDLLs="ink-engine-runtime/bin/Release/net6.0/ink-engine-runtime.dll compiler/bin/Release/net6.0/ink_compiler.dll"
+runtimeAndCompilerDLLs="ink-engine-runtime/bin/Release/netstandard2.0/ink-engine-runtime.dll compiler/bin/Release/netstandard2.0/ink_compiler.dll"
 zip --junk-paths ReleaseBinary/inklecate_windows.zip ReleaseBinary/inklecate/win32/inklecate.exe $runtimeAndCompilerDLLs
 zip --junk-paths ReleaseBinary/inklecate_linux.zip  ReleaseBinary/inklecate/lin64/inklecate $runtimeAndCompilerDLLs
 zip --junk-paths ReleaseBinary/inklecate_mac.zip  ReleaseBinary/inklecate/osx64/inklecate $runtimeAndCompilerDLLs
