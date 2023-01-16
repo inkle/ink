@@ -24,6 +24,9 @@ namespace Ink
 
             Whitespace ();
 
+            // Allow optional newline right after a choice name
+            if( optionalName != null ) Newline ();
+
             // Optional condition for whether the choice should be shown to the player
             Expression conditionExpr = Parse(ChoiceCondition);
 
@@ -49,6 +52,8 @@ namespace Ink
             bool hasWeaveStyleInlineBrackets = ParseString("[") != null;
             if (hasWeaveStyleInlineBrackets) {
 
+                EndTagIfNecessary(startContent);
+
                 var optionOnlyTextAndLogic = Parse (MixedTextAndLogic);
                 if (optionOnlyTextAndLogic != null)
                     optionOnlyContent = new ContentList (optionOnlyTextAndLogic);
@@ -56,12 +61,16 @@ namespace Ink
 
                 Expect (String("]"), "closing ']' for weave-style option");
 
+                EndTagIfNecessary(optionOnlyContent);
+
                 var innerTextAndLogic = Parse (MixedTextAndLogic);
                 if( innerTextAndLogic != null )
                     innerContent = new ContentList (innerTextAndLogic);
             }
 
 			Whitespace ();
+
+            EndTagIfNecessary(innerContent ?? startContent);
 
             // Finally, now we know we're at the end of the main choice body, parse
             // any diverts separately.
@@ -82,10 +91,7 @@ namespace Ink
 
             if (!innerContent) innerContent = new ContentList ();
 
-            var tags = Parse (Tags);
-            if (tags != null) {
-                innerContent.AddContent(tags);
-            }
+            EndTagIfNecessary(innerContent);
 
             // Normal diverts on the end of a choice - simply add to the normal content
             if (diverts != null) {

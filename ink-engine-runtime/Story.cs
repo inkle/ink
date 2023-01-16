@@ -16,7 +16,7 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the ink story file format.
         /// </summary>
-        public const int inkVersionCurrent = 20;
+        public const int inkVersionCurrent = 21;
 
         // Version numbers are for engine itself and story file, rather
         // than the story state save format
@@ -678,7 +678,7 @@ namespace Ink.Runtime
         {
             // Simple case: nothing's changed, and we still have a newline
             // at the end of the current content
-            var newlineStillExists = currText.Length >= prevText.Length && currText [prevText.Length - 1] == '\n';
+            var newlineStillExists = currText.Length >= prevText.Length && prevText.Length > 0 && currText [prevText.Length - 1] == '\n';
             if (prevTagCount == currTagCount && prevText.Length == currText.Length 
                 && newlineStillExists)
                 return OutputStateChange.NoChange;
@@ -1023,6 +1023,19 @@ namespace Ink.Runtime
                 currentContainerAncestor = currentContainerAncestor.parent as Container;
             }
         }
+
+        string PopChoiceStringAndTags(ref List<string> tags)
+        {
+            var choiceOnlyStrVal = (StringValue) state.PopEvaluationStack ();
+
+            while( state.evaluationStack.Count > 0 && state.PeekEvaluationStack() is Tag ) {
+                if( tags == null ) tags = new List<string>();
+                var tag = (Tag)state.PopEvaluationStack ();
+                tags.Insert(0, tag.text); // popped in reverse order
+            }
+
+            return choiceOnlyStrVal.value;
+        }
             
         Choice ProcessChoice(ChoicePoint choicePoint)
         {
@@ -1038,15 +1051,14 @@ namespace Ink.Runtime
 
             string startText = "";
             string choiceOnlyText = "";
+            var tags = (List<string>)null;
 
             if (choicePoint.hasChoiceOnlyContent) {
-                var choiceOnlyStrVal = state.PopEvaluationStack () as StringValue;
-                choiceOnlyText = choiceOnlyStrVal.value;
+                choiceOnlyText = PopChoiceStringAndTags(ref tags);
             }
 
             if (choicePoint.hasStartContent) {
-                var startStrVal = state.PopEvaluationStack () as StringValue;
-                startText = startStrVal.value;
+                startText = PopChoiceStringAndTags(ref tags);
             }
 
             // Don't create choice if player has already read this content
@@ -1068,6 +1080,7 @@ namespace Ink.Runtime
             choice.targetPath = choicePoint.pathOnChoice;
             choice.sourcePath = choicePoint.path.ToString ();
             choice.isInvisibleDefault = choicePoint.isInvisibleDefault;
+            choice.tags = tags;
 
             // We need to capture the state of the callstack at the point where
             // the choice was generated, since after the generation of this choice
@@ -1280,12 +1293,99 @@ namespace Ink.Runtime
                     state.inExpressionEvaluation = false;
                     break;
 
-                case ControlCommand.CommandType.EndString:
+                // Leave it to story.currentText and story.currentTags to sort out the text from the tags
+                // This is mostly because we can't always rely on the existence of EndTag, and we don't want
+                // to try and flatten dynamic tags to strings every time \n is pushed to output
+                case ControlCommand.CommandType.BeginTag:
+                    state.PushToOutputStream (evalCommand);
+                    break;
+
+                case ControlCommand.CommandType.EndTag: {
+                    
+                    // EndTag has 2 modes:
+                    //  - When in string evaluation (for choices)
+                    //  - Normal
+                    //
+                    // The only way you could have an EndTag in the middle of
+                    // string evaluation is if we're currently generating text for a
+                    // choice, such as:
+                    //
+                    //   + choice # tag
+                    //
+                    // In the above case, the ink will be run twice:
+                    //  - First, to generate the choice text. String evaluation
+                    //    will be on, and the final string will be pushed to the
+                    //    evaluation stack, ready to be popped to make a Choice
+                    //    object.
+                    //  - Second, when ink generates text after choosing the choice.
+                    //    On this ocassion, it's not in string evaluation mode.
+                    //
+                    // On the writing side, we disallow manually putting tags within
+                    // strings like this:
+                    // 
+                    //   {"hello # world"}
+                    //
+                    // So we know that the tag must be being generated as part of
+                    // choice content. Therefore, when the tag has been generated,
+                    // we push it onto the evaluation stack in the exact same way
+                    // as the string for the choice content.
+                    if( state.inStringEvaluation ) {
+                    
+                        var contentStackForTag = new Stack<Runtime.Object> ();
+                        int outputCountConsumed = 0;
+
+                        for (int i = state.outputStream.Count - 1; i >= 0; --i) {
+                            var obj = state.outputStream [i];
+
+                            outputCountConsumed++;
+
+                            var command = obj as ControlCommand;
+                            if (command != null) {
+                                if( command.commandType == ControlCommand.CommandType.BeginTag ) {
+                                    break;
+                                } else {
+                                    Error("Unexpected ControlCommand while extracting tag from choice");
+                                    break;
+                                }
+                                
+                            }
+
+                            if( obj is StringValue)
+                                contentStackForTag.Push (obj);
+                        }
+
+                        // Consume the content that was produced for this string
+                        state.PopFromOutputStream (outputCountConsumed);
+
+                        var sb = new StringBuilder();
+                        foreach(StringValue strVal in contentStackForTag) {
+                            sb.Append(strVal.value);
+                        }
+
+                        var choiceTag = new Tag(state.CleanOutputWhitespace(sb.ToString()));
+
+                        // Pushing to the evaluation stack means it gets picked up
+                        // when a Choice is generated from the next Choice Point.
+                        state.PushEvaluationStack(choiceTag);
+                    }
+                    
+                    // Otherwise! Simply push EndTag, so that in the output stream we
+                    // have a structure of: [BeginTag, "the tag content", EndTag]
+                    else {
+                        state.PushToOutputStream (evalCommand);
+                    }
+                    break;
+                }
+
+
+                // Dynamic strings and tags are built in the same way
+                case ControlCommand.CommandType.EndString: {
                     
                     // Since we're iterating backward through the content,
                     // build a stack so that when we build the string,
                     // it's in the right order
                     var contentStackForString = new Stack<Runtime.Object> ();
+                    var contentToRetain = new Stack<Runtime.Object>();
 
                     int outputCountConsumed = 0;
                     for (int i = state.outputStream.Count - 1; i >= 0; --i) {
@@ -1298,12 +1398,22 @@ namespace Ink.Runtime
                             break;
                         }
 
+                        if( obj is Tag )
+                            contentToRetain.Push(obj);
+
                         if( obj is StringValue )
                             contentStackForString.Push (obj);
                     }
 
                     // Consume the content that was produced for this string
                     state.PopFromOutputStream (outputCountConsumed);
+
+                    // Rescue the tags that we want actually to keep on the output stack
+                    // rather than consume as part of the string we're building.
+                    // At the time of writing, this only applies to Tag objects generated
+                    // by choices, which are pushed to the stack during string generation.
+                    foreach(var rescuedTag in contentToRetain)
+                        state.PushToOutputStream(rescuedTag);
 
                     // Build string out of the content we collected
                     var sb = new StringBuilder ();
@@ -1315,6 +1425,7 @@ namespace Ink.Runtime
                     state.inExpressionEvaluation = true;
                     state.PushEvaluationStack (new StringValue (sb.ToString ()));
                     break;
+                }
 
                 case ControlCommand.CommandType.ChoiceCount:
 					var choiceCount = state.generatedChoices.Count;
@@ -1800,6 +1911,18 @@ namespace Ink.Runtime
         /// function, but you don't want it to fail to run.
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
+        
+        public bool TryGetExternalFunction(string functionName, out ExternalFunction externalFunction) {
+            ExternalFunctionDef externalFunctionDef;
+            if(_externals.TryGetValue (functionName, out externalFunctionDef)) {
+                externalFunction = externalFunctionDef.function;
+                return true;
+            } else {
+                externalFunction = null;
+                return false;
+            }
+        }
+
 
         public void CallExternalFunction(string funcName, int numberOfArguments)
         {
@@ -2450,13 +2573,34 @@ namespace Ink.Runtime
             }
 
             // Any initial tag objects count as the "main tags" associated with that story/knot/stitch
+            bool inTag = false;
             List<string> tags = null;
             foreach (var c in flowContainer.content) {
-                var tag = c as Runtime.Tag;
-                if (tag) {
-                    if (tags == null) tags = new List<string> ();
-                    tags.Add (tag.text);
-                } else break;
+
+                var command = c as Runtime.ControlCommand;
+                if( command != null ) {
+                    if( command.commandType == Runtime.ControlCommand.CommandType.BeginTag ) {
+                        inTag = true;
+                    } else if( command.commandType == Runtime.ControlCommand.CommandType.EndTag ) {
+                        inTag = false;
+                    }
+                }
+
+                else if( inTag ) {
+                    var str = c as Runtime.StringValue;
+                    if( str != null ) {
+                        if( tags == null ) tags = new List<string>();
+                        tags.Add(str.value);
+                    } else {
+                        Error("Tag contained non-text content. Only plain text is allowed when using globalTags or TagsAtContentPath. If you want to evaluate dynamic content, you need to use story.Continue().");
+                    }
+                }
+
+                // Any other content - we're done
+                // We only recognise initial text-only tags
+                else {
+                    break;
+                }
             }
 
             return tags;

@@ -18,7 +18,11 @@ namespace Ink.Runtime
         /// <summary>
         /// The current version of the state save file JSON-based format.
         /// </summary>
-        public const int kInkSaveStateVersion = 9; // new: multi-flows, but backward compatible
+        //
+        // Backward compatible changes since v8:
+        // v10: dynamic tags
+        // v9:  multi-flows
+        public const int kInkSaveStateVersion = 10;
         const int kMinCompatibleLoadVersion = 8;
 
         /// <summary>
@@ -271,11 +275,21 @@ namespace Ink.Runtime
 				if( _outputStreamTextDirty ) {
 					var sb = new StringBuilder ();
 
+                    bool inTag = false;
 					foreach (var outputObj in outputStream) {
 						var textContent = outputObj as StringValue;
-						if (textContent != null) {
+						if (!inTag && textContent != null) {
 							sb.Append(textContent.value);
-						}
+						} else {
+                            var controlCommand = outputObj as ControlCommand;
+                            if( controlCommand != null ) {
+                                if( controlCommand.commandType == ControlCommand.CommandType.BeginTag ) {
+                                    inTag = true;
+                                } else if( controlCommand.commandType == ControlCommand.CommandType.EndTag ) {
+                                    inTag = false;
+                                }
+                            }
+                        }
 					}
 
                     _currentText = CleanOutputWhitespace (sb.ToString ());
@@ -291,7 +305,7 @@ namespace Ink.Runtime
         // Cleans inline whitespace in the following way:
         //  - Removes all whitespace from the start and end of line (including just before a \n)
         //  - Turns all consecutive space and tab runs into single spaces (HTML style)
-        string CleanOutputWhitespace(string str)
+        public string CleanOutputWhitespace(string str)
         {
             var sb = new StringBuilder(str.Length);
 
@@ -330,12 +344,53 @@ namespace Ink.Runtime
 				if( _outputStreamTagsDirty ) {
 					_currentTags = new List<string>();
 
+                    bool inTag = false;
+                    var sb = new StringBuilder ();
+
 					foreach (var outputObj in outputStream) {
-						var tag = outputObj as Tag;
-						if (tag != null) {
-							_currentTags.Add (tag.text);
-						}
+                        var controlCommand = outputObj as ControlCommand;
+
+                        if( controlCommand != null ) {
+                            if( controlCommand.commandType == ControlCommand.CommandType.BeginTag ) {
+                                if( inTag && sb.Length > 0 ) {
+                                    var txt = CleanOutputWhitespace(sb.ToString());
+                                    _currentTags.Add(txt);
+                                    sb.Clear();
+                                }
+                                inTag = true;
+                            }
+
+                            else if( controlCommand.commandType == ControlCommand.CommandType.EndTag ) {
+                                if( sb.Length > 0 ) {
+                                    var txt = CleanOutputWhitespace(sb.ToString());
+                                    _currentTags.Add(txt);
+                                    sb.Clear();
+                                }
+                                inTag = false;
+                            }
+                        }
+
+                        else if( inTag ) {
+                            var strVal = outputObj as StringValue;
+                            if( strVal != null ) {
+                                sb.Append(strVal.value);
+                            }
+                        }
+
+                        else {
+                            var tag = outputObj as Tag;
+                            if (tag != null && tag.text != null && tag.text.Length > 0) {
+                                _currentTags.Add (tag.text); // tag.text has whitespae already cleaned
+                            }
+                        }
+
 					}
+
+                    if( sb.Length > 0 ) {
+                        var txt = CleanOutputWhitespace(sb.ToString());
+                        _currentTags.Add(txt);
+                        sb.Clear();
+                    }
 
 					_outputStreamTagsDirty = false;
 				}
