@@ -1,13 +1,13 @@
 cd "`dirname "$0"`"
 
 # Build for each platform
-dotnet publish -c Release -r win-x86 --self-contained /p:PublishTrimmed=false /p:PublishSingleFile=true -o BuildForInky inklecate/inklecate.csproj
+dotnet publish -c Release -r win-x86 --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=true -o BuildForInky inklecate/inklecate.csproj
 mv BuildForInky/inklecate.exe BuildForInky/inklecate_win.exe
 
-dotnet publish -c Release -r osx-x64 --self-contained /p:PublishTrimmed=false /p:PublishSingleFile=true -o BuildForInky inklecate/inklecate.csproj
+dotnet publish -c Release -r osx-x64 --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=true -o BuildForInky inklecate/inklecate.csproj
 mv BuildForInky/inklecate BuildForInky/inklecate_mac
 
-dotnet publish -c Release -r linux-x64 --self-contained /p:PublishTrimmed=false /p:PublishSingleFile=true -o BuildForInky inklecate/inklecate.csproj
+dotnet publish -c Release -r linux-x64 --self-contained true /p:PublishTrimmed=false /p:PublishSingleFile=true -o BuildForInky inklecate/inklecate.csproj
 mv BuildForInky/inklecate BuildForInky/inklecate_linux
 
 
