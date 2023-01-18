@@ -12,5 +12,5 @@ mv BuildForInky/inklecate BuildForInky/inklecate_linux
 
 
 # Copy the runtime and compiler debug symbols in
-cp ink-engine-runtime/bin/Release/net6.0/ink-engine-runtime.pdb BuildForInky/
-cp compiler/bin/Release/net6.0/ink_compiler.pdb BuildForInky/
+cp ink-engine-runtime/bin/Release/netstandard2.0/ink-engine-runtime.pdb BuildForInky/
+cp compiler/bin/Release/netstandard2.0/ink_compiler.pdb BuildForInky/
