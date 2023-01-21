@@ -358,7 +358,7 @@ The very loose structure means writers can get on and write, branching and rejoi
 
 You absolutely can use diverts to create looped content, and **ink** has several features to exploit this, including ways to make the content vary itself, and ways to control how often options can be chosen.
 
-See the sections on Varying Text and [Conditional Choices](#conditional-choices) for more information.
+See the sections on [Varying Text](#8-variable-text) and [Conditional Choices](#conditional-choices) for more information.
 
 Oh, and the following is legal and not a great idea:
 
