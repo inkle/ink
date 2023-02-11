@@ -81,14 +81,9 @@ The intention is the following:
  * Create a text file called `myStory.ink`, containing the text `Hello, world!`.
  * On the command line, run the following:
 
-    **Mac:** `./inklecate -p myStory.ink`
+    **Mac or Linux:** `./inklecate -p myStory.ink`
     
     **Windows:** `inklecate.exe -p myStory.ink`
-    
-    **Linux:** `mono inklecate.exe -p myStory.ink`
-    
-    * To run on Linux, you need the Mono runtime and the Mono System.Core library (for CLI 4.0). If you have access to the debian repository, you can install these using: <br>
-    `sudo apt install mono-complete`
 
     The `-p` option uses play mode so that you can see the result immediately. If you want to get a compiled `.json` file, just remove the `-p` option from the examples above.
     
