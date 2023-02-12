@@ -29,7 +29,7 @@ namespace Ink
         void ExitWithUsageInstructions()
         {
             Console.WriteLine (
-                "Usage: inklecate2 <options> <ink file> \n"+
+                "Usage: inklecate <options> <ink file>\n"+
                 "   -o <filename>:   Output file name\n"+
                 "   -c:              Count all visits to knots, stitches and weave points, not\n" +
                 "                    just those referenced by TURNS_SINCE and read counts.\n" +
