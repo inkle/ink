@@ -14,7 +14,7 @@ The following is a fairly brief tour of these 3 stages, hopefully enough to give
 
 The parser takes a root ink file (which may reference other ink files), and constructs a hierarchy of `Parsed.Object` objects that closely resemble the structure within the original ink files, as closely as possible to how it was written.
 
-The parser is a hand-written recursive descent parser that inherits from `StringParser`, which allows a hierarchy of parse rules to be built using C# delegates. At the top level, `InkParser.cs` contains a method called `Parse()`, which returns a `Parsed.Story` object.
+The parser is a hand-written recursive decent parser that inherits from `StringParser`, which allows a hierarchy of parse rules to be built using C# delegates. At the top level, `InkParser.cs` contains a method called `Parse()`, which returns a `Parsed.Story` object.
 
 Within `Parse()`, rules evaluated, each of which may contain more rules. Rules are simply methods that return the result of parsing or `null` if parsing failed (though there are exceptions to this).
 
