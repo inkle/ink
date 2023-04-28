@@ -242,6 +242,8 @@ and this on running:
 
 The following plays and compiles without error:
 
+	-> top_knot
+	
 	=== top_knot ===
 	Hello world!
 	-> END
