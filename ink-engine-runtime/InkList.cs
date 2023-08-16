@@ -531,7 +531,7 @@ namespace Ink.Runtime
                 maxValue = (int)maxBound;
             else 
             {
-                if (minBound is InkList && ((InkList)minBound).Count > 0)
+                if (maxBound is InkList && ((InkList)maxBound).Count > 0)
                     maxValue = ((InkList)maxBound).maxItem.Value;
             }
 
