@@ -3633,6 +3633,7 @@ VAR all = ()
 {all}
 {LIST_RANGE(all, 2, 3)}
 {LIST_RANGE(LIST_ALL(Numbers), Two, Six)}
+{LIST_RANGE(LIST_ALL(Numbers), Currency, Three)}
 {LIST_RANGE((Pizza, Pasta), -1, 100)} // allow out of range
 ";
 
@@ -3642,6 +3643,7 @@ VAR all = ()
 @"Pound, Pizza, Euro, Pasta, Dollar, Curry, Paella
 Euro, Pasta, Dollar, Curry
 Two, Three, Four, Five, Six
+One, Two, Three
 Pizza, Pasta
 ".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
         }
