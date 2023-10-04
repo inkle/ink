@@ -464,7 +464,7 @@ namespace Ink.Runtime
             currentTurnIndex = -1;
 
             // Seed the shuffle random numbers
-            int timeSeed = DateTime.Now.Millisecond;
+            int timeSeed = DateTime.UtcNow.Millisecond;
             storySeed = (new Random (timeSeed)).Next () % 100;
             previousRandom = 0;
 
