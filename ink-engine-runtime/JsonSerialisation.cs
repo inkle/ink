@@ -600,8 +600,22 @@ namespace Ink.Runtime
             choice.sourcePath = jObj ["originalChoicePath"].ToString();
             choice.originalThreadIndex = (int)jObj ["originalThreadIndex"];
             choice.pathStringOnChoice = jObj ["targetPath"].ToString();
+            choice.tags = JArrayToTags(jObj, choice);
             return choice;
         }
+
+        private static List<string> JArrayToTags(Dictionary<string, object> jObj, Choice choice)
+        {
+            if (!jObj.TryGetValue("tags", out object jArray)) return null;
+            
+            List<string> tags = new();
+            foreach (var stringValue in (List<object>)jArray)
+            {
+                tags.Add(stringValue.ToString());
+            }
+            return tags;
+        }
+
         public static void WriteChoice(SimpleJson.Writer writer, Choice choice)
         {
             writer.WriteObjectStart();
@@ -610,7 +624,22 @@ namespace Ink.Runtime
             writer.WriteProperty("originalChoicePath", choice.sourcePath);
             writer.WriteProperty("originalThreadIndex", choice.originalThreadIndex);
             writer.WriteProperty("targetPath", choice.pathStringOnChoice);
+            WriteChoiceTags(writer, choice);
             writer.WriteObjectEnd();
+        }
+
+        private static void WriteChoiceTags(SimpleJson.Writer writer, Choice choice)
+        {
+            if (choice.tags == null || choice.tags.Count == 0) return;
+            writer.WritePropertyStart("tags");
+            writer.WriteArrayStart();
+            foreach (var tag in choice.tags)
+            {
+                writer.Write(tag);
+            }
+
+            writer.WriteArrayEnd();
+            writer.WritePropertyEnd();
         }
 
         static void WriteInkList(SimpleJson.Writer writer, ListValue listVal)
