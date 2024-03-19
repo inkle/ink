@@ -45,7 +45,12 @@ namespace Ink
 		CommandLineTool(string[] args)
 		{
             // Set console's output encoding to UTF-8
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            try { 
+                Console.OutputEncoding = System.Text.Encoding.UTF8;
+            }
+            catch {
+                Debug.WriteLine("Unable to set console encoding to UTF8, using system default.");
+            }
 
             if (ProcessArguments (args) == false) {
                 ExitWithUsageInstructions ();
