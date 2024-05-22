@@ -314,6 +314,16 @@ namespace Ink.Runtime
                 _writer = new System.IO.StreamWriter(stream, Encoding.UTF8);
             }
 
+            public void Clear()
+            {
+                var stringWriter = _writer as StringWriter;
+                if( stringWriter == null ) {
+                    throw new NotSupportedException("Writer.Clear() is only supported for the StringWriter variant, not for streams");
+                }
+                
+                stringWriter.GetStringBuilder().Clear();
+            }
+
             public void WriteObject(Action<Writer> inner)
             {
                 WriteObjectStart();

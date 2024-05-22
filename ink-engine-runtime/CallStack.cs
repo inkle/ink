@@ -342,6 +342,7 @@ namespace Ink.Runtime
         // Get variable value, dereferencing a variable pointer if necessary
         public Runtime.Object GetTemporaryVariableWithName(string name, int contextIndex = -1)
         {
+            // contextIndex 0 means global, so index is actually 1-based
             if (contextIndex == -1)
                 contextIndex = currentElementIndex+1;
             

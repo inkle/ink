@@ -231,6 +231,21 @@ namespace Ink.Runtime
             }
         }
 
+        /// <summary>
+        /// Get the previous state of currentPathString, which can be helpful
+        /// for finding out where the story was before it ended (when the path
+        /// string becomes null)
+        /// </summary>
+        public string previousPathString {
+            get {
+                var pointer = previousPointer;
+                if (pointer.isNull)
+                    return null;
+                else
+                    return pointer.path.ToString();
+            }
+        }
+
         public Runtime.Pointer currentPointer {
             get {
                 return callStack.currentElement.currentPointer;
@@ -530,7 +545,7 @@ namespace Ink.Runtime
         // Runtime.Objects are treated as immutable after they've been set up.
         // (e.g. we don't edit a Runtime.StringValue after it's been created an added.)
         // I wonder if there's a sensible way to enforce that..??
-        public StoryState CopyAndStartPatching()
+        public StoryState CopyAndStartPatching(bool forBackgroundSave)
         {
             var copy = new StoryState(story);
 
@@ -540,9 +555,20 @@ namespace Ink.Runtime
             // If the patch is applied, then this new flow will replace the old one in _namedFlows
             copy._currentFlow.name = _currentFlow.name;
             copy._currentFlow.callStack = new CallStack (_currentFlow.callStack);
-            copy._currentFlow.currentChoices.AddRange(_currentFlow.currentChoices);
             copy._currentFlow.outputStream.AddRange(_currentFlow.outputStream);
             copy.OutputStreamDirty();
+
+            // When background saving we need to make copies of choices since they each have
+            // a snapshot of the thread at the time of generation since the game could progress
+            // significantly and threads modified during the save process.
+            // However, when doing internal saving and restoring of snapshots this isn't an issue,
+            // and we can simply ref-copy the choices with their existing threads.
+            if( forBackgroundSave ) {
+                foreach(var choice in _currentFlow.currentChoices)
+                    copy._currentFlow.currentChoices.Add(choice.Clone());
+            } else {
+                copy._currentFlow.currentChoices.AddRange(_currentFlow.currentChoices);
+            }
 
             // The copy of the state has its own copy of the named flows dictionary,
             // except with the current flow replaced with the copy above

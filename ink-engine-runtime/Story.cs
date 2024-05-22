@@ -447,7 +447,12 @@ namespace Ink.Runtime
                 // In this case, we only want to batch observe variable changes
                 // for the outermost call.
                 if (_recursiveContinueCount == 1)
-                    _state.variablesState.batchObservingVariableChanges = true;
+                    _state.variablesState.StartVariableObservation();
+            }
+
+            // Async was previously active, but now we want to finish synchronously
+            else if( _asyncContinueActive && !isAsyncTimeLimited ) {
+                _asyncContinueActive = false;
             }
 
             // Start timing
@@ -476,6 +481,8 @@ namespace Ink.Runtime
             } while(canContinue);
 
             durationStopwatch.Stop ();
+
+            Dictionary<string, Object> changedVariablesToObserve = null;
 
             // 4 outcomes:
             //  - got newline (so finished this line of text)
@@ -512,7 +519,7 @@ namespace Ink.Runtime
                 _sawLookaheadUnsafeFunctionAfterNewline = false;
 
                 if (_recursiveContinueCount == 1)
-                    _state.variablesState.batchObservingVariableChanges = false;
+                    changedVariablesToObserve = _state.variablesState.CompleteVariableObservation();
 
                 _asyncContinueActive = false;
                 if(onDidContinue != null) onDidContinue();
@@ -572,6 +579,11 @@ namespace Ink.Runtime
                     // 
                     throw new StoryException(sb.ToString());
                 }
+            }
+
+            // Send out variable observation events at the last second, since it might trigger new ink to be run
+            if( changedVariablesToObserve != null && changedVariablesToObserve.Count > 0 ) {
+                _state.variablesState.NotifyObservers(changedVariablesToObserve);
             }
         }
 
@@ -776,7 +788,7 @@ namespace Ink.Runtime
         void StateSnapshot()
         {
             _stateSnapshotAtLastNewline = _state;
-            _state = _state.CopyAndStartPatching();
+            _state = _state.CopyAndStartPatching(forBackgroundSave:false);
         }
 
         void RestoreStateSnapshot()
@@ -828,7 +840,7 @@ namespace Ink.Runtime
             IfAsyncWeCant("start saving on a background thread");
             if (_asyncSaving) throw new System.Exception("Story is already in background saving mode, can't call CopyStateForBackgroundThreadSave again!");
             var stateToSave = _state;
-            _state = _state.CopyAndStartPatching();
+            _state = _state.CopyAndStartPatching(forBackgroundSave:true);
             _asyncSaving = true;
             return stateToSave;
         }
@@ -1912,6 +1924,10 @@ namespace Ink.Runtime
         /// </summary>
         public bool allowExternalFunctionFallbacks { get; set; }
         
+        /// <summary>
+        /// Try to get a reference to an external function. This was originally exposed for the
+        /// Ink-Unity integration plugin so that the inspector can list them.
+        /// </summary>
         public bool TryGetExternalFunction(string functionName, out ExternalFunction externalFunction) {
             ExternalFunctionDef externalFunctionDef;
             if(_externals.TryGetValue (functionName, out externalFunctionDef)) {
@@ -2528,7 +2544,6 @@ namespace Ink.Runtime
             
             VariableObserver observers = null;
             if (_variableObservers.TryGetValue (variableName, out observers)) {
-
                 if (!(newValueObj is Value)) {
                     throw new System.Exception ("Tried to get the value of a variable that isn't a standard type");
                 }

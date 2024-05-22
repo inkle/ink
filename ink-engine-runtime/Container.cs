@@ -254,8 +254,18 @@ namespace Ink.Runtime
                     break;
                 } 
 
+                // Are we about to loop into another container?
+                // Is the object a container as expected? It might
+                // no longer be if the content has shuffled around, so what
+                // was originally a container no longer is.
+                var nextContainer = foundObj as Container;
+                if( i < partialPathLength-1 && nextContainer == null ) {
+                    result.approximate = true;
+                    break;
+                }
+
                 currentObj = foundObj;
-                currentContainer = foundObj as Container;
+                currentContainer = nextContainer;
             }
 
             result.obj = currentObj;

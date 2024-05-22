@@ -51,6 +51,18 @@ namespace Ink.Runtime
         public Choice()
         {
         }
+
+        public Choice Clone() {
+            var copy = new Choice();
+            copy.text = text;
+            copy.sourcePath = sourcePath;
+            copy.index = index;
+            copy.targetPath = targetPath;
+            copy.originalThreadIndex = originalThreadIndex;
+            copy.isInvisibleDefault = isInvisibleDefault;
+            if( threadAtGeneration != null ) copy.threadAtGeneration = threadAtGeneration.Copy();
+            return copy;
+        }
 	}
 }
 

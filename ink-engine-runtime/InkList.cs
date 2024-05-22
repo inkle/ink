@@ -75,13 +75,22 @@ namespace Ink.Runtime
         /// </summary>
         public override bool Equals (object obj)
         {
-            if (obj is InkListItem) {
-                var otherItem = (InkListItem)obj;
-                return otherItem.itemName   == itemName 
-                    && otherItem.originName == originName;
-            }
-
+            if (obj is InkListItem) 
+                return Equals((InkListItem)obj);
             return false;
+        }
+
+        public bool Equals (InkListItem otherItem)
+        {
+            return otherItem.itemName == itemName && otherItem.originName == originName;
+        }
+
+        public static bool operator == (InkListItem left, InkListItem right) {
+            return left.Equals(right);
+        }
+    
+        public static bool operator != (InkListItem left, InkListItem right) {
+            return !(left == right);
         }
 
         /// <summary>
@@ -154,6 +163,8 @@ namespace Ink.Runtime
 		/// <param name="itemKey">Item key.</param>
 		/// <param name="originStory">Origin story.</param>
 		public static InkList FromString(string myListItem, Story originStory) {
+            if (string.IsNullOrEmpty(myListItem))
+                return new InkList();
 			var listValue = originStory.listDefinitions.FindSingleItemListWithName (myListItem);
 			if (listValue)
 				return new InkList (listValue.value);
@@ -193,30 +204,44 @@ namespace Ink.Runtime
         /// <summary>
         /// Adds the given item to the ink list, attempting to find the origin list definition that it belongs to.
         /// The item must therefore come from a list definition that is already "known" to this list, so that the
-        /// item's value can be looked up. By "known", we mean that it already has items in it from that source, or
+        /// item's value can be looked up.
+        /// By "known", we mean that it already has items in it from that source, or
         /// it did at one point - it can't be a completely fresh empty list, or a list that only contains items from
         /// a different list definition.
+        /// You can also provide the Story object, so in the case of an unknown element, it can be created fresh
         /// </summary>
-        public void AddItem (string itemName)
+        public void AddItem(string itemName, Story storyObject = null)
         {
             ListDefinition foundListDef = null;
 
-            foreach (var origin in origins) {
-                if (origin.ContainsItemWithName (itemName)) {
-                    if (foundListDef != null) {
-                        throw new System.Exception ("Could not add the item " + itemName + " to this list because it could come from either " + origin.name + " or " + foundListDef.name);
-                    } else {
-                        foundListDef = origin;
+            if (origins != null) { 
+                foreach (var origin in origins) {
+                    if (origin.ContainsItemWithName(itemName)) {
+                        if (foundListDef != null) {
+                            throw new System.Exception("Could not add the item " + itemName + " to this list because it could come from either " + origin.name + " or " + foundListDef.name);
+                        } else {
+                            foundListDef = origin;
+                        }
                     }
                 }
             }
 
             if (foundListDef == null)
-                throw new System.Exception ("Could not add the item " + itemName + " to this list because it isn't known to any list definitions previously associated with this list.");
-
-            var item = new InkListItem (foundListDef.name, itemName);
-            var itemVal = foundListDef.ValueForItem(item);
-            this [item] = itemVal;
+            {
+                if (storyObject == null)
+                    throw new System.Exception("Could not add the item " + itemName + " to this list because it isn't known to any list definitions previously associated with this list, and no ink Story object was provided to create it from.");
+                else
+                {
+                    var newItem = FromString(itemName, storyObject).orderedItems[0];
+                    this[newItem.Key] = newItem.Value;
+                }
+            }
+            else
+            {
+                var item = new InkListItem(foundListDef.name, itemName);
+                var itemVal = foundListDef.ValueForItem(item);
+                this[item] = itemVal;
+            }
         }
 
         /// <summary>
@@ -588,6 +613,17 @@ namespace Ink.Runtime
                     }
                 });
                 return ordered;
+            }
+        }
+
+        /// <summary>
+        /// If you have an InkList that's known to have one single item, this is a convenient way to get it.
+        /// </summary>
+        public InkListItem singleItem {
+            get {
+                foreach(var item in this)
+                    return item.Key;
+                return default;
             }
         }
 

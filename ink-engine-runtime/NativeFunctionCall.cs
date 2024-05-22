@@ -96,7 +96,7 @@ namespace Ink.Runtime
             bool hasList = false;
             foreach (var p in parameters) {
                 if (p is Void)
-                    throw new StoryException ("Attempting to perform operation on a void value. Did you forget to 'return' a value from a function you called here?");
+                    throw new StoryException ("Attempting to perform "+this.name+" on a void value. Did you forget to 'return' a value from a function you called here?");
                 if (p is ListValue)
                     hasList = true;
             }
