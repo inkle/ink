@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "Build InkTestBed",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/InkTestBed/bin/Debug/net5.0/InkTestBed.dll",
+            "program": "${workspaceFolder}/InkTestBed/bin/Debug/net6.0/InkTestBed.dll",
             "args": [],
             "cwd": "${workspaceFolder}/InkTestBed",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -24,7 +24,7 @@
             "request": "launch",
             "preLaunchTask": "Build InkTestBed",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/InkTestBed/bin/Debug/net5.0/InkTestBed.dll",
+            "program": "${workspaceFolder}/InkTestBed/bin/Debug/net6.0/InkTestBed.dll",
             "args": [],
             "cwd": "${workspaceFolder}/InkTestBed",
             "console": "integratedTerminal",
