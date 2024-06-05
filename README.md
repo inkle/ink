@@ -113,7 +113,7 @@ To compile the ink, either export from Inky (File -> Export to JSON). Or if you'
         Debug.Log(story.Continue());
     
     // 3) Display story.currentChoices list, allow player to choose one
-    Debug.Log(_story.currentChoices[0].choiceText);
+    Debug.Log(_story.currentChoices[0].text);
     _story.ChooseChoiceIndex(0);
     
     // 4) Back to 2
