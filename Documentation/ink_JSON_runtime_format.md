@@ -85,6 +85,7 @@ Control commands are special instructions to the text engine to perform various 
 * `"/str"` - End string evaluation mode. All content after the previous Begin marker is concatenated together, removed from the output stream, and appended as a string value to the evaluation stack. Re-enters evaluation mode immediately afterwards.
 * `"nop"` - No-operation. Does nothing, but is useful as an addressable piece of content to divert to.
 * `"choiceCnt"` - Pushes an integer with the current number of choices to the evaluation stack.
+* `"turn"` - Pushes an integer with the current turn number to the evaluation stack.
 * `"turns"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of turns since that target was last visited by the story engine.
 * `"visit"` - Pushes an integer with the number of visits to the current container by the story engine.
 * `"seq"` - Pops an integer, expected to be the number of elements in a sequence that's being entered. In return, it pushes an integer with the next sequence shuffle index to the evaluation stack. This shuffle index is derived from the number of elements in the sequence, the number of elements in it, and the story's random seed from when it was first begun.
