@@ -343,6 +343,8 @@ namespace Ink.Runtime
                 Assert(state == State.Object);
                 _writer.Write("}");
                 _stateStack.Pop();
+                if (state == State.None)
+                    _writer.Flush();
             }
 
             public void WriteProperty(string name, Action<Writer> inner)
