@@ -118,12 +118,12 @@ If no other flow instructions are given, once made, the choice will flow into th
 
 This produces the following game:
 
-	Hello world
+	Hello world!
 	1: Hello back!
 
 	> 1
 	Hello back!
-	Nice to hear from you.
+	Nice to hear from you!
 
 By default, the text of a choice appears again, in the output.
 
@@ -137,11 +137,11 @@ Some games separate the text of a choice from its outcome. In **ink**, if the ch
 
 produces
 
-	Hello world
+	Hello world!
 	1: Hello back!
 
 	> 1
-	Nice to hear from you.
+	Nice to hear from you!
 
 #### Advanced: mixing choice and output text
 
@@ -153,11 +153,11 @@ The square brackets in fact divide up the option content. What's before is print
 
 produces:
 
-	Hello world
+	Hello world!
 	1: Hello back!
 	> 1
 	Hello right back to you!
-	Nice to hear from you.
+	Nice to hear from you!
 
 This is most useful when writing dialogue choices:
 
@@ -168,7 +168,7 @@ This is most useful when writing dialogue choices:
 produces:
 
 	"What's that?" my master asked.
-	1. "I am somewhat tired."
+	1: "I am somewhat tired."
 	> 1
 	"I am somewhat tired," I repeated.
 	"Really," he responded. "How deleterious."
