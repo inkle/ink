@@ -608,7 +608,7 @@ namespace Ink.Runtime
         {
             if (!jObj.TryGetValue("tags", out object jArray)) return null;
             
-            List<string> tags = new();
+            var tags = new List<string>();
             foreach (var stringValue in (List<object>)jArray)
             {
                 tags.Add(stringValue.ToString());
