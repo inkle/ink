@@ -164,6 +164,8 @@ namespace Ink
 
         void EvaluateStory ()
         {
+            int lineCounter = 0;
+
             while (story.canContinue) {
 
                 story.Continue ();
@@ -238,6 +240,17 @@ namespace Ink
 
                 _errors.Clear();
                 _warnings.Clear();
+
+                // Start limiting the output rate if it looks like we might be
+                // getting into an infinite loop. This prevents Inky from getting
+                // choked up because its IPC gets overloaded from useless data,
+                // which can even prevent internal renderer processes from working.
+                // I don't really like putting artificial human-scale limits on
+                // computer processing, but not sure what the alternative is?
+                lineCounter++;
+                if( lineCounter > 1000 ) {
+                    System.Threading.Thread.Sleep(100);
+                }
             }
 
             if (story.currentChoices.Count == 0 && keepOpenAfterStoryFinish) {
