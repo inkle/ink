@@ -2944,7 +2944,7 @@ We can model devices with multiple states. Back to the kettle again...
 	LIST OnOff = on, off
 	LIST HotCold = cold, warm, hot
 
-	VAR kettleState = off, cold
+	VAR kettleState = (off, cold) // we need brackets because it's a proper, multi-valued list now
 
 	=== function turnOnKettle() ===
 	{ kettleState ? hot:
