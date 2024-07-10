@@ -8,7 +8,7 @@ At the top level of the JSON file are two properties. `inkVersion` is an integer
 
 ```json
 {
-    "inkVersion": 10,
+    "inkVersion": 21,
     "root": <root container>
 }
 ```
@@ -51,6 +51,7 @@ Supported types:
 
 * **string**: Represented with a leading `^` to differentiate from other string-based objects. e.g. `"^Hello world"` is used in JSON to represent the text `Hello world`, and `"^^ up there ^"` would be the text `^ up there ^`. No `^` is needed for a newline, so it's just `"\n"`.
 * **int** and **float**: these are represented using their standard JSON counterparts. e.g. `5`, `5.6`.
+* **boolean**: Represented with JSON `true` and `false`.
 * **divert target**: represents a variable divert target, for example as used in the following ink:
 
         VAR x = -> somewhere
@@ -86,20 +87,99 @@ Control commands are special instructions to the text engine to perform various 
 * `"nop"` - No-operation. Does nothing, but is useful as an addressable piece of content to divert to.
 * `"choiceCnt"` - Pushes an integer with the current number of choices to the evaluation stack.
 * `"turn"` - Pushes an integer with the current turn number to the evaluation stack.
-* `"turns"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather or choice. Pushes an integer with the number of turns since that target was last visited by the story engine.
+* `"turns"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather, or choice. Pushes an integer with the number of turns since that target was last visited by the story engine.
 * `"visit"` - Pushes an integer with the number of visits to the current container by the story engine.
 * `"seq"` - Pops an integer, expected to be the number of elements in a sequence that's being entered. In return, it pushes an integer with the next sequence shuffle index to the evaluation stack. This shuffle index is derived from the number of elements in the sequence, the number of elements in it, and the story's random seed from when it was first begun.
 * `"thread"` - Clones/starts a new thread, as used with the `<- knot` syntax in ink. This essentially clones the entire callstack, branching it.
 * `"done"` - Tries to close/pop the active thread, otherwise marks the story flow safe to exit without a loose end warning.
 * `"end"` - Ends the story flow immediately, closes all active threads, unwinds the callstack, and removes any choices that were previously created.
+* `"readc"` - Pops from the evaluation stack, expecting to see a divert target for a knot, stitch, gather, or choice. Pushes an integer with the number of times that target has been visited by the story engine.
+* `"rnd"` - Pops two values from the evaluation stack, expecting to see two `int`s. Generates a random value between the two integers, with the topmost as the maximum and bottomost as the minimum, and pushes the random value to the stack.
+* `"srnd"` - Pops one value from the evaluation stack, expecting to see an `int`. Sets the seed for the random generator to the given value and resets any additional randomness factors, then pushes `void` to the stack.
+* `"listInt"` - Pops two values from the evaluation stack, expecting to see an `int` and then a `string`. Pushes a `list` containing only the list item with the given value (from the `int`) from the specified list (from the `string`).
+* `"range"` - Pops three values from the evaluation stack. The first two are either `int`s or `list`s, the third is a `list`. If either of the first two values are `list`s containing multiple items, the value of the lowest or the highest item will be used, depending on if the `list` was the first or second value. Generates a `list` containing every item from the third value that is between the bounds of the first and second values, inclusive. 
+* `"lrnd"` - Pops one value from the evaluation stack, expecting to see a `list`. Pushes a `list` containing one random item from the argument to the stack.
+* `"#"` - TODO
+* `"/#"` - TODO
 
 ## Native functions
 
-These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. The following operators are supported:
+These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. Arguments are popped as a group, so the bottomost value is the leftmost argument and the topmost is the rightmost argument. Types are coerced as needed, see [Type coercion](#type-coercion). This is also why `bool`s are not listed as an argument type.
 
-`"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"_"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
+The following operators are supported:
 
-Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
+| Operator | Supported Types | No. Arguments | Effects |
+| -------- | --------------- | ------------- | ----- |
+| `"+"`    | `int`, `float`, `string`, `list` | 2 | Addition on `int`s and `float`s, concatination on `string`s, set union on `list`s. |
+| `"-"`    | `int`, `float`, `list` | 2 | Subtraction on `int`s and `float`s, set difference on `list`s. |
+| `"*"`    | `int`, `float` | 2 | Standard multiplication. |
+| `"/"`    | `int`, `float` | 2 | Standard division. |
+| `"%"`    | `int`, `float` | 2 | Modulo operator (`fmod` for `float`s). |
+| `"_"`    | `int`, `float` | 1 | Negation. |
+| `"=="`   | `int`, `float`, `string`, `list`, `divert target` | 2 | Equal. *Returns a `bool`.*  |
+| `"!="`   | `int`, `float`, `string`, `list`, `divert target` | 2 | Not Equal. *Returns a `bool`.* |
+| `">"`    | `int`, `float`, `list` | 2 | Greater than. [See below for lists](#comparison-operators-and-lists). *Returns a `bool`.* |
+| `"<"`    | `int`, `float`, `list` | 2 | Less than. [See below for lists](#comparison-operators-and-lists). *Returns a `bool`.* |
+| `">="`   | `int`, `float`, `list` | 2 | Greater than or equals. [See below for lists](#comparison-operators-and-lists). *Returns a `bool`.* |
+| `"<="`   | `int`, `float`, `list` | 2 | Less than or equals. [See below for lists](#comparison-operators-and-lists). *Returns a `bool`.* |
+| `"!"`    | `int`, `float`, `list` | 1 | Unary not. Returns `true` for `int`s and `float`s if the argument is equal to 0. Returns 1 for `list`s if the provided list has at least one element, otherwise returns 0. |
+| `"&&"`   | `int`, `float`, `list` | 2 | Logical and. Returns `true` if both arguments are truthy. For `int`s and `float`s, this means nonzero. For `list`s, this means that the list contains at least one element. |
+| `"||"`   | `int`, `float`, `list` | 2 | Logical or. Returns `true` if either argument is truthy.
+| `"MIN"`  | `int`, `float` | 2 | Minimum. Returns the lowest of the two arguments. |
+| `"MAX"`  | `int`, `float` | 2 | Maximum. Returns the highest of the two arguments. |
+| `"POW"`  | `int`, `float` | 2 | Exponentiation. Returns the first argument raised to the power of the second argument. Always casts to floats to handle negative exponents. |
+| `"FLOOR"`| `int`, `float` | 1 | Floor. Returns the argument rounded *down* to the nearest whole number. |
+| `"CEILING"` | `int`, `float` | 1 | Ceiling. Returns the argument rounded *up* to the nearest whole number. |
+| `"INT"` | `int`, `float` | 1 | Returns the argument as an `int`, rounded towards zero. |
+| `"FLOAT"` | `int`, `float` | 1 | Returns the argument as a `float`. |
+| `"?"`    | `string`, `list` | 2 | If `string`: Returns `true` if the second argument is a substring of the first argument. If `list`: Returns `true` if the first argument contains every element of the second argument. If either list is empty, returns `false`. |
+| `"!?"`   | `string`, `list` | 2 | If `string`: Returns `true` if the second argument is *not* a substring of the first argument. If `list`: returns `true` if the first argument does *not* contain every element in the second agument. If either list is empty, returns `true`. |
+| `"L^"`   | `list`           | 2 | Intersection. Returns a list that contains only elements that are in *both* of the argument lists. Represented as `"^"` within the runtime, but not the JSON representation in order to not be confused with strings. |
+| `"LIST_MIN"` | `list`       | 1 | Returns a list containing only the minimum item in the list. |
+| `"LIST_MAX"` | `list`       | 1 | Returns a list containing only the maximum item in the list. |
+| `"LIST_ALL"` | `list`       | 1 | Returns a list with every item from the original list definition to which the argument belongs. |
+| `"LIST_COUNT"` | `list`     | 1 | Returns the number of elements in the argument. |
+| `"LIST_VALUE"` | `list`     | 1 | Returns the value of the maximum item in the list. |
+| `"LIST_INVERT"` | `list`    | 1 | Returns a list containing every item from the original list definition that is not in the argument list. |
+
+### Comparison operators and Lists
+When comparing lists, comparison operators (excluding equality and inequality, so `">"`, `"<"`, `">="`, `"<="`) compare the highest and lowest values in the lists.
+
+`">"` returns `true` if the *minimum* value in the list on the left is larger than the *maximum* value in the list on the right.
+`"<"` does the same, but with *maximum* value of the list on the left being compared with the *minimum* value of the list on the right.
+
+`">="` and `"<="` both check if their relation holds true with the minimum and maximum values of both lists.
+`">="` returns `true` if the *minimum* value of the list on the left is greater than or equal to the *minimum* value of the list on the right, *and* if the *maximum* value of the list on the left is greater than or equal to the *maximum* value of the list on the right.
+`"<="` does the same, but checking if the left hand values are less than or equal to the right hand values.
+
+### Type coercion
+When a native function is called, its arguments may be coerced. This is done so that binary operations only have one type for their arguments and for specific unary operators.
+
+Types are coerced according to the following hierarchy:
+`bool` < `int` < `float` < `list` < `string`
+
+Diverts and variable pointers are not a part of this hierarchy.
+
+Casts work as follows:
+* `bool` - `bool` is *always* cast to another type, usually `int`.
+  * `int` or `float`: `true` becomes `1` and `false` becomes `0`
+  * `string`: `true` becomes `"true"` and `false` becomes `"false"`
+* `int`
+  * `bool`: `0` becomes `false`, all other values become `true`
+  * `float`: Remains the same value, but a `float`
+  * `string`: Becomes a `string` representation of the value
+* `float`
+  * `bool`: `0` becomes `false`, all other values become `true`
+  * `int`: Becomes an int, rounded towards 0
+  * `string`: Becomes a `string` representation of the value, serialized according to .NET's InvariantCulture format
+* `list`
+  * `int` or `float`: If `list` is empty, becomes `0`. Otherwise becomes the value of the maximum item in the list.
+  * `string`: If `list` is empty, becomes `""`. Otherwise becomes the full dot-seperated name of the maximum item in the list.
+* `string`
+  * `int`: Tries to parse the `string` value as an `int`
+  * `float`: Tries to parse the `string` value as a `float`, deserialized according to .NET's InvariantCulture format and Float number style 
+
+Any types not listed cannot be casted to. Diverts and variable pointers can't be cast to or from at all.
 
 ## Divert
 
@@ -253,3 +333,6 @@ Examples:
 * `building.entrance.3.0` - the first element of a Container at the fourth element of a Container named `entrance` within a Container named `building` of the root Container.
 * `.^.1` - the second element of the parent Container.
 
+## Glue
+
+Glue is represented as `"<>"`
