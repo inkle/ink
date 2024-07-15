@@ -4,12 +4,13 @@ When ink is compiled to JSON, it is converted to a low level format for use by t
 
 ## Top level
 
-At the top level of the JSON file are two properties. `inkVersion` is an integer that denotes the format version, and `root`, which is the outer-most Container for the entire story.
+At the top level of the JSON file are two properties. `inkVersion` is an integer that denotes the format version, and `root`, which is the outer-most Container for the entire story. Additionally, there may also be a `listDefs` property, which contains the definitions of any `list`s used in the story.
 
 ```json
 {
     "inkVersion": 21,
-    "root": <root container>
+    "root": <root container>,
+    "listDefs": <list definitions>
 }
 ```
 
@@ -38,6 +39,20 @@ Examples:
 * `["^test", {"subContainer": [5, 6, null], "#f": 3}]`
 
    A container with the text object "test", flags 1 and 2, and a nested container named "subContainer" that resembles the first example.
+
+## List Definitions
+The `listDefs` property at the top level of the JSON file contains the definitions for any `list`s defined in the story. The format of `listDefs` is as follows:
+```json
+{
+    <list name>: {
+        <entry name>: <entry value>,
+        ...
+    },
+    ...
+}
+```
+
+The property names at the top level of `listDefs` are the names of the lists, while the values are the contents of the `list` definition. The propery names of the definitions are the names of the members of the lists, while the values are the numerical values assigned to them.
 
 ## Values
 
@@ -99,12 +114,12 @@ Control commands are special instructions to the text engine to perform various 
 * `"listInt"` - Pops two values from the evaluation stack, expecting to see an `int` and then a `string`. Pushes a `list` containing only the list item with the given value (from the `int`) from the specified list (from the `string`).
 * `"range"` - Pops three values from the evaluation stack. The first two are either `int`s or `list`s, the third is a `list`. If either of the first two values are `list`s containing multiple items, the value of the lowest or the highest item will be used, depending on if the `list` was the first or second value. Generates a `list` containing every item from the third value that is between the bounds of the first and second values, inclusive. 
 * `"lrnd"` - Pops one value from the evaluation stack, expecting to see a `list`. Pushes a `list` containing one random item from the argument to the stack.
-* `"#"` - TODO
-* `"/#"` - TODO
+* `"#"` - Adds a marker to the output stream to indicate that the following `string` values are part of a tag. If there are multiple markers in the output stream, each one indicates the start of a new tag and all previous items belong to the previous tag (if one has been declared).
+* `"/#"` - Adds a marker to the output stream indicating that the `string` values between it and the preceding `"#"` are all part of a tag. Should only be encountered in string evaluation when generating text for a choice. In that case, the `string` values in the output stream since the last `"#"` are removed and added as a tag to the choice.
 
 ## Native functions
 
-These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. Arguments are popped as a group, so the bottomost value is the leftmost argument and the topmost is the rightmost argument. Types are coerced as needed, see [Type coercion](#type-coercion). This is also why `bool`s are not listed as an argument type.
+These are mathematical and logical functions that pop 1 or 2 arguments from the evaluation stack, evaluate the result, and push the result back onto the evaluation stack. Arguments are popped as a group, so the bottomost value is the leftmost argument and the topmost is the rightmost argument. Types are coerced so that both arguments are of the same type, see [Type coercion](#type-coercion). This is why `bool`s are not listed as an argument type.
 
 The following operators are supported:
 
@@ -155,29 +170,31 @@ When comparing lists, comparison operators (excluding equality and inequality, s
 ### Type coercion
 When a native function is called, its arguments may be coerced. This is done so that binary operations only have one type for their arguments and for specific unary operators.
 
-Types are coerced according to the following hierarchy:
+Types exist in the following hierarchy:
 `bool` < `int` < `float` < `list` < `string`
+If a native function is called with two different types, the lower type in the hierarchy (leftmost) is coerced to the higher type. `list`s are an exception to this. If one of the arguments is a `list`, the other argument must be another `list` or an `int`, otherwise an unrecoverable error occurs.
 
 Diverts and variable pointers are not a part of this hierarchy.
 
 Casts work as follows:
 * `bool` - `bool` is *always* cast to another type, usually `int`.
-  * `int` or `float`: `true` becomes `1` and `false` becomes `0`
-  * `string`: `true` becomes `"true"` and `false` becomes `"false"`
+  * `int` or `float`: `true` becomes `1` and `false` becomes `0`.
+  * `string`: `true` becomes `"true"` and `false` becomes `"false"`.
 * `int`
-  * `bool`: `0` becomes `false`, all other values become `true`
-  * `float`: Remains the same value, but a `float`
-  * `string`: Becomes a `string` representation of the value
+  * `bool`: `0` becomes `false`, all other values become `true`.
+  * `float`: Remains the same value, but a `float`.
+  * `string`: Becomes a `string` representation of the value.
+  * `list`: Becomes a `list` containing only the item that is equivalent to the value of the `int` from the definition of the `list`.
 * `float`
-  * `bool`: `0` becomes `false`, all other values become `true`
-  * `int`: Becomes an int, rounded towards 0
-  * `string`: Becomes a `string` representation of the value, serialized according to .NET's InvariantCulture format
+  * `bool`: `0` becomes `false`, all other values become `true`.
+  * `int`: Becomes an int, rounded towards 0.
+  * `string`: Becomes a `string` representation of the value, serialized according to .NET's InvariantCulture format.
 * `list`
   * `int` or `float`: If `list` is empty, becomes `0`. Otherwise becomes the value of the maximum item in the list.
   * `string`: If `list` is empty, becomes `""`. Otherwise becomes the full dot-seperated name of the maximum item in the list.
 * `string`
-  * `int`: Tries to parse the `string` value as an `int`
-  * `float`: Tries to parse the `string` value as a `float`, deserialized according to .NET's InvariantCulture format and Float number style 
+  * `int`: Tries to parse the `string` value as an `int`.
+  * `float`: Tries to parse the `string` value as a `float`, deserialized according to .NET's InvariantCulture format and Float number style.
 
 Any types not listed cannot be casted to. Diverts and variable pointers can't be cast to or from at all.
 
@@ -335,4 +352,4 @@ Examples:
 
 ## Glue
 
-Glue is represented as `"<>"`
+Glue is represented as `"<>"`. Glue removes all whitespace up to and including the first newline at the end of the output stream. Any whitespace before the first newline remains as is. Glue also causes all future whitespace to not be appended to the output stream until non-whitespace text is encountered.
