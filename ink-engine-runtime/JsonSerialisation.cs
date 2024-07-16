@@ -333,6 +333,9 @@ namespace Ink.Runtime
         //                 there's not likely to be many of them.
         // 
         // Tag:            {"#": "the tag text"}
+        //
+        // List:           {"list": {itemName: itemValue}}
+        //                 {"list": {}, "origins": [originNames]}
         public static Runtime.Object JTokenToRuntimeObject(object token)
         {
             if (token is int || token is float || token is bool) {
