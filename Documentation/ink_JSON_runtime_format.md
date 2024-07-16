@@ -54,7 +54,7 @@ The `listDefs` property at the top level of the JSON file contains the definitio
 ```
 With `list name` and `entry name`s being `strings` and `entry value`s being `int`s
 
-The property names at the top level of `listDefs` are the names of the lists, while the values are the contents of the list definition. The propery names in the definitions are the names of the list items, while the values are the corresponding numerical values.
+The property names at the top level of `listDefs` are the names of the lists, while the values are the contents of the list definition. The property names in the definitions are the names of the list items, while the values are the corresponding numerical values.
 
 ## Values
 
@@ -150,7 +150,7 @@ Control commands are special instructions to the text engine to perform various 
 * `"listInt"` - Pops two values from the evaluation stack, expecting to see an `int` and then a `string`. Pushes a `list` containing only the list item with the given value (from the `int`) from the specified list (from the `string`).
 * `"range"` - Pops three values from the evaluation stack. The first two are either `int`s or `list`s, the third is a `list`. If the first argument is a `list`, the value of the lowest item will be used. If the second argument is a `list`, the value of the highest item will be used. Generates a `list` containing every item from the third value that is between the bounds of the first and second values, inclusive. 
 * `"lrnd"` - Pops one value from the evaluation stack, expecting to see a `list`. Pushes a `list` containing one random item from the argument to the stack.
-* `"#"` - Adds a marker to the output stream to indicate that the following `string` values belong to a tag, until a `"/#"` or another `"#"` is found. If another `"#"` marker is found, that marks the beginning of a new tag.
+* `"#"` - Adds a marker to the output stream to indicate that the following `string` values belong to a tag, until a `"/#"` or another `"#"` is found. If another `"#"` marker is found, it marks the beginning of a new tag.
 * `"/#"` - Adds a marker to the output stream indicating that the `string` values between it and the preceding `"#"` are all part of a tag. Should only be encountered in string evaluation when generating text for a choice. In that case, the `string` values in the output stream since the last `"#"` are removed and added as a tag to the choice.
 
 ## Native functions
