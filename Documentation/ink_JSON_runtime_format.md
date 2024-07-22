@@ -175,7 +175,7 @@ The following operators are supported:
 | `"<="`   | `int`, `float`, `list` | 2 | Less than or equals. [See below for lists](#comparison-operators-and-lists). *Returns a `bool`.* |
 | `"!"`    | `int`, `float`, `list` | 1 | Unary not. Returns `true` for `int`s and `float`s if the argument is equal to 0. Returns 1 for `list`s if the provided list has at least one element, otherwise returns 0. |
 | `"&&"`   | `int`, `float`, `list` | 2 | Logical and. Returns `true` if both arguments are truthy. For `int`s and `float`s, this means nonzero. For `list`s, this means that the list contains at least one element. |
-| `"||"`   | `int`, `float`, `list` | 2 | Logical or. Returns `true` if either argument is truthy.
+| `"\|\|"`   | `int`, `float`, `list` | 2 | Logical or. Returns `true` if either argument is truthy.
 | `"MIN"`  | `int`, `float` | 2 | Minimum. Returns the lowest of the two arguments. |
 | `"MAX"`  | `int`, `float` | 2 | Maximum. Returns the highest of the two arguments. |
 | `"POW"`  | `int`, `float` | 2 | Exponentiation. Returns the first argument raised to the power of the second argument. Always casts to floats to handle negative exponents. |
