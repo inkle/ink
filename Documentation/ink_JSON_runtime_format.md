@@ -207,13 +207,14 @@ When comparing lists, comparison operators (excluding equality and inequality, s
 When a native function is called, its arguments may be coerced. This is done so that binary operations only have one type for their arguments and for specific unary operators.
 
 Types exist in the following hierarchy:
-`bool` < `int` < `float` < `list` < `string`
-If a native function is called with two different types, the lower type in the hierarchy is coerced to the higher type. `list`s are an exception to this. If one of the arguments is a `list`, the other argument must be another `list` or an `int`, otherwise an unrecoverable error occurs.
+`bool` < `int` < `float` < `list` < `string`.
+
+If a native function is called with two different types, the lower type in the hierarchy is coerced to the higher type. `list`s are an exception to this. If one of the arguments is a `list`, and the other argument is not above `list` in the hierarchy, the other argument must be another `list` or an `int`, otherwise an unrecoverable error occurs.
 
 Diverts and variable pointers are not a part of this hierarchy.
 
 Coercions work as follows:
-* `bool` - `bool` is *always* coerced to another type, usually `int`.
+* `bool` - `bool` is *always* coerced to another type.
   * `int` or `float`: `true` becomes `1` and `false` becomes `0`.
   * `string`: `true` becomes `"true"` and `false` becomes `"false"`.
 * `int`
