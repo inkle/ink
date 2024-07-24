@@ -215,6 +215,7 @@ Diverts and variable pointers are not a part of this hierarchy.
 Coercions work as follows:
 * `bool` - `bool` is *always* coerced to another type, usually `int`.
   * `int` or `float`: `true` becomes `1` and `false` becomes `0`.
+  * `string`: `true` becomes `"true"` and `false` becomes `"false"`.
 * `int`
   * `bool`: `0` becomes `false`, all other values become `true`.
   * `float`: Remains the same value, but a `float`.
