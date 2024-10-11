@@ -58,18 +58,18 @@
 			- [功能预览：在功能中使用分道计数函数｜Sneak preview: using TURNS\_SINCE in a function](#功能预览在功能中使用分道计数函数sneak-preview-using-turns_since-in-a-function)
 		- [种子随机函数｜SEED\_RANDOM()](#种子随机函数seed_random)
 			- [进阶：更多查询｜Advanced: more queries](#进阶更多查询advanced-more-queries)
-- [第 2 部分：编织｜Part 2: Weave](#第-2-部分编织part-2-weave)
-	- [1) Gathers](#1-gathers)
-		- [Gather points gather the flow back together](#gather-points-gather-the-flow-back-together)
-		- [Options and gathers form chains of content](#options-and-gathers-form-chains-of-content)
-			- [The weave philosophy](#the-weave-philosophy)
-	- [2) Nested Flow](#2-nested-flow)
-		- [Options can be nested](#options-can-be-nested)
-		- [Gather points can be nested too](#gather-points-can-be-nested-too)
-			- [Advanced: What gathers do](#advanced-what-gathers-do)
-		- [You can nest as many levels are you like](#you-can-nest-as-many-levels-are-you-like)
-		- [Example: a conversation with nested nodes](#example-a-conversation-with-nested-nodes)
-	- [3) Tracking a Weave](#3-tracking-a-weave)
+- [第 2 部分：织体｜Part 2: Weave](#第-2-部分织体part-2-weave)
+	- [1) 收束｜Gathers](#1-收束gathers)
+		- [收束点将故事流收束到一起｜Gather points gather the flow back together](#收束点将故事流收束到一起gather-points-gather-the-flow-back-together)
+		- [内容链的选项和收束｜Options and gathers form chains of content](#内容链的选项和收束options-and-gathers-form-chains-of-content)
+			- [织体的理念（方法论）｜The weave philosophy](#织体的理念方法论the-weave-philosophy)
+	- [2) 嵌套故事流｜Nested Flow](#2-嵌套故事流nested-flow)
+		- [选项可以嵌套｜Options can be nested](#选项可以嵌套options-can-be-nested)
+		- [收束点也可以嵌套｜Gather points can be nested too](#收束点也可以嵌套gather-points-can-be-nested-too)
+			- [进阶：收束这个操作做了什么｜Advanced: What gathers do](#进阶收束这个操作做了什么advanced-what-gathers-do)
+		- [你可以根据你自己的需要设置多层嵌套｜You can nest as many levels are you like](#你可以根据你自己的需要设置多层嵌套you-can-nest-as-many-levels-are-you-like)
+		- [示例：用嵌套节点写的对话｜Example: a conversation with nested nodes](#示例用嵌套节点写的对话example-a-conversation-with-nested-nodes)
+	- [3) 追踪织体｜Tracking a Weave](#3-追踪织体tracking-a-weave)
 		- [Weaves are largely unaddressed](#weaves-are-largely-unaddressed)
 		- [Gathers and options can be labelled](#gathers-and-options-can-be-labelled)
 		- [Scope](#scope)
@@ -114,7 +114,7 @@
 	- [6) 常量｜Constants](#6-常量constants)
 		- [Global Constants](#global-constants)
 	- [7) Advanced: Game-side logic](#7-advanced-game-side-logic)
-- [Part 4: Advanced Flow Control](#part-4-advanced-flow-control)
+- [第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control](#第-4-部分进阶流程控制part-4-advanced-flow-control)
 	- [1) Tunnels](#1-tunnels)
 		- [Tunnels run sub-stories](#tunnels-run-sub-stories)
 			- [Advanced: Tunnels can return elsewhere](#advanced-tunnels-can-return-elsewhere)
@@ -126,7 +126,7 @@
 		- [Using `-> DONE`](#using---done)
 			- [Example: adding the same choice to several places](#example-adding-the-same-choice-to-several-places)
 			- [Example: organisation of wide choice points](#example-organisation-of-wide-choice-points)
-- [Part 5: Advanced State Tracking](#part-5-advanced-state-tracking)
+- [第 5 部分：进阶状态追踪｜Part 5: Advanced State Tracking](#第-5-部分进阶状态追踪part-5-advanced-state-tracking)
 			- [Note: New feature alert!](#note-new-feature-alert)
 	- [1) Basic Lists](#1-basic-lists)
 	- [2) Reusing Lists](#2-reusing-lists)
@@ -171,7 +171,7 @@
 		- [Flags](#flags)
 		- [State machines](#state-machines)
 		- [Properties](#properties)
-- [Part 6: International character support in identifiers](#part-6-international-character-support-in-identifiers)
+- [第 6 部分：标识符中的国际字符支持｜Part 6: International character support in identifiers](#第-6-部分标识符中的国际字符支持part-6-international-character-support-in-identifiers)
 		- [Supported Identifier Characters](#supported-identifier-characters)
 
 </details>
@@ -1020,254 +1020,254 @@ TODO: （向编译器传递 `-c` 的要求）
 
 您也可以创建您自己的外部函数，但是语法会略有不同，详情请见后文中的[函数](#5-函数functions)章节。
 
-# 第 2 部分：编织｜Part 2: Weave
+# 第 2 部分：织体｜Part 2: Weave
 
-So far, we've been building branched stories in the simplest way, with "options" that link to "pages".
+到目前为止，我们一直在用最简单的方式构建分支故事，即通过“选项 (Options)”链接到“页面 (Pages)”。
 
-But this requires us to uniquely name every destination in the story, which can slow down writing and discourage minor branching.
+但这要求我们对故事中的每个目的地都进行唯一命名，这可能会减慢写作速度，并阻碍小分支的出现。
 
-**Ink** has a much more powerful syntax available, designed for simplifying story flows which have an always-forwards direction (as most stories do, and most computer programs don't).
+**Ink** 有一种功能更强大的语法，专门用于简化始终向前的故事流（大多数故事都是这样，而大多数计算机程序则不是）。
 
-This format is called "weave", and its built out of the basic content/option syntax with two new features: the gather mark, `-`, and the nesting of choices and gathers.
+这种格式就被称为“织体 (Weave)”，它在基本内容和选项语法的基础上增加了两个新功能：收束 (Gather)，`-`，还有选择与收束的嵌套。
 
-## 1) Gathers
+## 1) 收束｜Gathers
 
-### Gather points gather the flow back together
+### 收束点将故事流收束到一起｜Gather points gather the flow back together
 
-Let's go back to the first multi-choice example at the top of this document.
+让我们回到本文开头的第一个多选示例。
 
-	"What's that?" my master asked.
-		*	"I am somewhat tired[."]," I repeated.
-			"Really," he responded. "How deleterious."
-		*	"Nothing, Monsieur!"[] I replied.
-		*  "I said, this journey is appalling[."] and I want no more of it."
-			"Ah," he replied, not unkindly. "I see you are feeling frustrated. Tomorrow, things will improve."
+	“你说什么？”我的老大问我。
+	*	“我有点累了[。”]，老大……”我重复着。
+		“这样啊。”他回应道：“那休息一下吧。”
+    *	“没事的老大！”[]我说。
+		“很好，那继续吧。”
+	*	“我说，这次的冒险真的很可怕[……”]，我真的不想再继续了……
+		“啊……别这样。”他安慰着我：“看起来你现在有些累了。明天，事情一定会有所好转的。”
 
-In a real game, all three of these options might well lead to the same conclusion - Monsieur Fogg leaves the room. We can do this using a gather, without the need to create any new knots, or add any diverts.
+在实际游戏中，这三个选项都可能导致相同的结果——福格先生离开了房间。我们可以用“收束”而无需创建任何新的结点或分道而完成这一点。
 
-	"What's that?" my master asked.
-		*	"I am somewhat tired[."]," I repeated.
-			"Really," he responded. "How deleterious."
-		*	"Nothing, Monsieur!"[] I replied.
-			"Very good, then."
-		*  "I said, this journey is appalling[."] and I want no more of it."
-		"Ah," he replied, not unkindly. "I see you are feeling frustrated. Tomorrow, things will improve."
+	“你说什么？”我的老大问我。
+	*	“我有点累了[。”]，老大……”我重复着。
+		“这样啊。”他回应道：“那休息一下吧。”
+    *	“没事的老大！”[]我说。
+		“很好，那继续吧。”
+	*	“我说，这次的冒险真的很可怕[……”]，我真的不想再继续了……
+		“啊……别这样。”他安慰着我：“看起来你现在有些累了。明天，事情一定会有所好转的。”
 
-	-	With that Monsieur Fogg left the room.
+	-	说完，福格先生离开了房间。
 
-This produces the following playthrough:
+这可能会输出以下的游玩路径：
 
-	"What's that?" my master asked.
+	“你说什么？”我的老大问我。
 
-	1: "I am somewhat tired."
-	2: "Nothing, Monsieur!"
-	3: "I said, this journey is appalling."
+	1: “我有点累了。”
+    2: “没事的老大！”
+	3: “我说，这次的冒险真的很可怕……”
 
 	> 1
-	"I am somewhat tired," I repeated.
-	"Really," he responded. "How deleterious."
-	With that Monsieur Fogg left the room.
+	“我有点累了，老大……”我重复着。
+	“这样啊。”他回应道：“那休息一下吧。”
+	说完，福格先生离开了房间。
 
-### Options and gathers form chains of content
+### 内容链的选项和收束｜Options and gathers form chains of content
 
-We can string these gather-and-branch sections together to make branchy sequences that always run forwards.
+我们可以将这些收束和分支部分串联起来，以使得故事分支继续推进。
 
 	=== escape ===
-	I ran through the forest, the dogs snapping at my heels.
+	我在森林里奔跑，狗在我身后追赶。
 
-		* 	I checked the jewels[] were still in my pocket, and the feel of them brought a spring to my step. <>
+		*	我检查了一下珠宝[是否还在。]，它们还在我的口袋里，它们的触感给了我慰籍，让我的脚步跟踩了弹簧一样跑的更快了。<>
 
-		*  I did not pause for breath[] but kept on running. <>
+		*	不要停下来啊！[]继续向前奔跑。<>
 
-		*	I cheered with joy. <>
+		*	我高兴地欢呼起来。<>
 
-	- 	The road could not be much further! Mackie would have the engine running, and then I'd be safe.
+  	-	路已经不远了！麦基会发动引擎，然后我就安全了。
+		
+		*	我走到路上，四处张望[]。你敢信吗？
+		*	我要插一句，麦基通常都非常可靠[]。他从没让我失望过。或者说，在那天晚上之前，他从没让我失望过。
 
-		*	I reached the road and looked about[]. And would you believe it?
-		* 	I should interrupt to say Mackie is normally very reliable[]. He's never once let me down. Or rather, never once, previously to that night.
+	-	路上空无一人。麦基不见踪影。
 
-	-	The road was empty. Mackie was nowhere to be seen.
+这是组织织体最基本的方式。本节的其余部分将详细介绍一些附加功能，这些功能可以用来制作织体嵌套、内容的旁道 (Side-Track) 和分道 (Diversions)、在自身内部进行分道，最重要的是，还根据前面的选择来影响后面的内容。
 
-This is the most basic kind of weave. The rest of this section details  additional features that allow weaves to nest, contain side-tracks and diversions, divert within themselves, and above all, reference earlier choices to influence later ones.
+#### 织体的理念（方法论）｜The weave philosophy
 
-#### The weave philosophy
+织体不仅是对分支的方便封装，也是编写更经得起推敲的内容的一种方法。上面的 `escape` 示例就已经有四种可能的路径了，而更复杂的序列可能会有更多更多的路径。如果使用普通的分道，就必须挨个检查结点链接，这样很容易出现错误。
 
-Weaves are more than just a convenient encapsulation of branching flow; they're also a way to author more robust content. The `escape` example above has already four possible routes through, and a more complex sequence might have lots and lots more. Using normal diverts, one has to check the links by chasing the diverts from point to point and it's easy for errors to creep in.
+在织体中，流程保证从顶部开始，然后一路走到底。在基本的织体结构中，流程错误是不可能发生的，而且输出文本可以很容易地略读。
+这就意味着无需在游戏中实际测试所有分支也能确保它们按预期运行。
 
-With a weave, the flow is guaranteed to start at the top and "fall" to the bottom. Flow errors are impossible in a basic weave structure, and the output text can be easily skim read. That means there's no need to actually test all the branches in game to be sure they work as intended.
+织体还可以方便地重新起草选择点，特别是那些出于多样性或节奏的选择。它很容易将句子拆开并插入额外的选项，而无需重新设计任何流程。
 
-Weaves also allow for easy redrafting of choice-points; in particular, it's easy to break a sentence up and insert additional choices for variety or pacing reasons, without having to re-engineer any flow.
+## 2) 嵌套故事流｜Nested Flow
 
+上图中的织体是非常简单的“扁平”结构。无论玩家做什么，从开头到结尾都需要相同的回合数。然后有时某些选择应当需要更多的深度或复杂性。
 
-## 2) Nested Flow
+为此，我们允许织体嵌套。
 
-The weaves shown above are quite simple, "flat" structures. Whatever the player does, they take the same number of turns to get from top to bottom. However, sometimes certain choices warrant a bit more depth or complexity.
+本节有一个警告。嵌套编织功能强大，结构紧凑，但需要一点时间来适应！
 
-For that, we allow weaves to nest.
+### 选项可以嵌套｜Options can be nested
 
-This section comes with a warning. Nested weaves are very powerful and very compact, but they can take a bit of getting used to!
+请看下面的场景：
 
-### Options can be nested
+	-	“波洛？你认为这是谋杀还是自杀？”
+	*	“谋杀！”
+	*	“自杀！”
+	-	克里斯蒂女士稍后放下了手稿。写作小组的其他成员坐在一旁，张大了嘴巴。
 
-Consider the following scene:
+第一个选择是“谋杀！”或“自杀！”。如果波洛宣布是自杀，那就没什么可做的了，但如果是谋杀，就需要追问——他怀疑谁？
 
-	- 	"Well, Poirot? Murder or suicide?"
-	*	"Murder!"
-	* 	"Suicide!"
-	-	Ms. Christie lowered her manuscript a moment. The rest of the writing group sat, open-mouthed.
+我们可以通过一组嵌套的子选项来添加新的选项。我们可以用两个星号而不是一个星号来表示这些新选项是另一个选项的“一部分”。
 
-The first choice presented is "Murder!" or "Suicide!". If Poirot declares a suicide, there's no more to do, but in the case of murder, there's a follow-up question needed - who does he suspect?
+	-	“波洛？你认为这是谋杀还是自杀？”
+	*	“谋杀！”
+		“那你认为是谁干的呢？”
+		**	“贾普探长！”
+		**	“黑斯廷斯上尉！”
+		**	“就是我！”
+	*	“自杀！”
+	-	克里斯蒂女士稍后放下了手稿。写作小组的其他成员坐在一旁，张大了嘴巴。
 
-We can add new options via a set of nested sub-choices. We tell the script that these new choices are "part of" another choice by using two asterisks, instead of just one.
+（注意，使用缩进来显示嵌套也是一种好的风格，这会便于作者审阅，但编译器并不会介意）。
 
+如果我们想在另一条路径上添加新的子选项，也可以用类似的方法来实现。
 
-	- 	"Well, Poirot? Murder or suicide?"
-		*	"Murder!"
-		 	"And who did it?"
-			* * 	"Detective-Inspector Japp!"
-			* * 	"Captain Hastings!"
-			* * 	"Myself!"
-		* 	"Suicide!"
-		-	Mrs. Christie lowered her manuscript a moment. The rest of the writing group sat, open-mouthed.
+	-	“波洛？你认为这是谋杀还是自杀？”
+	*	“谋杀！”
+		“那你认为是谁干的呢？”
+		**	“贾普探长！”
+		**	“黑斯廷斯上尉！”
+		**	“就是我！”
+	*	“自杀！”
+		“真的么，波洛？你确定么？”
+		**	“非常确定。”
+		**	“这是显而易见的。”
+	-	克里斯蒂女士稍后放下了手稿。写作小组的其他成员坐在一旁，张大了嘴巴。
 
-(Note that it's good style to also indent the lines to show the nesting, but the compiler doesn't mind.)
+现在，最初的指控选择将引出具体的后续问题——但无论如何，流程都将在克里斯蒂夫人的出场时收束到一起。
 
-And should we want to add new sub-options to the other route, we do that in similar fashion.
+但是，如果我们想要一个更长的分镜头呢？
 
-	- 	"Well, Poirot? Murder or suicide?"
-		*	"Murder!"
-		 	"And who did it?"
-			* * 	"Detective-Inspector Japp!"
-			* * 	"Captain Hastings!"
-			* * 	"Myself!"
-		* 	"Suicide!"
-			"Really, Poirot? Are you quite sure?"
-			* * 	"Quite sure."
-			* *		"It is perfectly obvious."
-		-	Mrs. Christie lowered her manuscript a moment. The rest of the writing group sat, open-mouthed.
+### 收束点也可以嵌套｜Gather points can be nested too
 
-Now, that initial choice of accusation will lead to specific follow-up questions - but either way, the flow will come back together at the gather point, for Mrs. Christie's cameo appearance.
+有时，问题不在于选项数量的增加，而在于故事节点的增加。我们可以通过嵌套收束点和选项来实现这一点。
 
-But what if we want a more extended sub-scene?
+	-	“波洛？你认为这是谋杀还是自杀？”
+	*	“谋杀！”
+		“那你认为是谁干的呢？”
+		**	“贾普探长！”
+		**	“黑斯廷斯上尉！”
+		**	“就是我！”
+		--	“你一定是在开玩笑！”
+		**	“我的朋友，我是认真的。”
+		**	“只是……”
+	*	“自杀！”
+		“真的么，波洛？你确定么？”
+		**	“非常确定。”
+		**	“这是显而易见的。”
+	-	克里斯蒂女士稍后放下了手稿。写作小组的其他成员坐在一旁，张大了嘴巴。
 
-### Gather points can be nested too
+如果玩家选择了“谋杀”选项，他们的这条子分支上就会连续出现两个选择——只属于这条子分支的扁平织体。
 
-Sometimes, it's not a question of expanding the number of options, but having more than one additional beat of story. We can do this by nesting gather points as well as options.
+#### 进阶：收束这个操作做了什么｜Advanced: What gathers do
 
-	- 	"Well, Poirot? Murder or suicide?"
-			*	"Murder!"
-			 	"And who did it?"
-				* * 	"Detective-Inspector Japp!"
-				* * 	"Captain Hastings!"
-				* * 	"Myself!"
-				- - 	"You must be joking!"
-				* * 	"Mon ami, I am deadly serious."
-				* *		"If only..."
-			* 	"Suicide!"
-				"Really, Poirot? Are you quite sure?"
-				* * 	"Quite sure."
-				* *		"It is perfectly obvious."
-			-	Mrs. Christie lowered her manuscript a moment. The rest of the writing group sat, open-mouthed.
+收束是直观的，但它们的行为却很难用语言表达：一般来说，在一个选项被选中后，故事会找到下一个收束点并向其分道而去。
 
-If the player chooses the "murder" option, they'll have two choices in a row on their sub-branch - a whole flat weave, just for them.
+基本原理是：选项将故事情节分开，而收束则将它们重新聚拢。（这一套下来得名“织体”）
 
-#### Advanced: What gathers do
+### 你可以根据你自己的需要设置多层嵌套｜You can nest as many levels are you like
 
-Gathers are hopefully intuitive, but their behaviour is a little harder to put into words: in general, after an option has been taken, the story finds the next gather down that isn't on a lower level, and diverts to it.
+上面，我们使用了两层嵌套：主流程和子流程。但是，我们并没有限制嵌套的深度。
 
-The basic idea is this: options separate the paths of the story, and gathers bring them back together. (Hence the name, "weave"!)
+	-	“跟我们讲个故事吧，队长！”
+		*	“好吧，你们这些‘海狗’。我还真有个故事……”
+			**	“那是一个风雨交加的漆黑夜晚……”
+				***	“……船员们都很不安……”
+					****	“……他们对船长说……”
+						*****	“船长给我们讲个故事吧！”
+		*	“不行，你们该上床睡觉了。”
+	-	船员们打起了哈欠。
 
+过一段时间后，这种嵌套就会变得难以阅读和操作，因此，如果嵌套会变得臃肿的话，将其分道到一个新的接缝会是一个好的操作。
 
-### You can nest as many levels are you like
+但至少在理论上，你可以把整个故事只写成一个织体。
 
-Above, we used two levels of nesting; the main flow, and the sub-flow. But there's no limit to how many levels deep you can go.
+### 示例：用嵌套节点写的对话｜Example: a conversation with nested nodes
 
-	-	"Tell us a tale, Captain!"
-		*	"Very well, you sea-dogs. Here's a tale..."
-			* * 	"It was a dark and stormy night..."
-					* * * 	"...and the crew were restless..."
-							* * * *  "... and they said to their Captain..."
-									* * * * *		"...Tell us a tale Captain!"
-		*	"No, it's past your bed-time."
- 	-	To a man, the crew began to yawn.
+这个示例有点长：
 
-After a while, this sub-nesting gets hard to read and manipulate, so it's good style to divert away to a new stitch if a side-choice goes unwieldy.
+	-	我看着福格先生
+	*	……我再也控制不住我自己了。
+		“我们此行的目的是什么，先生？”
+		“为了打个赌。”他说。
+		**	“打个赌！”[]我重复着。
+			他点点头。
+			***	“但这真的很蠢！”
+			***	“这也太糟了吧！”
+			---	他又点了点头。
+			***	“那我们能赢么？”
+				“这正是我们要努力查明的。”他回答道。
+			***	“赌注应该不大吧？”
+				“两万英镑。”他斩钉截铁地回答道。
+			***	我没什么想问的了。
+				他最后礼貌地咳嗽了一声后，也没有再说什么。<>
+		**	“啊？”[]我不敢相信。
+		--	在那之后，<>
+	*	……但我什么也没有说。<>
+	-	我们在沉默中度过了一天。
+	-	->	END
 
-But, in theory at least, you could write your entire story as a single weave.
+有几种可能的玩法。一个短的：
 
-### Example: a conversation with nested nodes
-
-Here's a longer example:
-
-	- I looked at Monsieur Fogg
-	*	... and I could contain myself no longer.
-		'What is the purpose of our journey, Monsieur?'
-		'A wager,' he replied.
-		* * 	'A wager!'[] I returned.
-				He nodded.
-				* * * 	'But surely that is foolishness!'
-				* * *  'A most serious matter then!'
-				- - - 	He nodded again.
-				* * *	'But can we win?'
-						'That is what we will endeavour to find out,' he answered.
-				* * *	'A modest wager, I trust?'
-						'Twenty thousand pounds,' he replied, quite flatly.
-				* * * 	I asked nothing further of him then[.], and after a final, polite cough, he offered nothing more to me. <>
-		* * 	'Ah[.'],' I replied, uncertain what I thought.
-		- - 	After that, <>
-	*	... but I said nothing[] and <>
-	- we passed the day in silence.
-	- -> END
-
-with a couple of possible playthroughs. A short one:
-
-	I looked at Monsieur Fogg
-
-	1: ... and I could contain myself no longer.
-	2: ... but I said nothing
+	我看着福格先生
+	
+	1: ……我再也控制不住我自己了。
+	2: ……但我什么也没有说。
 
 	> 2
-	... but I said nothing and we passed the day in silence.
+	……但我什么也没有说。我们在沉默中度过了一天。
 
-and a longer one:
+一个长点的：
 
-	I looked at Monsieur Fogg
-
-	1: ... and I could contain myself no longer.
-	2: ... but I said nothing
+		我看着福格先生
+	
+	1: ……我再也控制不住我自己了。
+	2: ……但我什么也没有说。
 
 	> 1
-	... and I could contain myself no longer.
-	'What is the purpose of our journey, Monsieur?'
-	'A wager,' he replied.
+	……我再也控制不住我自己了。
+	“我们此行的目的是什么，先生？”
+	“为了打个赌。”他说。
 
-	1: 'A wager!'
-	2: 'Ah.'
+	1: “打个赌！”
+	2: “啊？”
 
 	> 1
-	'A wager!' I returned.
-	He nodded.
-
-	1: 'But surely that is foolishness!'
-	2: 'A most serious matter then!'
-
-	> 2
-	'A most serious matter then!'
-	He nodded again.
-
-	1: 'But can we win?'
-	2: 'A modest wager, I trust?'
-	3: I asked nothing further of him then.
+	“打个赌！”我重复着。
+	他点点头。
+	
+	1: “但这真的很蠢！”
+	2: “这也太糟了吧！”
 
 	> 2
-	'A modest wager, I trust?'
-	'Twenty thousand pounds,' he replied, quite flatly.
-	After that, we passed the day in silence.
+	“这也太糟了吧！”
+	他又点了点头。
 
-Hopefully, this demonstrates the philosophy laid out above: that weaves offer a compact way to offer a lot of branching, a lot of choices, but with the guarantee of getting from beginning to end!
+	1: “那我们能赢么？”
+	2: “赌注应该不大吧？”				
+	3: 我没什么想问的了。
+
+	> 2
+	“赌注应该不大吧？”
+	“两万英镑。”他斩钉截铁地回答道。
+	在那之后，我们在沉默中度过了一天。
+
+希望这能证明上文所阐述的理念：编织提供了一种紧凑的方式，可以提供很多分支、很多选择，但又能保证一定可以从开头走到结尾！
 
 
-## 3) Tracking a Weave
+## 3) 追踪织体｜Tracking a Weave
 
 Sometimes, the weave structure is sufficient. But when it's not, we need a bit more control.
 
@@ -1409,11 +1409,6 @@ The following is valid, and frequently useful.
 	-	We fell into companionable silence once more.
 
 Note the level 2 gather point directly below the first option: there's nothing to gather here, really, but it gives us a handy place to divert the second option to.
-
-
-
-
-
 
 # 第 3 部分：变量和逻辑｜Part 3: Variables and Logic
 
@@ -2080,7 +2075,7 @@ Constants are simply a way to allow you to give story states easy-to-understand 
 
 There are two core ways to provide game hooks in the **Ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](RunningYourInk.md).
 
-# Part 4: Advanced Flow Control
+# 第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control
 
 
 ## 1) Tunnels
@@ -2439,7 +2434,7 @@ A game which uses ink as a script rather than a literal output might often gener
 	...
 ```
 
-# Part 5: Advanced State Tracking
+# 第 5 部分：进阶状态追踪｜Part 5: Advanced State Tracking
 
 Games with lots of interaction can get very complex, very quickly and the writer's job is often as much about maintaining continuity as it is about content.
 
@@ -3581,7 +3576,7 @@ Example:
 
 
 
-# Part 6: International character support in identifiers
+# 第 6 部分：标识符中的国际字符支持｜Part 6: International character support in identifiers
 
 By default, ink has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exsits
 on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements (a.k.a. *identifiers*).
