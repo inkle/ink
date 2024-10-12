@@ -70,13 +70,13 @@
 		- [你可以根据你自己的需要设置多层嵌套｜You can nest as many levels are you like](#你可以根据你自己的需要设置多层嵌套you-can-nest-as-many-levels-are-you-like)
 		- [示例：用嵌套节点写的对话｜Example: a conversation with nested nodes](#示例用嵌套节点写的对话example-a-conversation-with-nested-nodes)
 	- [3) 追踪织体｜Tracking a Weave](#3-追踪织体tracking-a-weave)
-		- [Weaves are largely unaddressed](#weaves-are-largely-unaddressed)
-		- [Gathers and options can be labelled](#gathers-and-options-can-be-labelled)
-		- [Scope](#scope)
-			- [Advanced: all options can be labelled](#advanced-all-options-can-be-labelled)
-			- [Advanced: Loops in a weave](#advanced-loops-in-a-weave)
-			- [Advanced: diverting to options](#advanced-diverting-to-options)
-			- [Advanced: Gathers directly after an option](#advanced-gathers-directly-after-an-option)
+		- [织体是庞大且没有地址索引的｜Weaves are largely unaddressed](#织体是庞大且没有地址索引的weaves-are-largely-unaddressed)
+		- [收束和选项也可以打标签｜Gathers and options can be labelled](#收束和选项也可以打标签gathers-and-options-can-be-labelled)
+		- [界限｜Scope](#界限scope)
+			- [进阶：所有的选项都可以打标签｜Advanced: all options can be labelled](#进阶所有的选项都可以打标签advanced-all-options-can-be-labelled)
+			- [进阶：在织体里循环｜Advanced: Loops in a weave](#进阶在织体里循环advanced-loops-in-a-weave)
+			- [进阶：分道指向到选项｜Advanced: diverting to options](#进阶分道指向到选项advanced-diverting-to-options)
+			- [进阶：在一个选项后直接收束｜Advanced: Gathers directly after an option](#进阶在一个选项后直接收束advanced-gathers-directly-after-an-option)
 - [第 3 部分：变量和逻辑｜Part 3: Variables and Logic](#第-3-部分变量和逻辑part-3-variables-and-logic)
 	- [1) Global Variables](#1-global-variables)
 		- [Defining Global Variables](#defining-global-variables)
@@ -1269,146 +1269,142 @@ TODO: （向编译器传递 `-c` 的要求）
 
 ## 3) 追踪织体｜Tracking a Weave
 
-Sometimes, the weave structure is sufficient. But when it's not, we need a bit more control.
+有时只使用织体这种结构就足够了。但如果不够，我们就需要更多的控制。
 
-### Weaves are largely unaddressed
+### 织体是庞大且没有地址索引的｜Weaves are largely unaddressed
 
-By default, lines of content in a weave don't have an address or label, which means they can't be diverted to, and they can't be tested for. In the most basic weave structure, choices vary the path the player takes through the weave and what they see, but once the weave is finished those choices and that path are forgotten.
+默认情况下，织体结构中的内容行都没有地址或标签，这意味着它们无法被分道到其他地方，也就无法进行测试。
+在最基本的织体结构中，玩家的选择会改变织体的路径和他们所看到的内容，但一旦织体看完了，这些选择和路径就会被遗忘。
 
-But should we want to remember what the player has seen, we can - we add in labels where they're needed using the `(label_name)` syntax.
+不过如果我们想记住玩家看过的内容，也是可以的——我们可以使用 `(label_name)` 语法在需要的地方添加标签。
 
-### Gathers and options can be labelled
+### 收束和选项也可以打标签｜Gathers and options can be labelled
 
-Gather points at any nested level can be labelled using brackets.
+任何嵌套层的收束点都可以用括号标注。就像：
 
-	-  (top)
+  	-	(top)
 
-Once labelled, gather points can be diverted to, or tested for in conditionals, just like knots and stitches. This means you can use previous decisions to alter later outcomes inside the weave, while still keeping all the advantages of a clear, reliable forward-flow.
+一旦贴上标签，收束点就可以像结点和接缝一样被分道或是测试。这意味着您可以利用之前的决定来改变织体中的后续结果，同时继续保持清晰、可靠且继续发展等织体的所有优点。
 
-Options can also be labelled, just like gather points, using brackets. Label brackets come before conditions in the line.
+选项也可以用括号来打标签，就像收束点一样。但是标签括号需要写在每个选项的文本之前。
 
-These addresses can be used in conditional tests, which can be useful for creating options unlocked by other options.
+这些地址可以在条件测试中使用，对于创建被其他选项解锁的选项时非常有用。
 
 	=== meet_guard ===
-	The guard frowns at you.
+	警卫皱着眉头看着你。
 
-	* 	(greet) [Greet him]
-		'Greetings.'
-	*	(get_out) 'Get out of my way[.'],' you tell the guard.
+	*	(greet)	[向他打招呼]
+		“你好啊。”
+	*	(get_out)	“让一下。”[]你和警卫说道。
 
-	- 	'Hmm,' replies the guard.
+	-	“嗯……”警卫应了一声。
 
-	*	{greet} 	'Having a nice day?' // only if you greeted him
+	*	{greet}	“今天过得怎么样？”	// 当你选择了向他打招呼的时候
+		“还不赖。”
 
-	* 	'Hmm?'[] you reply.
+	*	“怎么了？”[]你有些好奇。
 
-	*	{get_out} [Shove him aside] 	 // only if you threatened him
-		You shove him sharply. He stares in reply, and draws his sword!
-		-> fight_guard 			// this route diverts out of the weave
+	*	{get_out}	[把他推到一边]	// 当你选择了威胁他时
+		你把他粗暴地推到一边，他瞪着眼睛看着你，然后拔出了剑！
+		->	fight_guard	// 这个路径将分道出这个织体
 
-	-	'Mff,' the guard replies, and then offers you a paper bag. 'Toffee?'
+	-	“哦……”警卫回应着，然后递给你一个小纸袋。“太妃糖？”
 
+### 界限｜Scope
 
-### Scope
-
-Inside the same block of weave, you can simply use the label name; from outside the block you need a path, either to a different stitch within the same knot:
+在同一织体块内，您可以简单地使用标签名称；而在织体块外，您需要一个路径，或者是通往同一结点的不同接缝的路径：
 
 	=== knot ===
 	= stitch_one
-		- (gatherpoint) Some content.
+		-	(gatherpoint)	一些内容。
 	= stitch_two
-		*	{stitch_one.gatherpoint} Option
+		*	{stitch_one.gatherpoint}	选项
 
-or pointing into another knot:
+或者指向另一个结点里：
 
 	=== knot_one ===
 	-	(gather_one)
-		* {knot_two.stitch_two.gather_two} Option
+  		*	{knot_two.stitch_two.gather_two}	选项
 
 	=== knot_two ===
 	= stitch_two
 		- (gather_two)
-			*	{knot_one.gather_one} Option
+			*	{knot_one.gather_one} 	选项
 
+#### 进阶：所有的选项都可以打标签｜Advanced: all options can be labelled
 
-#### Advanced: all options can be labelled
-
-In truth, all content in ink is a weave, even if there are no gathers in sight. That means you can label *any* option in the game with a bracket label, and then reference it using the addressing syntax. In particular, this means you can test *which* option a player took to reach a particular outcome.
+事实上，Ink 里所有的内容都是织体，即使看不到任何收束。这意味着你可以用括号标注游戏中的*任何*选项，然后用寻址语法引用它。这意味着你可以测试玩家是通过*哪一个*选项得出特定结果的。
 
 	=== fight_guard ===
-	...
+	……
 	= throw_something
-	*	(rock) [Throw rock at guard] -> throw
-	* 	(sand) [Throw sand at guard] -> throw
+	*	(rock) [朝警卫扔石头] -> throw
+	* 	(sand) [朝警卫扔沙子] -> throw
 
 	= throw
-	You hurl {throw_something.rock:a rock|a handful of sand} at the guard.
+	你朝警卫扔了{throw_something.rock:一块石头|一把沙子}。
 
+#### 进阶：在织体里循环｜Advanced: Loops in a weave
 
-#### Advanced: Loops in a weave
-
-Labelling allows us to create loops inside weaves. Here's a standard pattern for asking questions of an NPC.
+标签可以让我们在编制织体的过程中创建循环。下面是向 NPC 提问的标准模式。
 
 	- (opts)
-		*	'Can I get a uniform from somewhere?'[] you ask the cheerful guard.
-			'Sure. In the locker.' He grins. 'Don't think it'll fit you, though.'
-		*	'Tell me about the security system.'
-			'It's ancient,' the guard assures you. 'Old as coal.'
-		*	'Are there dogs?'
-			'Hundreds,' the guard answers, with a toothy grin. 'Hungry devils, too.'
-		// We require the player to ask at least one question
-		*	{loop} [Enough talking]
-			-> done
+		*	“我能从哪里拿一套制服吗？”[]你问那个开朗的警卫。
+			“当然可以，就在那个柜子里。”他咧嘴一笑。
+		*	“告诉我安保系统的情况。”
+			“‘它’相当古老，”警卫向你保证：“就像一块煤炭。”
+		*	“有狗么？”
+			“很多。”警卫咧嘴一笑回答道：“饿的跟魔鬼一样。”
+		//	我们需要玩家询问至少一个问题
+		*	{loop}	[没什么想说的了]
+			->	done
+
 	- (loop)
-		// loop a few times before the guard gets bored
+		//	在警卫厌烦之前询问几次
 		{ -> opts | -> opts | }
-		He scratches his head.
-		'Well, can't stand around talking all day,' he declares.
+		他挠挠头。
+		“好了，咱不能一天到晚就站着说话了吧？”他说道。
 	- (done)
-		You thank the guard, and move away.
+		你谢过了警卫，然后离开了。
 
+#### 进阶：分道指向到选项｜Advanced: diverting to options
 
-
-
-
-#### Advanced: diverting to options
-
-Options can also be diverted to: but the divert goes to the output of having chosen that choice, *as though the choice had been chosen*. So the content printed will ignore square bracketed text, and if the option is once-only, it will be marked as used up.
+选项也可以被分道指向：但会直接分道到该选项的输出，*就像选择了该选项一样*。因此，打印的内容将忽略方括号内的文字，如果该选项只能使用一次，它将被标记为次数用尽。
 
 	- (opts)
-	*	[Pull a face]
-		You pull a face, and the soldier comes at you! -> shove
+	*	[向警卫做鬼脸]
+		你做了个鬼脸，于是警卫向你冲过来了！	-> shove
 
-	*	(shove) [Shove the guard aside] You shove the guard to one side, but he comes back swinging.
+	*	(shove) [推搡警卫]你推了一把警卫，但是他很快就摆正了重心。
+	
+	*	{shove} [跟他打架]	-> fight_the_guard
 
-	*	{shove} [Grapple and fight] -> fight_the_guard
+	-	-> opts
 
-	- 	-> opts
+输出：
 
-produces:
-
-	1: Pull a face
-	2: Shove the guard aside
+	1: 向警卫做鬼脸
+	2: 推搡警卫
 
 	> 1
-	You pull a face, and the soldier comes at you! You shove the guard to one side, but he comes back swinging.
+	你做了个鬼脸，于是警卫向你冲过来了！你推了一把警卫，但是他很快就摆正了重心。
 
-	1: Grapple and fight
+	1: 跟他打架
 
 	>
 
-#### Advanced: Gathers directly after an option
+#### 进阶：在一个选项后直接收束｜Advanced: Gathers directly after an option
 
-The following is valid, and frequently useful.
+以下内容不仅有效，而且经常使用。
 
-	*	"Are you quite well, Monsieur?"[] I asked.
-		- - (quitewell) "Quite well," he replied.
-	*	"How did you do at the crossword, Monsieur?"[] I asked.
+	*	“您还好么，先生？”[]我问到。
+		--	(quitewell)	“挺好的。”他回应道。
+	*	“填字游戏做得怎么样了，先生？”[]我问到。
 		-> quitewell
-	*	I said nothing[] and neither did my Master.
-	-	We fell into companionable silence once more.
+	*	我什么也没说[]，我的老大也什么都没说。
+  	-	我们彼此再次陷入了沉默。
 
-Note the level 2 gather point directly below the first option: there's nothing to gather here, really, but it gives us a handy place to divert the second option to.
+注意上方示例中的二级收束点：这里其实真没什么好收束的，但是它为我们提供了一个方便的地方来分道第二个选项。
 
 # 第 3 部分：变量和逻辑｜Part 3: Variables and Logic
 
