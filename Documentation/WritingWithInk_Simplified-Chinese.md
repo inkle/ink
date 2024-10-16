@@ -78,14 +78,14 @@
 			- [进阶：分道指向到选项｜Advanced: diverting to options](#进阶分道指向到选项advanced-diverting-to-options)
 			- [进阶：在一个选项后直接收束｜Advanced: Gathers directly after an option](#进阶在一个选项后直接收束advanced-gathers-directly-after-an-option)
 - [第 3 部分：变量和逻辑｜Part 3: Variables and Logic](#第-3-部分变量和逻辑part-3-variables-and-logic)
-	- [1) Global Variables](#1-global-variables)
-		- [Defining Global Variables](#defining-global-variables)
-		- [Using Global Variables](#using-global-variables)
-			- [Advanced: storing diverts as variables](#advanced-storing-diverts-as-variables)
-			- [Advanced: Global variables are externally visible](#advanced-global-variables-are-externally-visible)
-		- [Printing variables](#printing-variables)
-		- [Evaluating strings](#evaluating-strings)
-	- [2) Logic](#2-logic)
+	- [1) 全局变量｜Global Variables](#1-全局变量global-variables)
+		- [定义全局变量｜Defining Global Variables](#定义全局变量defining-global-variables)
+		- [使用全局变量｜Using Global Variables](#使用全局变量using-global-variables)
+			- [进阶：将分道存储为变量｜Advanced: storing diverts as variables](#进阶将分道存储为变量advanced-storing-diverts-as-variables)
+			- [进阶：全局变量是对外可见的｜Advanced: Global variables are externally visible](#进阶全局变量是对外可见的advanced-global-variables-are-externally-visible)
+		- [打印输出变量｜Printing variables](#打印输出变量printing-variables)
+		- [叠加态字符串｜Evaluating strings](#叠加态字符串evaluating-strings)
+	- [2) 逻辑｜Logic](#2-逻辑logic)
 		- [Mathematics](#mathematics)
 			- [RANDOM(min, max)](#randommin-max)
 			- [Advanced: numerical types are implicit](#advanced-numerical-types-are-implicit)
@@ -97,7 +97,7 @@
 		- [Switch blocks](#switch-blocks)
 			- [Example: context-relevant content](#example-context-relevant-content)
 		- [Conditional blocks are not limited to logic](#conditional-blocks-are-not-limited-to-logic)
-		- [多行替文｜Multiline blocks](#多行替文multiline-blocks)
+		- [多行代码块｜Multiline blocks](#多行代码块multiline-blocks)
 			- [Advanced: modified shuffles](#advanced-modified-shuffles)
 	- [4) Temporary Variables](#4-temporary-variables)
 		- [Temporary variables are for scratch calculations](#temporary-variables-are-for-scratch-calculations)
@@ -930,7 +930,7 @@ And here's a bit of lifestyle advice. Note the sticky choice - the lure of the t
 
 
 #### 另行参见：多行替文｜Sneak Preview: Multiline alternatives
-**Ink** 还有另一种格式来制作替换内容块用的替文。详见 [多行替文](#多行替文multiline-blocks)。
+**Ink** 还有另一种格式来制作替换内容块用的替文。详见 [多行代码块](#多行代码块multiline-blocks)。
 
 
 
@@ -1408,92 +1408,89 @@ TODO: （向编译器传递 `-c` 的要求）
 
 # 第 3 部分：变量和逻辑｜Part 3: Variables and Logic
 
-So far we've made conditional text, and conditional choices, using tests based on what content the player has seen so far.
+到目前为止，我们已经可以制作了条件文本和条件选择，并根据玩家目前所看到的内容进行了检测。
 
-**Ink** also supports variables, both temporary and global, storing numerical and content data, or even story flow commands. It is fully-featured in terms of logic, and contains a few additional structures to help keep the often complex logic of a branching story better organised.
+此外，**Ink** 还支持临时和全局变量，可存储数字和内容数据，甚至故事流程命令。在逻辑方面，**Ink** 功能齐全，还包含一些额外的结构，有助于更好地组织分支故事中复杂的逻辑。
 
+## 1) 全局变量｜Global Variables
 
-## 1) Global Variables
+这是最强大的一种变量，也可以说是对故事最有用的一种变量，是用来存储有关游戏状态的一些独特属性的变量——从主人公口袋里的钱的数量到代表主人公精神状态的值等，不一而足。
 
-The most powerful kind of variable, and arguably the most useful for a story, is a variable to store some unique property about the state of the game - anything from the amount of money in the protagonist's pocket, to a value representing the protagonist's state of mind.
+这种变量被称为“全局变量”，因为它可以从故事中的任何地方访问——既可以设置，也可以读取。（从传统上来说，程序设计会尽量避免这种情况的发生，因为这会让程序的一部分与另一部分无关。但故事就是故事，而故事都是关于后果的：比如《赌城之旅》的故事也不会一直就在那个赌场里耗着对吧）。
 
-This kind of variable is called "global" because it can be accessed from anywhere in the story - both set, and read from. (Traditionally, programming tries to avoid this kind of thing, as it allows one part of a program to mess with another, unrelated part. But a story is a story, and stories are all about consequences: what happens in Vegas rarely stays there.)
+### 定义全局变量｜Defining Global Variables
 
-### Defining Global Variables
-
-Global variables can be defined anywhere, via a `VAR` statement. They should be given an initial value, which defines what type of variable they are - integer, floating point (decimal), content, or a story address.
+全局变量可以通过 `VAR` 语句在任何地方定义。全局变量应有一个初始值，该值定义了变量的类型--整数、浮点数（十进制）、内容或故事地址。
 
 	VAR knowledge_of_the_cure = false
 	VAR players_name = "Emilia"
 	VAR number_of_infected_people = 521
 	VAR current_epilogue = -> they_all_die_of_the_plague
 
-### Using Global Variables
+### 使用全局变量｜Using Global Variables
 
-We can test global variables to control options, and provide conditional text, in a similar way to what we have previously seen.
+我们可以通过测试全局变量来控制选项，并提供条件文本，这与我们之前看到的方法类似。
 
 	=== the_train ===
-		The train jolted and rattled. { mood > 0:I was feeling positive enough, however, and did not mind the odd bump|It was more than I could bear}.
-		*	{ not knows_about_wager } 'But, Monsieur, why are we travelling?'[] I asked.
-		* 	{ knows_about_wager} I contemplated our strange adventure[]. Would it be possible?
+		火车颠簸得嘎嘎作响。{ mood > 0: 不过，我的心情还是很积极的，并不在意这零星的颠簸|我忍无可忍了}。
+		*	{ not knows_about_wager }	“先生，我们为什么要旅行？”[]我问到。
+		*	{ knows_about_wager }	我认真思考着我们奇怪的冒险[]，这件事真的可行吗？
 
-#### Advanced: storing diverts as variables
+#### 进阶：将分道存储为变量｜Advanced: storing diverts as variables
 
-A "divert" statement is actually a type of value in itself, and can be stored, altered, and diverted to.
+“分道”语句本身实际上也是一种值，可以被存储、更改和转道。
 
 	VAR 	current_epilogue = -> everybody_dies
 
 	=== continue_or_quit ===
-	Give up now, or keep trying to save your Kingdom?
-	*  [Keep trying!] 	-> more_hopeless_introspection
-	*  [Give up] 		-> current_epilogue
+	是现在就放弃，还是继续努力拯救你的王国？
+	*  [继续努力！]		-> more_hopeless_introspection
+	*  [放弃了]		-> current_epilogue
 
+#### 进阶：全局变量是对外可见的｜Advanced: Global variables are externally visible
 
-#### Advanced: Global variables are externally visible
+全局变量可以在运行时和剧情中访问或修改，这在更广泛的程度上为游戏和剧情之间的联结提供了一种很好的方式。
 
-Global variables can be accessed, and altered, from the runtime as well from the story, so provide a good way to communicate between the wider game and the story.
+“**Ink** 层”通常是存储游戏变量的好地方；无需考虑保存和加载问题，而且故事本身也能对当前值做出反应。
 
-The **Ink** layer is often be a good place to store gameplay-variables; there's no save/load issues to consider, and the story itself can react to the current values.
+### 打印输出变量｜Printing variables
 
+变量的值可以使用跟序列和条件文本类似的行内语法打印为内容的一部分：
 
-
-### Printing variables
-
-The value of a variable can be printed as content using an inline syntax similar to sequences, and conditional text:
-
-	VAR friendly_name_of_player = "Jackie"
+	VAR friendly_name_of_player = "杰基"
 	VAR age = 23
 
-	My name is Jean Passepartout, but my friends call me {friendly_name_of_player}. I'm {age} years old.
+	我的名字是金·帕斯帕特奥特，但是我的朋友都叫我{friendly_name_of_player}。我{age}岁了。
 
-This can be useful in debugging. For more complex printing based on logic and variables, see the section on [functions](#5-functions).
+这对调试很有用。有关基于逻辑和变量的更复杂打印输出，请参阅[函数](#5-函数functions)章节。
 
-### Evaluating strings
+### 叠加态字符串｜Evaluating strings
 
-It might be noticed that above we refered to variables as being able to contain "content", rather than "strings". That was deliberate, because a string defined in ink can contain ink - although it will always evaluate to a string. (Yikes!)
+也许你会注意到，上面我们提到的变量可以包含“内容”，而不是“字符串”。这是故意的，因为使用 Ink 定义的字符串可以包含 Ink 本身，尽管它的值总是字符串。
 
 	VAR a_colour = ""
 
-	~ a_colour = "{~red|blue|green|yellow}"
+	~ a_colour = "{~红|蓝|绿|黄}"
 
 	{a_colour}
 
-... produces one of red, blue, green or yellow.
+这样就会在调用 `a_color` 的时候产生红色、蓝色、绿色或黄色中的某一种。
 
-Note that once a piece of content like this is evaluated, its value is "sticky". (The quantum state collapses.) So the following:
+但要注意，像这样的内容一旦被观测，其值就会被“粘住”（就像薛定谔的猫被观测后就会坍缩为某个状态）下面是例子：
 
+	歹徒打中了你，你眼冒{a_colour}和{a_colour}的星星。
 	The goon hits you, and sparks fly before you eyes, {a_colour} and {a_colour}.
 
-... won't produce a very interesting effect. (If you really want this to work, use a text function to print the colour!)
+……这样写就不会产生非常有趣的效果。上面的结果只会“让你眼冒同一种颜色的星星”（如果您真的希望这样做，我们也十分建议使用文本相关的功能，也就是替文来打印输出颜色！）。
 
-This is also why
+这也就是为什么我们不推荐：
 
 	VAR a_colour = "{~red|blue|green|yellow}"
 
-is explicitly disallowed; it would be evaluated on the construction of the story, which probably isn't what you want.
+因为它是全局变量，会直接影响到整个游戏。
 
 
-## 2) Logic
+## 2) 逻辑｜Logic
 
 Obviously, our global variables are not intended to be constants, so we need a syntax for altering them.
 
@@ -1671,9 +1668,10 @@ You can even put options inside conditional blocks:
 
 ...but note that the lack of weave-syntax and nesting in the above example isn't accidental: to avoid confusing the various kinds of nesting at work, you aren't allowed to include gather points inside conditional blocks.
 
-### 多行替文｜Multiline blocks
+### 多行代码块｜Multiline blocks
 
-There's one other class of multiline block, which expands on the alternatives system from above. The following are all valid and do what you might expect:
+还有一类多行代码块是对上述替代系统的扩展。下面这些都是有效的，并能实现您所期望的功能：
+
 
  	// Sequence: go through the alternatives, and stick on last
 	{ stopping:
@@ -2072,7 +2070,6 @@ Constants are simply a way to allow you to give story states easy-to-understand 
 There are two core ways to provide game hooks in the **Ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](RunningYourInk.md).
 
 # 第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control
-
 
 ## 1) Tunnels
 
