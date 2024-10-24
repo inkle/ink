@@ -86,15 +86,15 @@
 		- [打印输出变量｜Printing variables](#打印输出变量printing-variables)
 		- [叠加态字符串｜Evaluating strings](#叠加态字符串evaluating-strings)
 	- [2) 逻辑｜Logic](#2-逻辑logic)
-		- [Mathematics](#mathematics)
-			- [RANDOM(min, max)](#randommin-max)
-			- [Advanced: numerical types are implicit](#advanced-numerical-types-are-implicit)
-			- [Advanced: INT(), FLOOR() and FLOAT()](#advanced-int-floor-and-float)
-		- [String queries](#string-queries)
-	- [3) Conditional blocks (if/else)](#3-conditional-blocks-ifelse)
-		- [A simple 'if'](#a-simple-if)
-		- [Extended if/else if/else blocks](#extended-ifelse-ifelse-blocks)
-		- [Switch blocks](#switch-blocks)
+		- [数学｜Mathematics](#数学mathematics)
+			- [指定范围的随机整数函数｜RANDOM(min, max)](#指定范围的随机整数函数randommin-max)
+			- [进阶：数值类型是隐藏但存在的｜Advanced: numerical types are implicit](#进阶数值类型是隐藏但存在的advanced-numerical-types-are-implicit)
+			- [进阶：自定义变量类型｜Advanced: INT(), FLOOR() and FLOAT()](#进阶自定义变量类型advanced-int-floor-and-float)
+		- [字符串查询｜String queries](#字符串查询string-queries)
+	- [3) 条件代码块（如果，否则）｜Conditional blocks (if/else)](#3-条件代码块如果否则conditional-blocks-ifelse)
+		- [一个简单的“如果”｜A simple 'if'](#一个简单的如果a-simple-if)
+		- [扩展判断条件代码块（如果、或者、否则）｜Extended if/else if/else blocks](#扩展判断条件代码块如果或者否则extended-ifelse-ifelse-blocks)
+		- [开关代码块｜Switch blocks](#开关代码块switch-blocks)
 			- [Example: context-relevant content](#example-context-relevant-content)
 		- [Conditional blocks are not limited to logic](#conditional-blocks-are-not-limited-to-logic)
 		- [多行代码块｜Multiline blocks](#多行代码块multiline-blocks)
@@ -1492,38 +1492,35 @@ TODO: （向编译器传递 `-c` 的要求）
 
 ## 2) 逻辑｜Logic
 
-Obviously, our global variables are not intended to be constants, so we need a syntax for altering them.
+显然，我们的全局变量并不打算成为常量，因此我们需要一种语法来更改它们。
 
-Since by default, any text in an **Ink** script is printed out directly to the screen, we use a markup symbol to indicate that a line of content is intended meant to be doing some numerical work, we use the `~` mark.
+由于默认情况下，**Ink** 脚本中的任何文本都会直接打印输出到屏幕上，因此我们使用一个标记符号来表示某一行内容的目的是进行一些数字运算，我们使用 `~` 标记。
 
-The following statements all assign values to variables:
-
+以下语句都可以为变量赋值：
 
 	=== set_some_variables ===
 		~ knows_about_wager = true
 		~ x = (x * x) - (y * y) + c
 		~ y = 2 * x * y
 
-and the following will test conditions:
+检测条件可以这样写：
 
 	{ x == 1.2 }
 	{ x / 2 > 4 }
 	{ y - 1 <= x * x }
 
-### Mathematics
+### 数学｜Mathematics
 
-**Ink** supports the four basic mathematical operations (`+`, `-`, `*` and `/`), as well as `%` (or `mod`), which returns the remainder after integer division. There's also POW for to-the-power-of:
+**Ink**支持四种基本数学运算（`+`、`-`、`*` 和 `/`），以及返回整除后余数的 `%`（或 `mod`）。此外还有 POW 可以来表示幂的运算：
 
-	{POW(3, 2)} is 9.
-	{POW(16, 0.5)} is 4.
+	{POW(3, 2)} 的结果是 9.
+	{POW(16, 0.5)} 的结果是 4.
 
+如果需要进行更复杂的操作，可以编写函数（必要时可以使用递归），或调用外部游戏代码函数（以进行更高级的操作）。
 
-If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced).
+#### 指定范围的随机整数函数｜RANDOM(min, max)
 
-
-#### RANDOM(min, max)
-
-Ink can generate random integers if required using the RANDOM function. RANDOM is authored to be like a dice (yes, pendants, we said *a dice*), so the min and max values are both inclusive.
+如果需要，墨水可以使用 RANDOM 函数生成随机整数。RANDOM 就像一个骰子（Shai子、Tou子，无所谓你知道是什么就行。🎲），因此最小值和最大值都是包含在内的。
 
 	~ temp dice_roll = RANDOM(1, 6)
 
@@ -1531,55 +1528,69 @@ Ink can generate random integers if required using the RANDOM function. RANDOM i
 
 	~ temp number_of_heads_the_serpent_has = RANDOM(3, 8)
 
-The random number generator can be seeded for testing purposes, see the section of Game Queries and Functions section above.
+可为随机数生成器添加种子以进行测试，请参阅上文的“游戏查询和功能”部分。
 
-#### Advanced: numerical types are implicit
+译者注：这个随机整数函数语法必定是
 
-Results of operations - in particular, for division - are typed based on the type of the input. So integer division returns integer, but floating point division returns floating point results.
+	~ temp <变量名称> = RANDOM(min,max)
+
+那个 `temp` 改不成别的。
+
+#### 进阶：数值类型是隐藏但存在的｜Advanced: numerical types are implicit
+
+运算结果，尤其是除法运算的结果，是根据输入的类型进行类型化的。因此，整数除法返回整数结果，而浮点除法返回浮点结果。
 
 	~ x = 2 / 3
 	~ y = 7 / 3
 	~ z = 1.2 / 0.5
 
-assigns `x` to be 0, `y` to be 2 and `z` to be 2.4.
+这会使得 `x` 为 0，`y` 为 2，`z` 为 2.4。
 
-#### Advanced: INT(), FLOOR() and FLOAT()
+#### 进阶：自定义变量类型｜Advanced: INT(), FLOOR() and FLOAT()
 
-In cases where you don't want implicit types, or you want to round off a variable, you can cast it directly.
+如果不想使用上面那种自动但是隐藏的类型，或想对变量进行取舍，则可以直接将其转换为指定类型。
 
-	{INT(3.2)} is 3.
-	{FLOOR(4.8)} is 4.
-	{INT(-4.8)} is -4.
-	{FLOOR(-4.8)} is -5.
+| 代码 | 类型 | 备注 |
+| - | - | - |
+| INT() | 整数 | 向零取整，正数取整后会小于等于原来的数，负数反之 |
+| FLOOR() | 整数 | 向下取整，取整后的数小于或等于原来的数 |
+| FLOAT() | 浮点数 | 双精度二进制浮点数，说人话就是带有小数的数据 |
 
-	{FLOAT(4)} is, um, still 4.
+	{INT(3.2)} 是 3.
+	{FLOOR(4.8)} 是 4.
+	{INT(-4.8)} 是 -4.
+	{FLOOR(-4.8)} 是 -5.
 
+	{FLOAT(4)} 嗯……还是 4.
 
+译者注：截止至翻译更新时还没有向上取整。
 
-### String queries
+### 字符串查询｜String queries
 
-Oddly for a text-engine, **Ink** doesn't have much in the way of string-handling: it's assumed that any string conversion you need to do will be handled by the game code (and perhaps by external functions.) But we support three basic queries - equality, inequality, and substring (which we call ? for reasons that will become clear in a later chapter).
+奇怪的是，作为一款文本引擎，**Ink** 却并没有太多字符串处理功能：因为我们假定任何需要进行的字符串转换的都将由游戏代码（或许还有外部函数）来处理。 但我们支持三种基本查询：相等、不相等和子字符串（我们用 `?` 来查询，原因会在稍后的章节中阐明）。
 
-The following all return true:
+以下的每行内容都会返回“真”：
 
 	{ "Yes, please." == "Yes, please." }
 	{ "No, thank you." != "Yes, please." }
 	{ "Yes, please" ? "ease" }
 
 
-## 3) Conditional blocks (if/else)
+## 3) 条件代码块（如果，否则）｜Conditional blocks (if/else)
 
-We've seen conditionals used to control options and story content; **Ink** also provides an equivalent of the normal if/else-if/else structure.
+前面我们已经看到条件代码块可以用于控制选项和故事内容；现在介绍 **Ink** 提供的与普通 if/else-if/else 结构相当的结构。
 
-### A simple 'if'
+### 一个简单的“如果”｜A simple 'if'
 
-The if syntax takes its cue from the other conditionals used so far, with the `{`...`}` syntax indicating that something is being tested.
+if 语法查询从开始到当前所产生的所有文本、选项还有结果。用两个花括号 `{`……`}` 括起来的内容为要判断的内容。
 
 	{ x > 0:
 		~ y = x - 1
 	}
 
-Else conditions can be provided:
+译者注：上面这个翻译成自然语言是：如果 x > 0，就运算 y = x - 1
+
+然后，可以添加“否则”(else)，并提供其他条件：
 
 	{ x > 0:
 		~ y = x - 1
@@ -1587,9 +1598,11 @@ Else conditions can be provided:
 		~ y = x + 1
 	}
 
-### Extended if/else if/else blocks
+译者注：这个翻译成自然语言是：如果 x > 0，就运算 y = x - 1。否则运算 y = x + 1。`else` 前面的 `-` 是必要的。
 
-The above syntax is actually a specific case of a more general structure, something like a "switch" statement of another language:
+### 扩展判断条件代码块（如果、或者、否则）｜Extended if/else if/else blocks
+
+上述语法实际上是一种更通用结构的特殊情况，类似于其他语言的 "switch "语句。下面例子中单独的 `-` 开头意味着新的 `if` 判断，作为一个简单的判断来说，只是把判断条件写到了下一行：
 
 	{
 		- x > 0:
@@ -1598,7 +1611,9 @@ The above syntax is actually a specific case of a more general structure, someth
 			~ y = x + 1
 	}
 
-And using this form we can include 'else-if' conditions:
+译者注：翻译为自然语言：如果 x 大于 0，那么运算 y = x - 1。否则运算 y = x + 1
+
+使用这种结构，我们还可以实现“或者 (else-if)”：
 
 	{
 		- x == 0:
@@ -1609,11 +1624,15 @@ And using this form we can include 'else-if' conditions:
 			~ y = x + 1
 	}
 
-(Note, as with everything else, the white-space is purely for readability and has no syntactic meaning.)
+（请注意：和其他地方一样，空格纯粹是为了便于阅读，没有任何语法意义。）
 
-### Switch blocks
+译者注：翻译为自然语言：如果 x 等于 0，那么 y 等于 0；或者如果 x 大于 0，运算 y = x - 1。否则，运算 y = x + 1
 
-And there's also an actual switch statement:
+译者再注：作为条件语句，if（如果）肯定是要有的；然后 if-else（或者）是可以没有或者有多个的；else（否则）可以没有，但是有的话只能有一个。“或者”这个用法是有先后顺序的，以写在前面的为先。
+
+### 开关代码块｜Switch blocks
+
+还有一个开关代码块示例：
 
 	{ x:
 	- 0: 	zero
