@@ -95,11 +95,11 @@
 		- [一个简单的“如果”｜A simple 'if'](#一个简单的如果a-simple-if)
 		- [扩展判断条件代码块（如果、或者、否则）｜Extended if/else if/else blocks](#扩展判断条件代码块如果或者否则extended-ifelse-ifelse-blocks)
 		- [开关代码块｜Switch blocks](#开关代码块switch-blocks)
-			- [Example: context-relevant content](#example-context-relevant-content)
-		- [Conditional blocks are not limited to logic](#conditional-blocks-are-not-limited-to-logic)
+			- [示例：与背景相关的内容｜Example: context-relevant content](#示例与背景相关的内容example-context-relevant-content)
+		- [条件块代码块不仅限于逻辑｜Conditional blocks are not limited to logic](#条件块代码块不仅限于逻辑conditional-blocks-are-not-limited-to-logic)
 		- [多行代码块｜Multiline blocks](#多行代码块multiline-blocks)
-			- [Advanced: modified shuffles](#advanced-modified-shuffles)
-	- [4) Temporary Variables](#4-temporary-variables)
+			- [进阶：修改洗牌随机｜Advanced: modified shuffles](#进阶修改洗牌随机advanced-modified-shuffles)
+	- [4) 临时变量｜Temporary Variables](#4-临时变量temporary-variables)
 		- [Temporary variables are for scratch calculations](#temporary-variables-are-for-scratch-calculations)
 		- [Knots and stitches can take parameters](#knots-and-stitches-can-take-parameters)
 			- [Example: a recursive knot definition](#example-a-recursive-knot-definition)
@@ -1635,15 +1635,15 @@ if 语法查询从开始到当前所产生的所有文本、选项还有结果�
 还有一个开关代码块示例：
 
 	{ x:
-	- 0: 	zero
-	- 1: 	one
-	- 2: 	two
-	- else: lots
+	- 0: 	零
+	- 1: 	一
+	- 2: 	二
+	- else: 许多
 	}
 
-#### Example: context-relevant content
+#### 示例：与背景相关的内容｜Example: context-relevant content
 
-Note these tests don't have to be variable-based and can use read-counts, just as other conditionals can, and the following construction is quite frequent, as a way of saying "do some content which is relevant to the current game state":
+请注意，这些测试并不一定要基于变量，也可以使用阅读次数，就像其他条件一样，下面的结构也很常见，是“做一些与当前游戏状态相关的内容”的一种表达方式：
 
 	=== dream ===
 		{
@@ -1660,90 +1660,92 @@ Note these tests don't have to be variable-based and can use read-counts, just a
 				-> dream_about_marmalade
 		}
 
-The syntax has the advantage of being easy to extend, and prioritise.
+这种语法的优点是易于扩展和方便确定优先级。
 
+译者注：`++` 的意思是 +1，`--` 的意思是 -1。
 
+### 条件块代码块不仅限于逻辑｜Conditional blocks are not limited to logic
 
-### Conditional blocks are not limited to logic
+条件块代码块同样可用于控制故事内容和逻辑：
 
-Conditional blocks can be used to control story content as well as logic:
-
-	I stared at Monsieur Fogg.
+	我盯着福格先生。
 	{ know_about_wager:
-		<> "But surely you are not serious?" I demanded.
+		<> "但你不是认真的吧？" 我问到。
 	- else:
-		<> "But there must be a reason for this trip," I observed.
+		<> "但这次旅行一定是有原因的，"我确信。
 	}
-	He said nothing in reply, merely considering his newspaper with as much thoroughness as entomologist considering his latest pinned addition.
+他什么也没有回答，只是像个在研究新品种的昆虫学家一样，死死地盯着他的报纸。
 
-You can even put options inside conditional blocks:
+你甚至可以把选项放在条件代码块中：
 
 	{ door_open:
-		* 	I strode out of the compartment[] and I fancied I heard my master quietly tutting to himself. 			-> go_outside
+		*	我大步走出车厢[]，我仿佛听到老大在悄悄地自言自语。	-> go_outside
 	- else:
-		*	I asked permission to leave[] and Monsieur Fogg looked surprised. 	-> open_door
-		* 	I stood and went to open the door[]. Monsieur Fogg seemed untroubled by this small rebellion. -> open_door
+		*	我请求离开[]，福格先生一脸惊讶。	-> open_door
+		* 	我站起来去开门[]。福格先生似乎并没有被这小小的叛逆举动所困扰。	-> open_door
 	}
 
-...but note that the lack of weave-syntax and nesting in the above example isn't accidental: to avoid confusing the various kinds of nesting at work, you aren't allowed to include gather points inside conditional blocks.
+……但请注意，上述示例中缺少织体语法和嵌套并不是偶然的：这是为了避免混淆各种嵌套。所以无法在条件块中包含收束点。
 
 ### 多行代码块｜Multiline blocks
 
-还有一类多行代码块是对上述替代系统的扩展。下面这些都是有效的，并能实现您所期望的功能：
+还有一类多行代码块是对上述替文系统的扩展。下面这些都是有效的，并能实现您所期望的功能：
 
-
- 	// Sequence: go through the alternatives, and stick on last
+	//	序列：按顺序替换后备选项，最后确定
 	{ stopping:
-		-	I entered the casino.
-		-  I entered the casino again.
-		-  Once more, I went inside.
+		-	我进入了赌场
+		-	我又进入了赌场。
+		-	再一次，我进来了。
 	}
 
-	// Shuffle: show one at random
-	At the table, I drew a card. <>
+ 	//	洗牌随机：随机抽取一个来显示，抽完所有结果后重抽
+	在桌子上，我抽了一张牌。<>
 	{ shuffle:
-		- 	Ace of Hearts.
-		- 	King of Spades.
-		- 	2 of Diamonds.
-			'You lose this time!' crowed the croupier.
+		-	红桃 A
+		-	黑桃 K
+		-	方片 2
+			“你这把不走运啊！”荷官嚷嚷着。
 	}
 
-	// Cycle: show each in turn, and then cycle
+	//	循环：挨个显示，然后再重头
 	{ cycle:
-		- I held my breath.
-		- I waited impatiently.
-		- I paused.
+		-	我屏住呼吸。
+		-	我不耐烦地等待着。
+		-	我停顿了一下。
 	}
 
-	// Once: show each, once, in turn, until all have been shown
+	//	一次性：每个结果在一回游戏里只会抽到一次，抽完了就没有了。
 	{ once:
-		- Would my luck hold?
-		- Could I win the hand?
+		-	我的运气能保持住吗？
+  		-	我能赢吗？
 	}
 
-#### Advanced: modified shuffles
+译者注：上面说到的这些方案写法上来说像是某种判定条件，但实际上您可认为是一种“叫对名字就可以放出来的咒语”。只要按照上面的格式正确拼写，就可以使用了。
 
-The shuffle block above is really a "shuffled cycle"; in that it'll shuffle the content, play through it, then reshuffle and go again.
+#### 进阶：修改洗牌随机｜Advanced: modified shuffles
 
-There are two other versions of shuffle:
+上面提到的洗牌随机实际上是一个“洗牌随机并循环”；即它会将内容洗牌随机后输出一遍。然后再把所有选项洗牌随机后，再输出一遍。
 
-`shuffle once` which will shuffle the content, play through it, and then do nothing.
+所以还有两个经过修改的洗牌随机：
+
+`shuffle once` 这个可以将内容洗牌后输出。但是输出完了之后就不会再收回并重新洗牌，所以用完就没有内容了。
 
 	{ shuffle once:
-	-	The sun was hot.
-	- 	It was a hot day.
+	-	太阳真大。
+	- 	好热的一天。
 	}
 
-`shuffle stopping` will shuffle all the content (except the last entry), and once its been played, it'll stick on the last entry.
+`shuffle stopping` 将对所有内容进行洗牌（最后一条除外），一旦输出完毕，就会停留在最后一条上。
+
+译者注：最后一条不参与洗牌。所以并不是最后一条输出什么就停留在什么上，而一定是写在最后的那一条被固定。
 
 	{ shuffle stopping:
-	- 	A silver BMW roars past.
-	-	A bright yellow Mustang takes the turn.
-	- 	There are like, cars, here.
+	-	一辆银色宝马轰鸣而过。
+	-	一辆亮黄色的野马在转弯
+	-	这里有很多车
 	}
 
-
-## 4) Temporary Variables
+## 4) 临时变量｜Temporary Variables
 
 ### Temporary variables are for scratch calculations
 
