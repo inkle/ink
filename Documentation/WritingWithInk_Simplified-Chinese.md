@@ -100,10 +100,10 @@
 		- [多行代码块｜Multiline blocks](#多行代码块multiline-blocks)
 			- [进阶：修改洗牌随机｜Advanced: modified shuffles](#进阶修改洗牌随机advanced-modified-shuffles)
 	- [4) 临时变量｜Temporary Variables](#4-临时变量temporary-variables)
-		- [Temporary variables are for scratch calculations](#temporary-variables-are-for-scratch-calculations)
-		- [Knots and stitches can take parameters](#knots-and-stitches-can-take-parameters)
-			- [Example: a recursive knot definition](#example-a-recursive-knot-definition)
-			- [Advanced: sending divert targets as parameters](#advanced-sending-divert-targets-as-parameters)
+		- [临时变量用于临时计算｜Temporary variables are for scratch calculations](#临时变量用于临时计算temporary-variables-are-for-scratch-calculations)
+		- [结点和接缝可接收参数｜Knots and stitches can take parameters](#结点和接缝可接收参数knots-and-stitches-can-take-parameters)
+			- [示例：定义一个递归结点｜Example: a recursive knot definition](#示例定义一个递归结点example-a-recursive-knot-definition)
+			- [进阶：将分道目标作为参数来传递｜Advanced: sending divert targets as parameters](#进阶将分道目标作为参数来传递advanced-sending-divert-targets-as-parameters)
 	- [5) 函数｜Functions](#5-函数functions)
 		- [Defining and calling functions](#defining-and-calling-functions)
 		- [Functions don't have to return anything](#functions-dont-have-to-return-anything)
@@ -188,7 +188,7 @@
 
 翻译时的 Ink 版本：1.2.0
 
-翻译最后更新时间：2024年10月2日
+翻译最后更新时间：2024年10月31日
 
 翻译仍在更新。
 
@@ -783,7 +783,6 @@
 如果它不为零，就会在类似上面的检测中返回 `true`，但也可以更具体一些：
 
 	* {seen_clue > 3} [直接逮捕杰斐逊先生]
-
 
 #### 进阶：更多逻辑｜Advanced: more logic
 
@@ -1747,9 +1746,9 @@ if 语法查询从开始到当前所产生的所有文本、选项还有结果�
 
 ## 4) 临时变量｜Temporary Variables
 
-### Temporary variables are for scratch calculations
+### 临时变量用于临时计算｜Temporary variables are for scratch calculations
 
-Sometimes, a global variable is unwieldy. **Ink** provides temporary variables for quick calculations of things.
+有时，全局变量会显得笨重。**Ink** 提供了临时变量，方便进行一些快速计算。
 
 	=== near_north_pole ===
 		~ temp number_of_warm_things = 0
@@ -1763,35 +1762,34 @@ Sometimes, a global variable is unwieldy. **Ink** provides temporary variables f
 			~ number_of_warm_things++
 		}
 		{ number_of_warm_things > 2:
-			Despite the snow, I felt incorrigibly snug.
+			尽管下着雪，但我却感到无比温暖。
 		- else:
-			That night I was colder than I have ever been.
+			那一晚是我人生中最冷的一晚。
 		}
 
-The value in a temporary variable is thrown away after the story leaves the stitch in which it was defined.
+临时变量的值在故事离开定义它的接缝 (Stitch) 后会被丢弃。
 
-### Knots and stitches can take parameters
+### 结点和接缝可接收参数｜Knots and stitches can take parameters
 
-A particularly useful form of temporary variable is a parameter. Any knot or stitch can be given a value as a parameter.
+临时变量的一种特别有用形式是参数。任何结点或接缝都可以接收一个参数值。
 
-	*	[Accuse Hasting]
-			-> accuse("Hastings")
-	*	[Accuse Mrs Black]
-			-> accuse("Claudia")
-	*	[Accuse myself]
-			-> accuse("myself")
+	*	[指控海斯廷斯]
+			-> accuse("海斯廷斯")
+	*	[指控布莱克夫人]
+			-> accuse("莱克夫人")
+	*	[指控我自己]
+			-> accuse("自己")
 
 	=== accuse(who) ===
-		"I accuse {who}!" Poirot declared.
-		"Really?" Japp replied. "{who == "myself":You did it?|{who}?}"
-		"And why not?" Poirot shot back.
+		“我指控{who}！” 波洛宣布道。
+		“真的吗？” 贾普问道。 “{who == "myself":是你做的？|你{who}？}”
+		“怎么会不是呢？” 波洛反问道。
 
+……如果想从一个接缝传递临时值到另一个接缝时，就需要使用参数！
 
-... and you'll need to use parameters if you want to pass a temporary value from one stitch to another!
+#### 示例：定义一个递归结点｜Example: a recursive knot definition
 
-#### Example: a recursive knot definition
-
-Temporary variables are safe to use in recursion (unlike globals), so the following will work.
+在递归中使用临时变量是安全的（与全局变量不同），因此以下代码将正常运行。
 
 	-> add_one_to_one_hundred(0, 1)
 
@@ -1804,40 +1802,51 @@ Temporary variables are safe to use in recursion (unlike globals), so the follow
 		}
 
 	=== finished(total) ===
-		"The result is {total}!" you announce.
-		Gauss stares at you in horror.
+		“结果是 {total}！” 你宣布。
+		高斯惊恐地盯着你。
 		-> END
 
+（事实上，因为这种定义足够有用，所以 **Ink** 提供了一种特殊的结点类型，称为“函数 (Function)”，对它进行一些限制，就可以返回一个值。详见函数章节。）
 
-(In fact, this kind of definition is useful enough that **Ink** provides a special kind of knot, called, imaginatively enough, a `function`, which comes with certain restrictions and can return a value. See the section below.)
+#### 进阶：将分道目标作为参数来传递｜Advanced: sending divert targets as parameters
 
-
-#### Advanced: sending divert targets as parameters
-
-Knot/stitch addresses are a type of value, indicated by a `->` character, and can be stored and passed around. The following is therefore legal, and often useful:
+结点和接缝的地址是一种值，用 `->` 字符表示，可以被存储和传递。因此以下代码是合规的，常用且非常有用：
 
 	=== sleeping_in_hut ===
-		You lie down and close your eyes.
+		你躺下并闭上了眼睛。
 		-> generic_sleep (-> waking_in_the_hut)
 
-	===	 generic_sleep (-> waking)
-		You sleep perchance to dream etc. etc.
+	=== generic_sleep (-> waking)
+		你睡着了，也许会做梦等等等等。
 		-> waking
 
 	=== waking_in_the_hut
-		You get back to your feet, ready to continue your journey.
+		你站起身来，准备继续你的旅程。
 
-...but note the `->` in the `generic_sleep` definition: that's the one case in **Ink** where a parameter needs to be typed: because it's too easy to otherwise accidentally do the following:
+ChatGPT 解析：
+
+这段 Ink 代码的运行方式如下：
+
+1.	进入 sleeping_in_hut：
+	*	读者来到 sleeping_in_hut 结点，描述告诉他们：“你躺下并闭上了眼睛。”
+	*	然后，代码使用 -> generic_sleep (-> waking_in_the_hut) 将控制权转到 generic_sleep 结点，同时将 waking_in_the_hut 这个跳转目标作为参数传递给 generic_sleep。
+2.	进入 generic_sleep 并使用参数：
+	*	进入 generic_sleep 后，读者看到“你睡着了，也许会做梦等等等等。”这部分描述。
+	*	此外，generic_sleep 中 -> waking 的跳转实际上会指向传入的参数 waking_in_the_hut，即在 generic_sleep 结点完成后，将控制权转移到 waking_in_the_hut。
+3.	进入 waking_in_the_hut：
+	*	最后，代码跳转到 waking_in_the_hut，这里的描述告诉读者：“你站起身来，准备继续你的旅程。”这完成了这段代码的流程。
+
+总结：这种结构的目的是让 generic_sleep 结点可以根据传入的参数跳转到不同的“醒来”位置，使其能够在不同场景中复用，增强代码的灵活性。
+
+译者注：这段说人话的意思就是，临时使用上方结点给出的分道参数替换下方的分道来做到临时接入不同的结点。
+
+……请注意 `generic_sleep` 定义中的 `->`：这是 **Ink** 中唯一一个需要将参数类型化的情况，因为否则很容易犯如下错误：
 
 	=== sleeping_in_hut ===
-		You lie down and close your eyes.
+		你躺下并闭上了眼睛。
 		-> generic_sleep (waking_in_the_hut)
 
-... which sends the read count of `waking_in_the_hut` into the sleeping knot, and then attempts to divert to it.
-
-
-
-
+……这将会让 waking_in_the_hut 的读取计数传递到 sleeping 结点，然后试图分道跳转到它。
 
 ## 5) 函数｜Functions
 
@@ -2089,6 +2098,7 @@ Constants are simply a way to allow you to give story states easy-to-understand 
 ## 7) Advanced: Game-side logic
 
 There are two core ways to provide game hooks in the **Ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](RunningYourInk.md).
+
 
 # 第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control
 
@@ -2447,6 +2457,7 @@ A game which uses ink as a script rather than a literal output might often gener
 	// exits; doesn't need a "return point" as if you leave, you go elsewhere
 	...
 ```
+
 
 # 第 5 部分：进阶状态追踪｜Part 5: Advanced State Tracking
 
