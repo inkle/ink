@@ -124,9 +124,9 @@
 			- [示例：定义一个递归结点｜Example: a recursive knot definition](#示例定义一个递归结点example-a-recursive-knot-definition)
 			- [进阶：将分道目标作为参数来传递｜Advanced: sending divert targets as parameters](#进阶将分道目标作为参数来传递advanced-sending-divert-targets-as-parameters)
 	- [5) 函数｜Functions](#5-函数functions)
-		- [Defining and calling functions](#defining-and-calling-functions)
-		- [Functions don't have to return anything](#functions-dont-have-to-return-anything)
-		- [Functions can be called inline](#functions-can-be-called-inline)
+		- [定义和调用函数｜Defining and calling functions](#定义和调用函数defining-and-calling-functions)
+		- [函数不一定非要有个返回值｜Functions don't have to return anything](#函数不一定非要有个返回值functions-dont-have-to-return-anything)
+		- [函数可以直接在同一行内被调用｜Functions can be called inline](#函数可以直接在同一行内被调用functions-can-be-called-inline)
 			- [Examples](#examples)
 			- [Example: turning numbers into words](#example-turning-numbers-into-words)
 		- [Parameters can be passed by reference](#parameters-can-be-passed-by-reference)
@@ -134,7 +134,7 @@
 		- [Global Constants](#global-constants)
 	- [7) Advanced: Game-side logic](#7-advanced-game-side-logic)
 - [第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control](#第-4-部分进阶流程控制part-4-advanced-flow-control)
-	- [1) Tunnels](#1-tunnels)
+	- [1) 隧道｜Tunnels](#1-隧道tunnels)
 		- [Tunnels run sub-stories](#tunnels-run-sub-stories)
 			- [Advanced: Tunnels can return elsewhere](#advanced-tunnels-can-return-elsewhere)
 			- [Advanced: Tunnels use a call-stack](#advanced-tunnels-use-a-call-stack)
@@ -1854,25 +1854,25 @@ ChatGPT 解析：
 
 ## 5) 函数｜Functions
 
-The use of parameters on knots means they are almost functions in the usual sense, but they lack one key concept - that of the call stack, and the use of return values.
+在结点上使用参数会使他们几乎等同于通常意义下的函数，但是它们缺少一个关键概念——调用栈和返回值。
 
-**Ink** includes functions: they are knots, with the following limitations and features:
+**Ink** 包含了这样的功能：它们是结点，但是具有以下的限制和特性：
 
-A function:
-- cannot contain stitches
-- cannot use diverts or offer choices
-- can call other functions
-- can include printed content
-- can return a value of any type
-- can recurse safely
+一个函数：
+- 不能包含接缝 (Stitchs)
+- 不能使用分道或提供选择
+- 可以调用其他函数
+- 可以包含已打印输出的内容
+- 可以返回任何类型的值
+- 可以安全地递归
 
-(Some of these may seem quite limiting, but for more story-oriented call-stack-style features, see the section on [Tunnels](#1-tunnels).)
+（这些限制看起来或许有些严格，所以如果需要更多面向故事的调用栈风格的功能，请查看[隧道](#1-隧道tunnels)部分。）
 
-Return values are provided via the `~ return` statement.
+返回值通过 `~ return` 语句提供。
 
-### Defining and calling functions
+### 定义和调用函数｜Defining and calling functions
 
-To define a function, simply declare a knot to be one:
+要定义一个函数，只需要将一个结点声明为函数即可：
 
 	=== function say_yes_to_everything ===
 		~ return true
@@ -1880,20 +1880,22 @@ To define a function, simply declare a knot to be one:
 	=== function lerp(a, b, k) ===
 		~ return ((b - a) * k) + a
 
-Functions are called by name, and with brackets, even if they have no parameters:
+译者注：就像上面这样，以 "function" 开头并空一格写上函数名就可以了。
+
+函数通过名称和括号调用，哪怕它们并没有参数：
 
 	~ x = lerp(2, 8, 0.3)
 
 	*	{say_yes_to_everything()} 'Yes.'
 
-As in any other language, a function, once done, returns the flow to wherever it was called from - and despite not being allowed to divert the flow, functions can still call other functions.
+与其他编程语言蕾丝，一个函数再一次执行完毕后，要将流程返回到调用它的位置——尽管函数不能进行分道，但是仍然函数仍然可以调用其它函数。
 
 	=== function say_no_to_nothing ===
 		~ return say_yes_to_everything()
 
-### Functions don't have to return anything
+### 函数不一定非要有个返回值｜Functions don't have to return anything
 
-A function does not need to have a return value, and can simply do something that is worth packaging up:
+一个函数不一定需要一个返回值，可以让函数仅仅只是执行一些操作：
 
 	=== function harm(x) ===
 		{ stamina < x:
@@ -1902,31 +1904,31 @@ A function does not need to have a return value, and can simply do something tha
 			~ stamina = stamina - x
 		}
 
-...though remember a function cannot divert, so while the above prevents a negative Stamina value, it won't kill a player who hits zero.
+……要记得函数是不能进行分道的，所以上面这些代码虽然可以防止耐力值 (Stamina) 变为负数，但是不会让耐力归零的玩家死亡。
 
-### Functions can be called inline
+### 函数可以直接在同一行内被调用｜Functions can be called inline
 
-Functions can be called on `~` content lines, but can also be called during a piece of content. In this context, the return value, if there is one, is printed (as well as anything else the function wants to print.) If there is no return value, nothing is printed.
+函数不仅可以在 `~` 行内调用，还可以在内容中直接调用。在这种情况下，如果函数有返回值，那么这个返回值就回被打印输出（当然也有可能输出其他内容。）如果没有任何返回值，那么就不会打印输出任何内容。
 
-Content is, by default, 'glued in', so the following:
+默认情况下，内容是“胶合”在一起的，所以以下代码：
 
-	Monsieur Fogg was looking {describe_health(health)}.
+	福格先生看起来{describe_health(health)}。
 
 	=== function describe_health(x) ===
 	{
 	- x == 100:
-		~ return "spritely"
+		~ return "轻松愉快"
 	- x > 75:
-		~ return "chipper"
+		~ return "略显疲惫"
 	- x > 45:
-		~ return "somewhat flagging"
+		~ return "有些颓丧"
 	- else:
-		~ return "despondent"
+		~ return "神情恍惚"
 	}
 
-produces:
+会输出：
 
-	Monsieur Fogg was looking despondent.
+	福格先生看起来精神恍惚。
 
 #### Examples
 
@@ -2106,7 +2108,7 @@ There are two core ways to provide game hooks in the **Ink** engine. External fu
 
 # 第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control
 
-## 1) Tunnels
+## 1) 隧道｜Tunnels
 
 The default structure for **Ink** stories is a "flat" tree of choices, branching and joining back together, perhaps looping, but with the story always being "at a certain place".
 
