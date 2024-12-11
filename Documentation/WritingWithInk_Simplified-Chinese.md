@@ -128,8 +128,8 @@
 		- [函数不一定非要有个返回值｜Functions don't have to return anything](#函数不一定非要有个返回值functions-dont-have-to-return-anything)
 		- [函数可以直接在同一行内被调用｜Functions can be called inline](#函数可以直接在同一行内被调用functions-can-be-called-inline)
 			- [Examples](#examples)
-			- [Example: turning numbers into words](#example-turning-numbers-into-words)
-		- [Parameters can be passed by reference](#parameters-can-be-passed-by-reference)
+			- [示例：将数字转化为文字｜Example: turning numbers into words](#示例将数字转化为文字example-turning-numbers-into-words)
+		- [参数可以通过引用来传递｜Parameters can be passed by reference](#参数可以通过引用来传递parameters-can-be-passed-by-reference)
 	- [6) 常量｜Constants](#6-常量constants)
 		- [Global Constants](#global-constants)
 	- [7) Advanced: Game-side logic](#7-advanced-game-side-logic)
@@ -1932,7 +1932,7 @@ ChatGPT 解析：
 
 #### Examples
 
-For instance, you might include:
+举个实例，您可以写这样的东西：
 
 	=== function max(a,b) ===
 		{ a < b:
@@ -1942,114 +1942,108 @@ For instance, you might include:
 		}
 
 	=== function exp(x, e) ===
-		// returns x to the power e where e is an integer
+		// 返回 x 的 e 次幂，其中 e 是整数
 		{ e <= 0:
 			~ return 1
 		- else:
 			~ return x * exp(x, e - 1)
 		}
 
-Then:
+然后：
 
-	The maximum of 2^5 and 3^3 is {max(exp(2,5), exp(3,3))}.
+	2^5 和 3^3 中的最大值是 {max(exp(2,5), exp(3,3))}.
+输出：
 
-produces:
-
-	The maximum of 2^5 and 3^3 is 32.
+	2^5 和 3^3 中的最大值是 32。
 
 
-#### Example: turning numbers into words
+#### 示例：将数字转化为文字｜Example: turning numbers into words
 
-The following example is long, but appears in pretty much every inkle game to date. (Recall that a hyphenated line inside multiline curly braces indicates either "a condition to test" or, if the curly brace began with a variable, "a value to compare against".)
+一下示例虽然较长，但几乎可以出现在每个 Inkle 游戏中。（请记得，带有连字符的行出现在多行大括号中时，表示为“要测试的条件”；如果大括号以变量开头，则表示“要比较的值”。）
 
     === function print_num(x) ===
     {
         - x >= 1000:
-            {print_num(x / 1000)} thousand { x mod 1000 > 0:{print_num(x mod 1000)}}
+            {print_num(x / 1000)} 一千 { x mod 1000 > 0:{print_num(x mod 1000)}}
         - x >= 100:
-            {print_num(x / 100)} hundred { x mod 100 > 0:and {print_num(x mod 100)}}
+            {print_num(x / 100)} 一百 { x mod 100 > 0:and {print_num(x mod 100)}}
         - x == 0:
-            zero
+            零
         - else:
             { x >= 20:
                 { x / 10:
-                    - 2: twenty
-                    - 3: thirty
-                    - 4: forty
-                    - 5: fifty
-                    - 6: sixty
-                    - 7: seventy
-                    - 8: eighty
-                    - 9: ninety
+                    - 2: 二十
+                    - 3: 三十
+                    - 4: 四十
+                    - 5: 五十
+                    - 6: 六十
+                    - 7: 七十
+                    - 8: 八十
+                    - 9: 九十
                 }
                 { x mod 10 > 0:<>-<>}
             }
             { x < 10 || x > 20:
                 { x mod 10:
-                    - 1: one
-                    - 2: two
-                    - 3: three
-                    - 4: four
-                    - 5: five
-                    - 6: six
-                    - 7: seven
-                    - 8: eight
-                    - 9: nine
+                    - 1: 一
+                    - 2: 二
+                    - 3: 三
+                    - 4: 四
+                    - 5: 五
+                    - 6: 六
+                    - 7: 七
+                    - 8: 八
+                    - 9: 九
                 }
             - else:
                 { x:
-                    - 10: ten
-                    - 11: eleven
-                    - 12: twelve
-                    - 13: thirteen
-                    - 14: fourteen
-                    - 15: fifteen
-                    - 16: sixteen
-                    - 17: seventeen
-                    - 18: eighteen
-                    - 19: nineteen
+                    - 10: 十
+                    - 11: 十一
+                    - 12: 十二
+                    - 13: 十三
+                    - 14: 十四
+                    - 15: 十五
+                    - 16: 十六
+                    - 17: 十七
+                    - 18: 十八
+                    - 19: 十九
                 }
             }
     }
 
-which enables us to write things like:
+有了上面的函数，咱们就可以使用这样的功能：
 
 	~ price = 15
 
-	I pulled out {print_num(price)} coins from my pocket and slowly counted them.
-	"Oh, never mind," the trader replied. "I'll take half." And she took {print_num(price / 2)}, and pushed the rest back over to me.
+	我从口袋里掏出{print_num(price)}枚硬币，慢慢地数着。
+	“哦，算了，”商人回答道，“我只要一半。”然后她拿走了{print_num(price / 2)}枚，把剩下的硬币推回给我。
 
+### 参数可以通过引用来传递｜Parameters can be passed by reference
 
+函数的参数也可以通过“引用”来传递，这意味着函数可以直接修改被传入的变量，而不是创建一个临时变量来保存该值。
 
-### Parameters can be passed by reference
-
-Function parameters can also be passed 'by reference', meaning that the function can actually alter the the variable being passed in, instead of creating a temporary variable with that value.
-
-For instance, most **inkle** stories include the following:
+举个例子，大部分的 **Inkle** 故事都可以包含：
 
 	=== function alter(ref x, k) ===
 		~ x = x + k
 
-Lines such as:
+那么像这样的行：
 
 	~ gold = gold + 7
 	~ health = health - 4
 
-then become:
+就可以写成：
 
 	~ alter(gold, 7)
 	~ alter(health, -4)
 
-which are slightly easier to read, and (more usefully) can be done inline for maximum compactness.
+这种写法可以增加易读性，并且（更实用的是）它们可以在一行内就完成，从而实现更紧凑的代码。
 
-	*	I ate a biscuit[] and felt refreshed. {alter(health, 2)}
-	* 	I gave a biscuit to Monsieur Fogg[] and he wolfed it down most undecorously. {alter(foggs_health, 1)}
-	-	<> Then we continued on our way.
+	*	我吃了一块饼干[]之后，觉得精神焕发。{alter(health, 2)}
+	*	我给了福格先生一块饼干[]，他一口吞了下去，一点也不优雅。{alter(foggs_health, 1)}
+	-	<> 然后，我们继续赶路了。
 
-Wrapping up simple operations in function can also provide a simple place to put debugging information, if required.
-
-
-
+将简单的操作封装进函数还有一个方便的好处，就是可以在需要的时候加入调试信息。
 
 ##  6) 常量｜Constants
 
