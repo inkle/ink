@@ -131,8 +131,8 @@
 			- [示例：将数字转化为文字｜Example: turning numbers into words](#示例将数字转化为文字example-turning-numbers-into-words)
 		- [参数可以通过引用来传递｜Parameters can be passed by reference](#参数可以通过引用来传递parameters-can-be-passed-by-reference)
 	- [6) 常量｜Constants](#6-常量constants)
-		- [Global Constants](#global-constants)
-	- [7) Advanced: Game-side logic](#7-advanced-game-side-logic)
+		- [全局常量｜Global Constants](#全局常量global-constants)
+	- [7) 进阶：游戏端逻辑｜Advanced: Game-side logic](#7-进阶游戏端逻辑advanced-game-side-logic)
 - [第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control](#第-4-部分进阶流程控制part-4-advanced-flow-control)
 	- [1) 隧道｜Tunnels](#1-隧道tunnels)
 		- [Tunnels run sub-stories](#tunnels-run-sub-stories)
@@ -2047,16 +2047,15 @@ ChatGPT 解析：
 
 ##  6) 常量｜Constants
 
+### 全局常量｜Global Constants
 
-### Global Constants
+交互式故事通常依赖于状态指示器来跟踪某些高级流程所处的阶段。有很多方法可以实现这一点，但最方便的方法是使用常量。
 
-Interactive stories often rely on state machines, tracking what stage some higher level process has reached. There are lots of ways to do this, but the most conveninent is to use constants.
+有时，将常量定义为字符串是很方便的，因为这样可以将它们打印出来，用于游戏展示或调试的目的。
 
-Sometimes, it's convenient to define constants to be strings, so you can print them out, for gameplay or debugging purposes.
-
-	CONST HASTINGS = "Hastings"
-	CONST POIROT = "Poirot"
-	CONST JAPP = "Japp"
+	CONST HASTINGS = "黑斯廷斯"
+	CONST POIROT = "波洛"
+	CONST JAPP = "贾普"
 
 	VAR current_chief_suspect = HASTINGS
 
@@ -2064,14 +2063,14 @@ Sometimes, it's convenient to define constants to be strings, so you can print t
 		{ found_japps_bloodied_glove:
 			~ current_chief_suspect = POIROT
 		}
-		Current Suspect: {current_chief_suspect}
+		当前的怀疑对象：{current_chief_suspect}
 
-Sometimes giving them values is useful:
+有时候，为一些常量赋值也很实用：
 
 	CONST PI = 3.14
 	CONST VALUE_OF_TEN_POUND_NOTE = 10
 
-And sometimes the numbers are useful in other ways:
+有时，数字常量还可以用在其他地方，下面的例子就是用数字来代替位置：
 
 	CONST LOBBY = 1
 	CONST STAIRCASE = 2
@@ -2085,20 +2084,23 @@ And sometimes the numbers are useful in other ways:
 	=== report_progress ===
 	{
         -  secret_agent_location == suitcase_location:
-		The secret agent grabs the suitcase!
+		特工抓住了手提箱！
 		~ suitcase_location = HELD_BY_AGENT
 
 	-  secret_agent_location < suitcase_location:
-		The secret agent moves forward.
+		特工向前走去。
 		~ secret_agent_location++
 	}
 
-Constants are simply a way to allow you to give story states easy-to-understand names.
+上面这个例子中，常量只是为了给故事的状态赋予易于理解的名称。
 
-## 7) Advanced: Game-side logic
+## 7) 进阶：游戏端逻辑｜Advanced: Game-side logic
 
-There are two core ways to provide game hooks in the **Ink** engine. External function declarations in ink allow you to directly call C# functions in the game, and variable observers are callbacks that are fired in the game when ink variables are modified. Both of these are described in [Running your ink](RunningYourInk.md).
+在 Ink 引擎中提供游戏钩子有两种核心方法：
+*	外部函数声明：在 Ink 中可以声明外部函数，允许你直接调用游戏中的 C# 函数。
+*	变量观察器：当 Ink 中的变量被修改时，触发游戏中的回调函数。
 
+这两种方法的详细描述见 [Running your ink](RunningYourInk.md).
 
 # 第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control
 
