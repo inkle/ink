@@ -12,7 +12,7 @@
 
 翻译时的 Ink 版本：1.2.0
 
-翻译最后更新时间：2024年10月31日
+翻译最后更新时间：2024 年 12 月 13 日
 
 翻译仍在更新。
 
@@ -135,9 +135,9 @@
 	- [7) 进阶：游戏端逻辑｜Advanced: Game-side logic](#7-进阶游戏端逻辑advanced-game-side-logic)
 - [第 4 部分：进阶流程控制｜Part 4: Advanced Flow Control](#第-4-部分进阶流程控制part-4-advanced-flow-control)
 	- [1) 隧道｜Tunnels](#1-隧道tunnels)
-		- [Tunnels run sub-stories](#tunnels-run-sub-stories)
-			- [Advanced: Tunnels can return elsewhere](#advanced-tunnels-can-return-elsewhere)
-			- [Advanced: Tunnels use a call-stack](#advanced-tunnels-use-a-call-stack)
+		- [隧道运行子故事｜Tunnels run sub-stories](#隧道运行子故事tunnels-run-sub-stories)
+			- [进阶：隧道可以返回到其它位置｜Advanced: Tunnels can return elsewhere](#进阶隧道可以返回到其它位置advanced-tunnels-can-return-elsewhere)
+			- [进阶：隧道是使用调用栈的｜Advanced: Tunnels use a call-stack](#进阶隧道是使用调用栈的advanced-tunnels-use-a-call-stack)
 	- [2) Threads](#2-threads)
 		- [Threads join multiple sections together](#threads-join-multiple-sections-together)
 		- [Uses of threads](#uses-of-threads)
@@ -2106,27 +2106,28 @@ ChatGPT 解析：
 
 ## 1) 隧道｜Tunnels
 
-The default structure for **Ink** stories is a "flat" tree of choices, branching and joining back together, perhaps looping, but with the story always being "at a certain place".
+**Ink** 的默认结构是一颗“扁平”的选择树，分叉、合并、或者循环……但是故事始终处于“某个位置”。
 
-But this flat structure makes certain things difficult: for example, imagine a game in which the following interaction can happen:
+这种扁平的结构有时会让某些情景变得复杂：
+举个例子，设想一个游戏中可能会出现一下互动：
 
 	=== crossing_the_date_line ===
-	*	"Monsieur!"[] I declared with sudden horror. "I have just realised. We have crossed the international date line!"
-	-	Monsieur Fogg barely lifted an eyebrow. "I have adjusted for it."
-	*	I mopped the sweat from my brow[]. A relief!
-	* 	I nodded, becalmed[]. Of course he had!
-	*  I cursed, under my breath[]. Once again, I had been belittled!
+	* “先生！”[] 我惊呼，“我刚刚意识到，咱们已经穿越了国际日期变更线！”
+	- 福格先生只是微微抬了一下眉毛。“我已经考虑到了。”
+	* 我擦了擦额头上的冷汗[]，顿时松了一口气！
+	* 我点了点头，心情平静下来[]。他当然已经准备好了！
+	* 我低声咒骂了一句[]。我又一次被轻视了！
 
-...but it can happen at several different places in the story. We don't want to have to write copies of the content for each different place, but when the content is finished it needs to know where to return to. We can do this using parameters:
+但这个交互可能发生在故事的不同位置。我们不希望为每个位置都重复写一份相同的内容。但在内容结束时，程序需要知道返回到哪里。我们可以通过参数来实现这一点：
 
 	=== crossing_the_date_line(-> return_to) ===
 	...
-	-	-> return_to
+	- -> return_to
 
 	...
 
 	=== outside_honolulu ===
-	We arrived at the large island of Honolulu.
+	我们到达了檀香山这座大岛。
 	- (postscript)
 		-> crossing_the_date_line(-> done)
 	- (done)
@@ -2135,83 +2136,84 @@ But this flat structure makes certain things difficult: for example, imagine a g
 	...
 
 	=== outside_pitcairn_island ===
-	The boat sailed along the water towards the tiny island.
+	船沿着水面驶向那个小小的皮特凯恩岛。
 	- (postscript)
 		-> crossing_the_date_line(-> done)
 	- (done)
 		-> END
 
-Both of these locations now call and execute the same segment of storyflow, but once finished they return to where they need to go next.
+现在，这两个位置都调用并执行了相同的一段故事流程，但在完成后，它们会返回到各自需要前往的下一步。
 
-But what if the section of story being called is more complex - what if it spreads across several knots? Using the above, we'd have to keep passing the 'return-to' parameter from knot to knot, to ensure we always knew where to return.
+然而，如果被调用的故事段更加复杂——比如它跨越了多个结点 (knots) 怎么办？按照上述方法，我们不得不在结点之间不断传递“返回位置”的参数，以确保每次都知道返回到哪里。
 
-So instead, **Ink** integrates this into the language with a new kind of divert, that functions rather like a subroutine, and is called a 'tunnel'.
+译者注：以上的示例是表示，如果不使用“隧道”的写法，要怎么在分道到另一个地方并执行完毕后分道回原来的位置。接下来才要说 **Ink** 为这个操作提供的“隧道”语法。
 
-### Tunnels run sub-stories
+为了解决这一问题，**Ink** 将这一功能集成到了语言本身，提供了一种新类型的分道 (Divert)，其功能类似于子流程，被称为“隧道(Tunnel)”。
 
-The tunnel syntax looks like a divert, with another divert on the end:
+### 隧道运行子故事｜Tunnels run sub-stories
+
+隧道的语法看起来就像是一个分道，只是在分到的最后再另一个分道：
 
 	-> crossing_the_date_line ->
 
-This means "do the crossing_the_date_line story, then continue from here".
+上面这个就表示“执行 crossing_the_date_line 的内容，然后从这里继续”。
 
-Inside the tunnel itself, the syntax is simplified from the parameterised example: all we do is end the tunnel using the `->->` statement which means, essentially, "go on".
+在隧道内部，其语法相比参数化的示例更加简化：我们只需使用 `->->` 声明来结束隧道。这句话的意思基本上是“继续”。
 
 	=== crossing_the_date_line ===
-	// this is a tunnel!
+	// 这是一个隧道！	
 	...
 	- 	->->
 
-Note that tunnel knots aren't declared as such, so the compiler won't check that tunnels really do end in `->->` statements, except at run-time. So you will need to write carefully to ensure that all the flows into a tunnel really do come out again.
+请注意，隧道结点并不以特殊的方式声明，因此编译器并不会在编译时检查隧道是否确实以 `->->` 语句结束，这种检查只会在运行时进行。因此，你需要仔细检查，以确保所有进入了隧道的流程都能再正确的返回出来。
 
-Tunnels can also be chained together, or finish on a normal divert:
+隧道可以串联在一起，也可以使用普通分道结束：
 
 	...
-	// this runs the tunnel, then diverts to 'done'
+	// 运行隧道后跳转到 'done'
 	-> crossing_the_date_line -> done
 	...
 
 	...
-	//this runs one tunnel, then another, then diverts to 'done'
+	// 运行一个隧道，然后运行另一个隧道，最后跳转到 'done'
 	-> crossing_the_date_line -> check_foggs_health -> done
 	...
 
-Tunnels can be nested, so the following is valid:
+隧道可以嵌套使用，所以下面的例子也是支持的。
 
 	=== plains ===
 	= night_time
-		The dark grass is soft under your feet.
+		你脚下黑色的草地非常柔软。
 		+	[Sleep]
 			-> sleep_here -> wake_here -> day_time
 	= day_time
-		It is time to move on.
+		是时候动身了。
 
 	=== wake_here ===
-		You wake as the sun rises.
-		+	[Eat something]
+		太阳升起，你醒来了。
+		+	[吃点什么]
 			-> eat_something ->
-		+	[Make a move]
+		+	[出发]
 		-	->->
 
 	=== sleep_here ===
-		You lie down and try to close your eyes.
+		你躺下来，试图闭上眼睛。
 		-> monster_attacks ->
-		Then it is time to sleep.
+		是时候睡觉了。
 		-> dream ->
 		->->
 
-... and so on.
+……大概就是这样。
 
+#### 进阶：隧道可以返回到其它位置｜Advanced: Tunnels can return elsewhere
 
-#### Advanced: Tunnels can return elsewhere
+有时，在故事中，事情可能不会像是预期一样发生。所以有时候隧道也无法保证它总是能返回到它之前的位置。所以为了解决这种情况，**Ink** 提供了一种语法，允许你“从隧道返回，但实际上去往其它的地方。”不过这种功能应当谨慎使用，毕竟这很容易导致逻辑混乱。
 
-Sometimes, in a story, things happen. So sometimes a tunnel can't guarantee that it will always want to go back to where it came from. **Ink** supplies a syntax to allow you to "returning from a tunnel but actually go somewhere else" but it should be used with caution as the possibility of getting very confused is very high indeed.
-
-Still, there are cases where it's indispensable:
+当然，在某些情况下，这种灵活性是必不可少的。
 
 	=== fall_down_cliff 
 	-> hurt(5) -> 
-	You're still alive! You pick yourself up and walk on.
+	你还活着！你站了起来继续前进。
 	
 	=== hurt(x)
 		~ stamina -= x 
@@ -2220,41 +2222,42 @@ Still, there are cases where it's indispensable:
 		}
 	
 	=== youre_dead
-	Suddenly, there is a white light all around you. Fingers lift an eyepiece from your forehead. 'You lost, buddy. Out of the chair.'
-	 
-And even in less drastic situations, we might want to break up the structure:
+	突然，周围一片白光。有人伸手摘下你额头上的目镜。‘你输了，伙计。离开椅子吧。
+
+即使故事情节没有生死攸关的紧张感，我们也可以通过灵活的跳转机制来调整叙事的流程结构：
  
 	-> talk_to_jim ->
  
 	 === talk_to_jim
 	 - (opts) 	
-		*	[ Ask about the warp lacelles ] 
+		*	[询问关于超空间装置的事] 
 			-> warp_lacells ->
-		*	[ Ask about the shield generators ] 
+		*	[询问关于护盾发生器的事] 
 			-> shield_generators ->	
-		* 	[ Stop talking ]
+		* 	[停止交谈]
 			->->
 	 - -> opts 
 
 	 = warp_lacells
 		{ shield_generators : ->-> argue }
-		"Don't worry about the warp lacelles. They're fine."
+		“别担心超空间装置，它们没问题。”
 		->->
 
 	 = shield_generators
 		{ warp_lacells : ->-> argue }
-		"Forget about the shield generators. They're good."
+		“忘了护盾发生器吧，它们一切正常。”
 		->->
 	 
 	 = argue 
-	 	"What's with all these questions?" Jim demands, suddenly. 
-	 	...
+		“问这么多问题干什么？”吉姆突然质问道。
+		...
 	 	->->
 
-#### Advanced: Tunnels use a call-stack
+译者注：上面的这个例子会在问完一个问题要问另一个的时候进入 'argue'
 
-Tunnels are on a call-stack, so can safely recurse.
+#### 进阶：隧道是使用调用栈的｜Advanced: Tunnels use a call-stack
 
+隧道是基于调用栈的，因此可以安全地递归调用。
 
 ## 2) Threads
 
