@@ -1816,7 +1816,15 @@ namespace Ink.Runtime
         public bool HasFunction (string functionName)
         {
             try {
-                return KnotContainerWithName (functionName) != null;
+                Container container = KnotContainerWithName (functionName);
+                if(container != null) {
+                    return container.content.Any(c =>
+                        c is Ink.Runtime.ControlCommand controlCommand &&
+                        controlCommand.commandType == ControlCommand.CommandType.PopFunction
+                    );
+                } else {
+                    return false;
+                }
             } catch {
                 return false;
             }
