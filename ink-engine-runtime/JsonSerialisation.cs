@@ -286,17 +286,22 @@ namespace Ink.Runtime
         // JSON ENCODING SCHEME
         // ----------------------
         //
-        // Glue:           "<>", "G<", "G>"
+        // Glue:           "<>"
         // 
         // ControlCommand: "ev", "out", "/ev", "du" "pop", "->->", "~ret", "str", "/str", "nop", 
-        //                 "choiceCnt", "turns", "visit", "seq", "thread", "done", "end"
+        //                 "choiceCnt", "turns", "visit", "seq", "thread" "turn", "readc", "rnd",
+        //                 "srnd", "listInt", "range", "lrnd", "#", "/#", "done", "end"
         // 
-        // NativeFunction: "+", "-", "/", "*", "%" "~", "==", ">", "<", ">=", "<=", "!=", "!"... etc
+        // NativeFunction: "+", "-", "/", "*", "%" "_", "==", ">", "<", ">=", "<=", "!=", "!",
+        //                 "&&", "||", "MIN", "MAX", "POW", "FLOOR", "CEILING", "INT", "FLOAT",
+        //                 "?", "!?", "L^", "LIST_MIN", "LIST_MAX", "LIST_ALL", "LIST_COUNT",
+        //                 "LIST_VALUE", "LIST_INVERT"
         // 
         // Void:           "void"
         // 
         // Value:          "^string value", "^^string value beginning with ^"
         //                 5, 5.2
+        //                 true, false
         //                 {"^->": "path.target"}
         //                 {"^var": "varname", "ci": 0}
         // 
@@ -328,6 +333,9 @@ namespace Ink.Runtime
         //                 there's not likely to be many of them.
         // 
         // Tag:            {"#": "the tag text"}
+        //
+        // List:           {"list": {itemName: itemValue}}
+        //                 {"list": {}, "origins": [originNames]}
         public static Runtime.Object JTokenToRuntimeObject(object token)
         {
             if (token is int || token is float || token is bool) {
