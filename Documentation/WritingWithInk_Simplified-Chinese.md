@@ -163,12 +163,12 @@
 			- [示例：在多个位置添加相同选项｜Example: adding the same choice to several places](#示例在多个位置添加相同选项example-adding-the-same-choice-to-several-places)
 			- [示例：大规模选项的组织管理｜Example: organisation of wide choice points](#示例大规模选项的组织管理example-organisation-of-wide-choice-points)
 - [第 5 部分：进阶状态追踪｜Part 5: Advanced State Tracking](#第-5-部分进阶状态追踪part-5-advanced-state-tracking)
-			- [Note: New feature alert!](#note-new-feature-alert)
-	- [1) Basic Lists](#1-basic-lists)
-	- [2) Reusing Lists](#2-reusing-lists)
-		- [States can be used repeatedly](#states-can-be-used-repeatedly)
-			- [List values can share names](#list-values-can-share-names)
-			- [Advanced: a LIST is actually a variable](#advanced-a-list-is-actually-a-variable)
+			- [注意：新功能提醒！｜Note: New feature alert!](#注意新功能提醒note-new-feature-alert)
+	- [1) 基础列表｜Basic Lists](#1-基础列表basic-lists)
+	- [2) 复用列表｜Reusing Lists](#2-复用列表reusing-lists)
+		- [状态是可以被重复使用的｜States can be used repeatedly](#状态是可以被重复使用的states-can-be-used-repeatedly)
+			- [列表的值可以共享名称｜List values can share names](#列表的值可以共享名称list-values-can-share-names)
+			- [进阶：LIST 本质上是一个变量｜Advanced: a LIST is actually a variable](#进阶list-本质上是一个变量advanced-a-list-is-actually-a-variable)
 	- [3) List Values](#3-list-values)
 		- [Converting values to numbers](#converting-values-to-numbers)
 		- [Converting numbers to values](#converting-numbers-to-values)
@@ -2477,159 +2477,160 @@ ChatGPT 解析：
 
 # 第 5 部分：进阶状态追踪｜Part 5: Advanced State Tracking
 
-Games with lots of interaction can get very complex, very quickly and the writer's job is often as much about maintaining continuity as it is about content.
-
-This becomes particularly important if the game text is intended to model anything - whether it's a game of cards, the player's knowledge of the gameworld so far, or the state of the various light-switches in a house.
-
-**Ink** does not provide a full world-modelling system in the manner of a classic parser IF authoring language - there are no "objects", no concepts of "containment" or being "open" or "locked". However, it does provide a simple yet powerful system for tracking state-changes in a very flexible way, to enable writers to approximate world models where necessary.
-
-#### Note: New feature alert!
-
-This feature is very new to the language. That means we haven't begun to discover all the ways it might be used - but we're pretty sure it's going to be useful! So if you think of a clever usage we'd love to know!
+交互密集的游戏会迅速变得异常复杂，作者的工作不仅关乎内容创作，同样需要维护叙事连贯性。
 
 
-## 1) Basic Lists
+当游戏文本需要为任何事物建模时，这一点都尤为重要——无论是卡牌游戏规则、玩家当前对游戏世界的认知，还是房屋内各类电灯开关的状态。
 
-The basic unit of state-tracking is a list of states, defined using the `LIST` keyword. Note that a list is really nothing like a C# list (which is an array).
+**Ink** 并未像传统交互小说创作语言那样提供完整的世界建模系统——这里既没有"对象"概念，也不支持"容器关系"或"开启与锁定"状态。但它通过一套简洁而强大的系统，以高度灵活的方式追踪状态变化，使作者能在必要时构建近似的世界模型。
 
-For instance, we might have:
+#### 注意：新功能提醒！｜Note: New feature alert!
+
+该功能是语言中的全新特性。这意味着我们尚未发掘其所有可能的用途——但我们非常确定它将会很有用！如果您想到了任何巧妙的用法，我们很乐意听取您的建议！
+
+## 1) 基础列表｜Basic Lists
+
+状态追踪的基本单位是状态列表，使用 LIST 关键字定义。请注意，此列表与 C# 中的列表（即数组）完全不同。
+
+举个例子，假定：
 
 	LIST kettleState = cold, boiling, recently_boiled
 
-This line defines two things: firstly three new values - `cold`, `boiling` and `recently_boiled` - and secondly, a variable, called `kettleState`, to hold these states.
+这行代码定义了两项内容：首先是三个新状态值——`cold`（冷）、`boiling`（沸腾）和 `recently_boiled`（刚煮沸）——其次是一个名为`kettleState`的变量，用于存储这些状态。
 
-We can tell the list what value to take:
+然后，我们可以指定列表的初始值：
 
 	~ kettleState = cold
 
-We can change the value:
+可以改变状态的值：
 
-	*	[Turn on kettle]
-		The kettle begins to bubble and boil.
+	*	[打开水壶]
+		水壶开始冒泡沸腾。
 		~ kettleState = boiling
 
-We can query the value:
+可以查询当前状态：
 
-	*	[Touch the kettle]
+	*	[触摸水壶]
 		{ kettleState == cold:
-			The kettle is cool to the touch.
+			水壶摸起来凉凉的。
 		- else:
-		 	The outside of the kettle is very warm!
+		 	水壶外壁非常烫！
 		}
 
-For convenience, we can give a list a value when it's defined using a bracket:
+为方便起见，可以在一开始定义列表时就用括号指定初始值：
 
 	LIST kettleState = cold, (boiling), recently_boiled
-	// at the start of the game, this kettle is switched on. Edgy, huh?
+	// 游戏开始时，这个水壶就是开着的，嘻嘻。
 
-...and if the notation for that looks a bit redundant, there's a reason for that coming up in a few subsections time.
+……如果这种语法看起来有点多余，我们将在后续小节解释原因。
 
+## 2) 复用列表｜Reusing Lists
 
-
-## 2) Reusing Lists
-
-The above example is fine for the kettle, but what if we have a pot on the stove as well? We can then define a list of states, but put them into variables - and as many variables as we want.
+上述水壶的例子已经足够，但如果炉子上还有个锅呢？所以我们可以先定义一个状态列表，然后将其赋值给任意数量的变量。
 
 	LIST daysOfTheWeek = Monday, Tuesday, Wednesday, Thursday, Friday
 	VAR today = Monday
 	VAR tomorrow = Tuesday
 
-### States can be used repeatedly
+译者注：总结来说就是用这个语法一次性创建多个变量，并使用一个带名字的容器给这批内容装起来。
 
-This allows us to use the same state machine in multiple places.
+### 状态是可以被重复使用的｜States can be used repeatedly
 
-	LIST heatedWaterStates = cold, boiling, recently_boiled
-	VAR kettleState = cold
-	VAR potState = cold
+这样我们就可以在多个地方复用同一个状态机器。
 
-	*	{kettleState == cold} [Turn on kettle]
-		The kettle begins to boil and bubble.
-		~ kettleState = boiling
-	*	{potState == cold} [Light stove]
-	 	The water in the pot begins to boil and bubble.
-	 	~ potState = boiling
+	LIST heatedWaterStates = cold, boiling, recently_boiled	// 创建水的状态列表：冷的、沸腾、刚煮沸
+	VAR kettleState = cold	//	水壶是冷的
+	VAR potState = cold	// 锅是冷的
 
-But what if we add a microwave as well? We might want start generalising our functionality a bit:
+	*	{kettleState == cold} [打开水壶]	//	如果水壶是冷的
+		水壶开始沸腾冒泡。
+		~ kettleState = boiling	// 将水壶设为沸腾
+	*	{potState == cold} [点燃炉灶]
+	 	锅里的水开始沸腾冒泡。
+	 	~ potState = boiling	//	将锅设为沸腾
 
+但如果再加个微波炉呢？那我们可能需要稍微做点功能泛化：
+
+	LIST heatedWaterStates = cold, boiling, recently_boiled	// 与上面的列表相同
+	VAR kettleState = cold	//	水壶是冷的
+	VAR potState = cold	// 锅是冷的
+	VAR microwaveState = cold	//	微波炉也是冷的
+
+	=== function boilSomething(ref thingToBoil, nameOfThing)	// 函数：煮沸某物（参数 要煮沸的物品， 物品名称）
+		那个{nameOfThing}开始加热了。
+		~ thingToBoil = boiling	// 设定要煮沸的物品状态为煮沸
+
+	=== do_cooking	// 进行烹饪
+	*	{kettleState == cold} [打开水壶]	// 水壶是冷的
+		{boilSomething(kettleState, "kettle")}	// 调用上面煮沸某物的函数（水壶状态，水壶）
+	*	{potState == cold} [点燃炉灶]	// 灶台是冷的
+		{boilSomething(potState, "pot")}	// 调用上面的函数，由函数把它的状态改为“煮沸”
+	*	{microwaveState == cold} [打开微波炉]	//	微波炉是冷的
+		{boilSomething(microwaveState, "microwave")}	// 同理
+
+甚至可以……
 	LIST heatedWaterStates = cold, boiling, recently_boiled
 	VAR kettleState = cold
 	VAR potState = cold
 	VAR microwaveState = cold
 
-	=== function boilSomething(ref thingToBoil, nameOfThing)
-		The {nameOfThing} begins to heat up.
-		~ thingToBoil = boiling
+	//	上面还是那个列表和初始状态
 
-	=== do_cooking
-	*	{kettleState == cold} [Turn on kettle]
-		{boilSomething(kettleState, "kettle")}
-	*	{potState == cold} [Light stove]
-		{boilSomething(potState, "pot")}
-	*	{microwaveState == cold} [Turn on microwave]
-		{boilSomething(microwaveState, "microwave")}
+	=== cook_with(nameOfThing, ref thingToBoil)	// 用某物煮沸（物品名称，参数 要煮的东西）
+	+ 	{thingToBoil == cold} [打开{nameOfThing}]	// 某个要煮的东西是冷的，打开对应的物品名称
+	  	那个{nameOfThing}开始加热了。	// 那个“物品名称”开始加热了。
+		~ thingToBoil = boiling	// 把要煮的东西状态设定为沸腾
+		-> do_cooking.done	//	转到 do_cooking 结点中的 done 针脚
 
-or even...
-
-	LIST heatedWaterStates = cold, boiling, recently_boiled
-	VAR kettleState = cold
-	VAR potState = cold
-	VAR microwaveState = cold
-
-	=== cook_with(nameOfThing, ref thingToBoil)
-	+ 	{thingToBoil == cold} [Turn on {nameOfThing}]
-	  	The {nameOfThing} begins to heat up.
-		~ thingToBoil = boiling
-		-> do_cooking.done
-
-	=== do_cooking
-	<- cook_with("kettle", kettleState)
+	=== do_cooking	// 烹饪（上面要煮的东西与器皿的对应关系在这里）
+	<- cook_with("kettle", kettleState)	//
 	<- cook_with("pot", potState)
 	<- cook_with("microwave", microwaveState)
 	- (done)
 
-Note that the "heatedWaterStates" list is still available as well, and can still be tested, and take a value.
+注意："加热水状态"这个列表仍然可用，仍然可以被检测和赋值。
 
-#### List values can share names
+#### 列表的值可以共享名称｜List values can share names
 
-Reusing lists brings with it ambiguity. If we have:
+复用列表会带来命名歧义。如果我们有：
 
-	LIST colours = red, green, blue, purple
-	LIST moods = mad, happy, blue
+	LIST colours = red, green, blue, purple	// 列表 颜色：红、绿、蓝、紫
+	LIST moods = mad, happy, blue	// 列表 情绪：愤怒、开心、忧郁
+	//	译者注：英语里，blue 可以同时翻译为“蓝色”或“忧郁”，就和中文中的一词多义一样。
 
-	VAR status = blue
+	VAR status = blue	// 设定 状态：blue
 
-... how can the compiler know which blue you meant?
+……那编译器怎么知道您指的是哪个列表中的 blue？
 
-We resolve these using a `.` syntax similar to that used for knots and stitches.
+所以我们通过使用类似结点和针脚中用到的 `.` 语法来结局这个问题。
 
 	VAR status = colours.blue
 
-...and the compiler will issue an error until you specify.
+……编译器会明确要求您指明您在使用哪个列表中的哪个状态，不然就会一直报错。
 
-Note the "family name" of the state, and the variable containing a state, are totally separate. So
+注意：状态组的"家族名"（合集名称）与包含状态的变量是完全独立的。因此
 
-	{ statesOfGrace == statesOfGrace.fallen:
-		// is the current state "fallen"
+	{ statesOfGrace == statesOfGrace.fallen:	
+		// 检查 恩典状态 是否为：恩典状态.堕落
 	}
 
-... is correct.
+……它也是合规的。
 
+#### 进阶：LIST 本质上是一个变量｜Advanced: a LIST is actually a variable
 
-#### Advanced: a LIST is actually a variable
-
-One surprising feature is the statement
-
-	LIST statesOfGrace = ambiguous, saintly, fallen
-
-actually does two things simultaneously: it creates three values, `ambiguous`, `saintly` and `fallen`, and gives them the name-parent `statesOfGrace` if needed; and it creates a variable called `statesOfGrace`.
-
-And that variable can be used like a normal variable. So the following is valid, if horribly confusing and a bad idea:
+有个令人惊讶的特性是
 
 	LIST statesOfGrace = ambiguous, saintly, fallen
 
-	~ statesOfGrace = 3.1415 // set the variable to a number not a list value
+这个语句实际上同时完成了两件事：它创建了三个值，`ambiguous`, `saintly` 和 `fallen`，然后声明了一个名为 `statesOfGrace` 的普通变量
 
-...and it wouldn't preclude the following from being fine:
+这意味着这个变量可以像普通变量一样被重新赋值。所以以下写法极易造成混淆且不推荐，但语法上是合规的：
+
+	LIST statesOfGrace = ambiguous, saintly, fallen
+
+	~ statesOfGrace = 3.1415 // 将变量赋值为了一个数字而不是列表中的某个值
+
+……但这并不影响以下用法的正确性：
 
 	~ temp anotherStateOfGrace = statesOfGrace.saintly
 
