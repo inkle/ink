@@ -169,10 +169,10 @@
 		- [状态是可以被重复使用的｜States can be used repeatedly](#状态是可以被重复使用的states-can-be-used-repeatedly)
 			- [列表的值可以共享名称｜List values can share names](#列表的值可以共享名称list-values-can-share-names)
 			- [进阶：LIST 本质上是一个变量｜Advanced: a LIST is actually a variable](#进阶list-本质上是一个变量advanced-a-list-is-actually-a-variable)
-	- [3) List Values](#3-list-values)
-		- [Converting values to numbers](#converting-values-to-numbers)
-		- [Converting numbers to values](#converting-numbers-to-values)
-		- [Advanced: defining your own numerical values](#advanced-defining-your-own-numerical-values)
+	- [3) 值的顺序｜List Values](#3-值的顺序list-values)
+		- [将值转换为数字｜Converting values to numbers](#将值转换为数字converting-values-to-numbers)
+		- [将数字转换为值｜Converting numbers to values](#将数字转换为值converting-numbers-to-values)
+		- [高级：自定义数值映射｜Advanced: defining your own numerical values](#高级自定义数值映射advanced-defining-your-own-numerical-values)
 	- [4) Multivalued Lists](#4-multivalued-lists)
 		- [Lists are boolean sets](#lists-are-boolean-sets)
 			- [Assiging multiple values](#assiging-multiple-values)
@@ -2637,50 +2637,50 @@ ChatGPT 解析：
 
 
 
-## 3) List Values
+## 3) 值的顺序｜List Values
 
-When a list is defined, the values are listed in an order, and that order is considered to be significant. In fact, we can treat these values as if they *were* numbers. (That is to say, they are enums.)
+当定义一个列表时，列出的值必然是有顺序的，这个顺序也是有意义的。实际上，我们可以把这些值当作数字来处理（也就是说，它们本质上是枚举类型）。
 
-	LIST volumeLevel = off, quiet, medium, loud, deafening
-	VAR lecturersVolume = quiet
-	VAR murmurersVolume = quiet
+	LIST volumeLevel = off, quiet, medium, loud, deafening	// 创建一个“音量级别”的列表，列表里有“关闭”、“安静”、“中等”、“响亮”、“震耳欲聋”
+	VAR lecturersVolume = quiet	//	创建一个“讲师音量”的变量，并设定为“安静”
+	VAR murmurersVolume = quiet	//	创建一个“窃窃私语音量”的变量，并设定为“安静”
 
-	{ lecturersVolume < deafening:
-		~ lecturersVolume++
+	{ lecturersVolume < deafening:	// 如果“讲师音量”小于“震耳欲聋”
+		~ lecturersVolume++	// 那就就提高一级“讲师音量”
 
-		{ lecturersVolume > murmurersVolume:
-			~ murmurersVolume++
-			The murmuring gets louder.
+		{ lecturersVolume > murmurersVolume:	// 如果“讲师音量”大于“窃窃私语音量”
+			~ murmurersVolume++	// 那么提高一级“窃窃私语音量”
+			窃窃私语声变得更大了。
 		}
 	}
 
-The values themselves can be printed using the usual `{...}` syntax, but this will print their name.
+这些值本身可以通过常规的 `{某种判定条件}` 语法输出，但将直接显示其名称。
 
-	The lecturer's voice becomes {lecturersVolume}.
+	讲师的声音变得{lecturersVolume}。
 
-### Converting values to numbers
+### 将值转换为数字｜Converting values to numbers
 
-The numerical value, if needed, can be got explicitly using the LIST_VALUE function. Note the first value in a list has the value 1, and not the value 0.
+如需获取数值，可使用 LIST_VALUE 函数显式转换。但请注意，列表中第一个值的数值会记录为 1（而非 0）。
 
-	The lecturer has {LIST_VALUE(deafening) - LIST_VALUE(lecturersVolume)} notches still available to him.
+	讲师还有{LIST_VALUE(deafening) - LIST_VALUE(lecturersVolume)}档音量可以调。
 
-### Converting numbers to values
+### 将数字转换为值｜Converting numbers to values
 
-You can go the other way by using the list's name as a function:
+您可以通过将列表名称作为函数来使用以进行反向转换：
 
-	LIST Numbers = one, two, three
-	VAR score = one
-	~ score = Numbers(2) // score will be "two"
+	LIST Numbers = one, two, three	// 创建一个名为“数字”的列表，里面有“一”、“二”、“三”	
+	VAR score = one	//	创建一个名叫“得分”的变量
+	~ score = Numbers(2) // 设定“得分”为“数字”列表中的第2个值，这样之后，“得分”的值就会是”二“。
 
-### Advanced: defining your own numerical values
+### 高级：自定义数值映射｜Advanced: defining your own numerical values
 
-By default, the values in a list start at 1 and go up by one each time, but you can specify your own values if you need to.
+默认情况下，列表中的值从1开始依次递增，但您也可以根据需要指定自定义数值。
 
-	LIST primeNumbers = two = 2, three = 3, five = 5
+	LIST primeNumbers = two = 2, three = 3, five = 5	// 创建一个”质数“列表，并使得“二”的顺序为 2，“三”的顺序为 3，但“五”的顺序为 5。
 
-If you specify a value, but not the next value, ink will assume an increment of 1. So the following is the same:
+如果为某个值指定了数值但未指定下一个值的数值，ink 将默认按上一个值继续递增1号。因此以下定义和上方的例子是等效的：
 
-	LIST primeNumbers = two = 2, three, five = 5
+	LIST primeNumbers = two = 2, three, five = 5	// 这其中，“三”没有被手动制定为第 3 个，但是由于前一个被指定为第 2 个，所以这里自动递增 1 号即为 3。
 
 
 ## 4) Multivalued Lists
