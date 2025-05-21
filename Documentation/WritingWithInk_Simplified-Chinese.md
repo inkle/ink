@@ -12,7 +12,7 @@
 
 翻译时的 Ink 版本：1.2.0
 
-翻译最后更新时间：2025 年 05 月 07 日
+翻译最后更新时间：2025 年 05 月 20 日
 
 翻译仍在更新。
 
@@ -173,10 +173,10 @@
 		- [将值转换为数字｜Converting values to numbers](#将值转换为数字converting-values-to-numbers)
 		- [将数字转换为值｜Converting numbers to values](#将数字转换为值converting-numbers-to-values)
 		- [高级：自定义数值映射｜Advanced: defining your own numerical values](#高级自定义数值映射advanced-defining-your-own-numerical-values)
-	- [4) Multivalued Lists](#4-multivalued-lists)
-		- [Lists are boolean sets](#lists-are-boolean-sets)
-			- [Assiging multiple values](#assiging-multiple-values)
-			- [Adding and removing entries](#adding-and-removing-entries)
+	- [4) 多值列表｜Multivalued Lists](#4-多值列表multivalued-lists)
+		- [列表的本质是布尔集合｜Lists are boolean sets](#列表的本质是布尔集合lists-are-boolean-sets)
+			- [批量赋值｜Assiging multiple values](#批量赋值assiging-multiple-values)
+			- [添加或删除条目｜Adding and removing entries](#添加或删除条目adding-and-removing-entries)
 		- [Basic Queries](#basic-queries)
 			- [Testing for emptiness](#testing-for-emptiness)
 			- [Testing for exact equality](#testing-for-exact-equality)
@@ -2682,56 +2682,54 @@ ChatGPT 解析：
 
 	LIST primeNumbers = two = 2, three, five = 5	// 这其中，“三”没有被手动制定为第 3 个，但是由于前一个被指定为第 2 个，所以这里自动递增 1 号即为 3。
 
+## 4) 多值列表｜Multivalued Lists
 
-## 4) Multivalued Lists
+以下示例均包含一处刻意添加的不实信息，我们现在现予以修正。列表（以及包含列表值的变量）并非只能存储单一值。
 
-The following examples have all included one deliberate untruth, which we'll now remove. Lists - and variables containing list values - do not have to contain only one value.
+### 列表的本质是布尔集合｜Lists are boolean sets
 
-### Lists are boolean sets
+列表变量不是包含数字的变量。实际上，列表就像宿舍楼里的出入登记板。它包含一系列名字，每个名字都关联着一个房间号，并通过一个只有开或关状态的滑块来标记"有人"或"外出"状态。
 
-A list variable is not a variable containing a number. Rather, a list is like the in/out nameboard in an accommodation block. It contains a list of names, each of which has a room-number associated with it, and a slider to say "in" or "out".
+可能没任何人在：
 
-Maybe no one is in:
+	LIST DoctorsInSurgery = Adams, Bernard, Cartwright, Denver, Eamonn	// “外科医生”列表，那些值都是人名
 
-	LIST DoctorsInSurgery = Adams, Bernard, Cartwright, Denver, Eamonn
-
-Maybe everyone is:
+可能所有人都在：
 
 	LIST DoctorsInSurgery = (Adams), (Bernard), (Cartwright), (Denver), (Eamonn)
 
-Or maybe some are and some aren't:
+或者可能有些人在有些人不在：
 
 	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn
 
-Names in brackets are included in the initial state of the list.
+括号中的名字会被包含在列表初始状态。
 
-Note that if you're defining your own values, you can place the brackets around the whole term or just the name:
+注意：当你自定义数值时，你可以用括号来包裹整个条目或仅包裹名称：
 
-	LIST primeNumbers = (two = 2), (three) = 3, (five = 5)
+LIST primeNumbers = (two = 2), (three) = 3, (five = 5)	// “质数”列表
 
-#### Assiging multiple values
+#### 批量赋值｜Assiging multiple values
 
-We can assign all the values of the list at once as follows:
+我们可以一次性为列表赋值多个值：
 
 	~ DoctorsInSurgery = (Adams, Bernard)
 	~ DoctorsInSurgery = (Adams, Bernard, Eamonn)
 
-We can assign the empty list to clear a list out:
+也可以赋个空值来清空列表：
 
 	~ DoctorsInSurgery = ()
 
 
-#### Adding and removing entries
-
-List entries can be added and removed, singly or collectively.
+#### 添加或删除条目｜Adding and removing entries
+列表的条目可以单独或批量地添加或移除。
 
 	~ DoctorsInSurgery = DoctorsInSurgery + Adams
- 	~ DoctorsInSurgery += Adams  // this is the same as the above
+ 	~ DoctorsInSurgery += Adams  // 这与上一行是等效的。
 	~ DoctorsInSurgery -= Eamonn
 	~ DoctorsInSurgery += (Eamonn, Denver)
 	~ DoctorsInSurgery -= (Adams, Eamonn, Denver)
 
-Trying to add an entry that's already in the list does nothing. Trying to remove an entry that's not there also does nothing. Neither produces an error, and a list can never contain duplicate entries.
+尝试添加已存在的条目不会产生任何效果。尝试移除不存在的条目也不会有任何效果。但是前面提到的这两种操作也不会报错，列表永远不会包含重读的条目。
 
 
 ### Basic Queries
