@@ -12,7 +12,7 @@
 
 翻译时的 Ink 版本：1.2.0
 
-翻译最后更新时间：2025 年 05 月 20 日
+翻译最后更新时间：2025 年 06 月 03 日
 
 翻译仍在更新。
 
@@ -177,19 +177,19 @@
 		- [列表的本质是布尔集合｜Lists are boolean sets](#列表的本质是布尔集合lists-are-boolean-sets)
 			- [批量赋值｜Assiging multiple values](#批量赋值assiging-multiple-values)
 			- [添加或删除条目｜Adding and removing entries](#添加或删除条目adding-and-removing-entries)
-		- [Basic Queries](#basic-queries)
-			- [Testing for emptiness](#testing-for-emptiness)
-			- [Testing for exact equality](#testing-for-exact-equality)
-			- [Testing for containment](#testing-for-containment)
-			- [Warning: no lists contain the empty list](#warning-no-lists-contain-the-empty-list)
-			- [Example: basic knowledge tracking](#example-basic-knowledge-tracking)
-			- [Example: a doctor's surgery](#example-a-doctors-surgery)
-			- [Advanced: nicer list printing](#advanced-nicer-list-printing)
-			- [Lists don't need to have multiple entries](#lists-dont-need-to-have-multiple-entries)
-		- [The "full" list](#the-full-list)
-			- [Advanced: "refreshing" a list's type](#advanced-refreshing-a-lists-type)
-			- [Advanced: a portion of the "full" list](#advanced-a-portion-of-the-full-list)
-		- [Example: Tower of Hanoi](#example-tower-of-hanoi)
+		- [基本查询｜Basic Queries](#基本查询basic-queries)
+			- [空值检测｜Testing for emptiness](#空值检测testing-for-emptiness)
+			- [精确相等性测试｜Testing for exact equality](#精确相等性测试testing-for-exact-equality)
+			- [包含性测试｜Testing for containment](#包含性测试testing-for-containment)
+			- [注意：空列表不被任何列表包含｜Warning: no lists contain the empty list](#注意空列表不被任何列表包含warning-no-lists-contain-the-empty-list)
+			- [示例：基础信息追踪｜Example: basic knowledge tracking](#示例基础信息追踪example-basic-knowledge-tracking)
+			- [示例：医生门诊系统｜Example: a doctor's surgery](#示例医生门诊系统example-a-doctors-surgery)
+			- [进阶：优化列表显示｜Advanced: nicer list printing](#进阶优化列表显示advanced-nicer-list-printing)
+			- [列表不是必须包含多个值｜Lists don't need to have multiple entries](#列表不是必须包含多个值lists-dont-need-to-have-multiple-entries)
+		- [“完整”的列表｜The "full" list](#完整的列表the-full-list)
+			- [进阶：“重置”列表的类型｜Advanced: "refreshing" a list's type](#进阶重置列表的类型advanced-refreshing-a-lists-type)
+			- [进阶：获取“完整”列表的子集｜Advanced: a portion of the "full" list](#进阶获取完整列表的子集advanced-a-portion-of-the-full-list)
+		- [示例：汉诺塔｜Example: Tower of Hanoi](#示例汉诺塔example-tower-of-hanoi)
 	- [5) Advanced List Operations](#5-advanced-list-operations)
 		- [Comparing lists](#comparing-lists)
 			- ["Distinctly bigger than"](#distinctly-bigger-than)
@@ -2703,6 +2703,7 @@ ChatGPT 解析：
 	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn
 
 括号中的名字会被包含在列表初始状态。
+（译者注：简单来说，加了括号就是在列表初始化的时候一定在列表。加了括号就是创建了这么个值，但是一开始并不在列表中。）
 
 注意：当你自定义数值时，你可以用括号来包裹整个条目或仅包裹名称：
 
@@ -2732,302 +2733,341 @@ LIST primeNumbers = (two = 2), (three) = 3, (five = 5)	// “质数”列表
 尝试添加已存在的条目不会产生任何效果。尝试移除不存在的条目也不会有任何效果。但是前面提到的这两种操作也不会报错，列表永远不会包含重读的条目。
 
 
-### Basic Queries
+### 基本查询｜Basic Queries
 
-We have a few basic ways of getting information about what's in a list:
+我们有以下几种基本方式来获取列表信息：
 
-	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn
+	LIST DoctorsInSurgery = (Adams), Bernard, (Cartwright), Denver, Eamonn	// “外科医生”列表，可能有些人在有些人不在。
 
-	{LIST_COUNT(DoctorsInSurgery)} 	//  "2"
-	{LIST_MIN(DoctorsInSurgery)} 		//  "Adams"
-	{LIST_MAX(DoctorsInSurgery)} 		//  "Cartwright"
-	{LIST_RANDOM(DoctorsInSurgery)} 	//  "Adams" or "Cartwright"
+	{LIST_COUNT(DoctorsInSurgery)} 	//  查询现在列表中有几个值："2"
+	{LIST_MIN(DoctorsInSurgery)} 		//  查询排序值最小的是谁："Adams"
+	{LIST_MAX(DoctorsInSurgery)} 		//  查询排序值最大的是谁："Cartwright"
+	{LIST_RANDOM(DoctorsInSurgery)} 	//  随机一个值出来："Adams" 或 "Cartwright"
 
-#### Testing for emptiness
+#### 空值检测｜Testing for emptiness
 
-Like most values in ink, a list can be tested "as it is", and will return true, unless it's empty.
+和 Ink 中的大多数值一样，列表可以直接作为条件测试，非空时会返回 true。
 
-	{ DoctorsInSurgery: The surgery is open today. | Everyone has gone home. }
+	{DoctorsInSurgery: 今日门诊开放。 | 所有人都回家了。}	// 如果“外科医生”列表不为空则显示前半句，空则显示后半句。
 
-#### Testing for exact equality
+#### 精确相等性测试｜Testing for exact equality
 
-Testing multi-valued lists is slightly more complex than single-valued ones. Equality (`==`) now means 'set equality' - that is, all entries are identical.
+测试多值列表比单值列表稍微复杂些。想等运算符（`==`）在这种情况下表示“集合相等”——也就是说，所有的条目必须完全相同。
 
-So one might say:
+所以我们可以这样：
 
 	{ DoctorsInSurgery == (Adams, Bernard):
-		Dr Adams and Dr Bernard are having a loud argument in one corner.
+		亚当斯医生和伯纳德医生正在角落里大声争吵。
 	}
 
-If Dr Eamonn is in as well, the two won't argue, as the lists being compared won't be equal - DoctorsInSurgery will have an Eamonn that the list (Adams, Bernard) doesn't have.
+如果埃蒙 (Eamonn) 医生也在场，两人就不会争吵，因为比较的两个列表不相等——DoctorsInSurgery 列表中有埃蒙，而 (Adams, Bernard) 列表中没有。
 
-Not equals works as expected:
+下面是按照预期运行的不等运算符：
 
-	{ DoctorsInSurgery != (Adams, Bernard):
-		At least Adams and Bernard aren't arguing.
+	{ DoctorsInSurgery != (Adams, Bernard):	// 如果“外科医生”列表不等于“Adams, Bernard”
+		至少亚当斯和伯纳德没在争吵。
 	}
 
-#### Testing for containment
+#### 包含性测试｜Testing for containment
 
-What if we just want to simply ask if Adams and Bernard are present? For that we use a new operator, `has`, otherwise known as `?`.
+那如果我们只是想知道亚当斯和伯纳德医当时是否在场呢？这个时候我们就可以使用新的运算符 `has`，也可以写作 `?`。
 
 	{ DoctorsInSurgery ? (Adams, Bernard):
 		Dr Adams and Dr Bernard are having a hushed argument in one corner.
 	}
 
-And `?` can apply to single values too:
+`?` 运算符同时适用于单值列表。
 
-	{ DoctorsInSurgery has Eamonn:
-		Dr Eamonn is polishing his glasses.
+	{ DoctorsInSurgery has Eamonn:	// 如果“外科医生”列表包含 "Eamonn"
+		埃蒙医生正在擦拭他的眼镜。
 	}
 
-We can also negate it, with `hasnt` or `!?` (not `?`). Note this starts to get a little complicated as
+我们也可以用否定形式，也就是 `hasnt` 或 `!?`（而不是 `?`），来查询列表是否不包含要查询的内容中的某一项。也就是说：
 
-	DoctorsInSurgery !? (Adams, Bernard)
+	DoctorsInSurgery !? (Adams, Bernard)	// 查询“外科医生”列表中是否不包含 "Adams" 或 "Bernard" 中的一个或更多。
 
-does not mean neither Adams nor Bernard is present, only that they are not *both* present (and arguing).
+这并不意味着亚当斯和伯纳德都不在场，仅表示他们不会同时在场（并发生争执）。
 
-#### Warning: no lists contain the empty list
+#### 注意：空列表不被任何列表包含｜Warning: no lists contain the empty list
 
-Note that the test 
+所以如果你想要测试：
 
-	SomeList ? ()
+	SomeList ? ()	// 查询“某个列表”是否包含 “<什么也没有>”
 
-will always return false, regardless of whether `SomeList` itself is empty. In practice this is the most useful default, as you'll often want to do tests like:
+无论 `SomeList` 本身的值是否为空，这个查询都会返回 false，这种设计在实际应用中最合理，比如这样的检测：
 
-	SilverWeapons ? best_weapon_to_use 
+	SilverWeapons ? best_weapon_to_use	// 查询“银制武器”列表中是否有 best_weapon_to_use（最好的武器）
 	
-to fail if the player is empty-handed.
+那如果“best_weapon_to_use”（最好的武器）是空的，则返回失败。
 
-#### Example: basic knowledge tracking
+#### 示例：基础信息追踪｜Example: basic knowledge tracking
 
-The simplest use of a multi-valued list is for tracking "game flags" tidily.
+多值列表在游戏中最简单的用途就是整洁地追踪“游戏标记”：
 
-	LIST Facts = (Fogg_is_fairly_odd), 	first_name_phileas, (Fogg_is_English)
+	LIST Facts = (Fogg_is_fairly_odd), first_name_phileas, (Fogg_is_English)	
+	// 创建“事实”列表，初始化“福格是个相当古怪的人（并留在列表中）”，“名叫菲利亚斯”，“福格是英国人”
 
-	{Facts ? Fogg_is_fairly_odd:I smiled politely.|I frowned. Was he a lunatic?}
-	'{Facts ? first_name_phileas:Phileas|Monsieur}, really!' I cried.
+	{Facts ? Fogg_is_fairly_odd:我礼貌地笑了笑。|他是个疯子吗？}
+	//	查询 Fogg_is_fairly_odd 是否在“事实”列表中。
 
-In particular, it allows us to test for multiple game flags in a single line.
+	“{Facts ? first_name_phileas:斐利亚斯|先生}，真的！”我喊道。
+	// 查询 first_name_phileas 是否在“事实”列表中。
+
+特别是，这个语法还允许我们在一行中就测试多个标志。
 
 	{ Facts ? (Fogg_is_English, Fogg_is_fairly_odd):
-		<> 'I know Englishmen are strange, but this is *incredible*!'
+		<> ”我知道英国人很奇怪，但这也太*不可思议*了！“
 	}
 
+#### 示例：医生门诊系统｜Example: a doctor's surgery
 
-#### Example: a doctor's surgery
-
-We're overdue a fuller example, so here's one.
+让我们来看一个完整示例：
 
 	LIST DoctorsInSurgery = (Adams), Bernard, Cartwright, (Denver), Eamonn
-
+	// 创建一个”外科医生“列表，初始化：亚当斯（留在列表）, 伯纳德, 卡特赖特, 丹佛（留在列表）, 埃蒙
+	
 	-> waiting_room
 
 	=== function whos_in_today()
-		In the surgery today are {DoctorsInSurgery}.
+		今日坐诊医生有：{DoctorsInSurgery}。
 
 	=== function doctorEnters(who)
 		{ DoctorsInSurgery !? who:
 			~ DoctorsInSurgery += who
-			Dr {who} arrives in a fluster.
+			{who} 医生匆匆赶到诊室。
 		}
+		//	函数功能结点，当调用 doctorEnters(who) 时添加这个医生并输出”一个"{who} 医生匆匆赶到诊室。“
 
 	=== function doctorLeaves(who)
 		{ DoctorsInSurgery ? who:
 			~ DoctorsInSurgery -= who
-			Dr {who} leaves for lunch.
+			{who} 医生外出午餐。
 		}
+		//	函数功能结点，当调用 doctorLeaves(who) 时移除这个医生并输出”一个"{who} 医生外出午餐。“
 
 	=== waiting_room
 		{whos_in_today()}
-		*	[Time passes...]
+		*	[时间流逝……]
 			{doctorLeaves(Adams)} {doctorEnters(Cartwright)} {doctorEnters(Eamonn)}
 			{whos_in_today()}
+			// 在这里为之前结点中的 "who" 赋值并调用函数。
 
-This produces:
+这将会输出：
 
-	In the surgery today are Adams, Denver.
+	今日坐诊医生有：Adams, Denver。
 
-	> Time passes...
+	> 时间流逝...
 
-	Dr Adams leaves for lunch. Dr Cartwright arrives in a fluster. Dr Eamonn arrives in a fluster.
+	Adams 医生外出午餐。Cartwright 医生匆匆赶到诊室。Eamonn 医生匆匆赶到诊室。
 
-	In the surgery today are Cartwright, Denver, Eamonn.
+	今日坐诊医生有：Cartwright, Denver, Eamonn。
 
-#### Advanced: nicer list printing
-
-The basic list print is not especially attractive for use in-game. The following is better:
+#### 进阶：优化列表显示｜Advanced: nicer list printing
+基础的列表在游戏中可能实用，所以可以这样来优化一下：
 
 	=== function listWithCommas(list, if_empty)
-	    {LIST_COUNT(list):
-	    - 2:
-	        	{LIST_MIN(list)} and {listWithCommas(list - LIST_MIN(list), if_empty)}
-	    - 1:
-	        	{list}
-	    - 0:
-				{if_empty}
-	    - else:
-	      		{LIST_MIN(list)}, {listWithCommas(list - LIST_MIN(list), if_empty)}
-	    }
+		// 功能函数 listWithCommas，预留 list 和 if_empty 变量
+
+		{LIST_COUNT(list):
+		//	判断列表中有几个值
+		- 2:
+			{LIST_MIN(list)} 和 {listWithCommas(list - LIST_MIN(list), if_empty)}
+			//	如果有 2 个，那么就先说“<列表中已存在的值中排序值最小的那个值>和<列表中去掉最小排序值之后的新列表的值>”，然后递归再调用自身，直到这个满足终止条件（0、1 或 2 个）后调用 if_empty 的替代文本。
+		- 1:
+			{list}
+			//	只有 1 个就直接报出恐龙名字
+		- 0:
+			{if_empty}
+			//	没有（为 0 个）就显示 {if_empty} 的内容
+		- else:
+			{LIST_MIN(list)}、{listWithCommas(list - LIST_MIN(list), if_empty)}
+			//	和上面的 2 是一样的，只是 2 一开始就达到了递归的终止条件，这里可能比 2 更多，所以输出的时候考虑了语言逻辑而进行了调整。
+		}
 
 	LIST favouriteDinosaurs = (stegosaurs), brachiosaur, (anklyosaurus), (pleiosaur)
+	// 在这里创建了”我最喜欢的恐龙“列表，并初始化：<那些恐龙的名字>
 
-	My favourite dinosaurs are {listWithCommas(favouriteDinosaurs, "all extinct")}.
+	我最喜欢的恐龙是{listWithCommas(favouriteDinosaurs, "已全部灭绝")}。
+	//	调用 listWithCommas 函数，并传递参数“我最喜欢的恐龙列表给“listWithCommas”，并将“已全部灭绝”这个替代文本代入 if_empty
 
-It's probably also useful to have an is/are function to hand:
+再配上一个单复数判断函数：
+（译者注：英语单数用 is，多个用 are，但是翻译过来都是“是”，就像汉语中的“一个”和“一群”的区别，请举一反三的应用）
 
 	=== function isAre(list)
-		{LIST_COUNT(list) == 1:is|are}
+		{LIST_COUNT(list) == 1:是一个(is)|是一群(are)}
 
-	My favourite dinosaurs {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
+	最喜欢的恐龙{isAre(favouriteDinosaurs)}{listWithCommas(favouriteDinosaurs, "已全部灭绝")}。
 
-And to be pendantic:
+再严谨一些的话（名次单复数的区别，举一反三地实用即可）：
 
-	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
+	我最喜欢的恐龙{LIST_COUNT(favouriteDinosaurs) != 1:们}{isAre(favouriteDinosaurs)}{listWithCommas(favouriteDinosaurs, “已全部灭绝”)}。
+
+	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs,s “已全部灭绝”)}.
 
 
-#### Lists don't need to have multiple entries
+#### 列表不是必须包含多个值｜Lists don't need to have multiple entries
 
-Lists don't *have* to contain multiple values. If you want to use a list as a state-machine, the examples above will all work - set values using `=`, `++` and `--`; test them using `==`, `<`, `<=`, `>` and `>=`. These will all work as expected.
+列表不一定需要包含多个值。如果要将列表用作状态机，上述所有示例仍然适用——你可以继续使用 `=`、`++` 和 `--` 设置值；使用 `==`、`<`、`<=`、`>` 和 `>=` 进行判定测试。这些操作都将按预期工作。
 
-### The "full" list
+### “完整”的列表｜The "full" list
 
-Note that `LIST_COUNT`, `LIST_MIN` and `LIST_MAX` are refering to who's in/out of the list, not the full set of *possible* doctors. We can access that using
+注意：`LIST_COUNT`，`LIST_MIN` 和 `LIST_MAX` 参考的是当前列表中的内容，而非所有有可能的医生名单。要访问完整列表，可以使用：
 
-	LIST_ALL(element of list)
+	LIST_ALL(<列表中的元素>)
 
-or
+或
 
-	LIST_ALL(list containing elements of a list)
+	LIST_ALL(<包含列表元素的列表>)
 
 	{LIST_ALL(DoctorsInSurgery)} // Adams, Bernard, Cartwright, Denver, Eamonn
 	{LIST_COUNT(LIST_ALL(DoctorsInSurgery))} // "5"
 	{LIST_MIN(LIST_ALL(Eamonn))} 				// "Adams"
 
-Note that printing a list using `{...}` produces a bare-bones representation of the list; the values as words, delimited by commas.
+请注意：使用 `{<要判定的内容>}` 打印列表会产生最基本的列表表示形式，即用逗号分隔的值。
 
-#### Advanced: "refreshing" a list's type
+#### 进阶：“重置”列表的类型｜Advanced: "refreshing" a list's type
 
-If you really need to, you can make an empty list that knows what type of list it is.
+如果您需要的话，您可以创建一个没有内容的空列表（这个列表只是一个类型为列表的空列表）。
 
 	LIST ValueList = first_value, second_value, third_value
+	// 整一个有三个值的 ValueList
 	VAR myList = ()
-
+	//	整一个名叫 myList 的变量，里面是空的。
+	
 	~ myList = ValueList()
+	// 把 ValueList 的值填入 myList
 
-You'll then be able to do:
+这之后可以执行：
 
 	{ LIST_ALL(myList) }
+	//	 列出完整的 myList
 
-#### Advanced: a portion of the "full" list
+#### 进阶：获取“完整”列表的子集｜Advanced: a portion of the "full" list
 
-You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` function. There are two formulations, both valid:
+使用 `LIST_RANGE` 函数可以获取完整列表的特定区间，有两种等效写法：
 
 	LIST_RANGE(list_name, min_integer_value, max_integer_value)
+	// LIST_RANGE(想截取的列表名称，你想取得的那个区间的最小排序值的整数值，你想取得的那个区间的最大排序值的整数值)
 
-and
-
-	LIST_RANGE(list_name, min_value, max_value)
-	
-Min and max values here are inclusive. If the game can’t find the values, it’ll get as close as it can, but never go outside the range. So for example:
-
+或者
 	{LIST_RANGE(LIST_ALL(primeNumbers), 10, 20)} 
-
-will produce 
+	// LIST_RANGE(想截取的列表名称，你想取得的那个区间的最小排序值的整数值，你想取得的那个区间的最大排序值的整数值，你想取得的那个区间的最小值值本身，你想取得的那个区间的最大值值本身)
 	
+其中最小值和最大值都是包含的。如果找不到精确匹配值，系统会返回最接近但不超出范围的数值。例如：
+
+	{LIST_RANGE(LIST_ALL(质数列表), 10, 20)} 
+	//	从完整的质数列表中截取，最小截到 10，最大截到 20
+
+将输出：
+
 	11, 13, 17, 19
 
 
 
-### Example: Tower of Hanoi
+### 示例：汉诺塔｜Example: Tower of Hanoi
 
-To demonstrate a few of these ideas, here's a functional Tower of Hanoi example, written so no one else has to write it.
+为了展示其中的一些想法，这里有一个功能性的汉诺塔示例，写这个示例的目的是为了让其他人不用再写了。
+（译者注：汉诺塔是一种经典益智游戏，如果不清楚这是什么请用搜索引擎查一下，规则相当简单，这里不再赘述。）
 
+	LIST Discs = 一, 二, 三, 四, 五, 六, 七	//	创建列表“圆盘”，并初始化一二三四五六七。
+	VAR post1 = ()	// 创建变量“柱子1”
+	VAR post2 = ()	// 创建变量“柱子2”
+	VAR post3 = ()	// 创建变量“柱子3”
 
-	LIST Discs = one, two, three, four, five, six, seven
-	VAR post1 = ()
-	VAR post2 = ()
-	VAR post3 = ()
-
-	~ post1 = LIST_ALL(Discs)
+	~ post1 = LIST_ALL(Discs)	// 在 柱子1 上按列表 Discs（圆盘）的顺序放上所有的 7 个圆盘
 
 	-> gameloop
+	// 转向 游戏循环
 
 	=== function can_move(from_list, to_list) ===
+	// 功能函数 can_move（检查是否可以移动），等待参数 from_list（来源柱）和 to_list（目标柱）
 	    {
 	    -   LIST_COUNT(from_list) == 0:
-	        // no discs to move
+		// 如果待会 来源柱 中的值为 0（也就是没有圆盘）
 	        ~ return false
+			// 返回 false
 	    -   LIST_COUNT(to_list) > 0 && LIST_MIN(from_list) > LIST_MIN(to_list):
-	        // the moving disc is bigger than the smallest of the discs on the new tower
+		// 如果待会 目标柱 同时大于 0 和 来源柱 中最小的排序值，而这两个值又大于 目标柱 中的最小排序值
+		// 实际来说就是要移动的圆盘比目标柱最上面的圆盘大
 	        ~ return false
+			// 返回 false
 	    -   else:
-	    	 // nothing stands in your way!
+		//其他情况都可以移动！
 	        ~ return true
-
+			// 返回 true
 	    }
 
 	=== function move_ring( ref from, ref to ) ===
-	    ~ temp whichRingToMove = LIST_MIN(from)
-	    ~ from -= whichRingToMove
-	    ~ to += whichRingToMove
+	// 功能函数 move_ring（移动圆盘），传参 来源，传参 目标
+	    ~ temp whichRingToMove = LIST_MIN(from)	// 将 from（来源）列表中最小排序值代入临时变量 whichRingToMove（移动哪号圆盘）
+	    ~ from -= whichRingToMove	// 从 来源 列表中移除 whichRingToMove
+	    ~ to += whichRingToMove	// 在 目标 列表中增加 whichRingToMove
+
 
 	== function getListForTower(towerNum)
+	// 功能参数 获取柱子列表（等待传入柱子编号）
 	    { towerNum:
-	        - 1:    ~ return post1
-	        - 2:    ~ return post2
-	        - 3:    ~ return post3
+	        - 1:    ~ return post1	// 是 1 就返回 柱子1
+	        - 2:    ~ return post2	// 是 2 就……
+	        - 3:    ~ return post3	// ……
 	    }
 
 	=== function name(postNum)
-	    the {postToPlace(postNum)} temple
+	// 功能函数 柱子名转换（小写），等待 postNum 参数
+	    那{postToPlace(postNum)}座
 
 	=== function Name(postNum)
-	    The {postToPlace(postNum)} temple
+	// 功能函数 柱子名转换（首字母大写），等待 postNum 参数
+	    那{postToPlace(postNum)}座
 
 	=== function postToPlace(postNum)
+	// 功能函数 编号到次序转换
 	    { postNum:
-	        - 1: first
-	        - 2: second
-	        - 3: third
+	        - 1: 第一
+	        - 2: 第二
+	        - 3: 第三
 	    }
 
 	=== function describe_pillar(listNum) ==
+	// 功能函数 描述柱子，等待 listNum 参数
 	    ~ temp list = getListForTower(listNum)
+		//	将 获取柱子列表（柱子编号）填入 临时参数 list
 	    {
-	    - LIST_COUNT(list) == 0:
-	        {Name(listNum)} is empty.
-	    - LIST_COUNT(list) == 1:
-	        The {list} ring lies on {name(listNum)}.
-	    - else:
-	        On {name(listNum)}, are the discs numbered {list}.
+	    - LIST_COUNT(list) == 0:	// 如果 list 最小排序值为 0
+	        {Name(listNum)}是空的。
+	    - LIST_COUNT(list) == 1:	// 如果 list 最小排序值为 1
+	        只有{list}号圆盘在{name(listNum)}上。
+	    - else:	// 其他情况
+	        在{name(listNum)}上，摆放着{list}号圆盘。
 	    }
 
 
 	=== gameloop
-	    Staring down from the heavens you see your followers finishing construction of the last of the great temples, ready to begin the work.
+	从天上俯瞰，你看到你的追随者们正在准备开始完成最后一座大神庙的建设。
 	- (top)
-	    +  [ Regard the temples]
-	        You regard each of the temples in turn. On each is stacked the rings of stone. {describe_pillar(1)} {describe_pillar(2)} {describe_pillar(3)}
+	    +  [查看圣殿]
+        	你依次检视每座圣殿。每座圣殿上都堆叠着石环。{describe_pillar(1)} {describe_pillar(2)} {describe_pillar(3)}
 	    <- move_post(1, 2, post1, post2)
 	    <- move_post(2, 1, post2, post1)
 	    <- move_post(1, 3, post1, post3)
 	    <- move_post(3, 1, post3, post1)
 	    <- move_post(3, 2, post3, post2)
 	    <- move_post(2, 3, post2, post3)
+		// move_post 函数在下一针脚
 	    -> DONE
 
 	= move_post(from_post_num, to_post_num, ref from_post_list, ref to_post_list)
+	// 移动柱子（并代入了对应的参数）
 	    +   { can_move(from_post_list, to_post_list) }
-	        [ Move a ring from {name(from_post_num)} to {name(to_post_num)} ]
+	        [将圆盘从{name(from_post_num)}移动到{name(to_post_num)}。]
 	        { move_ring(from_post_list, to_post_list) }
-	        { stopping:
-	        -   The priests far below construct a great harness, and after many years of work, the great stone ring is lifted up into the air, and swung over to the next of the temples.
-	            The ropes are slashed, and in the blink of an eye it falls once more.
-	        -   Your next decree is met with a great feast and many sacrifices. After the funeary smoke has cleared, work to shift the great stone ring begins in earnest. A generation grows and falls, and the ring falls into its ordained place.
-	        -   {cycle:
-	            - Years pass as the ring is slowly moved.
-	            - The priests below fight a war over what colour robes to wear, but while they fall and die, the work is still completed.
+	        { stopping:	// 按顺序显示下方文本并停在最后一项
+	        -	下方的祭司们建造了巨大的吊架，经过多年的努力，巨大的石环被吊起，缓缓移向下一座圣殿。
+				绳索被斩断，转瞬间石环便稳稳落下。
+	        -   你的谕令引发了盛大的庆典和祭祀。当葬仪的烟雾散去，移动石环的工程郑重展开。一代人成长又逝去，石环终于归位。
+	        -   { cycle:	// 循环显示下方文本
+	            - 石环在岁月流转中缓慢移动。
+	            - 祭司们为袍服颜色爆发战争，虽死伤无数，工程却仍在继续。
 	            }
 	        }
 	    -> top
