@@ -2,7 +2,7 @@
 
 ## 声明
 
-简体中文教程是从英文原文翻译而来。可能会存在版本滞后性，故入与英文版有出入，请与英文版为准。
+简体中文教程是从英文原文翻译而来。可能会存在版本滞后性，或与英文版有出入，请与英文版为准。
 
 翻译时使用了 DeepSeek、ChatGPT 与 DeepL 辅助。
 
@@ -12,25 +12,27 @@
 
 翻译时的 Ink 版本：1.2.0
 
-翻译最后更新时间：2025 年 06 月 03 日
+翻译最后更新时间：2025 年 07 月 01 日
 
-翻译仍在更新。
+已全部翻译完毕。如果您在阅读时发现问题，请你用上面的联系方式联系译者反馈，感谢您的阅读～
 
 ## 此外
 根据语义，将部分专有词汇进行翻译：
 
-| 原文          | 翻译  |
-| ----------- | --- |
-| Knot        | 结点  |
-| Divert      | 转向  |
-| Branch      | 分支  |
-| Stitch      | 针脚  |
-| Weave       | 织体  |
-| Gather      | 收束  |
-| Scope       | 界限  |
-| Tunnel      | 隧道  |
+| 原文          | 翻译   |
+| ----------- | ---- |
+| Knot        | 结点   |
+| Divert      | 转向   |
+| Branch      | 分支   |
+| Stitch      | 针脚   |
+| Weave       | 织体   |
+| Gather      | 收束   |
+| Scope       | 界限   |
+| Tunnel      | 隧道   |
 | Thread      | 缝合线  |
 | Side-Thread | 旁缝合线 |
+| Flags       | 标志   |
+| Nodes       | 小节   |
 
 ## 内容目录
 <details>
@@ -104,7 +106,7 @@
 		- [收束点也可以嵌套｜Gather points can be nested too](#收束点也可以嵌套gather-points-can-be-nested-too)
 			- [进阶：收束这个操作做了什么｜Advanced: What gathers do](#进阶收束这个操作做了什么advanced-what-gathers-do)
 		- [你可以根据你自己的需要设置多层嵌套｜You can nest as many levels are you like](#你可以根据你自己的需要设置多层嵌套you-can-nest-as-many-levels-are-you-like)
-		- [示例：用嵌套节点写的对话｜Example: a conversation with nested nodes](#示例用嵌套节点写的对话example-a-conversation-with-nested-nodes)
+		- [示例：用嵌套小节编写的对话｜Example: a conversation with nested nodes](#示例用嵌套小节编写的对话example-a-conversation-with-nested-nodes)
 	- [3) 追踪织体｜Tracking a Weave](#3-追踪织体tracking-a-weave)
 		- [织体是庞大且没有地址索引的｜Weaves are largely unaddressed](#织体是庞大且没有地址索引的weaves-are-largely-unaddressed)
 		- [收束和选项也可以打标签｜Gathers and options can be labelled](#收束和选项也可以打标签gathers-and-options-can-be-labelled)
@@ -190,25 +192,25 @@
 			- [进阶：“重置”列表的类型｜Advanced: "refreshing" a list's type](#进阶重置列表的类型advanced-refreshing-a-lists-type)
 			- [进阶：获取“完整”列表的子集｜Advanced: a portion of the "full" list](#进阶获取完整列表的子集advanced-a-portion-of-the-full-list)
 		- [示例：汉诺塔｜Example: Tower of Hanoi](#示例汉诺塔example-tower-of-hanoi)
-	- [5) Advanced List Operations](#5-advanced-list-operations)
-		- [Comparing lists](#comparing-lists)
-			- ["Distinctly bigger than"](#distinctly-bigger-than)
-			- ["Definitely never smaller than"](#definitely-never-smaller-than)
-			- [Health warning!](#health-warning)
-		- [Inverting lists](#inverting-lists)
-			- [Footnote](#footnote)
-		- [Intersecting lists](#intersecting-lists)
-	- [6) Multi-list Lists](#6-multi-list-lists)
-		- [Lists to track objects](#lists-to-track-objects)
-		- [Lists to track multiple states](#lists-to-track-multiple-states)
-			- [How does this affect queries?](#how-does-this-affect-queries)
-	- [7) Long example: crime scene](#7-long-example-crime-scene)
-	- [8) Summary](#8-summary)
-		- [Flags](#flags)
-		- [State machines](#state-machines)
-		- [Properties](#properties)
+	- [5) 进阶列表操作｜Advanced List Operations](#5-进阶列表操作advanced-list-operations)
+		- [比较列表｜Comparing lists](#比较列表comparing-lists)
+			- [“严格的大于”](#严格的大于)
+			- [“绝不会小于”](#绝不会小于)
+			- [健康忠告！](#健康忠告)
+		- [反转列表](#反转列表)
+			- [脚注](#脚注)
+		- [交集列表](#交集列表)
+	- [6) 多列表列表（表中表）](#6-多列表列表表中表)
+		- [用列表追踪物品](#用列表追踪物品)
+		- [用列表追踪多重状态](#用列表追踪多重状态)
+			- [这对查询有何影响？](#这对查询有何影响)
+	- [7) 长示例：犯罪现场](#7-长示例犯罪现场)
+	- [8) 总结](#8-总结)
+		- [标志（Flags）](#标志flags)
+		- [状态机（State machines）](#状态机state-machines)
+		- [属性（Properties）](#属性properties)
 - [第 6 部分：标识符中的国际字符支持｜Part 6: International character support in identifiers](#第-6-部分标识符中的国际字符支持part-6-international-character-support-in-identifiers)
-		- [Supported Identifier Characters](#supported-identifier-characters)
+		- [支持的标识符字符](#支持的标识符字符)
 
 </details>
 
@@ -397,7 +399,7 @@
 	=== top_knot
 	==top_knot
 
-需要注意的是：
+译者注：关于结点还有以后的函数和列表等部分的命名
 *	区分大小写。
 *	末尾的等号是可选项。
 *	无法使用连字符 "-"。还有其他一些特殊的标点符号也无法使用。在出现不可使用的标点符号时，编辑器会报错提醒。
@@ -413,7 +415,7 @@
 
 #### 进阶：一个结点更复杂的“你好世界”｜Advanced: a knottier "hello world"
 
-在启动 Ink 文件时，结点以外的内容会自动运行。但节点不会。因此，如果你开始使用节点来管理内容，就需要告诉游戏该去哪里。我们可以使用转向箭头 `->`来做到这一点，下一部分将对此进行详细介绍。
+在启动 Ink 文件时，结点以外的内容会自动运行。但结点不会。因此，如果你开始使用结点来管理内容，就需要告诉游戏该去哪里。我们可以使用转向箭头 `->`来做到这一点，下一部分将对此进行详细介绍。
 
 这是一个简单的结点跳转脚本：
 
@@ -1172,7 +1174,7 @@ TODO: （向编译器传递 `-c` 的要求）
 
 ### 收束点也可以嵌套｜Gather points can be nested too
 
-有时，问题不在于选项数量的增加，而在于故事节点的增加。我们可以通过嵌套收束点和选项来实现这一点。
+有时，问题不在于选项数量的增加，而在于故事要点的增加。我们可以通过嵌套收束点和选项来实现这一点。
 
 	-	“波洛？你认为这是谋杀还是自杀？”
 	*	“谋杀！”
@@ -1214,7 +1216,7 @@ TODO: （向编译器传递 `-c` 的要求）
 
 但至少在理论上，你可以把整个故事只写成一个织体。
 
-### 示例：用嵌套节点写的对话｜Example: a conversation with nested nodes
+### 示例：用嵌套小节编写的对话｜Example: a conversation with nested nodes
 
 这个示例有点长：
 
@@ -3073,170 +3075,168 @@ LIST primeNumbers = (two = 2), (three) = 3, (five = 5)	// “质数”列表
 	    -> top
 
 
+## 5) 进阶列表操作｜Advanced List Operations
 
-## 5) Advanced List Operations
+前文已涵盖基础的比较操作。除此之外还有一些更强大的功能，但正如熟悉数学集合的人所知——事情开始变得有些复杂了。因此本节内容标注为"进阶"警示。
 
-The above section covers basic comparisons. There are a few more powerful features as well, but - as anyone familiar with mathematical   sets will know - things begin to get a bit fiddly. So this section comes with an 'advanced' warning.
+本节的多数功能对大多数游戏开发并非必需。
 
-A lot of the features in this section won't be necessary for most games.
+### 比较列表｜Comparing lists 
 
-### Comparing lists
+我们可以使用 >、<、>= 和 <= 来比较列表大小。需要注意！这里使用的定义并不完全符合常见标准，它们是基于被比较列表中元素的数值来进行比较的。
 
-We can compare lists less than exactly using `>`, `<`, `>=` and `<=`. Be warned! The definitions we use are not exactly standard fare. They are based on comparing the numerical value of the elements in the lists being tested.
+#### “严格的大于”
 
-#### "Distinctly bigger than"
+`LIST_A > LIST_B` 的含义是：“A 中的最小值大于 B 中的最大值”。换句话说，如果放在数轴上，A 的全部内容都在 B 的全部内容的右侧。`<` 则是相反的比较。
 
-`LIST_A > LIST_B` means "the smallest value in A is bigger than the largest values in B": in other words, if put on a number line, the entirety of A is to the right of the entirety of B. `<` does the same in reverse.
+#### “绝不会小于”
 
-#### "Definitely never smaller than"
+`LIST_A >= LIST_B` 的含义是——（请你做好心理准备……）——“A 中的最小值至少与 B 中的最小值相等，且 A 中的最大值至少与 B 中的最大值相等”。换句话说，如果画在数轴上，A 的整体要么在 B 之上，要么与 B 重叠，但 B 不会高于 A。
 
-`LIST_A >= LIST_B` means - take a deep breath now - "the smallest value in A is at least the smallest value in B, and the largest value in A is at least the largest value in B". That is, if drawn on a number line, the entirety of A is either above B or overlaps with it, but B does not extend higher than A.
+需要注意的是，`LIST_A > LIST_B` 意味着 `LIST_A != LIST_B`，而 `LIST_A >= LIST_B` 则允许 `LIST_A == LIST_B` 但会排除 `LIST_A < LIST_B`，这也许正如你所希望的那样。
 
-Note that `LIST_A > LIST_B` implies `LIST_A != LIST_B`, and `LIST_A >= LIST_B` allows `LIST_A == LIST_B` but precludes `LIST_A < LIST_B`, as you might hope.
+#### 健康忠告！
 
-#### Health warning!
+`LIST_A >= LIST_B` 并*不*等同于 `LIST_A > LIST_B` 或 `LIST_A == LIST_B`。
 
-`LIST_A >= LIST_B` is *not* the same as `LIST_A > LIST_B or LIST_A == LIST_B`.
+这个道理是：为了您的脑细胞着想，除非你在脑中有非常清晰的理解，否则不要使用这些比较。
 
-The moral is, don't use these unless you have a clear picture in your mind.
+### 反转列表
 
-### Inverting lists
-
-A list can be "inverted", which is the equivalent of going through the accommodation in/out name-board and flipping every switch to the opposite of what it was before.
+列表可以被“反转”，就像是住宿登记处的进出名牌板，将每个开关都翻转成相反的状态。
 
 	LIST GuardsOnDuty = (Smith), (Jones), Carter, Braithwaite
 
 	=== function changingOfTheGuard
 		~ GuardsOnDuty = LIST_INVERT(GuardsOnDuty)
 
-
-Note that `LIST_INVERT` on an empty list will return a null value, if the game doesn't have enough context to know what invert. If you need to handle that case, it's safest to do it by hand:
+请注意，如果对一个空列表使用 `LIST_INVERT`，而游戏又没有足够的上下文来确定到底要反转什么内容，那么它将返回空值。如果需要处理这种情况，最安全的做法是手动处理：
 
 	=== function changingOfTheGuard
-		{!GuardsOnDuty: // "is GuardsOnDuty empty right now?"
+		{!GuardsOnDuty: // 查询 GuardsOnDuty 列表现在是不是空的
 			~ GuardsOnDuty = LIST_ALL(Smith)
 		- else:
 			~ GuardsOnDuty = LIST_INVERT(GuardsOnDuty)
 		}
 
-#### Footnote
+#### 脚注
 
-The syntax for inversion was originally `~ list` but we changed it because otherwise the line
+在 Ink 诞生之初时，反转的语法最初是 `~ list`，但后来更改了，否则以下这行
 
 	~ list = ~ list
 
-was not only functional, but actually caused list to invert itself, which seemed excessively perverse.
+不仅可以正常运行，而且会真的让 list 自我反转，这看起来过于反常。
 
-### Intersecting lists
+（译者注：这是一个已经不再可用的语法，图一乐看看就行。）
 
-The `has` or `?` operator is, somewhat more formally, the "are you a subset of me" operator, ⊇, which includes the sets being equal, but which doesn't include if the larger set doesn't entirely contain the smaller set.
+### 交集列表
 
-To test for "some overlap" between lists, we use the overlap operator, `^`, to get the *intersection*.
+`has` 或 `?` 运算符用通俗的语言来表述就是“你是我的子集吗”运算符，也就是“⊇”的意思，它包含集合相等的情况，但当大集合未完全包含小集合时则不成立。
+
+若要检测两个列表是否“有交集”，可以使用重叠运算符 `^` 来获取*交集*。
 
 	LIST CoreValues = strength, courage, compassion, greed, nepotism, self_belief, delusions_of_godhood
 	VAR desiredValues = (strength, courage, compassion, self_belief )
 	VAR actualValues =  ( greed, nepotism, self_belief, delusions_of_godhood )
 
-	{desiredValues ^ actualValues} // prints "self_belief"
+	{desiredValues ^ actualValues} // 这会输出 "self_belief"
 
-The result is a new list, so you can test it:
+译者注：两个 LIST 之间似乎不能直接比较，他们这里也是把 LIST 里的值搞到了两个 VAR 里再进行比较的。
 
-	{desiredValues ^ actualValues: The new president has at least one desirable quality.}
+结果是一个新的列表，因此可以进行判定：
 
-	{LIST_COUNT(desiredValues ^ actualValues) == 1: Correction, the new president has only one desirable quality. {desiredValues ^ actualValues == self_belief: It's the scary one.}}
+	{desiredValues ^ actualValues: 新总统至少有一个值得称道的品质。}	// 如果两个列表有交集。
 
-
-
-
-## 6) Multi-list Lists
+	{LIST_COUNT(desiredValues ^ actualValues) == 1: 更正，新总统实际上只有一个值得称道的品质。{desiredValues ^ actualValues == self_belief: 而且是那个最可怕的品质。}}	// 如果两个列表只有一个交集就“吃了吐”。如果那个交集完全等于 self_belief 则输出……
 
 
-So far, all of our examples have included one large simplification, again - that the values in a list variable have to all be from the same list family. But they don't.
+## 6) 多列表列表（表中表）
 
-This allows us to use lists - which have so far played the role of state-machines and flag-trackers - to also act as general properties, which is useful for world modelling.
+到目前为止，我们在所有示例中都使用了一个简化假设：列表变量中的值必须全部来自同一个列表族。但其实并不需要。（译者注：这是说，前面的例子最多只创建了一个列表，但其实 LIST 并不是只能有一个）
 
-This is our inception moment. The results are powerful, but also more like "real code" than anything that's come before.
+这使得列表除了用作状态机和标志追踪器外，还可以用来作为通用属性，非常适合用于建模你的世界。
 
-### Lists to track objects
+这就是我们的“盗梦空间”时刻（从这里开始进入更复杂、强大但真实的“嵌套”世界（嵌套状态、嵌套结构、嵌套复杂性）。这种结果非常强大，但也更接近“真正的代码”，比之前讲过的任何内容都更像。
 
-For instance, we might define:
+### 用列表追踪物品
 
-	LIST Characters = Alfred, Batman, Robin
-	LIST Props = champagne_glass, newspaper
+举个例子，我们可以定义：
+
+	LIST Characters = Alfred, Batman, Robin	// 角色列表
+	LIST Props = champagne_glass, newspaper	// 道具列表：香槟杯、报纸
 
 	VAR BallroomContents = (Alfred, Batman, newspaper)
 	VAR HallwayContents = (Robin, champagne_glass)
 
-We could then describe the contents of any room by testing its state:
+接着，我们可以通过状态检测来描述房间内的内容：
 
 	=== function describe_room(roomState)
-		{ roomState ? Alfred: Alfred is here, standing quietly in a corner. } { roomState ? Batman: Batman's presence dominates all. } { roomState ? Robin: Robin is all but forgotten. }
-		<> { roomState ? champagne_glass: A champagne glass lies discarded on the floor. } { roomState ? newspaper: On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT? }
+		{ roomState ? Alfred: 阿尔弗雷德正静静地站在角落里。}{ roomState ? Batman: 蝙蝠侠的存在让所有人都感到压迫。}{ roomState ? Robin: 罗宾几乎被遗忘。}
+		<> { roomState ? champagne_glass: 地板上丢这一个香槟杯。}{ roomState ? newspaper: 桌子上的头条新闻用超大的字号写着“谁是蝙蝠侠？他那几乎被遗忘的助手又是*谁*？”}
 
-So then:
+那么：
 
 	{ describe_room(BallroomContents) }
 
-produces:
+就会输出：
 
-	Alfred is here, standing quietly in a corner. Batman's presence dominates all.
+	阿尔弗雷德正静静地站在角落里。蝙蝠侠的存在让所有人都感到压迫。罗宾几乎被遗忘。
+	
+	桌子上的头条新闻用超大的字号写着“谁是蝙蝠侠？他那几乎被遗忘的助手又是谁？”
 
-	On one table, a headline blares out WHO IS THE BATMAN? AND *WHO* IS HIS BARELY-REMEMBERED ASSISTANT?
-
-While:
+而：
 
 	{ describe_room(HallwayContents) }
 
-gives:
+则会输出：
 
-	Robin is all but forgotten.
+	Robin 几乎被遗忘。
 
-	A champagne glass lies discarded on the floor.
+	地板上丢弃着一个香槟杯。
 
-And we could have options based on combinations of things:
+我们还可以基于组合状态来提供选项：
 
-	*	{ currentRoomState ? (Batman, Alfred) } [Talk to Alfred and Batman]
-		'Say, do you two know each other?'
+	*	{ currentRoomState ? (Batman, Alfred) } [与阿尔弗雷德和蝙蝠侠对话]
+		“嘿，你们两个互相认识吗？”
 
-### Lists to track multiple states
+### 用列表追踪多重状态
 
-We can model devices with multiple states. Back to the kettle again...
+我们还可以用它来建模具有多个状态的设备。回到水壶那个例子……
 
 	LIST OnOff = on, off
 	LIST HotCold = cold, warm, hot
 
-	VAR kettleState = (off, cold) // we need brackets because it's a proper, multi-valued list now
+	VAR kettleState = (off, cold) // 这回这里需要一个括号，因为他们现在是一个真正的多值列表了
 
 	=== function turnOnKettle() ===
 	{ kettleState ? hot:
-		You turn on the kettle, but it immediately flips off again.
+		你打开水壶，但它立刻又跳闸关闭。
 	- else:
-		The water in the kettle begins to heat up.
+		水壶里的水开始加热。
 		~ kettleState -= off
 		~ kettleState += on
-		// note we avoid "=" as it'll remove all existing states
+		// 注意不要使用“=”赋值，而应该使用操作列表的办法，否则会移除所有已存在的状态，也就是直接覆盖掉了列表而替换成了一个值。
 	}
 
 	=== function can_make_tea() ===
 		~ return kettleState ? (hot, off)
 
-These mixed states can make changing state a bit trickier, as the off/on above demonstrates, so the following helper function can be useful.
+这种混合状态会让状态变更稍微复杂，如上面 on/off 的示例所示，因此以下辅助函数会很有用：
 
  	=== function changeStateTo(ref stateVariable, stateToReach)
- 		// remove all states of this type
- 		~ stateVariable -= LIST_ALL(stateToReach)
- 		// put back the state we want
- 		~ stateVariable += stateToReach
+ 		~ stateVariable -= LIST_ALL(stateToReach)	// 移除此类别的所有状态
+ 		~ stateVariable += stateToReach	// 添加需要到达的那个状态
+		// 译者注：相当于是先清除，表中所有状态，再重新给定对应状态，避免了手动开关导致遗漏了某些值的状态。
 
- which enables code like:
+这样就可以写出如下代码：
 
  	~ changeState(kettleState, on)
  	~ changeState(kettleState, warm)
 
 
-#### How does this affect queries?
+#### 这对查询有何影响？
 
-The queries given above mostly generalise nicely to multi-valued lists
+上述查询基本可以自然地以此类推到多值列表上：
 
     LIST Letters = a,b,c
     LIST Numbers = one, two, three
@@ -3246,8 +3246,7 @@ The queries given above mostly generalise nicely to multi-valued lists
 	{LIST_ALL(mixedList)}   // a, one, b, two, c, three
     {LIST_COUNT(mixedList)} // 3
     {LIST_MIN(mixedList)}   // a
-    {LIST_MAX(mixedList)}   // three or c, albeit unpredictably
-
+    {LIST_MAX(mixedList)}   // three 或 c，结果不固定
     {mixedList ? (a,b) }        // false
     {mixedList ^ LIST_ALL(a)}   // a, c
 
@@ -3257,459 +3256,448 @@ The queries given above mostly generalise nicely to multi-valued lists
 	{ LIST_INVERT(mixedList) }            // one, b, two
 
 
-## 7) Long example: crime scene
+## 7) 长示例：犯罪现场
 
-Finally, here's a long example, demonstrating a lot of ideas from this section in action. You might want to try playing it before reading through to better understand the various moving parts.
+最后，这里给出一个长示例以展示本节中许多概念在实际中的运作方式。建议在阅读之前把这段代码复制到 Ink 中先试玩一下，以便更好理解地理解各个环节的运作。
+
+（译者注：这一节的代码翻译由 ChatGPT 完成。已在 Ink 中验证其可靠性。）
 
 	-> murder_scene
 
-	// Helper function: popping elements from lists
+	// 辅助函数：从列表中弹出元素
 	=== function pop(ref list)
-	   ~ temp x = LIST_MIN(list) 
-	   ~ list -= x 
-	   ~ return x
-	
+	~ temp x = LIST_MIN(list) 
+	~ list -= x 
+	~ return x
+
 	//
-	//  System: items can have various states
-	//  Some are general, some specific to particular items
+	//  系统：物品可具有不同状态
+	//  有些是通用状态，有些是特定物品的专有状态
 	//
-	
 
 	LIST OffOn = off, on
 	LIST SeenUnseen = unseen, seen
-	
+
 	LIST GlassState = (none), steamed, steam_gone
 	LIST BedState = (made_up), covers_shifted, covers_off, bloodstain_visible
-	
+
 	//
-	// System: inventory
+	// 系统：库存
 	//
-	
+
 	LIST Inventory = (none), cane, knife
-	
+
 	=== function get(x)
-	    ~ Inventory += x
-	
+		~ Inventory += x
+
 	//
-	// System: positioning things
-	// Items can be put in and on places
+	// 系统：物品位置管理
+	// 物品可被放入或放置在不同位置
 	//
-	
+
 	LIST Supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
-	
+
 	=== function move_to_supporter(ref item_state, new_supporter) ===
-	    ~ item_state -= LIST_ALL(Supporters)
-	    ~ item_state += new_supporter
-	
-	
-	// System: Incremental knowledge.
-	// Each list is a chain of facts. Each fact supersedes the fact before 
+		~ item_state -= LIST_ALL(Supporters)
+		~ item_state += new_supporter
+
+
+	// 系统：递增式知识管理
+	// 每个列表都是一条事实链，每个事实会取代之前的事实
 	//
-	
+
 	VAR knowledgeState = ()
-	
+
 	=== function reached (x) 
-	   ~ return knowledgeState ? x 
-	
+	~ return knowledgeState ? x 
+
 	=== function between(x, y) 
-	   ~ return knowledgeState? x && not (knowledgeState ^ y)
-	
+	~ return knowledgeState? x && not (knowledgeState ^ y)
+
 	=== function reach(statesToSet) 
-	   ~ temp x = pop(statesToSet)
-	   {
-	   - not x: 
-	      ~ return false 
+	~ temp x = pop(statesToSet)
+	{
+	- not x: 
+		~ return false 
+
+	- not reached(x):
+		~ temp chain = LIST_ALL(x)
+		~ temp statesGained = LIST_RANGE(chain, LIST_MIN(chain), x)
+		~ knowledgeState += statesGained
+		~ reach (statesToSet) 	// 设置列表中剩余状态
+		~ return true  	        // 成功设置该状态，返回 true
 	
-	   - not reached(x):
-	      ~ temp chain = LIST_ALL(x)
-	      ~ temp statesGained = LIST_RANGE(chain, LIST_MIN(chain), x)
-	      ~ knowledgeState += statesGained
-	      ~ reach (statesToSet) 	// set any other states left to set
-	      ~ return true  	       // and we set this state, so true
-	 
-	    - else:
-	      ~ return false || reach(statesToSet) 
-	    }	
-	
+		- else:
+		~ return false || reach(statesToSet) 
+		}	
+
 	//
-	// Set up the game
+	// 游戏初始化
 	//
-	
+
 	VAR bedroomLightState = (off, on_desk)
-	
+
 	VAR knifeState = (under_bed)
-	
-	
+
+
 	//
-	// Knowledge chains
+	// 知识链
 	//
-	
-	
+
 	LIST BedKnowledge = neatly_made, crumpled_duvet, hastily_remade, body_on_bed, murdered_in_bed, murdered_while_asleep
-	
-	LIST KnifeKnowledge = prints_on_knife, joe_seen_prints_on_knife,joe_wants_better_prints, joe_got_better_prints
-	
+
+	LIST KnifeKnowledge = prints_on_knife, joe_seen_prints_on_knife, joe_wants_better_prints, joe_got_better_prints
+
 	LIST WindowKnowledge = steam_on_glass, fingerprints_on_glass, fingerprints_on_glass_match_knife
-	
-	
+
 	//
-	// Content
+	// 内容
 	//
-	
+
 	=== murder_scene ===
-	    The bedroom. This is where it happened. Now to look for clues.
+		卧室。这就是案发地。现在该寻找线索了。
 	- (top)
-	    { bedroomLightState ? seen:     <- seen_light  }
-	    <- compare_prints(-> top)
+		{ bedroomLightState ? seen:     <- seen_light  }
+		<- compare_prints(-> top)
 
-    *   (dobed) [The bed...]
-        The bed was low to the ground, but not so low something might not roll underneath. It was still neatly made.
-        ~ reach (neatly_made)
-        - - (bedhub)
-        * *     [Lift the bedcover]
-                I lifted back the bedcover. The duvet underneath was crumpled.
-                ~ reach (crumpled_duvet)
-                ~ BedState = covers_shifted
-        * *     (uncover) {reached(crumpled_duvet)}
-                [Remove the cover]
-                Careful not to disturb anything beneath, I removed the cover entirely. The duvet below was rumpled.
-                Not the work of the maid, who was conscientious to a point. Clearly this had been thrown on in a hurry.
-                ~ reach (hastily_remade)
-                ~ BedState = covers_off
-        * *     (duvet) {BedState == covers_off} [ Pull back the duvet ]
-                I pulled back the duvet. Beneath it was a sheet, sticky with blood.
-                ~ BedState = bloodstain_visible
-                ~ reach (body_on_bed)
-                Either the body had been moved here before being dragged to the floor - or this is was where the murder had taken place.
-        * *     {BedState !? made_up} [ Remake the bed ]
-                Carefully, I pulled the bedsheets back into place, trying to make it seem undisturbed.
-                ~ BedState = made_up
-        * *     [Test the bed]
-                I pushed the bed with spread fingers. It creaked a little, but not so much as to be obnoxious.
-        * *     (darkunder) [Look under the bed]
-                Lying down, I peered under the bed, but could make nothing out.
+	*   (dobed) [床……]
+		床离地不高，但也不至于什么都滚不进去。它依旧被整齐地铺好。
+		~ reach (neatly_made)
+		- - (bedhub)
+		* *     [掀开被子]
+				我掀开了被子。被褥已经被压皱。
+				~ reach (crumpled_duvet)
+				~ BedState = covers_shifted
+		* *     (uncover) {reached(crumpled_duvet)}
+				[拿掉被子]
+				小心翼翼地，我完全移开了被子，下方的被褥一片凌乱。
+				这并非一位尽职的女仆所为，显然是匆忙间丢上的。
+				~ reach (hastily_remade)
+				~ BedState = covers_off
+		* *     (duvet) {BedState == covers_off} [拉开被褥]
+				我拉开了被褥，下面的床单上粘着血迹。
+				~ BedState = bloodstain_visible
+				~ reach (body_on_bed)
+				不是尸体先被移到这里，就是这里正是案发地。
+		* *     {BedState !? made_up} [重新整理床铺]
+				我小心翼翼地把床单铺回原状，试图让它看起来毫无动过的痕迹。
+				~ BedState = made_up
+		* *     [测试床铺]
+				我张开手指按了按床，床吱呀作响，但声响并不大。
+		* *     (darkunder) [查看床下]
+				我躺下来，往床下看去，但什么都看不清。
 
-        * *     {TURNS_SINCE(-> dobed) > 1} [Something else?]
-                I took a step back from the bed and looked around.
-                -> top
-        - -     -> bedhub
+		* *     {TURNS_SINCE(-> dobed) > 1} [看看别处？]
+				我从床边退后一步，环顾四周。
+				-> top
+		- -     -> bedhub
 
-    *   {darkunder && bedroomLightState ? on_floor && bedroomLightState ? on}
-        [ Look under the bed ]
-        I peered under the bed. Something glinted back at me.
-        - - (reaching)
-        * *     [ Reach for it ]
-                I fished with one arm under the bed, but whatever it was, it had been kicked far enough back that I couldn't get my fingers on it.
-                -> reaching
-        * *     {Inventory ? cane} [Knock it with the cane]
-                -> knock_with_cane
+	*   {darkunder && bedroomLightState ? on_floor && bedroomLightState ? on}
+		[查看床下]
+		我往床下看去，有什么东西在闪光。
+		- - (reaching)
+		* *     [伸手去拿]
+				我伸手到床下去够，但无论那是什么，已经被踢得太远够不到。
+				-> reaching
+		* *     {Inventory ? cane} [用手杖够]
+				-> knock_with_cane
 
-        * *     {reaching > 1 } [ Stand up ]
-                I stood up once more, and brushed my coat down.
-                -> top
+		* *     {reaching > 1 } [站起来]
+				我再次站起身，拍了拍大衣。
+				-> top
 
-    *   (knock_with_cane) {reaching && TURNS_SINCE(-> reaching) >= 4 &&  Inventory ? cane } [Use the cane to reach under the bed ]
-        Positioning the cane above the carpet, I gave the glinting thing a sharp tap. It slid out from the under the foot of the bed.
-        ~ move_to_supporter( knifeState, on_floor )
-        * *     (standup) [Stand up]
-                Satisfied, I stood up, and saw I had knocked free a bloodied knife.
-                -> top
+	*   (knock_with_cane) {reaching && TURNS_SINCE(-> reaching) >= 4 &&  Inventory ? cane } [用手杖够床下的东西]
+		我用手杖对准地毯轻轻一挑，闪光的东西从床脚滑了出来。
+		~ move_to_supporter( knifeState, on_floor )
+		* *     (standup) [站起来]
+				我满意地站起身，看到被挑出来的是一把带血的刀。
+				-> top
 
-        * *     [Look under the bed once more]
-                Moving the cane aside, I looked under the bed once more, but there was nothing more there.
-                -> standup
+		* *     [再次查看床下]
+				我移开手杖，再次查看床下，但那里已经没有其他东西。
+				-> standup
 
-    *   {knifeState ? on_floor} [Pick up the knife]
-        Careful not to touch the handle, I lifted the blade from the carpet.
-        ~ get(knife)
+	*   {knifeState ? on_floor} [捡起刀]
+		我小心翼翼地避开刀柄，将刀从地毯上拾起。
+		~ get(knife)
 
-    *   {Inventory ? knife} [Look at the knife]
-        The blood was dry enough. Dry enough to show up partial prints on the hilt!
-        ~ reach (prints_on_knife)
+	*   {Inventory ? knife} [查看刀]
+		刀上的血迹已经干了，足够显露出刀柄上的部分指纹！
+		~ reach (prints_on_knife)
 
-    *   [   The desk... ]
-        I turned my attention to the desk. A lamp sat in one corner, a neat, empty in-tray in the other. There was nothing else out.
-        Leaning against the desk was a wooden cane.
-        ~ bedroomLightState += seen
+	*   [书桌……]
+		我把注意力转向书桌。一盏台灯放在一角，另一角是空空的收纳盘，桌面没有其他东西。
+		一根木手杖斜靠在桌边。
+		~ bedroomLightState += seen
 
-        - - (deskstate)
-        * *     (pickup_cane) {Inventory !? cane}  [Pick up the cane ]
-                ~ get(cane)
-              I picked up the wooden cane. It was heavy, and unmarked.
+		- - (deskstate)
+		* *     (pickup_cane) {Inventory !? cane}  [捡起手杖]
+				~ get(cane)
+			我捡起了这根木手杖，它很沉，却没有任何标记。
 
-        * *    { bedroomLightState !? on } [Turn on the lamp]
-                -> operate_lamp ->
+		* *    { bedroomLightState !? on } [打开台灯]
+				-> operate_lamp ->
 
-        * *     [Look at the in-tray ]
-                I regarded the in-tray, but there was nothing to be seen. Either the victim's papers were taken, or his line of work had seriously dried up. Or the in-tray was all for show.
+		* *     [查看收纳盘]
+				我看了看收纳盘，但里面什么都没有。要么是死者的文件被拿走了，要么他根本没什么业务，又或只是摆设。
 
-        + +     (open)  {open < 3} [Open a drawer]
-                I tried {a drawer at random|another drawer|a third drawer}. {Locked|Also locked|Unsurprisingly, locked as well}.
+		+ +     (open)  {open < 3} [打开抽屉]
+				我{随便抽开一个|又拉开另一个|拉开第三个}抽屉，{锁着|也是锁着|果然也是锁着}。
 
-        * *     {deskstate >= 2} [Something else?]
-                I took a step away from the desk once more.
-                -> top
+		* *     {deskstate >= 2} [看看别处？]
+				我再次从桌边退后一步。
+				-> top
 
-        - -     -> deskstate
+		- -     -> deskstate
 
-    *     {(Inventory ? cane) && TURNS_SINCE(-> deskstate) <= 2} [Swoosh the cane]
-        I was still holding the cane: I gave it an experimental swoosh. It was heavy indeed, though not heavy enough to be used as a bludgeon.
-        But it might have been useful in self-defence. Why hadn't the victim reached for it? Knocked it over?
+	*     {(Inventory ? cane) && TURNS_SINCE(-> deskstate) <= 2} [挥动手杖]
+		我仍握着手杖，轻轻挥了挥。它确实很沉，但不足以当作钝器使用。
+		不过若是自卫时用上倒也合适。可死者当时为什么没有抓起它？或者碰倒它？
+		
+	*   [窗户……]
+		我走到窗户旁，往外看去，只能见到房子旁潺潺流过的小溪。
 
-    *   [The window...]
-        I went over to the window and peered out. A dismal view of the little brook that ran down beside the house.
+		- - (window_opts)
+		<- compare_prints(-> window_opts)
+		* *     (downy) [往下看小溪]
+				{ GlassState ? steamed:
+					透过被雾气笼罩的玻璃，我看不清小溪。 -> see_prints_on_glass -> window_opts
+				}
+				我看着那条小溪匆匆流过。这栋房子大概有点潮湿，但除此之外，这景象并没有告诉我什么。
+		* *     (greasy) [查看玻璃]
+				{ GlassState ? steamed: -> downy }
+				窗户上的玻璃很脏。里面外面都没人清理过。
+		* *     { GlassState ? steamed && not see_prints_on_glass && downy && greasy }
+				[查看雾气]
+				外面很冷，自然我的呼吸会在玻璃上起雾。 -> see_prints_on_glass ->
+		+ +     {GlassState ? steam_gone} [对着玻璃哈气]
+				我轻轻对着玻璃哈了口气。{ reached (fingerprints_on_glass): 指纹又重新显现出来。 }
+				~ GlassState = steamed
 
-        - - (window_opts)
-        <- compare_prints(-> window_opts)
-        * *     (downy) [Look down at the brook]
-                { GlassState ? steamed:
-                    Through the steamed glass I couldn't see the brook. -> see_prints_on_glass -> window_opts
-                }
-                I watched the little stream rush past for a while. The house probably had damp but otherwise, it told me nothing.
-        * *     (greasy) [Look at the glass]
-                { GlassState ? steamed: -> downy }
-                The glass in the window was greasy. No one had cleaned it in a while, inside or out.
-        * *     { GlassState ? steamed && not see_prints_on_glass && downy && greasy }
-                [ Look at the steam ]
-                A cold day outside. Natural my breath should steam. -> see_prints_on_glass ->
-        + +     {GlassState ? steam_gone} [ Breathe on the glass ]
-                I breathed gently on the glass once more. { reached (fingerprints_on_glass): The fingerprints reappeared. }
-                ~ GlassState = steamed
+		+ +     [看看别处？]
+				{ window_opts < 2 || reached (fingerprints_on_glass) || GlassState ? steamed:
+					我从昏暗的玻璃上移开了视线。
+					{GlassState ? steamed:
+						~ GlassState = steam_gone
+						<> 我呼出的雾气渐渐散去。
+					}
+					-> top
+				}
+				我从玻璃上靠了回去，我的呼吸在玻璃上凝起了一层雾。
+			~ GlassState = steamed
 
-        + +     [Something else?]
-                { window_opts < 2 || reached (fingerprints_on_glass) || GlassState ? steamed:
-                    I looked away from the dreary glass.
-                    {GlassState ? steamed:
-                        ~ GlassState = steam_gone
-                        <> The steam from my breath faded.
-                    }
-                    -> top
-                }
-                I leant back from the glass. My breath had steamed up the pane a little.
-               ~ GlassState = steamed
+		- -     -> window_opts
 
-        - -     -> window_opts
+	*   {top >= 5} [离开房间]
+		我看得够多了。我{bedroomLightState ? on:关掉了台灯，然后}转身离开了房间。
+		-> joe_in_hall
 
-    *   {top >= 5} [Leave the room]
-        I'd seen enough. I {bedroomLightState ? on:switched off the lamp, then} turned and left the room.
-        -> joe_in_hall
+	-   -> top
 
-    -   -> top
-	
-	
+
 	= operate_lamp
-	    I flicked the light switch.
-	    { bedroomLightState ? on:
-	        <> The bulb fell dark.
-	        ~ bedroomLightState += off
-	        ~ bedroomLightState -= on
-	    - else:
-	        { bedroomLightState ? on_floor: <> A little light spilled under the bed.} { bedroomLightState ? on_desk : <> The light gleamed on the polished tabletop. }
-	        ~ bedroomLightState -= off
-	        ~ bedroomLightState += on
-	    }
-	    ->->
-	
-	
+		我按下了灯的开关。
+		{ bedroomLightState ? on:
+			<> 灯泡熄灭了。
+			~ bedroomLightState += off
+			~ bedroomLightState -= on
+		- else:
+			{ bedroomLightState ? on_floor: <> 灯光透过床下洒出一丝微光。} { bedroomLightState ? on_desk : <> 灯光在抛光的桌面上闪烁着光芒。 }
+			~ bedroomLightState -= off
+			~ bedroomLightState += on
+		}
+		->->
+
+
 	= compare_prints (-> backto)
-	    *   { between ((fingerprints_on_glass, prints_on_knife),     fingerprints_on_glass_match_knife) } 
-	[Compare the prints on the knife and the window ]
-	        Holding the bloodied knife near the window, I breathed to bring out the prints once more, and compared them as best I could.
-	        Hardly scientific, but they seemed very similar - very similiar indeed.
-	        ~ reach (fingerprints_on_glass_match_knife)
-	        -> backto
-	
+		*   { between ((fingerprints_on_glass, prints_on_knife), fingerprints_on_glass_match_knife) } 
+	[对比刀上的指纹和窗户上的指纹]
+			我拿着带血的刀靠近窗户，对着玻璃哈了口气让指纹再次显现，尽力进行对比。
+			虽说这并不科学，但它们看起来非常相似——非常相似。
+			~ reach (fingerprints_on_glass_match_knife)
+			-> backto
+
 	= see_prints_on_glass
-	    ~ reach (fingerprints_on_glass)
-	    {But I could see a few fingerprints, as though someone hadpressed their palm against it.|The fingerprints were quite clear and well-formed.} They faded as I watched.
-	    ~ GlassState = steam_gone
-	    ->->
-	
+		~ reach (fingerprints_on_glass)
+		{但我能看见一些指纹，就像有人用手掌按过似的。|指纹非常清晰完整。} 当我注视时，它们渐渐消散。
+		~ GlassState = steam_gone
+		->->
+
 	= seen_light
-	    *   {bedroomLightState !? on} [ Turn on lamp ]
-	        -> operate_lamp ->
-	
-	    *   { bedroomLightState !? on_bed  && BedState ? bloodstain_visible }
-	        [ Move the light to the bed ]
-	        ~ move_to_supporter(bedroomLightState, on_bed)
-	
-	        I moved the light over to the bloodstain and peered closely at it. It had soaked deeply into the fibres of the cotton sheet.
-	        There was no doubt about it. This was where the blow had been struck.
-	        ~ reach (murdered_in_bed)
-	
-	    *   { bedroomLightState !? on_desk } {TURNS_SINCE(-> floorit) >= 2 }
-	        [ Move the light back to the desk ]
-	        ~ move_to_supporter(bedroomLightState, on_desk)
-	        I moved the light back to the desk, setting it down where it had originally been.
-	    *   (floorit) { bedroomLightState !? on_floor && darkunder }
-	        [Move the light to the floor ]
-	        ~ move_to_supporter(bedroomLightState, on_floor)
-	        I picked the light up and set it down on the floor.
-	    -   -> top
-	
+		*   {bedroomLightState !? on} [打开台灯]
+			-> operate_lamp ->
+
+		*   { bedroomLightState !? on_bed  && BedState ? bloodstain_visible }
+			[把灯移到床上]
+			~ move_to_supporter(bedroomLightState, on_bed)
+
+			我把灯移到血迹处仔细观察。血已经渗透进棉质床单的纤维中。
+			毫无疑问，凶手是在这里行凶的。
+			~ reach (murdered_in_bed)
+
+		*   { bedroomLightState !? on_desk } {TURNS_SINCE(-> floorit) >= 2 }
+			[把灯移回桌子]
+			~ move_to_supporter(bedroomLightState, on_desk)
+			我把灯移回桌子，放回它原来的位置。
+		*   (floorit) { bedroomLightState !? on_floor && darkunder }
+			[把灯移到地上]
+			~ move_to_supporter(bedroomLightState, on_floor)
+			我把灯拾起，放到了地上。
+		-   -> top
+
 	=== joe_in_hall
-	    My police contact, Joe, was waiting in the hall. 'So?' he demanded. 'Did you find anything interesting?'
+		我的警察联系人乔正站在走廊里等我。“怎么样？”他问道，“你发现了什么有趣的东西吗？”
 	- (found)
-	    *   {found == 1} 'Nothing.'
-	        He shrugged. 'Shame.'
-	        -> done
-	    *   { Inventory ? knife } 'I found the murder weapon.'
-	        'Good going!' Joe replied with a grin. 'We thought the murderer had gotten rid of it. I'll bag that for you now.'
-	        ~ move_to_supporter(knifeState, with_joe)
-	
-	    *   {reached(prints_on_knife)} { knifeState ? with_joe }
-	        'There are prints on the blade[.'],' I told him.
-	        He regarded them carefully.
-	        'Hrm. Not very complete. It'll be hard to get a match from these.'
-	        ~ reach (joe_seen_prints_on_knife)
-	    *   { reached((fingerprints_on_glass_match_knife, joe_seen_prints_on_knife)) }
-	        'They match a set of prints on the window, too.'
-	        'Anyone could have touched the window,' Joe replied thoughtfully. 'But if they're more complete, they should help us get a decent match!'
-	        ~ reach (joe_wants_better_prints)
-	    *   { between(body_on_bed, murdered_in_bed)}
-	        'The body was moved to the bed at some point[.'],' I told him. 'And then moved back to the floor.'
-	        'Why?'
-	        * *     'I don't know.'
-	                Joe nods. 'All right.'
-	        * *     'Perhaps to get something from the floor?'
-	                'You wouldn't move a whole body for that.'
-	        * *     'Perhaps he was killed in bed.'
-	                'It's just speculation at this point,' Joe remarks.
-	    *   { reached(murdered_in_bed) }
-	        'The victim was murdered in bed, and then the body was moved to the floor.'
-	        'Why?'
-	        * *     'I don't know.'
-	                Joe nods. 'All right, then.'
-	        * *     'Perhaps the murderer wanted to mislead us.'
-	                'How so?'
-	            * * *   'They wanted us to think the victim was awake[.'], I replied thoughtfully. 'That they were meeting their attacker, rather than being stabbed in their sleep.'
-	            * * *   'They wanted us to think there was some kind of struggle[.'],' I replied. 'That the victim wasn't simply stabbed in their sleep.'
-	            - - -   'But if they were killed in bed, that's most likely what happened. Stabbed, while sleeping.'
-	                    ~ reach (murdered_while_asleep)
-	        * *     'Perhaps the murderer hoped to clean up the scene.'
-	                'But they were disturbed? It's possible.'
-	
-	    *   { found > 1} 'That's it.'
-	        'All right. It's a start,' Joe replied.
-	        -> done
-	    -   -> found
+		*   {found == 1} “没有。”
+			他耸了耸肩：“可惜。”
+			-> done
+		*   { Inventory ? knife } “我找到了凶器。”
+			“干得好！”乔笑着回答，“我们以为凶手已经处理掉了它。我现在帮你封存起来。”
+			~ move_to_supporter(knifeState, with_joe)
+
+		*   {reached(prints_on_knife)} { knifeState ? with_joe }
+			“刀上有指纹。”我告诉他。
+			他仔细查看。
+			“唔，不太完整，要比对起来有点困难。”
+			~ reach (joe_seen_prints_on_knife)
+		*   { reached((fingerprints_on_glass_match_knife, joe_seen_prints_on_knife)) }
+			“刀上的指纹和窗户上的指纹是同一人留下的。”
+			“谁都可能碰过窗户。”乔若有所思地回答，“但如果窗户上的指纹更完整，或许能帮我们找到匹配！”
+			~ reach (joe_wants_better_prints)
+		*   { between(body_on_bed, murdered_in_bed)}
+			“尸体曾被移到床上，然后又被移回地面。”我告诉他。
+			“为什么？”
+			* *     “我不知道。”
+					乔点点头：“好吧。”
+			* *     “可能是为了从地上拿东西？”
+					“没必要为了拿东西而搬动整具尸体。”
+			* *     “可能是死在床上的。”
+					“现在说什么都是猜测。”乔说。
+		*   { reached(murdered_in_bed) }
+			“受害者是在床上被谋杀的，随后尸体被移到了地上。”
+			“为什么？”
+			* *     “我不知道。”
+					乔点点头：“好吧。”
+			* *     “可能凶手想误导我们。”
+					“怎么误导？”
+				* * *   “想让我们以为受害者是清醒着遇害的。”我若有所思地回答，“好像他是见到了凶手才被杀。”
+				* * *   “想让我们以为曾经发生过搏斗。”我回答，“让我们以为他不是在睡梦中被杀的。”
+				- - -   “但如果真是在床上被杀，那很可能他是在睡觉时被刺杀的。”
+						~ reach (murdered_while_asleep)
+			* *     “可能凶手想清理现场。”
+					“然后被打断了？也有可能。”
+
+		*   { found > 1} “就这些。”
+			“好吧，总算是个开始。”乔回答。
+			-> done
+		-   -> found
 	-   (done)
-	    {
-	    - between(joe_wants_better_prints, joe_got_better_prints):
-	        ~ reach (joe_got_better_prints)
-	        <> 'I'll get those prints from the window now.'
-	    - reached(joe_seen_prints_on_knife):
-	        <> 'I'll run those prints as best I can.'
-	    - else:
-	        <> 'Not much to go on.'
-	    }
-	    -> END
+		{
+		- between(joe_wants_better_prints, joe_got_better_prints):
+			~ reach (joe_got_better_prints)
+			<> “我现在去把窗户上的指纹提取下来。”
+		- reached(joe_seen_prints_on_knife):
+			<> “我会尽量比对这些指纹。”
+		- else:
+			<> “线索不多。”
+		}
+		-> END
 
 
+## 8) 总结
 
-## 8) Summary
+现在，我们来总结一下这个困难的章节，**Ink**的列表构造提供了：
 
-To summarise a difficult section, **Ink**'s list construction provides:
+### 标志（Flags）
+*	每个列表条目是一个事件
+*	使用 `+=` 来标记事件已发生
+*	使用 `?` 和 `!?` 进行测试
 
-### Flags
-* 	Each list entry is an event
-* 	Use `+=` to mark an event as having occurred
-*  	Test using `?` and `!?`
-
-Example:
+示例：
 
 	LIST GameEvents = foundSword, openedCasket, metGorgon
 	{ GameEvents ? openedCasket }
 	{ GameEvents ? (foundSword, metGorgon) }
 	~ GameEvents += metGorgon
 
-### State machines
-* 	Each list entry is a state
-*  Use `=` to set the state; `++` and `--` to step forward or backward
-*  Test using `==`, `>` etc
+### 状态机（State machines）
+*	每个列表条目是一个状态
+*	使用 `=` 设置状态；使用 `++` 和 `--` 前进或后退
+*	使用 `==`、`>` 等进行判定
 
-Example:
+示例：
 
 	LIST PancakeState = ingredients_gathered, batter_mix, pan_hot, pancakes_tossed, ready_to_eat
 	{ PancakeState == batter_mix }
 	{ PancakeState < ready_to_eat }
 	~ PancakeState++
 
-### Properties
-*	Each list is a different property, with values for the states that property can take (on or off, lit or unlit, etc)
-* 	Change state by removing the old state, then adding in the new
-*  Test using `?` and `!?`
+### 属性（Properties）
+*	每个列表是不同的属性，包含该属性可取的状态值（on/off，lit/unlit 等）
+*	通过先移除旧状态，再添加新状态来改变状态
+*	使用 `?` 和 `!?` 进行判定
 
-Example:
+示例：
 
 	LIST OnOffState = on, off
 	LIST ChargeState = uncharged, charging, charged
 
 	VAR PhoneState = (off, uncharged)
 
-	*	{PhoneState !? uncharged } [Plug in phone]
+	*	{ PhoneState !? uncharged } [插上手机充电]
 		~ PhoneState -= LIST_ALL(ChargeState)
 		~ PhoneState += charging
-		You plug the phone into charge.
-	*	{ PhoneState ? (on, charged) } [ Call my mother ]
-
-
+		你将手机插上开始充电。
+	*	{ PhoneState ? (on, charged) } [给妈妈打电话]
 
 
 # 第 6 部分：标识符中的国际字符支持｜Part 6: International character support in identifiers
 
-By default, ink has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exsits
-on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements (a.k.a. *identifiers*).
+默认情况下，Ink 在故事内容中使用非 ASCII 字符没有任何限制。然而，目前对常量、变量、针脚（Stitch）、转向（Divert）以及其他具名流程元素（即 标识符）的命名字符存在限制。
 
-Sometimes it is inconvenient for a writer using a non-ASCII language to write a story because they have to constantly switch to naming identifiers in ASCII and then switching back to whatever language they are using for the story. In addition, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
+对于使用非 ASCII 语言（可以简单认为是 26 个英文字母和常见标点符号内）写作的作者来说，这意味着他们在编写故事时需要不断在 ASCII 命名与故事语言之间切换，十分不便。此外，使用作者本身语言为标识符命名，也有助于提升原始故事格式的整体可读性。
 
-In an effort to assist in the above scenario, ink *automatically* supports a list of pre-defined non-ASCII character ranges that can be used as identifiers. In general, those ranges have been selected to include the alpha-numeric subset of the official unicode character range, which would suffice for naming identifiers. The below section gives more detailed information on the non-ASCII characters that ink automatically supports.
-
-### Supported Identifier Characters
-
-The support for the additional character ranges in ink is currently limited to a predefined set of character ranges.
-
-Below is a listing of the currently supported identifier ranges.
-
- - **Arabic**
-
-   Enables characters for languages of the Arabic family and is a subset of the official *Arabic* unicode range `\u0600`-`\u06FF`.
+为帮助解决上述问题，Ink 自动支持一系列预定义的可用于标识符的非 ASCII 字符范围。一般来说，这些范围包含了官方 Unicode 字符范围中字母数字的子集，足以用于标识符命名。以下部分给出了 Ink 自动支持的非 ASCII 可用字符的详细信息。
 
 
- - **Armenian**
+### 支持的标识符字符
 
-   Enables characters for the Armenian language and is a subset of the official *Armenian* unicode range `\u0530`-`\u058F`.
+Ink 对额外字符范围的支持目前仅限于预定义的一组字符范围。
 
+以下是当前支持的标识符字符范围列表：
 
- - **Cyrillic**
+- **阿拉伯语（Arabic）**
+    
+    启用阿拉伯语系语言的字符，是官方 *Arabic* Unicode 范围 `\u0600-\u06FF` 的子集。
+    
+- **亚美尼亚语（Armenian）**
+    
+    启用亚美尼亚语言的字符，是官方 *Armenian* Unicode 范围 `\u0530-\u058F` 的子集。
+    
+- **西里尔字母（Cyrillic）**
+    
+    启用使用西里尔字母语言的字符，是官方 *Cyrillic* Unicode 范围 `\u0400-\u04FF` 的子集。
+    
+- **希腊语（Greek）**
+    
+    启用使用希腊字母语言的字符，是官方 *Greek and Coptic* Unicode 范围 `\u0370-\u03FF` 的子集。
+    
+- **希伯来语（Hebrew）**
+    
+    启用使用希伯来字母语言的希伯来语字符，是官方 *Hebrew* Unicode 范围 `\u0590-\u05FF` 的子集。
+    
+- **拉丁字母扩展 A（Latin Extended A）**
+    
+    启用拉丁字母扩展范围的字符，完整对应官方 *Latin Extended-A* Unicode 范围 `\u0100-\u017F`。
+    
+- **拉丁字母扩展 B（Latin Extended B）**
+    
+    启用拉丁字母扩展范围的字符，完整对应官方 *Latin Extended-B* Unicode 范围 `\u0180-\u024F`。
+    
+- **拉丁字母补充（Latin 1 Supplement）**
+    
+    启用拉丁字母扩展范围的字符，完整对应官方 *Latin 1 Supplement* Unicode 范围 `\u0080 - \u00FF`。
 
-   Enables characters for languages using the Cyrillic alphabet and is a subset of the official *Cyrillic* unicode range `\u0400`-`\u04FF`.
+**注意！** Ink 文件应以 UTF-8 格式保存，以确保支持上述字符范围。
 
-
- - **Greek**
-
-   Enables characters for languages using the Greek alphabet and is a subset of the official *Greek and Coptic* unicode range `\u0370`-`\u03FF`.
-
-
- - **Hebrew**
-
-   Enables characters in Hebrew using the Hebrew alphabet and is a subset of the official *Hebrew* unicode range `\u0590`-`\u05FF`.
-
-
- - **Latin Extended A**
-
-   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-A* unicode range `\u0100`-`\u017F`.
-
-
- - **Latin Extended B**
-
-   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin Extended-B* unicode range `\u0180`-`\u024F`.
-
-- **Latin 1 Supplement**
-
-   Enables an extended character range subset of the Latin alphabet - completely represented by the official *Latin 1 Supplement* unicode range `\u0080` - `\u00FF`.
-
-
-**NOTE!** ink files should be saved in UTF-8 format, which ensures that the above character ranges are supported.
-
-If a particular character range that you would like to use within identifiers isn't supported, feel free to open an [issue](/inkle/ink/issues/new) or [pull request](/inkle/ink/pulls) on the main ink repo.
+果您希望在标识符中使用的特定但目前尚未支持的字符范围，欢迎在 Ink 主代码库提交 [issue](/inkle/ink/issues/new) 或提交 [pull request](/inkle/ink/pulls)。
