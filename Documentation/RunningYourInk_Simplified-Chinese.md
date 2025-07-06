@@ -1,6 +1,38 @@
 # 运行您的 Ink
 
-## Quick Start
+<details>
+<summary>内容目录</summary>
+
+- [运行您的 Ink](#运行您的-ink)
+  - [快速开始](#快速开始)
+  - [进一步了解](#进一步了解)
+  - [从运行时的 API 开始](#从运行时的-api-开始)
+    - [保存与加载](#保存与加载)
+    - [错误处理](#错误处理)
+    - [就这？](#就这)
+  - [引擎使用与理念](#引擎使用与理念)
+  - [使用标签标记您的 ink 内容](#使用标签标记您的-ink-内容)
+    - [逐行标签](#逐行标签)
+    - [结点标签](#结点标签)
+    - [全局标签](#全局标签)
+      - [选项标签](#选项标签)
+      - [进阶：动态标签](#进阶动态标签)
+  - [跳转到特定的“场景”](#跳转到特定的场景)
+  - [设置或获取 ink 的变量](#设置或获取-ink-的变量)
+  - [阅读与访问计数](#阅读与访问计数)
+  - [变量观察器](#变量观察器)
+  - [运行函数](#运行函数)
+  - [外部函数](#外部函数)
+      - [Alternatives to external functions](#alternatives-to-external-functions)
+      - [动作与纯函数的比较](#动作与纯函数的比较)
+    - [外部函数的回退方案](#外部函数的回退方案)
+  - [多个并行流程（测试版）](#多个并行流程测试版)
+  - [使用 LIST](#使用-list)
+  - [使用编译器](#使用编译器)
+
+</details>
+
+## 快速开始
 
 *Note that although these instructions are written with Unity in mind, it's possible (and straightforward) to run your ink in a non-Unity C# environment.*
 
@@ -9,7 +41,7 @@
 * Click it, and you should get an Editor window that lets you play (preview) your story.
 * To integrate into your game, see **Getting started with the runtime API**, below.
 
-## Further information
+## 进一步了解
 
 Ink uses an intermediate `.json` format, which is compiled from the original `.ink` files. ink's Unity integration package automatically compiles ink files for you, but you can also compile them on the command line. See **Using inklecate on the command line** in the [README](http://www.github.com/inkle/ink) for more information.
 
@@ -29,7 +61,7 @@ public class Script : MonoBehaviour {
 	Story _inkStory;
 ```
 
-## Getting started with the runtime API
+## 从运行时的 API 开始
 
 As mentioned above, your `.ink` file(s) are compiled to a single `.json` file. This is treated by Unity as a TextAsset, that you can then load up in your game.
 
@@ -74,7 +106,7 @@ while (_inkStory.canContinue) {
 
     //And now you're ready to return to step 1, and present content again.
 ```
-### Saving and loading
+### 保存与加载
 
 To save the state of your story within your game, call:
 
@@ -84,7 +116,7 @@ To save the state of your story within your game, call:
 
 `_inkStory.state.LoadJson(savedJson);`
 
-### Error handling
+### 错误处理
 
 If you made a mistake in your ink that the compiler can't catch, then the story will throw an exception. To avoid this and get standard Unity errors instead, you can use an error handler that you should assign when you create your story:
 
@@ -98,13 +130,13 @@ _inkStory.onError += (msg, type) => {
         Debug.LogError(msg);
 };
 ```
-### Is that it?
+### 就这？
 
 That's it! You can achieve a lot with just those simple steps, but for more advanced usage, including deep integration with your game, read on.
 
 For a sample Unity project in action with minimal UI, see [Aaron Broder's Blot repo](https://github.com/abroder/blot).
 
-## Engine usage and philosophy
+## 引擎使用与理念
 
 In Unity, we recommend using your own component class to wrap `Ink.Runtime.Story`. The runtime **ink** engine has been designed to be reasonably general purpose and have a simple API. We also recommend wrapping rather than inheriting from `Story`, so that you can expose to your game only the functionality that you need.
 
@@ -128,47 +160,47 @@ The above approach is used in our current game for the writer to declare the pro
 To mark up content more explicitly, you may want to use *tags* or *external functions* - see below. At inkle, we find that we use a mixture, but we actually find the above approach useful for a very large portion of our interaction with the game - it's very flexible.
 
 
-## Marking up your ink content with tags
+## 使用标签标记您的 ink 内容
 
-Tags can be used to add metadata to your game content that isn't intended to appear to the player. Within ink, add a `#` character followed by any string content you want to pass over to the game. There are three main places where you can add these hash tags:
+标签可用于向游戏内容添加元数据，这些信息并不会显示给玩家。在 ink 中，只需添加一个 `#` 字符，后跟任意想要传递给游戏的字符串内容即可。有三个主要位置可以添加这些井号标签：
 
-### Line by line tags
+### 逐行标签
 
-One use case is for a graphic adventure that has different art for characters depending on their facial expression. So, you could do:
+假定使用场景是图像冒险类游戏，要根据角色的面部表情切换不同的立绘。那么你可以这样写：
 
     Passepartout: Really, Monsieur. # surly
 
-On the game side, every time you get content with `_inkStory.Continue()`, you can get a list of tags with `_inkStory.currentTags`, which will return a `List<string>`, in the above case with just one element: `"surly"`.
+在游戏端，每次使用 `_inkStory.Continue()` 获取内容时，都可以通过 `_inkStory.currentTags` 获取标签列表，它会返回一个 `List<string>`。在上述例子中只包含一个元素：`"surly"`。
 
-To add more than one tag, simply delimit them with more `#` characters:
+如果需要添加多个标签，只需使用更多的 `#` 字符分隔即可：
 
     Passepartout: Really, Monsieur. # surly # really_monsieur.ogg
 
-The above demonstrate another possible use case: providing full voice-over for your game, by marking up your ink with the audio filenames.
+上述示例同时演示了另一个使用场景：为游戏提供完整的配音，通过在 ink 中标记音频文件名来实现。
 
-Tags for a line can be written above it, or on the end of the line:
+标签可以写在该行内容的上方，或写在行尾：
 
-    # the first tag
-    # the second tag
-    This is the line of content. # the third tag
+    # 第一个标签
+    # 第二个标签
+    这行是故事的内容。# 第三个标签
 
-All of the above tags will be included in the `currentTags` list.
+以上所有标签都会包含在 `currentTags` 列表中。
 
-### Knot tags
+### 结点标签
 
-Any tags that you include at the very top of a knot:
+只需要在结点的一开头就写入标签，例如：
 
     === Munich ==
     # location: Germany
     # overview: munich.ogg
     # require: Train ticket
-    First line of content in the knot.
+    这个结点内容的第一行。
 
 ...are accessible by calling `_inkStory.TagsForContentAtPath("your_knot")`, which is useful for getting metadata from a knot before you actually want the game to go there.
 
 Note that these tags will also appear in the `currentTags` list for the first line of content in the knot.
 
-### Global tags
+### 全局标签
 
 Any tags provided at the very top of the main ink file are accessible via the `Story`'s `globalTags` property, which also returns a `List<string>`. Any top level story metadata can be included there.
 
@@ -179,7 +211,7 @@ We suggest the following by convention, if you wish to share your ink stories pu
 
 Note that [Inky](https://github.com/inkle/inky) will use the title tag in this format as the `<h1>` tag in a story exported for web.
 
-#### Choice tags
+#### 选项标签
 
 Tags can also be applied to choices. Depending where the tag is placed inside the ink line, the tag will appear on both the choice and the content generated by that choice; on just the choice; or just on the output:
 
@@ -193,7 +225,7 @@ You can use all three in the same ink line:
 
 The choice tags are stored inside the `List<string> tags` on the choice object.
 
-#### Advanced: Tags are dynamic
+#### 进阶：动态标签
 
 Note that the content of a tag can contain any inline **ink**, such as shuffles, cycles, function calls and variable replacements.
 
@@ -201,7 +233,7 @@ Note that the content of a tag can contain any inline **ink**, such as shuffles,
 	
 	I open the door. #suspense_music{RANDOM(1, 4)}.mp3 
 
-## Jumping to a particular "scene"
+## 跳转到特定的“场景”
 
 Top level named sections in **ink** are called knots (see [the writing tutorial](WritingWithInk.md)). You can tell the runtime engine to jump to a particular named knot:
 
@@ -219,7 +251,7 @@ _inkStory.ChoosePathString("myKnotName.theStitchWithin");
 
 (Note that this path string is a *runtime* path rather than the path as used within the **ink** format. It's just been designed so that for the basics of knots and stitches, the format works out the same. Unfortunately however, you can't reference gather or choice labels this way.)
 
-## Setting/getting ink variables
+## 设置或获取 ink 的变量
 
 The state of the variables in the **ink** engine is, appropriately enough, stored within the `variablesState` object within the `story`. You can both get and set variables directly on this object:
 
@@ -229,7 +261,7 @@ _inkStory.variablesState["player_health"] = 100
 int health = (int) _inkStory.variablesState["player_health"]
 ```
 
-## Read/Visit counts
+## 阅读与访问计数
 
 To find out the number of times that a knot or stitch has been visited by the ink engine, you can use this API:
 
@@ -239,7 +271,7 @@ _inkStory.state.VisitCountAtPathString("...");
 
 The path string is in the form `"yourKnot"` for knots, and `"yourKnot.yourStitch"` for stitches.
 
-## Variable observers
+## 变量观察器
 
 You can register a delegate function to be called whenever a particular variable changes. This can be useful to reflect the state of certain **ink** variables directly in the UI. For example:
 
@@ -252,7 +284,7 @@ _inkStory.ObserveVariable ("health", (string varName, object newValue) => {
 The reason that the variable name is passed in is so that you can have a single observer function that observes multiple different variables.
 
 
-## Running functions
+## 运行函数
 
 You can run ink functions directly from C# using `EvaluationFunction`.
 
@@ -265,7 +297,7 @@ You do not need to Continue() over any text lines that may exist in the function
 var returnValue = _inkStory.EvaluationFunction("myFunctionName", out textOutput, params);
 ```
 
-## External functions
+## 外部函数
 
 You can define game-side functions in C# that can be called directly from **ink**. To do so:
 
@@ -301,7 +333,7 @@ Remember that in addition to external functions, there are other good ways to co
 
   `>>> SHOT: view_over_bridge`
 
-#### Actions  v.s. Pure functions
+#### 动作与纯函数的比较
 
 **Warning:** The following section is subtly complex! However, don't worry - you can probably ignore it and use default behaviour. If you find a situation where glue isn't working the way you expect and there's an external function in there somewhere, or if you're just plain curious, read on...
 
@@ -333,7 +365,7 @@ public void BindExternalFunction(string funcName, Func<object> func, bool lookah
 * **Actions** should have `lookaheadSafe = false`
 * **Pure functions** should have `lookaheadSafe = true`
 
-### Fallbacks for external functions
+### 外部函数的回退方案
 
 When testing your story, either in [Inky](/inkle/inky) or in the [ink-unity integration](/inkle/ink-unity-integration/) player window, you don't get an opportunity to bind a game function before running the story. To get around this, you can define a *fallback function* within ink, which is run if the `EXTERNAL` function can't be found. To do so, simply create an ink function with the same name and parameters. For example, for the above `multiply` example, create the ink function:
 
@@ -344,7 +376,7 @@ When testing your story, either in [Inky](/inkle/inky) or in the [ink-unity inte
 ~ return 1
 ```
 
-## Multiple parallel flows (BETA)
+## 多个并行流程（测试版）
 
 It is possible to have multiple parallel "flows" - allowing the following examples:
 
@@ -361,7 +393,7 @@ The API is relatively simple:
 - `story.currentFlowName` — a string containing the name of the currently active flow. May contain internal identifier for default flow, so use `currentFlowIsDefault` to check first.
 )
 
-## Working with LISTs
+## 使用 LIST
 
 Ink lists are a more complex type used in the ink engine, so interacting with them is a bit more involved than with ints, floats and strings.
 
@@ -430,7 +462,7 @@ list.Without(otherList)    // equivalent to (list - otherList) in ink
 list.Contains(otherList)   // equivalent to (list ? otherList) in ink
 ```
 
-## Using the compiler
+## 使用编译器
 
 Precompiling your stories is more efficient than loading .ink at runtime. That said, it's a useful approach for some situations, and can be done with the following code:
 
