@@ -97,7 +97,7 @@ namespace Ink
             var expr = definition as Parsed.Expression;
 
             if (expr) {
-                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is List)) {
+                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is List || expr is Stack)) {
                     Error ("initial value for a variable must be a number, constant, list or divert target");
                 }
 

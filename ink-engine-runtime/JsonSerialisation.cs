@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -152,6 +151,20 @@ namespace Ink.Runtime
                 return;
             }
 
+            var stackVal = obj as StackValue;
+            if (stackVal)
+            {
+                writer.WriteObjectStart();
+                writer.WriteProperty("stack", (w) => {
+                    w.WriteArrayStart();
+                    foreach(var v in stackVal.value) {
+                        WriteRuntimeObject(w, v);
+                    }
+                    w.WriteArrayEnd();
+                });
+                writer.WriteObjectEnd();
+            }
+
             var divTargetVal = obj as DivertTargetValue;
             if (divTargetVal)
             {
@@ -299,6 +312,7 @@ namespace Ink.Runtime
         //                 5, 5.2
         //                 {"^->": "path.target"}
         //                 {"^var": "varname", "ci": 0}
+        //                 {"stack": [5, {"^->": "path.target"}] }
         // 
         // Container:      [...]
         //                 [..., 
@@ -495,6 +509,13 @@ namespace Ink.Runtime
                         rawList.Add (item, val);
                     }
                     return new ListValue (rawList);
+                }
+
+                // Stack value
+                if (obj.TryGetValue ("stack", out propValue)) {
+                    var stackContent = (List<object>)propValue;
+                    var stack = new InkStack(stackContent.Select((pv) => (Value)JTokenToRuntimeObject(pv)));
+                    return new StackValue(stack);
                 }
 
                 // Used when serialising save state only
@@ -735,6 +756,10 @@ namespace Ink.Runtime
             _controlCommandNames [(int)ControlCommand.CommandType.ListFromInt] = "listInt";
             _controlCommandNames [(int)ControlCommand.CommandType.ListRange] = "range";
             _controlCommandNames [(int)ControlCommand.CommandType.ListRandom] = "lrnd";
+            _controlCommandNames [(int)ControlCommand.CommandType.StackPopNewest] = "stnew";
+            _controlCommandNames [(int)ControlCommand.CommandType.StackPopOldest] = "stold";
+            _controlCommandNames [(int)ControlCommand.CommandType.StackPopRandom] = "strnd";
+            _controlCommandNames [(int)ControlCommand.CommandType.StackLiteralEnd] = "stend";
             _controlCommandNames [(int)ControlCommand.CommandType.BeginTag] = "#";
             _controlCommandNames [(int)ControlCommand.CommandType.EndTag] = "/#";
 
