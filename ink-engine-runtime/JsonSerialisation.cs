@@ -163,6 +163,7 @@ namespace Ink.Runtime
                     w.WriteArrayEnd();
                 });
                 writer.WriteObjectEnd();
+                return;
             }
 
             var divTargetVal = obj as DivertTargetValue;
