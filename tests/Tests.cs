@@ -3654,8 +3654,7 @@ Pizza, Pasta
             var storyStr =
         @"
 LIST food = bread, butter
-VAR myStack = []
-~myStack += butter
+VAR myStack = [butter]
 ~myStack += bread
 VAR popped = ()
 {myStack}

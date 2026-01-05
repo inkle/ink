@@ -8,14 +8,30 @@ namespace Ink.Parsed
 
         public Stack (List<Expression> expressions)
         {
-            this.contents = expressions;
+            this.contents = expressions ?? new List<Expression>();
         }
+
+        public override void ResolveReferences(Story context)
+        {
+            base.ResolveReferences(context);
+        }
+
+        // Only known after GenerateIntoContainer has run
+        public bool isValidGlobalStackLiteral;
 
         public override void GenerateIntoContainer (Runtime.Container container)
         {
+            // Assume true until we find a counter
+            isValidGlobalStackLiteral = true;
+
             if (contents != null) {
                 foreach (var valueExpression in contents) {
+                    valueExpression.parent = this;
                     valueExpression.GenerateIntoContainer(container);
+                    var variableReference = valueExpression as VariableReference;
+                    if(variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
+                        isValidGlobalStackLiteral = false;
+                    }
                 }
             }
 
