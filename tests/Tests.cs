@@ -3673,6 +3673,35 @@ bread
 ".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
         }
 
+
+        [Test()]
+        public void TestStackWithDiverts()
+        {
+            var storyStr =
+        @"
+VAR myStack = [ -> target ]
+VAR myTarget = -> not_target
+
+~STACK_POP_NEWEST(myStack, myTarget)
+
+-> myTarget
+
+=== target
+This is the way
+-> END
+
+=== not_target
+This is not the way
+-> END
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"This is the way
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+        
         [Test()]
         public void TestStackPopNewest()
         {

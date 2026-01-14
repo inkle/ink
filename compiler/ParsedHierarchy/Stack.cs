@@ -14,13 +14,22 @@ namespace Ink.Parsed
         public override void ResolveReferences(Story context)
         {
             base.ResolveReferences(context);
+            foreach(var content in contents) {
+                content.ResolveReferences(context);
+            }
         }
 
         // Only known after GenerateIntoContainer has run
         public bool isValidGlobalStackLiteral;
 
-        public override void GenerateIntoContainer (Runtime.Container container)
+        public override void GenerateIntoContainer(Runtime.Container container)
         {
+            container.AddContent(GenerateRuntimeObject());
+        }
+
+        public override Runtime.Object GenerateRuntimeObject ()
+        {
+            var container = new Runtime.Container();
             // Assume true until we find a counter
             isValidGlobalStackLiteral = true;
 
@@ -39,6 +48,7 @@ namespace Ink.Parsed
             container.AddContent(new Runtime.IntValue(count));
 
             container.AddContent(Runtime.ControlCommand.StackLiteralEnd());
+            return container;
         }
     }
 }
