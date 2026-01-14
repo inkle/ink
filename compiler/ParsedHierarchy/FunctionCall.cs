@@ -155,17 +155,17 @@ namespace Ink.Parsed
 
             } else if (isStackPopRandom) {
                 if (arguments.Count != 2)
-                    Error("STACK_POP_OLDEST should take 2 parameter - a stack, and a variable to assign the popped value to");
+                    Error("STACK_POP_RANDOM should take 2 parameter - a stack, and a variable to assign the popped value to");
 
                 var reference = arguments[1];
                 if (!(reference is VariableReference))
                 {
-                    Error("STACK_POP_OLDEST should take 2 parameter - a stack, and a variable to assign the popped value to");
+                    Error("STACK_POP_RANDOM should take 2 parameter - a stack, and a variable to assign the popped value to");
                 }
 
                 arguments[0].GenerateIntoContainer(container);
                 container.AddContent(new Runtime.StringValue((reference as VariableReference).name));
-                container.AddContent(Runtime.ControlCommand.StackPopOldest());
+                container.AddContent(Runtime.ControlCommand.StackPopRandom());
             } else if (Runtime.NativeFunctionCall.CallExistsWithName (name)) {
 
                 var nativeCall = Runtime.NativeFunctionCall.CallWithName (name);
