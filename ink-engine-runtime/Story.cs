@@ -1686,9 +1686,9 @@ namespace Ink.Runtime
                         var resultSeed = state.storySeed + state.previousRandom;
                         var random = new Random (resultSeed);
 
-                        var nextRandom = random.Next (0, stackArg.value.Count - 1);
+                        var nextRandom = random.Next ();
                         Runtime.Object popped;
-                        var stackResult = stackArg.value.PopNth(out popped, nextRandom);
+                        var stackResult = stackArg.value.PopNth(out popped, nextRandom % stackArg.value.Count);
                         state.variablesState.Assign(new Runtime.VariableAssignment(resultVar.value, false), popped);
                         state.PushEvaluationStack(new StackValue(stackResult));
                         state.previousRandom = nextRandom;
