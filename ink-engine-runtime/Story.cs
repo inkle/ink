@@ -1649,7 +1649,7 @@ namespace Ink.Runtime
                     }
 
                 case ControlCommand.CommandType.StackPopNewest: {
-                       var resultVar = state.PopEvaluationStack() as StringValue;
+                       var resultVar = state.PopEvaluationStack() as VariablePointerValue;
                        if (resultVar == null)
                            throw new StoryException("Expected variable reference for STACK_POP_NEWEST");
                        var stackArg = state.PopEvaluationStack() as StackValue;
@@ -1662,7 +1662,7 @@ namespace Ink.Runtime
                        break;
                    }
                 case ControlCommand.CommandType.StackPopOldest: {
-                        var resultVar = state.PopEvaluationStack() as StringValue;
+                        var resultVar = state.PopEvaluationStack() as VariablePointerValue;
                         if (resultVar == null)
                             throw new StoryException("Expected variable reference for STACK_POP_OLDEST");
                         var stackArg = state.PopEvaluationStack() as StackValue;
@@ -1675,7 +1675,7 @@ namespace Ink.Runtime
                         break;
                     }
                 case ControlCommand.CommandType.StackPopRandom: {
-                        var resultVar = state.PopEvaluationStack() as StringValue;
+                        var resultVar = state.PopEvaluationStack() as VariablePointerValue;
                         if (resultVar == null)
                             throw new StoryException("Expected variable reference for STACK_POP_RANDOM");
                         var stackArg = state.PopEvaluationStack() as StackValue;
