@@ -3792,6 +3792,37 @@ VAR gatherCount = 0
             Assert.AreEqual("Should be 1 not 0: 1.\n", story.Continue());
         }
 
+        [Test()]
+        public void TestFallbackChoiceOnThreadRestoresCorrectly()
+        {
+            var storyStr =
+        @"
+-> thing1
+
+=== followed_a_choice
+->->
+
+=== thing1
+
+<- thing2
+* [A choice] <> -> followed_a_choice -> thing1
+
+=== thing2
+
+* ->
+  Got here {followed_a_choice:following a choice and a fallback}{not followed_a_choice:selected as a choice with no text}
+  -> END
+";
+
+            var story = CompileString(storyStr);
+            story.ContinueMaximally();
+            var saved = story.state.ToJson();
+            story.state.LoadJson(saved);
+            // Should be "A choice", as the fallback should not be shown
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual("Got here following a choice and a fallback\n", story.Continue());
+        }
+
         // Test for bug where after a call to ChoosePathString,
         // the callstack is not fully/cleanly reset, e.g. leaving
         // "inExpressionEvaluation" variable left to true, as set during
