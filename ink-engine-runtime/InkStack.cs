@@ -93,7 +93,7 @@ namespace Ink.Runtime
 
             for (int i = 0; i < Count; i++)
             {
-                if (!otherRawStack._values[i].Equals(_values[i]))
+                if (!otherRawStack._values[i].valueObject.Equals(_values[i].valueObject))
                     return false;
             }
 
