@@ -24,12 +24,6 @@ namespace Ink.Parsed
 
         public override void GenerateIntoContainer(Runtime.Container container)
         {
-            container.AddContent(GenerateRuntimeObject());
-        }
-
-        public override Runtime.Object GenerateRuntimeObject ()
-        {
-            var container = new Runtime.Container();
             // Assume true until we find a counter
             isValidGlobalStackLiteral = true;
 
@@ -48,7 +42,6 @@ namespace Ink.Parsed
             container.AddContent(new Runtime.IntValue(count));
 
             container.AddContent(Runtime.ControlCommand.StackLiteralEnd());
-            return container;
         }
     }
 }

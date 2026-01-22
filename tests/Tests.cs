@@ -3649,6 +3649,34 @@ Pizza, Pasta
         }
 
         [Test()]
+        public void TestStackEquality()
+        {
+            var storyStr =
+        @"
+LIST food = butter, bread, marmite
+VAR just_butter = [bread, butter]
+VAR sandwich = [bread, butter, marmite]
+VAR dropped_sandwich = [marmite, butter, bread]
+VAR lunch = [bread, butter, marmite]
+
+{
+- just_butter == lunch:
+  Boooooring
+- dropped_sandwich == lunch:
+  Oops.
+- sandwich == lunch:
+  Nice
+}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"Nice
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+
+        [Test()]
         public void TestStackPopOldest()
         {
             var storyStr =
