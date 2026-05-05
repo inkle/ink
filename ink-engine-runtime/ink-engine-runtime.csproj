@@ -13,8 +13,8 @@
     <Copyright>inkle Ltd</Copyright>
     <RepositoryUrl>https://github.com/inkle/ink</RepositoryUrl>
     <PackageProjectUrl>https://www.inklestudios.com/ink/</PackageProjectUrl>
-    <VersionPrefix>1.1.1</VersionPrefix>
-    <PackageIconUrl>https://avatars2.githubusercontent.com/u/1987090</PackageIconUrl>
+    <VersionPrefix>1.2.0</VersionPrefix>
+    <PackageIcon>icon.png</PackageIcon>
     <Description>Runtime engine for the ink scripting language</Description>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -29,10 +29,9 @@
   </PropertyGroup -->
 
   <ItemGroup>
-    <None Include="..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="\"/>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
