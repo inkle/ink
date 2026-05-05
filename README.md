@@ -178,4 +178,4 @@ See the [architectural overview documentation](https://github.com/inkle/ink/blob
 
 **ink** is free forever, but represents multiple years of thought, design, development and testing. Please consider supporting us via [Patreon](http://www.patreon.com/inkle). Thank you, and have fun!
 
-![](Epic_MegaGrants_Recipient_logo_horizontal.png)
+![](https://raw.githubusercontent.com/inkle/ink/refs/tags/v.1.2.0/Epic_MegaGrants_Recipient_logo_horizontal.png)
