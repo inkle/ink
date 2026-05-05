@@ -12,7 +12,7 @@
     <Copyright>inkle Ltd</Copyright>
     <RepositoryUrl>https://github.com/inkle/ink</RepositoryUrl>
     <PackageProjectUrl>https://www.inklestudios.com/ink/</PackageProjectUrl>
-    <VersionPrefix>1.2.0</VersionPrefix>
+    <VersionPrefix>1.2.1</VersionPrefix>
     <PackageIcon>icon.png</PackageIcon>
     <Description>Compiler for the ink scripting language</Description>
     <RepositoryType>git</RepositoryType>
