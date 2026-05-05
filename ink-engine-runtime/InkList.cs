@@ -525,18 +525,15 @@ namespace Ink.Runtime
         }
 
         /// <summary>
-        /// Returns a sublist with the elements given the minimum and maxmimum bounds.
-        /// The bounds can either be ints which are indices into the entire (sorted) list,
-        /// or they can be InkLists themselves. These are intended to be single-item lists so
-        /// you can specify the upper and lower bounds. If you pass in multi-item lists, it'll
-        /// use the minimum and maximum items in those lists respectively.
-        /// WARNING: Calling this method requires a full sort of all the elements in the list.
+        /// Returns a sublist with the elements within the given minimum and maximum bounds.
+        /// The bounds can either be ints which represent item values, or they can be InkLists
+        /// themselves. These are intended to be single-item lists so you can specify the upper
+        /// and lower bounds. If you pass in multi-item lists, it'll use the minimum and maximum
+        /// items in those lists respectively.
         /// </summary>
         public InkList ListWithSubRange(object minBound, object maxBound) 
         {
             if (this.Count == 0) return new InkList();
-
-            var ordered = orderedItems;
 
             int minValue = 0;
             int maxValue = int.MaxValue;
@@ -562,7 +559,7 @@ namespace Ink.Runtime
 
             var subList = new InkList();
             subList.SetInitialOriginNames(originNames);
-            foreach(var item in ordered) {
+            foreach(var item in this) {
                 if( item.Value >= minValue && item.Value <= maxValue ) {
                     subList.Add(item.Key, item.Value);
                 }
