@@ -601,6 +601,9 @@ namespace Ink.Runtime
             choice.originalThreadIndex = (int)jObj ["originalThreadIndex"];
             choice.pathStringOnChoice = jObj ["targetPath"].ToString();
             choice.tags = JArrayToTags(jObj, choice);
+            if (jObj.ContainsKey("isInvisibleDefault")) {
+                choice.isInvisibleDefault = (bool)jObj["isInvisibleDefault"];
+            }
             return choice;
         }
 
@@ -624,6 +627,7 @@ namespace Ink.Runtime
             writer.WriteProperty("originalChoicePath", choice.sourcePath);
             writer.WriteProperty("originalThreadIndex", choice.originalThreadIndex);
             writer.WriteProperty("targetPath", choice.pathStringOnChoice);
+            writer.WriteProperty("isInvisibleDefault", choice.isInvisibleDefault);
             WriteChoiceTags(writer, choice);
             writer.WriteObjectEnd();
         }
