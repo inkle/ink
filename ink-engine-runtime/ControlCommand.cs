@@ -33,6 +33,10 @@ namespace Ink.Runtime
             ListRandom,
             BeginTag,
             EndTag,
+            StackPopNewest,
+            StackPopOldest,
+            StackPopRandom,
+            StackLiteralEnd,
             //----
             TOTAL_VALUES
         }
@@ -171,6 +175,26 @@ namespace Ink.Runtime
         public static ControlCommand EndTag ()
         {
             return new ControlCommand (CommandType.EndTag);
+        }
+
+        public static ControlCommand StackPopNewest()
+        {
+            return new ControlCommand(CommandType.StackPopNewest);
+        }
+
+        public static ControlCommand StackPopOldest()
+        {
+            return new ControlCommand(CommandType.StackPopOldest);
+        }
+
+        public static ControlCommand StackPopRandom()
+        {
+            return new ControlCommand(CommandType.StackPopRandom);
+        }
+
+        public static ControlCommand StackLiteralEnd()
+        {
+            return new ControlCommand(CommandType.StackLiteralEnd);
         }
 
         public override string ToString ()

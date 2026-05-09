@@ -22,7 +22,8 @@ namespace Ink.Runtime
 
         // Not used for coersion described above
         DivertTarget,
-        VariablePointer
+        VariablePointer,
+        Stack
     }
 
     public abstract class Value : Runtime.Object
@@ -58,6 +59,8 @@ namespace Ink.Runtime
                 return new DivertTargetValue ((Path)val);
             } else if (val is InkList) {
                 return new ListValue ((InkList)val);
+            } else if (val is InkStack) {
+                return new StackValue((InkStack)val);
             }
 
             return null;
@@ -399,6 +402,51 @@ namespace Ink.Runtime
             if (oldList && newList && newList.value.Count == 0)
                 newList.value.SetInitialOriginNames (oldList.value.originNames);
         }
+    }
+
+    public class StackValue : Value<InkStack>
+    {
+        public override ValueType valueType {
+            get {
+                return ValueType.Stack;
+            }
+        }
+
+        // Truthy if it is non-empty
+        public override bool isTruthy {
+            get {
+                return value.Count > 0;
+            }
+        }
+
+        public StackValue () : base(null) {
+            value = new InkStack ();
+        }
+
+        public StackValue (InkStack stack) : base (null)
+        {
+            value = stack;
+        }
+
+        /// There's an argument that stack could be coerced in
+        /// some ways, but given they only support equality comparison
+        /// it seems like it wouldn't be much gain
+        public override Value Cast(ValueType newType)
+        {
+            if (newType == valueType)
+                return this;
+
+            if (newType == ValueType.Bool)
+                return new BoolValue(isTruthy);
+
+            throw BadCastException (newType);
+        }
+
+        public override Object Copy()
+        {
+            return new StackValue(this.value);
+        }
+
     }
         
 }

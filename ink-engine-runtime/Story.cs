@@ -1648,6 +1648,62 @@ namespace Ink.Runtime
                         break;
                     }
 
+                case ControlCommand.CommandType.StackPopNewest: {
+                       var resultVar = state.PopEvaluationStack() as VariablePointerValue;
+                       if (resultVar == null)
+                           throw new StoryException("Expected variable reference for STACK_POP_NEWEST");
+                       var stackArg = state.PopEvaluationStack() as StackValue;
+                       if (stackArg == null)
+                           throw new StoryException("Expected stack for STACK_POP_NEWEST");
+                       Runtime.Object popped;
+                       var stackResult = stackArg.value.PopNewest(out popped);
+                       state.variablesState.Assign(new Runtime.VariableAssignment(resultVar.value, false), popped);
+                       state.PushEvaluationStack(new StackValue(stackResult));
+                       break;
+                   }
+                case ControlCommand.CommandType.StackPopOldest: {
+                        var resultVar = state.PopEvaluationStack() as VariablePointerValue;
+                        if (resultVar == null)
+                            throw new StoryException("Expected variable reference for STACK_POP_OLDEST");
+                        var stackArg = state.PopEvaluationStack() as StackValue;
+                        if (stackArg == null)
+                            throw new StoryException("Expected stack for STACK_POP_OLDEST");
+                        Runtime.Object popped;
+                        var stackResult = stackArg.value.PopOldest(out popped);
+                        state.variablesState.Assign(new Runtime.VariableAssignment(resultVar.value, false), popped);
+                        state.PushEvaluationStack(new StackValue(stackResult));
+                        break;
+                    }
+                case ControlCommand.CommandType.StackPopRandom: {
+                        var resultVar = state.PopEvaluationStack() as VariablePointerValue;
+                        if (resultVar == null)
+                            throw new StoryException("Expected variable reference for STACK_POP_RANDOM");
+                        var stackArg = state.PopEvaluationStack() as StackValue;
+                        if (stackArg == null)
+                            throw new StoryException("Expected stack for STACK_POP_RANDOM");
+
+                        // Generate a random index for the element to take
+                        var resultSeed = state.storySeed + state.previousRandom;
+                        var random = new Random (resultSeed);
+
+                        var nextRandom = random.Next ();
+                        Runtime.Object popped;
+                        var stackResult = stackArg.value.PopNth(out popped, nextRandom % stackArg.value.Count);
+                        state.variablesState.Assign(new Runtime.VariableAssignment(resultVar.value, false), popped);
+                        state.PushEvaluationStack(new StackValue(stackResult));
+                        state.previousRandom = nextRandom;
+
+                        break;
+                    }
+
+                case ControlCommand.CommandType.StackLiteralEnd: {
+                        var stackCount = state.PopEvaluationStack() as IntValue;
+                        var contents = state.PopEvaluationStack(stackCount.value);
+                        var runtimeStack = new InkStack(contents.Select((v) => (Value)v));
+                        state.PushEvaluationStack(new StackValue(runtimeStack));
+                        break;
+                    }
+
                 default:
                     Error ("unhandled ControlCommand: " + evalCommand);
                     break;

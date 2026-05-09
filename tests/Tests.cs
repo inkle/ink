@@ -3647,6 +3647,212 @@ One, Two, Three
 Pizza, Pasta
 ".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
         }
+
+        [Test()]
+        public void TestStackEquality()
+        {
+            var storyStr =
+        @"
+LIST food = butter, bread, marmite
+VAR just_butter = [bread, butter]
+VAR sandwich = [bread, butter, marmite]
+VAR dropped_sandwich = [marmite, butter, bread]
+VAR lunch = [bread, butter, marmite]
+
+{
+- just_butter == lunch:
+  Boooooring
+- dropped_sandwich == lunch:
+  Oops.
+- sandwich == lunch:
+  Nice
+}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"Nice
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+
+        [Test()]
+        public void TestStackPopOldest()
+        {
+            var storyStr =
+        @"
+LIST food = bread, butter
+VAR myStack = [butter]
+~myStack += bread
+VAR popped = ()
+{myStack}
+~myStack = STACK_POP_OLDEST(myStack, popped)
+{popped}
+~myStack = STACK_POP_OLDEST(myStack, popped)
+{popped}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"butter, bread
+butter
+bread
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+
+
+        [Test()]
+        public void TestStackWithDiverts()
+        {
+            var storyStr =
+        @"
+VAR myStack = [ -> target ]
+VAR myTarget = -> not_target
+
+~STACK_POP_NEWEST(myStack, myTarget)
+
+-> myTarget
+
+=== target
+This is the way
+-> END
+
+=== not_target
+This is not the way
+-> END
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"This is the way
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+        
+        [Test()]
+        public void TestStackPopNewest()
+        {
+            var storyStr =
+        @"
+LIST food = bread, butter
+VAR myStack = []
+~myStack += butter
+~myStack += bread
+VAR popped = ()
+{myStack}
+~myStack = STACK_POP_NEWEST(myStack, popped)
+{popped}
+~myStack = STACK_POP_NEWEST(myStack, popped)
+{popped}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"butter, bread
+bread
+butter
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+
+        [Test()]
+        public void TestStackAddition()
+        {
+            var storyStr =
+        @"
+VAR myStack1 = [111, ""hello""]
+VAR myStack2 = [222, ""flowers""]
+VAR myStack = []
+~myStack = myStack1 + myStack2
+{myStack}
+~myStack = myStack2 + myStack1
+{myStack}
+~myStack += 333
+{myStack}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"111, hello, 222, flowers
+222, flowers, 111, hello
+222, flowers, 111, hello, 333
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+
+        [Test()]
+        public void TestStackSubtraction()
+        {
+            var storyStr =
+        @"
+VAR myStack = [111, ""hello"", 111, ""flowers""]
+{myStack}
+~myStack -= 111
+{myStack}
+~myStack += 111
+{myStack}
+~myStack -= [111, 111]
+{myStack}
+";
+
+            var story = CompileString(storyStr);
+
+            Assert.AreEqual(
+@"111, hello, 111, flowers
+hello, 111, flowers
+hello, 111, flowers, 111
+hello, flowers
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
+
+        [Test()]
+        public void TestStackingThreads()
+        {
+            var storyStr =
+        @"
+LIST cards = Punch1, Punch2, Kick1, Kick2, Dodge1, Dodge2
+VAR hand = []
+VAR played = ()
+
+Hello
+
+~hand += Punch1
+~hand += Punch1
+~hand += Kick1
+
+-> branching(hand) ->
+
+Done! You played {played}!
+
+=== branching(options)
+{ STACK_COUNT(options) == 0:
+  * ->->
+- else:
+  ~temp nextOption = ()
+  ~temp rest = STACK_POP_NEWEST(options, nextOption)
+
+  <- branching(rest)
+  * [{nextOption}]
+    ~played += nextOption
+    ->->
+}
+";
+
+            var story = CompileString(storyStr);
+            var intro = story.ContinueMaximally();
+
+            Assert.AreEqual(
+@"Hello
+".Replace(Environment.NewLine, "\n"), intro);
+            Assert.AreEqual("Punch1", story.currentChoices[0].text);
+            Assert.AreEqual("Punch1", story.currentChoices[1].text);
+            Assert.AreEqual("Kick1", story.currentChoices[2].text);
+            story.ChooseChoiceIndex(0);
+            Assert.AreEqual(
+@"Done! You played Punch1!
+".Replace(Environment.NewLine, "\n"), story.ContinueMaximally());
+        }
            
         // Fix for rogue "can't use as sub-expression" bug
         [Test()]
