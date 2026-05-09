@@ -7,11 +7,11 @@ namespace Ink
 {
     public class PluginManager
     {
-        public PluginManager (List<string> pluginDirectories)
+        public PluginManager (List<string> pluginDirectories, List<IPlugin> plugins = null)
         {
-            _plugins = new List<IPlugin> ();
+            _plugins = plugins != null ? plugins : new List<IPlugin>();
 
-            foreach (string pluginName in pluginDirectories) 
+            foreach (string pluginName in pluginDirectories)
             {
                 foreach (string file in Directory.GetFiles(pluginName, "*.dll"))
                 {
