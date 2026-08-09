@@ -821,6 +821,13 @@ The section on [functions](#5-functions) outlines the syntax here a bit more cle
 
 ... and have the game react to content the player saw *just now*.
 
+### READ_COUNT(-> KNOT)
+`READ_COUNT` returns the number of times a knot or stitch was visited.
+This is the same as testing a label directly. However, if you have stored a divert target in a variable, you will need to use `READ_COUNT` to access this information.
+
+	VAR relevant_clue = -> seen_clue
+	* {READ_COUNT(relevant_clue) > 4} I have to stop this quickly!
+	
 ### SEED_RANDOM()
 
 For testing purposes, it's often useful to fix the random number generator so ink will produce the same outcomes every time you play. You can do this by "seeding" the random number system.
