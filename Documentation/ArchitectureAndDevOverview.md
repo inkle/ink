@@ -53,7 +53,7 @@ public List<object> OneOrMore(ParseRule rule)
 List<object> multipleConditions = OneOrMore (SingleMultilineCondition)
 ```
 
-Similarly, but even more powerfully, the `Interleave` method patterns of the form ABABA etc. Frequently, this is used to interleave some core content with whitespace. Here's an example that parses the arguments to a flow (e.g. knot, stitch or function), that is a series of identifiers separated by commas:
+Similarly, but even more powerfully, the `Interleave` method creates patterns of the form ABABA etc. Frequently, this is used to interleave some core content with whitespace. Here's an example that parses the arguments to a flow (for example knot, stitch or function), that is a series of identifiers separated by commas:
 
 ```csharp
 var flowArguments = Interleave<FlowBase.Argument>(
