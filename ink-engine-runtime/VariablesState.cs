@@ -344,21 +344,13 @@ namespace Ink.Runtime
             _defaultGlobalVariables = new Dictionary<string, Object> (_globalVariables);
         }
 
-        void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
-        {
-            var oldList = oldValue as ListValue;
-            var newList = newValue as ListValue;
-            if (oldList && newList && newList.value.Count == 0)
-                newList.value.SetInitialOriginNames (oldList.value.originNames);
-        }
-
         public void SetGlobal(string variableName, Runtime.Object value)
         {
             Runtime.Object oldValue = null;
             if( patch == null || !patch.TryGetGlobal(variableName, out oldValue) )
                 _globalVariables.TryGetValue (variableName, out oldValue);
 
-            ListValue.RetainListOriginsForAssignment (oldValue, value);
+            value = ListValue.PrepareValueForAssignment (oldValue, value);
 
             if (patch != null)
                 patch.SetGlobal(variableName, value);

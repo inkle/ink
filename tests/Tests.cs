@@ -2904,6 +2904,25 @@ LIST x = a, b, c
             Assert.AreEqual ("a, b, c\n", story.ContinueMaximally ());
         }
 
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestEmptyListAssignmentPreservesSourceOrigin(bool temporary)
+        {
+            var declarations = temporary
+                ? "~ temp first = a1\n~ temp second = b1\n~ clear(first)\n~ clear(second)\n"
+                : "~ clear(Alpha)\n~ clear(Bravo)\n";
+            var first = temporary ? "first" : "Alpha";
+            var second = temporary ? "second" : "Bravo";
+            var storyStr = "LIST Alpha = a1, a2\nLIST Bravo = b1, b2\n"
+                + declarations
+                + "~ " + first + " = " + second + "\n"
+                + "{LIST_ALL(" + first + ")}\n{LIST_ALL(" + second + ")}\n"
+                + "-> END\n=== function clear(ref xs)\n~ xs = ()\n";
+            var story = CompileString(storyStr);
+            Assert.AreEqual("a1, a2\nb1, b2\n", story.ContinueMaximally());
+        }
+
         [Test ()]
         public void TestListSaveLoad ()
         {

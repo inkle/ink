@@ -390,14 +390,28 @@ namespace Ink.Runtime
             };
         }
 
-        public static void RetainListOriginsForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
+        public static Runtime.Object PrepareValueForAssignment (Runtime.Object oldValue, Runtime.Object newValue)
         {
             var oldList = oldValue as ListValue;
             var newList = newValue as ListValue;
 
-            // When assigning the emtpy list, try to retain any initial origin names
-            if (oldList && newList && newList.value.Count == 0)
-                newList.value.SetInitialOriginNames (oldList.value.originNames);
+            // Retain origins for a list after assignment, even when a list becomes empty,
+            // so that when you want to get the full list of items via LIST_ALL, it still knows
+            // what LIST(s) the newly empty list container referred to.
+            //
+            // Note that we also need to make a copy of the list, since when popping a value off
+            // the stack, it might be a shared list reference, so we don't want to accidentally
+            // corrupt it by changing the origins of the wrong empty list.
+            //
+            // We do that at assignment time since it's okay to *read* the value of a list without
+            // copying it, which would create unnecessary garbage.
+            if (oldList && newList && newList.value.Count == 0) {
+                var copy = new ListValue (newList.value);
+                copy.value.SetInitialOriginNames (oldList.value.originNames);
+                return copy;
+            }
+
+            return newValue;
         }
     }
         
