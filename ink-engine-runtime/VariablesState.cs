@@ -310,6 +310,12 @@ namespace Ink.Runtime
                 var varPointer = value as VariablePointerValue;
                 if (varPointer) {
                     var fullyResolvedVariablePointer = ResolveVariablePointer (varPointer);
+                    // A divert to a knot reuses the current temporary scope. If a
+                    // reference parameter has the same name as its argument, the
+                    // existing variable already occupies the parameter's slot.
+                    if (!setGlobal && fullyResolvedVariablePointer.variableName == name &&
+                        fullyResolvedVariablePointer.contextIndex == _callStack.currentElementIndex + 1)
+                        return;
                     value = fullyResolvedVariablePointer;
                 }
 

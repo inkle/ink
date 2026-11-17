@@ -2269,6 +2269,43 @@ VAR val = 5
         }
 
         [Test()]
+        public void TestVariablePointerRefFromRoot()
+        {
+            var story = CompileString(@"
+~ temp scene = 0
+-> Start(scene)
+
+=== Start(ref scene)
+~ scene++
+SCENE {scene}
+-> END
+");
+            Assert.AreEqual("SCENE 1\n", story.ContinueMaximally());
+        }
+
+        [Test()]
+        public void TestVariablePointerRefFromNestedTemporary()
+        {
+            var story = CompileString(@"
+-> outer ->
+-> END
+
+=== outer ===
+~ temp value = 1
+~ increment(value)
+{value}
+->->
+
+=== function increment(ref value) ===
+~ incrementAgain(value)
+
+=== function incrementAgain(ref value) ===
+~ value++
+");
+            Assert.AreEqual("2\n", story.ContinueMaximally());
+        }
+
+        [Test()]
         public void TestVariableSwapRecurse()
         {
             var storyStr = @"
