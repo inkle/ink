@@ -550,6 +550,36 @@ This is default.
         }
 
         [Test()]
+        public void TestFallbackChoicesHiddenAfterLoad()
+        {
+            Story story = CompileString(@"
+- (start)
+* [Choice 1]
+* [Choice 2]
+* -> fallback
+- After choice
+-> start
+
+== fallback ==
+This is fallback.
+-> DONE
+");
+
+            Assert.AreEqual("", story.Continue());
+            Assert.AreEqual(2, story.currentChoices.Count);
+            Assert.AreEqual("Choice 1", story.currentChoices[0].text);
+            Assert.AreEqual("Choice 2", story.currentChoices[1].text);
+
+            var savedState = story.state.ToJson();
+
+            story.state.LoadJson(savedState);
+
+            Assert.AreEqual(2, story.currentChoices.Count);
+            Assert.AreEqual("Choice 1", story.currentChoices[0].text);
+            Assert.AreEqual("Choice 2", story.currentChoices[1].text);
+        }
+
+        [Test()]
         public void TestDefaultSimpleGather()
         {
             var story = CompileString(@"
