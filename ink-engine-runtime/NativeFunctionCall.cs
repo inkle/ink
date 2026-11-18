@@ -45,6 +45,11 @@ namespace Ink.Runtime
         public const string ValueOfList = "LIST_VALUE";
         public const string Invert    = "LIST_INVERT";
 
+        public const string StackCount = "STACK_COUNT";
+        public const string PopOldest = "STACK_POP_OLDEST";
+        public const string PopNewest = "STACK_POP_NEWEST";
+        public const string PopRandom = "STACK_POP_RANDOM";
+
         public static NativeFunctionCall CallWithName(string functionName)
         {
             return new NativeFunctionCall (functionName);
@@ -101,6 +106,19 @@ namespace Ink.Runtime
                     hasList = true;
             }
 
+            // In the case of binary operations with stacks, we treat the
+            // second value as a stack with one item in it. This allows
+            // most operations to work as expected; add adds an item to
+            // the stack, equality is true if the stack contains only that
+            // one value, etc.
+            if ( parameters.Count == 2 && parameters[0] is StackValue && !(parameters[1] is StackValue)) {
+                var callParams = new List<Value>();
+                callParams.Add(parameters[0] as StackValue);
+                var y = new StackValue(new InkStack(parameters[1] as Value));
+                callParams.Add(y);
+                return Call<InkStack>(callParams);
+            }
+
             // Binary operations on lists are treated outside of the standard coerscion rules
             if( parameters.Count == 2 && hasList )
                 return CallBinaryListOperation (parameters);
@@ -118,6 +136,8 @@ namespace Ink.Runtime
                 return Call<Path> (coercedParams);
             } else if (coercedType == ValueType.List) {
                 return Call<InkList> (coercedParams);
+            } else if (coercedType == ValueType.Stack) {
+                return Call<InkStack>(coercedParams);
             }
 
             return null;
@@ -419,6 +439,15 @@ namespace Ink.Runtime
                 AddListUnaryOp (Count,  (x) => x.Count);
                 AddListUnaryOp (ValueOfList,  (x) => x.maxItem.Value);
 
+                // Stack operations
+                AddStackBinaryOp(Add, (x, y) => x.Addition(y));
+                AddStackBinaryOp(Subtract, (x, y) => x.Subtract(y));
+                AddStackBinaryOp(Equal, (x, y) => x.Equals(y));
+                AddStackBinaryOp(And, (x, y) => x.Count > 0 && y.Count > 0);
+                AddStackBinaryOp(Or, (x, y) => x.Count > 0 || y.Count > 0);
+
+                AddStackUnaryOp(StackCount, (x) => x.Count);
+
                 // Special case: The only operations you can do on divert target values
                 BinaryOp<Path> divertTargetsEqual = (Path d1, Path d2) => {
                     return d1.Equals (d2);
@@ -480,6 +509,16 @@ namespace Ink.Runtime
         static void AddListUnaryOp (string name, UnaryOp<InkList> op)
         {
             AddOpToNativeFunc (name, 1, ValueType.List, op);
+        }
+
+        static void AddStackBinaryOp (string name, BinaryOp<InkStack> op)
+        {
+            AddOpToNativeFunc(name, 2, ValueType.Stack, op);
+        }
+
+        static void AddStackUnaryOp (string name, UnaryOp<InkStack> op)
+        {
+            AddOpToNativeFunc(name, 1, ValueType.Stack, op);
         }
 
         static void AddFloatUnaryOp(string name, UnaryOp<float> op)

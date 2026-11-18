@@ -16,6 +16,9 @@ namespace Ink.Parsed
         public bool isListRange { get { return name == "LIST_RANGE"; } }
         public bool isListRandom { get { return name == "LIST_RANDOM"; } }
         public bool isReadCount { get { return name == "READ_COUNT"; } }
+        public bool isStackPopNewest { get { return name == "STACK_POP_NEWEST"; } }
+        public bool isStackPopOldest { get { return name == "STACK_POP_OLDEST"; } }
+        public bool isStackPopRandom { get { return name == "STACK_POP_RANDOM"; } }
 
         public bool shouldPopReturnedValue;
 
@@ -122,6 +125,48 @@ namespace Ink.Parsed
 
                 container.AddContent (Runtime.ControlCommand.ListRandom ());
 
+            } else if (isStackPopNewest) {
+                if (arguments == null || arguments.Count != 2)
+                    Error("STACK_POP_NEWEST should take 2 parameter - a stack, and a variable to assign the popped value to");
+
+                var reference = arguments[1];
+                if (!(reference is VariableReference))
+                {
+                    Error("STACK_POP_NEWEST should take 2 parameter - a stack, and a variable to assign the popped value to");
+                }
+
+
+                arguments[0].GenerateIntoContainer(container);
+                container.AddContent(new Runtime.VariablePointerValue((reference as VariableReference).name));
+                container.AddContent(Runtime.ControlCommand.StackPopNewest());
+
+            } else if (isStackPopOldest) {
+                if (arguments == null || arguments.Count != 2)
+                    Error("STACK_POP_OLDEST should take 2 parameter - a stack, and a variable to assign the popped value to");
+
+                var reference = arguments[1];
+                if (!(reference is VariableReference))
+                {
+                    Error("STACK_POP_OLDEST should take 2 parameter - a stack, and a variable to assign the popped value to");
+                }
+
+                arguments[0].GenerateIntoContainer(container);
+                container.AddContent(new Runtime.VariablePointerValue((reference as VariableReference).name));
+                container.AddContent(Runtime.ControlCommand.StackPopOldest());
+
+            } else if (isStackPopRandom) {
+                if (arguments == null || arguments.Count != 2)
+                    Error("STACK_POP_RANDOM should take 2 parameter - a stack, and a variable to assign the popped value to");
+
+                var reference = arguments[1];
+                if (!(reference is VariableReference))
+                {
+                    Error("STACK_POP_RANDOM should take 2 parameter - a stack, and a variable to assign the popped value to");
+                }
+
+                arguments[0].GenerateIntoContainer(container);
+                container.AddContent(new Runtime.VariablePointerValue((reference as VariableReference).name));
+                container.AddContent(Runtime.ControlCommand.StackPopRandom());
             } else if (Runtime.NativeFunctionCall.CallExistsWithName (name)) {
 
                 var nativeCall = Runtime.NativeFunctionCall.CallWithName (name);

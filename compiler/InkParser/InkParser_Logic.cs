@@ -97,8 +97,8 @@ namespace Ink
             var expr = definition as Parsed.Expression;
 
             if (expr) {
-                if (!(expr is Number || expr is StringExpression || expr is DivertTarget || expr is VariableReference || expr is List)) {
-                    Error ("initial value for a variable must be a number, constant, list or divert target");
+                if (!(validInitialValue(expr) || expr is Stack)) {
+                    Error ("initial value for a variable must be a number, constant, list, stack or divert target");
                 }
 
                 if (Parse (ListElementDefinitionSeparator) != null)
@@ -110,6 +110,15 @@ namespace Ink
                     if (!strExpr.isSingleString)
                         Error ("Constant strings cannot contain any logic.");
                 }
+                // Ensure stack literals don't contain invalid values for initial value
+                else if (expr is Stack) {
+                    var stackExpr = expr as Stack;
+                    foreach(var value in stackExpr.contents) {
+                        if(!(validInitialValue(value))) {
+                            Error ("initial values in a stack variable must be a number, constant, list or divert target");
+                        }
+                    }
+                }
 
                 var result = new VariableAssignment (varName, expr);
                 result.isGlobalDeclaration = true;
@@ -117,6 +126,10 @@ namespace Ink
             }
 
             return null;
+
+            bool validInitialValue(Expression expression) {
+                return (expression is Number || expression is StringExpression || expression is DivertTarget || expression is VariableReference || expression is List);
+            }
         }
 
         protected Parsed.VariableAssignment ListDeclaration ()

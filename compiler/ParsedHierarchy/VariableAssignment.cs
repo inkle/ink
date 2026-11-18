@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Ink.Parsed
 {
@@ -87,6 +88,10 @@ namespace Ink.Parsed
             if (this.isGlobalDeclaration) {
                 var variableReference = expression as VariableReference;
                 if (variableReference && !variableReference.isConstantReference && !variableReference.isListItemReference) {
+                    Error ("global variable assignments cannot refer to other variables, only literal values, constants and list items");
+                }
+                var stack = expression as Stack;
+                if(stack && !stack.isValidGlobalStackLiteral) {
                     Error ("global variable assignments cannot refer to other variables, only literal values, constants and list items");
                 }
             }

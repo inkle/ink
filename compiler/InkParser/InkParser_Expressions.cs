@@ -188,7 +188,7 @@ namespace Ink
 
             // - Since we allow numbers at the start of variable names, variable names are checked before literals
             // - Function calls before variable names in case we see parentheses
-            var expr = OneOf (ExpressionList, ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral) as Expression;
+            var expr = OneOf (ExpressionList, ExpressionParen, ExpressionFunctionCall, ExpressionVariableName, ExpressionLiteral, ExpressionStack) as Expression;
 
             // Only recurse immediately if we have one of the (usually optional) unary ops
             if (expr == null && prefixOp != null) {
@@ -414,6 +414,17 @@ namespace Ink
 
             return null;
 		}
+
+
+        protected Parsed.Stack ExpressionStack() {
+            Whitespace();
+            if(ParseString ("[") == null) { return null; };
+            Whitespace();
+            List<Expression> contents = SeparatedList(Expression, Spaced(String(",")));
+            Whitespace();
+            if (ParseString("]") == null) { return null;};
+            return new Stack(contents);
+        }
 
         protected Parsed.List ExpressionList ()
         {

@@ -61,6 +61,10 @@ namespace Ink.Parsed
                     }
                     foundUsage = true;
                 }
+                else if (usageParent is Stack) {
+                    badUsage = false;
+                    foundUsage = true;
+                }
                 else if (usageParent is Expression) {
                     badUsage = true;
                     foundUsage = true;
