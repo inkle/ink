@@ -10,6 +10,7 @@ namespace Ink
         {
             public string sourceFilename;
             public List<string> pluginDirectories;
+            public List<IPlugin> plugins;
             public bool countAllVisits;
             public Ink.ErrorHandler errorHandler;
             public Ink.IFileHandler fileHandler;
@@ -25,8 +26,11 @@ namespace Ink
         {
             _inputString = inkSource;
             _options = options ?? new Options();
-            if( _options.pluginDirectories != null )
-                _pluginManager = new PluginManager (_options.pluginDirectories);
+            if( _options.pluginDirectories != null || _options.plugins != null)
+            {
+                var directories = _options.pluginDirectories != null ? _options.pluginDirectories : new List<string>();
+                _pluginManager = new PluginManager(directories, _options.plugins);
+            }
         }
 
         public Parsed.Story Parse()
