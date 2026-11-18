@@ -587,7 +587,7 @@ The above "multiple conditions" are really just conditions with an the usual pro
 
 	*	{ not (visit_paris or visit_rome) && (visit_london || visit_new_york) } [ Wait. Go where? I'm confused. ] -> visit_someplace
 
-For non-programmers `X and Y` means both X and Y must be true. `X or Y` means either or both. We don't have a `xor`.
+For non-programmers `X and Y` means both X and Y must be true. `X or Y` means either or both. We don't have a `xor`, but you could jury rig one with `(X and not Y) or (Y and not X)`.
 
 You can also use the standard `!` for `not`, though it'll sometimes confuse the compiler which thinks `{!text}` is a once-only list. We recommend using `not` because negated boolean tests are never that exciting.
 
