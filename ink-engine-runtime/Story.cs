@@ -2005,7 +2005,7 @@ namespace Ink.Runtime
             var arguments = new List<object>();
             for (int i = 0; i < numberOfArguments; ++i) {
                 var poppedObj = state.PopEvaluationStack () as Value;
-                var valueObj = poppedObj.valueObject;
+                var valueObj = poppedObj?.valueObject;
                 arguments.Add (valueObj);
             }
 
