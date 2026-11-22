@@ -105,6 +105,17 @@ Text content from the game will appear 'as is' when the engine runs. However, it
 
 These don't show up in the main text flow, but can be read off by the game and used as you see fit. See [Running Your Ink](RunningYourInk.md#marking-up-your-ink-content-with-tags) for more information.
 
+### Escape characters
+
+So does this mean it's not possible to use a `#` or `//` in any of my lines? No! You are free to use any symbol you want so long as you include an excape character before.
+
+The `\` key can be used to tell **ink** to ignore any special effects a character might have, allowing you to use any character you want in your dialogue.
+
+	This language is so good! \#Winning
+	
+Would be output as:
+
+	This language is so good! #Winning
 
 ## 2) Choices
 
