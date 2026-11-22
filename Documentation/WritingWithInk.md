@@ -503,7 +503,7 @@ A fallback choice is simply a "choice without choice text":
 
 	*	-> out_of_options
 
-And, in a slight abuse of syntax, we can make a default choice with content in it, using an "choice then arrow":
+And, in a slight abuse of syntax, we can make a default choice with content in it, using a "choice then arrow":
 
 	* 	->
 		Mulder never could explain how he got out of that burning box car. -> season_2
@@ -583,13 +583,13 @@ You can use several logical tests on an option; if you do, *all* the tests must 
 
 #### Logical operators: AND and OR
 
-The above "multiple conditions" are really just conditions with an the usual programming AND operator. Ink supports `and` (also written as `&&`) and `or` (also written as `||`) in the usual way, as well as brackets.
+The above "multiple conditions" are really just conditions with an implied `and` operator. Ink supports `and` (also written as `&&`) and `or` (also written as `||`) in the usual way, as well as brackets.
 
 	*	{ not (visit_paris or visit_rome) && (visit_london || visit_new_york) } [ Wait. Go where? I'm confused. ] -> visit_someplace
 
-For non-programmers `X and Y` means both X and Y must be true. `X or Y` means either or both. We don't have a `xor`.
+For non-programmers `X and Y` means both X and Y must be true. `X or Y` means either or both. We don't have an `xor` (X *or* Y must be true, but not both).
 
-You can also use the standard `!` for `not`, though it'll sometimes confuse the compiler which thinks `{!text}` is a once-only list. We recommend using `not` because negated boolean tests are never that exciting.
+You can also use the standard `!` for `not`, though it'll sometimes confuse the compiler which thinks `{!text}` is a [once-only list](#types-of-alternatives). We recommend using `not` because negated boolean tests are never that exciting.
 
 #### Advanced: knot/stitch labels are actually read counts
 
@@ -1293,7 +1293,7 @@ This can be useful in debugging. For more complex printing based on logic and va
 
 ### Evaluating strings
 
-It might be noticed that above we refered to variables as being able to contain "content", rather than "strings". That was deliberate, because a string defined in ink can contain ink - although it will always evaluate to a string. (Yikes!)
+It might be noticed that above we referred to variables as being able to contain "content", rather than "strings". That was deliberate, because a string defined in ink can contain ink - although it will always evaluate to a string. (Yikes!)
 
 	VAR a_colour = ""
 
@@ -1578,7 +1578,7 @@ The value in a temporary variable is thrown away after the story leaves the stit
 
 A particularly useful form of temporary variable is a parameter. Any knot or stitch can be given a value as a parameter.
 
-	*	[Accuse Hasting]
+	*	[Accuse Hastings]
 			-> accuse("Hastings")
 	*	[Accuse Mrs Black]
 			-> accuse("Claudia")
@@ -1845,7 +1845,7 @@ Wrapping up simple operations in function can also provide a simple place to put
 
 ### Global Constants
 
-Interactive stories often rely on state machines, tracking what stage some higher level process has reached. There are lots of ways to do this, but the most conveninent is to use constants.
+Interactive stories often rely on state machines, tracking what stage some higher level process has reached. There are lots of ways to do this, but the most convenient is to use constants.
 
 Sometimes, it's convenient to define constants to be strings, so you can print them out, for gameplay or debugging purposes.
 
@@ -2002,32 +2002,32 @@ Sometimes, in a story, things happen. So sometimes a tunnel can't guarantee that
 
 Still, there are cases where it's indispensable:
 
-	=== fall_down_cliff 
-	-> hurt(5) -> 
+	=== fall_down_cliff
+	-> hurt(5) ->
 	You're still alive! You pick yourself up and walk on.
-	
+
 	=== hurt(x)
-		~ stamina -= x 
+		~ stamina -= x
 		{ stamina <= 0:
 			->-> youre_dead
 		}
-	
+
 	=== youre_dead
 	Suddenly, there is a white light all around you. Fingers lift an eyepiece from your forehead. 'You lost, buddy. Out of the chair.'
-	 
+
 And even in less drastic situations, we might want to break up the structure:
- 
+
 	-> talk_to_jim ->
- 
+
 	 === talk_to_jim
-	 - (opts) 	
-		*	[ Ask about the warp lacelles ] 
+	 - (opts)
+		*	[ Ask about the warp lacelles ]
 			-> warp_lacells ->
-		*	[ Ask about the shield generators ] 
-			-> shield_generators ->	
+		*	[ Ask about the shield generators ]
+			-> shield_generators ->
 		* 	[ Stop talking ]
 			->->
-	 - -> opts 
+	 - -> opts
 
 	 = warp_lacells
 		{ shield_generators : ->-> argue }
@@ -2038,9 +2038,9 @@ And even in less drastic situations, we might want to break up the structure:
 		{ warp_lacells : ->-> argue }
 		"Forget about the shield generators. They're good."
 		->->
-	 
-	 = argue 
-	 	"What's with all these questions?" Jim demands, suddenly. 
+
+	 = argue
+	 	"What's with all these questions?" Jim demands, suddenly.
 	 	...
 	 	->->
 
@@ -2486,7 +2486,7 @@ Note that if you're defining your own values, you can place the brackets around 
 
 	LIST primeNumbers = (two = 2), (three) = 3, (five = 5)
 
-#### Assiging multiple values
+#### Assigning multiple values
 
 We can assign all the values of the list at once as follows:
 
@@ -2568,14 +2568,14 @@ does not mean neither Adams nor Bernard is present, only that they are not *both
 
 #### Warning: no lists contain the empty list
 
-Note that the test 
+Note that the test
 
 	SomeList ? ()
 
 will always return false, regardless of whether `SomeList` itself is empty. In practice this is the most useful default, as you'll often want to do tests like:
 
-	SilverWeapons ? best_weapon_to_use 
-	
+	SilverWeapons ? best_weapon_to_use
+
 to fail if the player is empty-handed.
 
 #### Example: basic knowledge tracking
@@ -2660,7 +2660,7 @@ It's probably also useful to have an is/are function to hand:
 
 	My favourite dinosaurs {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
-And to be pendantic:
+And to be pedantic:
 
 	My favourite dinosaur{LIST_COUNT(favouriteDinosaurs) != 1:s} {isAre(favouriteDinosaurs)} {listWithCommas(favouriteDinosaurs, "all extinct")}.
 
@@ -2671,7 +2671,7 @@ Lists don't *have* to contain multiple values. If you want to use a list as a st
 
 ### The "full" list
 
-Note that `LIST_COUNT`, `LIST_MIN` and `LIST_MAX` are refering to who's in/out of the list, not the full set of *possible* doctors. We can access that using
+Note that `LIST_COUNT`, `LIST_MIN` and `LIST_MAX` are referring to who's in/out of the list, not the full set of *possible* doctors. We can access that using
 
 	LIST_ALL(element of list)
 
@@ -2707,13 +2707,13 @@ You can also retrieve just a "slice" of the full list, using the `LIST_RANGE` fu
 and
 
 	LIST_RANGE(list_name, min_value, max_value)
-	
+
 Min and max values here are inclusive. If the game can’t find the values, it’ll get as close as it can, but never go outside the range. So for example:
 
-	{LIST_RANGE(LIST_ALL(primeNumbers), 10, 20)} 
+	{LIST_RANGE(LIST_ALL(primeNumbers), 10, 20)}
 
-will produce 
-	
+will produce
+
 	11, 13, 17, 19
 
 
@@ -2803,7 +2803,7 @@ To demonstrate a few of these ideas, here's a functional Tower of Hanoi example,
 	        { stopping:
 	        -   The priests far below construct a great harness, and after many years of work, the great stone ring is lifted up into the air, and swung over to the next of the temples.
 	            The ropes are slashed, and in the blink of an eye it falls once more.
-	        -   Your next decree is met with a great feast and many sacrifices. After the funeary smoke has cleared, work to shift the great stone ring begins in earnest. A generation grows and falls, and the ring falls into its ordained place.
+	        -   Your next decree is met with a great feast and many sacrifices. After the funerary smoke has cleared, work to shift the great stone ring begins in earnest. A generation grows and falls, and the ring falls into its ordained place.
 	        -   {cycle:
 	            - Years pass as the ring is slowly moved.
 	            - The priests below fight a war over what colour robes to wear, but while they fall and die, the work is still completed.
@@ -3004,97 +3004,97 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 
 	// Helper function: popping elements from lists
 	=== function pop(ref list)
-	   ~ temp x = LIST_MIN(list) 
-	   ~ list -= x 
+	   ~ temp x = LIST_MIN(list)
+	   ~ list -= x
 	   ~ return x
-	
+
 	//
 	//  System: items can have various states
 	//  Some are general, some specific to particular items
 	//
-	
+
 
 	LIST OffOn = off, on
 	LIST SeenUnseen = unseen, seen
-	
+
 	LIST GlassState = (none), steamed, steam_gone
 	LIST BedState = (made_up), covers_shifted, covers_off, bloodstain_visible
-	
+
 	//
 	// System: inventory
 	//
-	
+
 	LIST Inventory = (none), cane, knife
-	
+
 	=== function get(x)
 	    ~ Inventory += x
-	
+
 	//
 	// System: positioning things
 	// Items can be put in and on places
 	//
-	
+
 	LIST Supporters = on_desk, on_floor, on_bed, under_bed, held, with_joe
-	
+
 	=== function move_to_supporter(ref item_state, new_supporter) ===
 	    ~ item_state -= LIST_ALL(Supporters)
 	    ~ item_state += new_supporter
-	
-	
+
+
 	// System: Incremental knowledge.
-	// Each list is a chain of facts. Each fact supersedes the fact before 
+	// Each list is a chain of facts. Each fact supersedes the fact before
 	//
-	
+
 	VAR knowledgeState = ()
-	
-	=== function reached (x) 
-	   ~ return knowledgeState ? x 
-	
-	=== function between(x, y) 
+
+	=== function reached (x)
+	   ~ return knowledgeState ? x
+
+	=== function between(x, y)
 	   ~ return knowledgeState? x && not (knowledgeState ^ y)
-	
-	=== function reach(statesToSet) 
+
+	=== function reach(statesToSet)
 	   ~ temp x = pop(statesToSet)
 	   {
-	   - not x: 
-	      ~ return false 
-	
+	   - not x:
+	      ~ return false
+
 	   - not reached(x):
 	      ~ temp chain = LIST_ALL(x)
 	      ~ temp statesGained = LIST_RANGE(chain, LIST_MIN(chain), x)
 	      ~ knowledgeState += statesGained
 	      ~ reach (statesToSet) 	// set any other states left to set
 	      ~ return true  	       // and we set this state, so true
-	 
+
 	    - else:
-	      ~ return false || reach(statesToSet) 
-	    }	
-	
+	      ~ return false || reach(statesToSet)
+	    }
+
 	//
 	// Set up the game
 	//
-	
+
 	VAR bedroomLightState = (off, on_desk)
-	
+
 	VAR knifeState = (under_bed)
-	
-	
+
+
 	//
 	// Knowledge chains
 	//
-	
-	
+
+
 	LIST BedKnowledge = neatly_made, crumpled_duvet, hastily_remade, body_on_bed, murdered_in_bed, murdered_while_asleep
-	
+
 	LIST KnifeKnowledge = prints_on_knife, joe_seen_prints_on_knife,joe_wants_better_prints, joe_got_better_prints
-	
+
 	LIST WindowKnowledge = steam_on_glass, fingerprints_on_glass, fingerprints_on_glass_match_knife
-	
-	
+
+
 	//
 	// Content
 	//
-	
+
 	=== murder_scene ===
 	    The bedroom. This is where it happened. Now to look for clues.
 	- (top)
@@ -3234,8 +3234,8 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
         -> joe_in_hall
 
     -   -> top
-	
-	
+
+
 	= operate_lamp
 	    I flicked the light switch.
 	    { bedroomLightState ? on:
@@ -3248,34 +3248,34 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        ~ bedroomLightState += on
 	    }
 	    ->->
-	
-	
+
+
 	= compare_prints (-> backto)
-	    *   { between ((fingerprints_on_glass, prints_on_knife),     fingerprints_on_glass_match_knife) } 
+	    *   { between ((fingerprints_on_glass, prints_on_knife),     fingerprints_on_glass_match_knife) }
 	[Compare the prints on the knife and the window ]
 	        Holding the bloodied knife near the window, I breathed to bring out the prints once more, and compared them as best I could.
-	        Hardly scientific, but they seemed very similar - very similiar indeed.
+	        Hardly scientific, but they seemed very similar - very similar indeed.
 	        ~ reach (fingerprints_on_glass_match_knife)
 	        -> backto
-	
+
 	= see_prints_on_glass
 	    ~ reach (fingerprints_on_glass)
-	    {But I could see a few fingerprints, as though someone hadpressed their palm against it.|The fingerprints were quite clear and well-formed.} They faded as I watched.
+	    {But I could see a few fingerprints, as though someone had pressed their palm against it.|The fingerprints were quite clear and well-formed.} They faded as I watched.
 	    ~ GlassState = steam_gone
 	    ->->
-	
+
 	= seen_light
 	    *   {bedroomLightState !? on} [ Turn on lamp ]
 	        -> operate_lamp ->
-	
+
 	    *   { bedroomLightState !? on_bed  && BedState ? bloodstain_visible }
 	        [ Move the light to the bed ]
 	        ~ move_to_supporter(bedroomLightState, on_bed)
-	
+
 	        I moved the light over to the bloodstain and peered closely at it. It had soaked deeply into the fibres of the cotton sheet.
 	        There was no doubt about it. This was where the blow had been struck.
 	        ~ reach (murdered_in_bed)
-	
+
 	    *   { bedroomLightState !? on_desk } {TURNS_SINCE(-> floorit) >= 2 }
 	        [ Move the light back to the desk ]
 	        ~ move_to_supporter(bedroomLightState, on_desk)
@@ -3285,7 +3285,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	        ~ move_to_supporter(bedroomLightState, on_floor)
 	        I picked the light up and set it down on the floor.
 	    -   -> top
-	
+
 	=== joe_in_hall
 	    My police contact, Joe, was waiting in the hall. 'So?' he demanded. 'Did you find anything interesting?'
 	- (found)
@@ -3295,7 +3295,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	    *   { Inventory ? knife } 'I found the murder weapon.'
 	        'Good going!' Joe replied with a grin. 'We thought the murderer had gotten rid of it. I'll bag that for you now.'
 	        ~ move_to_supporter(knifeState, with_joe)
-	
+
 	    *   {reached(prints_on_knife)} { knifeState ? with_joe }
 	        'There are prints on the blade[.'],' I told him.
 	        He regarded them carefully.
@@ -3327,7 +3327,7 @@ Finally, here's a long example, demonstrating a lot of ideas from this section i
 	                    ~ reach (murdered_while_asleep)
 	        * *     'Perhaps the murderer hoped to clean up the scene.'
 	                'But they were disturbed? It's possible.'
-	
+
 	    *   { found > 1} 'That's it.'
 	        'All right. It's a start,' Joe replied.
 	        -> done
@@ -3397,10 +3397,10 @@ Example:
 
 # Part 6: International character support in identifiers
 
-By default, ink has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exsits
-on the characters that can be used for names of constants, variables, stictches, diverts and other named flow elements (a.k.a. *identifiers*).
+By default, **ink** has no limitations on the use of non-ASCII characters inside the story content. However, a limitation currently exists
+on the characters that can be used for names of constants, variables, stitches, diverts and other named flow elements (a.k.a. *identifiers*).
 
-Sometimes it is inconvenient for a writer using a non-ASCII language to write a story because they have to constantly switch to naming identifiers in ASCII and then switching back to whatever language they are using for the story. In addition, naming identifiers in the author's own language could improve the overal readibility of the raw story format.
+Sometimes it is inconvenient for a writer using a non-ASCII language to write a story because they have to constantly switch to naming identifiers in ASCII and then switching back to whatever language they are using for the story. In addition, naming identifiers in the author's own language could improve the overall readability of the raw story format.
 
 In an effort to assist in the above scenario, ink *automatically* supports a list of pre-defined non-ASCII character ranges that can be used as identifiers. In general, those ranges have been selected to include the alpha-numeric subset of the official unicode character range, which would suffice for naming identifiers. The below section gives more detailed information on the non-ASCII characters that ink automatically supports.
 

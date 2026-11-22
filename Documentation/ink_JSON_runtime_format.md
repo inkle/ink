@@ -49,8 +49,8 @@ Values may also be used in logic/calculations, for example with the `int` and `f
 
 Supported types:
 
-* **string**: Represented with a leading `^` to differentiate from other string-based objects. e.g. `"^Hello world"` is used in JSON to represent the text `Hello world`, and `"^^ up there ^"` would be the text `^ up there ^`. No `^` is needed for a newline, so it's just `"\n"`.
-* **int** and **float**: these are represented using their standard JSON counterparts. e.g. `5`, `5.6`.
+* **string**: Represented with a leading `^` to differentiate from other string-based objects. For example `"^Hello world"` is used in JSON to represent the text `Hello world`, and `"^^ up there ^"` would be the text `^ up there ^`. No `^` is needed for a newline, so it's just `"\n"`.
+* **int** and **float**: these are represented using their standard JSON counterparts. For example `5`, `5.6`.
 * **divert target**: represents a variable divert target, for example as used in the following ink:
 
         VAR x = -> somewhere
@@ -99,7 +99,7 @@ These are mathematical and logical functions that pop 1 or 2 arguments from the 
 
 `"+"`, `"-"`, `"/"`, `"*"`, `"%"` (mod), `"_"` (unary negate), `"=="`, `">"`, `"<"`, `">="`, `"<="`, `"!="`, `"!"` (unary 'not'), `"&&"`, `"||"`, `"MIN"`, `"MAX"`
 
-Booleans are supported only in the C-style - i.e. as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
+Booleans are supported only in the C-style - that is, as integers where non-zero is treated as "true" and zero as "false". The true result of a boolean operation is pushed to the evaluation stack as `1`.
 
 ## Divert
 
