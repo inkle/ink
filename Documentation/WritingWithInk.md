@@ -1344,6 +1344,8 @@ and the following will test conditions:
 	{POW(16, 0.5)} is 4.
 
 
+Multiplication, division and remainder have the same precedence and are evaluated from left to right. For example, `{ 10 * 8 / 10 }` gives 8. Grouping the division first with parentheses changes the result. `{ 10 * (8 / 10) }` gives 0 because ink divides integers here.
+
 If more complex operations are required, one can write functions (using recursion if necessary), or call out to external, game-code functions (for anything more advanced).
 
 

@@ -491,10 +491,10 @@ namespace Ink
 			RegisterBinaryOperator ("+", precedence:4);
 			RegisterBinaryOperator ("-", precedence:5);
 			RegisterBinaryOperator ("*", precedence:6);
-			RegisterBinaryOperator ("/", precedence:7);
+			RegisterBinaryOperator ("/", precedence:6);
 
-            RegisterBinaryOperator ("%", precedence:8);
-            RegisterBinaryOperator ("mod", precedence:8, requireWhitespace:true);
+            RegisterBinaryOperator ("%", precedence:6);
+            RegisterBinaryOperator ("mod", precedence:6, requireWhitespace:true);
 
 
 		}

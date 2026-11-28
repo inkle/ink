@@ -89,6 +89,16 @@ Nothing
             Assert.AreEqual("36\n2\n3\n2\n2"+System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator+"3333333\n8\n8\n", story.ContinueMaximally());
         }
 
+        [TestCase("10 * 8 / 10", 8)]
+        [TestCase("10 * (8 / 10)", 0)]
+        [TestCase("2 * 5 % 3", 1)]
+        [TestCase("18 / 3 mod 4", 2)]
+        public void TestMultiplicativeOperatorPrecedence(string expression, int expected)
+        {
+            var CompiledStory = CompileString("{ " + expression + " }");
+            Assert.AreEqual(expected + "\n", CompiledStory.ContinueMaximally());
+        }
+
         [Test()]
         public void TestBasicStringLiterals()
         {
